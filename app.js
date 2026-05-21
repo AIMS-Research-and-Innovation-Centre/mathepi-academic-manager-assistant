@@ -3,6 +3,8 @@ const ICONS = {
     '<path d="M22 12h-4l-3 7L9 5l-3 7H2"/><path d="M22 12h-4l-3 7L9 5l-3 7H2"/>',
   alert:
     '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  appointment:
+    '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><path d="m9 15 2 2 4-4"/>',
   book:
     '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H22"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H22v20H6.5A2.5 2.5 0 0 1 4 19.5z"/><path d="M8 7h8"/><path d="M8 11h6"/>',
   calendar:
@@ -31,6 +33,8 @@ const ICONS = {
     '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
   moon:
     '<path d="M12 3a6 6 0 0 0 9 7.4A9 9 0 1 1 12 3Z"/>',
+  planner:
+    '<path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M14 3v6h6"/><path d="M8 13h7"/><path d="M8 17h5"/>',
   phone:
     '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.7 2.6a2 2 0 0 1-.5 2.1L8.1 9.6a16 16 0 0 0 6.3 6.3l1.2-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.6 2.6.7a2 2 0 0 1 1.7 2Z"/>',
   plus:
@@ -1221,6 +1225,217 @@ const DEFAULT_TASKS = [
   },
 ];
 
+const PLANNER_TYPES = {
+  Study: { label: "Study block", color: "blue" },
+  Revision: { label: "Revision", color: "green" },
+  Assignment: { label: "Assignment", color: "gold" },
+  Reading: { label: "Reading", color: "teal" },
+  Wellness: { label: "Wellness", color: "maroon" },
+  Research: { label: "Research", color: "danger" },
+};
+
+const DEFAULT_PLANNER_TASKS = [
+  {
+    id: "plan-001",
+    ownerId: "student-01",
+    title: "Set up R and Python workflow",
+    type: "Study",
+    courseCode: "MES05",
+    date: "2026-09-07",
+    time: "16:00",
+    duration: 90,
+    priority: "High",
+    status: "Planned",
+    notes: "Install packages, test notebooks, and prepare a reproducible project folder.",
+  },
+  {
+    id: "plan-002",
+    ownerId: "student-01",
+    title: "Mathematical problem-solving clinic prep",
+    type: "Revision",
+    courseCode: "MES01",
+    date: "2026-09-08",
+    time: "07:30",
+    duration: 60,
+    priority: "Medium",
+    status: "In progress",
+    notes: "Review proof strategies and collect questions for the tutor clinic.",
+  },
+  {
+    id: "plan-003",
+    ownerId: "student-01",
+    title: "Probability flash review",
+    type: "Reading",
+    courseCode: "MES04",
+    date: "2026-09-10",
+    time: "19:00",
+    duration: 45,
+    priority: "Medium",
+    status: "Planned",
+    notes: "Read conditional probability examples before the statistics block begins.",
+  },
+  {
+    id: "plan-004",
+    ownerId: "student-01",
+    title: "Weekly recovery window",
+    type: "Wellness",
+    courseCode: "MES01",
+    date: "2026-09-12",
+    time: "10:00",
+    duration: 120,
+    priority: "High",
+    status: "Planned",
+    notes: "Protected rest window to keep study load sustainable.",
+  },
+  {
+    id: "plan-005",
+    ownerId: "student-01",
+    title: "Internship topic scan",
+    type: "Research",
+    courseCode: "MEI01",
+    date: "2026-09-30",
+    time: "15:00",
+    duration: 75,
+    priority: "Low",
+    status: "Planned",
+    notes: "Start a shortlist of mathematical epidemiology project themes and possible host groups.",
+  },
+];
+
+const INTERNAL_RECIPIENTS = [
+  {
+    id: "manager-01",
+    name: "Academic & Research Manager",
+    kind: "Academic Manager",
+    email: "academic.manager@aimsric.org",
+  },
+  {
+    id: "coord-01",
+    name: "Centre Coordinator - Student Logistics",
+    kind: "Centre Coordinator",
+    email: "coordinator.logistics@aimsric.org",
+  },
+  {
+    id: "coord-02",
+    name: "Centre Coordinator - Facilities",
+    kind: "Centre Coordinator",
+    email: "coordinator.facilities@aimsric.org",
+  },
+  {
+    id: "head-tutor-01",
+    name: "Head Tutor",
+    kind: "Head Tutor",
+    email: "head.tutor@aimsric.org",
+  },
+];
+
+const DEFAULT_AVAILABILITY = [
+  {
+    id: "av-001",
+    personId: "tut-01",
+    day: "Tuesday",
+    time: "15:00-17:00",
+    mode: "Hybrid",
+    location: "KEMRI tutorial room / Meet",
+    focus: "Coding clinics and reproducible workflows",
+  },
+  {
+    id: "av-002",
+    personId: "lec-07",
+    day: "Thursday",
+    time: "11:00-12:30",
+    mode: "Online",
+    location: "Google Meet",
+    focus: "Epidemiology concepts and reading guidance",
+  },
+  {
+    id: "av-003",
+    personId: "manager-01",
+    day: "Monday",
+    time: "14:00-16:00",
+    mode: "In person",
+    location: "Academic office",
+    focus: "Academic planning, internship guidance, and wellbeing escalation",
+  },
+  {
+    id: "av-004",
+    personId: "coord-01",
+    day: "Wednesday",
+    time: "10:00-12:00",
+    mode: "In person",
+    location: "Student services desk",
+    focus: "Travel, accommodation, and logistics support",
+  },
+  {
+    id: "av-005",
+    personId: "head-tutor-01",
+    day: "Friday",
+    time: "13:00-15:00",
+    mode: "Hybrid",
+    location: "Tutorial coordination room",
+    focus: "Tutor load, student support routing, and course clinics",
+  },
+];
+
+const DEFAULT_APPOINTMENTS = [
+  {
+    id: "apt-001",
+    requesterId: "student-01",
+    targetId: "tut-01",
+    courseCode: "MES05",
+    category: "Tutorial support",
+    preferredDate: "2026-09-09",
+    time: "15:30",
+    duration: 30,
+    mode: "Hybrid",
+    status: "Confirmed",
+    summary: "Clarify package installation and reproducible report structure.",
+    privateNote: "Tutor should check whether the student has access to the lab machines.",
+  },
+  {
+    id: "apt-002",
+    requesterId: "student-01",
+    targetId: "lec-07",
+    courseCode: "MEC01",
+    category: "Course clarification",
+    preferredDate: "2026-11-05",
+    time: "11:00",
+    duration: 30,
+    mode: "Online",
+    status: "Requested",
+    summary: "Ask how surveillance data examples connect to study designs.",
+    privateNote: "No private note yet.",
+  },
+  {
+    id: "apt-003",
+    requesterId: "tut-01",
+    targetId: "head-tutor-01",
+    courseCode: "MES05",
+    category: "Tutor workload",
+    preferredDate: "2026-09-12",
+    time: "13:30",
+    duration: 45,
+    mode: "In person",
+    status: "Awaiting confirmation",
+    summary: "Review student support demand and rebalance coding clinic coverage.",
+    privateNote: "Watch tutor workload before the statistics block starts.",
+  },
+  {
+    id: "apt-004",
+    requesterId: "student-01",
+    targetId: "manager-01",
+    courseCode: "MEI01",
+    category: "Internship guidance",
+    preferredDate: "2026-10-01",
+    time: "14:30",
+    duration: 30,
+    mode: "In person",
+    status: "Draft",
+    summary: "Discuss early internship interests and expected preparation path.",
+    privateNote: "Good candidate for early project scoping.",
+  },
+];
+
 const ROLES = {
   "super-admin": {
     label: "Super Admin",
@@ -1230,8 +1445,10 @@ const ROLES = {
     views: [
       "dashboard",
       "calendar",
+      "planner",
       "courses",
       "people",
+      "appointments",
       "contact",
       "timesheets",
       "tasks",
@@ -1244,42 +1461,42 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "contact", "timesheets", "tasks", "google"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
     hint: "Manager-level visibility for coordination, without write access",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "contact", "timesheets", "tasks", "google"],
   },
   "head-tutor": {
     label: "Head Tutor",
     hint: "Tutor workload, tutor profiles, assigned work, and lecturer-course tracking",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "contact", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "contact", "timesheets", "tasks"],
   },
   lecturer: {
     label: "Lecturer",
     hint: "Assigned courses, timetable, materials, and confirmation",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "contact"],
+    views: ["dashboard", "calendar", "courses", "appointments", "contact"],
   },
   tutor: {
     label: "Tutor",
     hint: "Assigned tutorials, course materials, timesheet logging, and workload balance",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "appointments", "timesheets", "tasks"],
   },
   student: {
     label: "Student",
-    hint: "Calendar, courses, and teaching team for each course",
+    hint: "Calendar, courses, teaching teams, planner, and appointment requests",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses"],
+    views: ["dashboard", "calendar", "planner", "courses", "appointments"],
   },
   viewer: {
     label: "Viewer / Partner",
@@ -1293,13 +1510,15 @@ const ROLES = {
 const NAV = [
   { id: "dashboard", label: "Command", icon: "command" },
   { id: "calendar", label: "Calendar", icon: "calendar" },
+  { id: "planner", label: "Student Planner", short: "Planner", icon: "planner" },
   { id: "courses", label: "Courses", icon: "book" },
-  { id: "people", label: "Lecturers & Tutors", icon: "users" },
+  { id: "people", label: "Lecturers & Tutors", short: "People", icon: "users" },
+  { id: "appointments", label: "Appointments", icon: "appointment" },
   { id: "contact", label: "Contact Hub", icon: "mail" },
   { id: "timesheets", label: "Timesheets", icon: "clock" },
   { id: "tasks", label: "Tasks & Activities", icon: "activity" },
-  { id: "google", label: "Sheets & Drive", icon: "cloud" },
-  { id: "access", label: "Access Control", icon: "shield" },
+  { id: "google", label: "Sheets & Drive", short: "Sheets", icon: "cloud" },
+  { id: "access", label: "Access Control", short: "Access", icon: "shield" },
 ];
 
 const STATUS_COLOR = {
@@ -1312,23 +1531,47 @@ const STATUS_COLOR = {
   "Replacement needed": "danger",
 };
 
+const PLANNER_STATUS_COLOR = {
+  Planned: "blue",
+  "In progress": "gold",
+  Done: "green",
+  Deferred: "gray",
+};
+
+const APPOINTMENT_STATUS_COLOR = {
+  Draft: "gray",
+  Requested: "blue",
+  "Awaiting confirmation": "gold",
+  Confirmed: "green",
+  "Reschedule proposed": "gold",
+  Completed: "green",
+  Cancelled: "danger",
+  "No-show": "danger",
+};
+
 const state = {
   view: "dashboard",
   role: "manager",
   query: "",
   calendarMode: "timeline",
+  plannerMode: "week",
+  appointmentMode: "mine",
   blockId: "block-4",
   selected: null,
   drawer: null,
   toast: null,
   theme: localStorage.getItem("mathepi-theme") || "light",
   googleConnected: false,
+  studentCalendarConnected: localStorage.getItem("mathepi-student-calendar") === "true",
   courses: load("mathepi-courses", DEFAULT_COURSES),
   people: load("mathepi-people", DEFAULT_PEOPLE),
   blocks: load("mathepi-blocks", DEFAULT_BLOCKS),
   sessions: load("mathepi-sessions", DEFAULT_SESSIONS),
   timesheets: load("mathepi-timesheets", DEFAULT_TIMESHEETS),
   tasks: load("mathepi-tasks", DEFAULT_TASKS),
+  plannerTasks: load("mathepi-planner-tasks", DEFAULT_PLANNER_TASKS),
+  appointments: load("mathepi-appointments", DEFAULT_APPOINTMENTS),
+  availability: load("mathepi-availability", DEFAULT_AVAILABILITY),
 };
 
 function migrateProgrammeData() {
@@ -1391,6 +1634,10 @@ function save() {
   localStorage.setItem("mathepi-sessions", JSON.stringify(state.sessions));
   localStorage.setItem("mathepi-timesheets", JSON.stringify(state.timesheets));
   localStorage.setItem("mathepi-tasks", JSON.stringify(state.tasks));
+  localStorage.setItem("mathepi-planner-tasks", JSON.stringify(state.plannerTasks));
+  localStorage.setItem("mathepi-appointments", JSON.stringify(state.appointments));
+  localStorage.setItem("mathepi-availability", JSON.stringify(state.availability));
+  localStorage.setItem("mathepi-student-calendar", String(state.studentCalendarConnected));
 }
 
 function icon(name, size = 20) {
@@ -1493,6 +1740,163 @@ function filteredPeople(kind = null) {
 
 function currentTutorId() {
   return "tut-01";
+}
+
+function currentStudentId() {
+  return "student-01";
+}
+
+function currentLecturerId() {
+  return "lec-07";
+}
+
+function currentActorId() {
+  const map = {
+    student: currentStudentId(),
+    tutor: currentTutorId(),
+    lecturer: currentLecturerId(),
+    "head-tutor": "head-tutor-01",
+    manager: "manager-01",
+    "centre-coordinator": "coord-01",
+    "super-admin": "manager-01",
+  };
+  return map[state.role] || "viewer";
+}
+
+function appointmentContacts() {
+  return [
+    { id: currentStudentId(), name: "MathEpi Student", kind: "Student", email: "student@mathepi.local" },
+    ...INTERNAL_RECIPIENTS,
+    ...state.people.map((item) => ({
+      id: item.id,
+      name: item.name,
+      kind: item.kind,
+      email: item.email,
+    })),
+  ];
+}
+
+function appointmentPerson(id) {
+  return appointmentContacts().find((item) => item.id === id);
+}
+
+function participantName(id) {
+  return appointmentPerson(id)?.name || "Unknown participant";
+}
+
+function participantKind(id) {
+  return appointmentPerson(id)?.kind || "Unknown role";
+}
+
+function visiblePlannerTasks() {
+  if (state.role === "student") {
+    return state.plannerTasks.filter((item) => item.ownerId === currentStudentId());
+  }
+  return state.plannerTasks;
+}
+
+function plannerAnchorDate(tasks = visiblePlannerTasks()) {
+  const first = tasks
+    .slice()
+    .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))[0];
+  return new Date(`${first?.date || "2026-09-07"}T10:00:00`);
+}
+
+function weekStart(date) {
+  const d = new Date(date);
+  const offset = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - offset);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function sameIsoDate(date, iso) {
+  return date.toISOString().slice(0, 10) === iso;
+}
+
+function plannerTasksForMode() {
+  const tasks = visiblePlannerTasks();
+  const anchor = plannerAnchorDate(tasks);
+  const start = weekStart(anchor);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return tasks.filter((item) => {
+    const d = new Date(`${item.date}T10:00:00`);
+    if (state.plannerMode === "day") return sameIsoDate(anchor, item.date);
+    if (state.plannerMode === "month") {
+      return d.getMonth() === anchor.getMonth() && d.getFullYear() === anchor.getFullYear();
+    }
+    return d >= start && d <= end;
+  });
+}
+
+function plannerStatusBadge(status) {
+  return `<span class="badge ${PLANNER_STATUS_COLOR[status] || "gray"}">${status}</span>`;
+}
+
+function appointmentStatusBadge(status) {
+  return `<span class="badge ${APPOINTMENT_STATUS_COLOR[status] || "gray"}">${status}</span>`;
+}
+
+function visibleAppointments() {
+  const actor = currentActorId();
+  if (["super-admin", "manager", "centre-coordinator"].includes(state.role)) return state.appointments;
+  if (state.role === "head-tutor") {
+    return state.appointments.filter((item) => {
+      const requesterKind = participantKind(item.requesterId);
+      const targetKind = participantKind(item.targetId);
+      return (
+        item.requesterId === actor ||
+        item.targetId === actor ||
+        requesterKind === "Tutor" ||
+        targetKind === "Tutor"
+      );
+    });
+  }
+  return state.appointments.filter((item) => item.requesterId === actor || item.targetId === actor);
+}
+
+function visibleAvailability() {
+  const actor = currentActorId();
+  if (["super-admin", "manager", "centre-coordinator", "student"].includes(state.role)) return state.availability;
+  if (state.role === "head-tutor") {
+    return state.availability.filter((item) => participantKind(item.personId) === "Tutor" || item.personId === actor);
+  }
+  return state.availability.filter((item) => item.personId === actor || item.personId === "manager-01");
+}
+
+function canCreateAppointment() {
+  return state.role !== "viewer";
+}
+
+function canUpdateAppointment(item) {
+  if (canEdit()) return true;
+  if (state.role === "centre-coordinator" || state.role === "viewer") return false;
+  const actor = currentActorId();
+  return item.requesterId === actor || item.targetId === actor;
+}
+
+function appointmentTargetOptions() {
+  const contacts = appointmentContacts().filter((item) => item.id !== currentActorId());
+  if (state.role === "student") {
+    return contacts.filter((item) =>
+      ["Tutor", "Lecturer", "Academic Manager", "Centre Coordinator"].includes(item.kind),
+    );
+  }
+  if (state.role === "tutor") {
+    return contacts.filter((item) =>
+      ["Head Tutor", "Academic Manager", "Centre Coordinator", "Lecturer"].includes(item.kind),
+    );
+  }
+  if (state.role === "lecturer") {
+    return contacts.filter((item) =>
+      ["Tutor", "Head Tutor", "Academic Manager", "Centre Coordinator"].includes(item.kind),
+    );
+  }
+  if (state.role === "head-tutor") {
+    return contacts.filter((item) => ["Tutor", "Lecturer", "Academic Manager"].includes(item.kind));
+  }
+  return contacts;
 }
 
 function visibleTimesheets() {
@@ -1677,6 +2081,22 @@ function setRole(role) {
   render();
 }
 
+function topbarAction() {
+  if (canEdit()) {
+    return `<button class="button primary" onclick="openDrawer('quickAdd')">${icon("plus", 18)}Add</button>`;
+  }
+  if (state.view === "planner" && state.role === "student") {
+    return `<button class="button primary" onclick="openDrawer('plannerForm')">${icon("plus", 18)}Plan</button>`;
+  }
+  if (state.view === "appointments" && canCreateAppointment()) {
+    return `<button class="button primary" onclick="openDrawer('appointmentForm')">${icon("appointment", 18)}Request</button>`;
+  }
+  if (state.view === "timesheets" && state.role === "tutor") {
+    return `<button class="button primary" onclick="openDrawer('timesheetForm')">${icon("clock", 18)}Log time</button>`;
+  }
+  return `<button class="button ghost" disabled>${icon("shield", 18)}Read only</button>`;
+}
+
 function appLayout() {
   const nav = NAV.filter((item) => canView(item.id));
   const viewMeta = NAV.find((item) => item.id === state.view) || NAV[0];
@@ -1736,11 +2156,7 @@ function appLayout() {
               ${icon(state.theme === "dark" ? "sun" : "moon", 18)}
               <span>${state.theme === "dark" ? "Light" : "Dark"}</span>
             </button>
-            ${
-              canEdit()
-                ? `<button class="button primary" onclick="openDrawer('quickAdd')">${icon("plus", 18)}Add</button>`
-                : `<button class="button ghost" disabled>${icon("shield", 18)}Read only</button>`
-            }
+            ${topbarAction()}
           </div>
         </header>
         <main class="main">${renderView()}</main>
@@ -1753,7 +2169,9 @@ function appLayout() {
 }
 
 function mobileNav(nav) {
-  const mobile = nav.slice(0, 5);
+  const first = nav.slice(0, 5);
+  const active = nav.find((item) => item.id === state.view);
+  const mobile = active && !first.some((item) => item.id === active.id) ? [...nav.slice(0, 4), active] : first;
   return `
     <nav class="mobile-bottom-nav">
       ${mobile
@@ -1761,7 +2179,7 @@ function mobileNav(nav) {
           (item) => `
           <button class="${state.view === item.id ? "active" : ""}" onclick="setView('${item.id}')">
             ${icon(item.icon, 21)}
-            <span>${item.label.split(" ")[0]}</span>
+            <span>${item.short || item.label.split(" ")[0]}</span>
           </button>
         `,
         )
@@ -1774,10 +2192,14 @@ function renderView() {
   switch (state.view) {
     case "calendar":
       return renderCalendar();
+    case "planner":
+      return renderStudentPlanner();
     case "courses":
       return renderCourses();
     case "people":
       return renderPeople();
+    case "appointments":
+      return renderAppointments();
     case "contact":
       return renderContact();
     case "timesheets":
@@ -1822,22 +2244,7 @@ function renderDashboard() {
       </section>
 
       <section class="quick-grid">
-        ${quick("Contact lecturer", "Open the tracker and next follow-up actions.", "mail", "maroon", "setView('contact')")}
-        ${
-          canEdit()
-            ? quick("Schedule session", "Add a lecture, practical, tutorial, or assessment.", "calendar", "teal", "openDrawer('sessionForm')")
-            : quick("My timetable", "Review assigned courses and upcoming sessions.", "calendar", "teal", "setView('calendar')")
-        }
-        ${
-          canView("timesheets")
-            ? quick("Timesheets", "Track tutor hours, activities, and balance signals.", "clock", "gold", "setView('timesheets')")
-            : quick("Course view", "Review approved course information.", "book", "gold", "setView('courses')")
-        }
-        ${
-          canView("tasks")
-            ? quick("Task board", "Pre-arrival documentation, travel, housing, facilities, and appointments.", "activity", "green", "setView('tasks')")
-            : quick("Course view", "Review approved programme information.", "book", "green", "setView('courses')")
-        }
+        ${dashboardQuickActions().map((item) => quick(item.title, item.text, item.icon, item.color, item.action)).join("")}
       </section>
 
       <section class="section-grid">
@@ -1898,6 +2305,79 @@ function renderDashboard() {
       </section>
     </div>
   `;
+}
+
+function dashboardQuickActions() {
+  if (state.role === "student") {
+    return [
+      {
+        title: "Student planner",
+        text: "Plan day, week, and month study blocks with balance signals.",
+        icon: "planner",
+        color: "blue",
+        action: "setView('planner')",
+      },
+      {
+        title: "Book support",
+        text: "Request time with tutors, lecturers, coordinators, or the manager.",
+        icon: "appointment",
+        color: "teal",
+        action: "setView('appointments')",
+      },
+      {
+        title: "My timetable",
+        text: "Review block sessions and course timing.",
+        icon: "calendar",
+        color: "gold",
+        action: "setView('calendar')",
+      },
+      {
+        title: "Course team",
+        text: "Open courses to see lecturers, tutors, and descriptions.",
+        icon: "book",
+        color: "green",
+        action: "setView('courses')",
+      },
+    ];
+  }
+  return [
+    {
+      title: canView("contact") ? "Contact lecturer" : "Course view",
+      text: canView("contact")
+        ? "Open the tracker and next follow-up actions."
+        : "Review approved course information.",
+      icon: canView("contact") ? "mail" : "book",
+      color: "maroon",
+      action: canView("contact") ? "setView('contact')" : "setView('courses')",
+    },
+    {
+      title: canEdit() ? "Schedule session" : "My timetable",
+      text: canEdit()
+        ? "Add a lecture, practical, tutorial, or assessment."
+        : "Review assigned courses and upcoming sessions.",
+      icon: "calendar",
+      color: "teal",
+      action: canEdit() ? "openDrawer('sessionForm')" : "setView('calendar')",
+    },
+    {
+      title: canView("appointments") ? "Appointments" : "Course view",
+      text: canView("appointments")
+        ? "See booking requests, availability, and support demand."
+        : "Review approved course information.",
+      icon: canView("appointments") ? "appointment" : "book",
+      color: "gold",
+      action: canView("appointments") ? "setView('appointments')" : "setView('courses')",
+    },
+    {
+      title: canView("tasks") ? "Task board" : "Course view",
+      text: canView("tasks")
+        ? "Pre-arrival documentation, travel, housing, facilities, and appointments."
+        : "Review approved programme information.",
+      icon: canView("tasks") ? "activity" : "book",
+      color: "green",
+      action: canView("tasks") ? "setView('tasks')" : "setView('courses')",
+    },
+  ];
 }
 
 function kpi(label, value, note, iconName, color) {
@@ -2524,6 +3004,251 @@ function renderTasks() {
   `;
 }
 
+function renderStudentPlanner() {
+  const tasks = visiblePlannerTasks();
+  const shown = plannerTasksForMode();
+  const totalHours = Math.round(tasks.reduce((sum, item) => sum + Number(item.duration || 0) / 60, 0) * 10) / 10;
+  const completed = tasks.filter((item) => item.status === "Done").length;
+  const focus = shown.find((item) => item.priority === "High" && item.status !== "Done") || shown[0] || tasks[0];
+  const dayLoads = tasks.reduce((acc, item) => {
+    acc[item.date] = (acc[item.date] || 0) + Number(item.duration || 0) / 60;
+    return acc;
+  }, {});
+  const busiest = Object.entries(dayLoads).sort((a, b) => b[1] - a[1])[0];
+  const canPlan = state.role === "student" || canEdit();
+  return `
+    <div class="view planner-view">
+      <section class="planner-hero">
+        <div>
+          <span class="mission-eyebrow">${icon("planner", 16)} Smart student planning system</span>
+          <h2>Convert the academic calendar into a sustainable personal study rhythm.</h2>
+          <p>Students can plan daily, weekly, and monthly study work, keep optional Google Calendar sync separate, and request support before overload becomes invisible.</p>
+        </div>
+        <div class="planner-metrics">
+          ${kpi("Planned hours", totalHours, "across visible student plan", "clock", "blue")}
+          ${kpi("Completed", completed, "planner items finished", "check", "green")}
+        </div>
+      </section>
+
+      <section class="section-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Student Planner</h2>
+              <p>Day, week, and month planning with course-linked tasks.</p>
+            </div>
+            <div class="toolbar">
+              <div class="tabs">
+                ${["day", "week", "month"]
+                  .map(
+                    (mode) =>
+                      `<button class="tab ${state.plannerMode === mode ? "active" : ""}" onclick="state.plannerMode='${mode}'; render()">${mode}</button>`,
+                  )
+                  .join("")}
+              </div>
+              ${canPlan ? `<button class="button primary" onclick="openDrawer('plannerForm')">${icon("plus", 17)}Plan item</button>` : ""}
+            </div>
+          </div>
+          <div class="card-body planner-board">
+            ${
+              shown.length
+                ? shown.map(renderPlannerTaskCard).join("")
+                : `<div class="empty">No planner items for this ${state.plannerMode}. Add a focused study block, revision session, or wellbeing window.</div>`
+            }
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Planning Intelligence</h2>
+              <p>Lightweight nudges for workload, deadlines, and support.</p>
+            </div>
+            <span class="badge ${busiest && busiest[1] > 5 ? "danger" : "green"}">${busiest && busiest[1] > 5 ? "Heavy day" : "Balanced"}</span>
+          </div>
+          <div class="card-body assistant-stack">
+            <div class="priority">
+              <span class="icon-box blue">${icon("spark", 18)}</span>
+              <div>
+                <strong>Today&apos;s academic focus</strong>
+                <span>${focus ? `${focus.title} for ${focus.courseCode} at ${focus.time}.` : "No immediate focus item yet."}</span>
+              </div>
+            </div>
+            <div class="priority">
+              <span class="icon-box ${busiest && busiest[1] > 5 ? "danger" : "green"}">${icon("activity", 18)}</span>
+              <div>
+                <strong>Balance signal</strong>
+                <span>${
+                  busiest
+                    ? `${shortDate(busiest[0])} carries ${Math.round(busiest[1] * 10) / 10} planned hours. ${busiest[1] > 5 ? "Move one item or book support." : "The current spread looks manageable."}`
+                    : "Add study blocks to activate balance signals."
+                }</span>
+              </div>
+            </div>
+            <div class="priority">
+              <span class="icon-box gold">${icon("appointment", 18)}</span>
+              <div>
+                <strong>Support suggestion</strong>
+                <span>${focus ? `If ${focus.courseCode} feels stuck, book a tutor or lecturer appointment from the Appointments tab.` : "Use appointments when a course item remains unresolved."}</span>
+              </div>
+            </div>
+            <div class="sync-panel">
+              <div>
+                <h4>Optional Google Calendar</h4>
+                <p>Planner works without Google. Students may sign in with their own Gmail later to sync selected items, avoid conflicts, and receive reminders.</p>
+              </div>
+              <button class="button ${state.studentCalendarConnected ? "soft" : "ghost"}" onclick="toggleStudentCalendarSync()">
+                ${icon(state.studentCalendarConnected ? "check" : "cloud", 17)}
+                ${state.studentCalendarConnected ? "Calendar linked" : "Connect optional"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderPlannerTaskCard(item) {
+  const meta = PLANNER_TYPES[item.type] || PLANNER_TYPES.Study;
+  const linkedCourse = course(item.courseCode);
+  return `
+    <article class="planner-card">
+      <div class="planner-card-top">
+        <span class="icon-box ${meta.color}">${icon(item.type === "Wellness" ? "activity" : "planner", 18)}</span>
+        <div>
+          <h4>${item.title}</h4>
+          <p>${dateLabel(item.date)} at ${item.time} &middot; ${item.duration} min</p>
+        </div>
+      </div>
+      <p>${item.notes}</p>
+      <div class="row-tags">
+        <span class="chip ${meta.color}">${meta.label}</span>
+        <span class="chip gray">${item.courseCode} ${linkedCourse?.title || ""}</span>
+        <span class="chip ${item.priority === "High" ? "danger" : item.priority === "Medium" ? "gold" : "gray"}">${item.priority}</span>
+        ${plannerStatusBadge(item.status)}
+      </div>
+      <div class="planner-card-actions">
+        <button class="button ghost" onclick="openDrawer('plannerTask', '${item.id}')">${icon("edit", 17)}Open</button>
+        <button class="button ghost" onclick="openDrawer('appointmentForm', {courseCode:'${item.courseCode}', summary:'Support requested from planner item.'})">${icon("appointment", 17)}Book help</button>
+      </div>
+    </article>
+  `;
+}
+
+function toggleStudentCalendarSync() {
+  state.studentCalendarConnected = !state.studentCalendarConnected;
+  saveAndRender(
+    state.studentCalendarConnected
+      ? "Optional Google Calendar connection marked for this student."
+      : "Optional Google Calendar connection removed.",
+  );
+}
+
+function renderAppointments() {
+  const appointments = visibleAppointments();
+  const filtered =
+    state.appointmentMode === "pending"
+      ? appointments.filter((item) => ["Draft", "Requested", "Awaiting confirmation", "Reschedule proposed"].includes(item.status))
+      : state.appointmentMode === "confirmed"
+        ? appointments.filter((item) => item.status === "Confirmed")
+        : appointments;
+  const openCount = appointments.filter((item) => !["Completed", "Cancelled", "No-show"].includes(item.status)).length;
+  return `
+    <div class="view section-grid appointment-view">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Appointment and Booking Schedule</h2>
+            <p>Request, confirm, and track support across tutors, lecturers, coordinators, and academic management.</p>
+          </div>
+          <div class="toolbar">
+            <div class="tabs">
+              ${[
+                ["mine", "all"],
+                ["pending", "pending"],
+                ["confirmed", "confirmed"],
+              ]
+                .map(([mode, label]) => `<button class="tab ${state.appointmentMode === mode ? "active" : ""}" onclick="state.appointmentMode='${mode}'; render()">${label}</button>`)
+                .join("")}
+            </div>
+            ${canCreateAppointment() ? `<button class="button primary" onclick="openDrawer('appointmentForm')">${icon("appointment", 17)}Request</button>` : ""}
+          </div>
+        </div>
+        <div class="card-body appointment-list">
+          ${
+            filtered.length
+              ? filtered.map(renderAppointmentCard).join("")
+              : `<div class="empty">No appointments in this filter yet.</div>`
+          }
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Availability and Load</h2>
+            <p>Public office hours plus support-demand signals.</p>
+          </div>
+          <span class="badge ${openCount > 6 ? "danger" : openCount > 3 ? "gold" : "green"}">${openCount} open</span>
+        </div>
+        <div class="card-body assistant-stack">
+          <div class="metric-strip">
+            ${kpi("Requests", appointments.length, "visible to this role", "appointment", "blue")}
+            ${kpi("Confirmed", appointments.filter((item) => item.status === "Confirmed").length, "ready bookings", "check", "green")}
+          </div>
+          <div class="availability-list">
+            ${visibleAvailability().map(renderAvailabilitySlot).join("") || `<div class="empty">No availability slots visible.</div>`}
+          </div>
+          <div class="sync-panel">
+            <div>
+              <h4>Future calendar sync</h4>
+              <p>Appointments can later write confirmed bookings to Google Calendar while storing requests and audit history in Google Sheets.</p>
+            </div>
+            <span class="badge gold">Sheets ready</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderAppointmentCard(item) {
+  const linkedCourse = course(item.courseCode);
+  return `
+    <article class="appointment-card">
+      <div class="appointment-main">
+        <span class="icon-box ${APPOINTMENT_STATUS_COLOR[item.status] || "blue"}">${icon("appointment", 18)}</span>
+        <div>
+          <h4>${item.category}</h4>
+          <p>${participantName(item.requesterId)} to ${participantName(item.targetId)} &middot; ${dateLabel(item.preferredDate)} at ${item.time}</p>
+          <p>${item.summary}</p>
+          <div class="row-tags">
+            ${appointmentStatusBadge(item.status)}
+            <span class="chip gray">${item.courseCode} ${linkedCourse?.title || ""}</span>
+            <span class="chip teal">${item.mode}</span>
+            <span class="chip gray">${item.duration} min</span>
+          </div>
+        </div>
+      </div>
+      <button class="button ghost" onclick="openDrawer('appointment', '${item.id}')">${icon("edit", 17)}Open</button>
+    </article>
+  `;
+}
+
+function renderAvailabilitySlot(item) {
+  return `
+    <div class="timeline-item">
+      <h4>${participantName(item.personId)}</h4>
+      <p>${participantKind(item.personId)} &middot; ${item.day} ${item.time} &middot; ${item.mode}</p>
+      <div class="row-tags">
+        <span class="chip blue">${item.location}</span>
+        <span class="chip gray">${item.focus}</span>
+      </div>
+    </div>
+  `;
+}
+
 function renderGoogle() {
   const tabs = [
     "CalendarBlocks",
@@ -2533,6 +3258,12 @@ function renderGoogle() {
     "Contacts",
     "Timesheets",
     "Tasks",
+    "StudentPlanner",
+    "PlannerTasks",
+    "Appointments",
+    "Availability",
+    "AppointmentNotes",
+    "CalendarSyncSettings",
     "DriveDocuments",
     "AccessRoles",
   ];
@@ -2603,6 +3334,12 @@ function sheetDescription(tab) {
     Contacts: "person_id, status, last_contact, next_follow_up, notes, message_template",
     Timesheets: "timesheet_id, tutor_id, course_code, date, category, hours, activity, status",
     Tasks: "task_id, title, area, owner, due_date, priority, status, details",
+    StudentPlanner: "student_id, preferred_study_windows, planning_mode, calendar_sync_opt_in",
+    PlannerTasks: "planner_id, student_id, course_code, date, time, duration, type, priority, status, notes",
+    Appointments: "appointment_id, requester_id, target_id, course_code, category, preferred_date, time, mode, status",
+    Availability: "availability_id, person_id, day, time, mode, location, focus",
+    AppointmentNotes: "appointment_id, visibility, note, created_by, created_at",
+    CalendarSyncSettings: "user_id, provider, sync_enabled, selected_calendars, reminder_preferences",
     DriveDocuments: "document_id, course_code, folder_id, url, visibility, version",
     AccessRoles: "email, role, active, invited_by, last_login",
   };
@@ -2684,6 +3421,10 @@ function renderDrawer() {
   if (type === "timesheetForm") content = timesheetFormDrawer();
   if (type === "taskForm") content = taskFormDrawer();
   if (type === "task") content = taskDrawer(payload);
+  if (type === "plannerForm") content = plannerFormDrawer(payload);
+  if (type === "plannerTask") content = plannerTaskDrawer(payload);
+  if (type === "appointmentForm") content = appointmentFormDrawer(payload);
+  if (type === "appointment") content = appointmentDrawer(payload);
   return `<div class="drawer-backdrop" onclick="if(event.target.classList.contains('drawer-backdrop')) closeDrawer()">${content}</div>`;
 }
 
@@ -2817,6 +3558,7 @@ function quickAddDrawer() {
       ${quick("New lecturer", "Add teaching lead", "users", "maroon", "openDrawer('personForm', {kind:'Lecturer'})")}
       ${quick("New tutor", "Add tutorial support", "users", "gold", "openDrawer('personForm', {kind:'Tutor'})")}
       ${quick("New session", "Add timetable slot", "calendar", "teal", "openDrawer('sessionForm')")}
+      ${quick("New appointment", "Request or schedule support", "appointment", "green", "openDrawer('appointmentForm')")}
     </div>
   `;
   return drawerShell("Quick Add", "Choose the academic object to add.", body);
@@ -2971,6 +3713,9 @@ function exportDrawer() {
     sessions: state.sessions,
     timesheets: state.timesheets,
     tasks: state.tasks,
+    plannerTasks: state.plannerTasks,
+    appointments: state.appointments,
+    availability: state.availability,
   };
   const body = `<div class="field"><label>Prototype data export</label><textarea readonly style="min-height:360px">${escapeHtml(JSON.stringify(payload, null, 2))}</textarea></div>`;
   return drawerShell("Data Export", "JSON structure ready for backend or Google Sheets sync.", body, `<button class="button ghost" onclick="closeDrawer()">Close</button>`);
@@ -3108,6 +3853,204 @@ function updateTaskStatus(id, status) {
   saveAndRender(`${task.title} moved to ${status}.`);
 }
 
+function plannerFormDrawer(payload = {}) {
+  const selectedCourse = payload?.courseCode || state.courses[0]?.code || "";
+  const body = `
+    <form id="plannerForm" class="form-grid">
+      <div class="field full"><label>Planner item</label><input name="title" placeholder="Prepare model notes" required /></div>
+      <div class="field"><label>Type</label><select name="type">${Object.keys(PLANNER_TYPES).map((type) => `<option>${type}</option>`).join("")}</select></div>
+      <div class="field"><label>Course</label><select name="courseCode">${state.courses.map((c) => `<option value="${c.code}" ${c.code === selectedCourse ? "selected" : ""}>${c.code} ${c.title}</option>`).join("")}</select></div>
+      <div class="field"><label>Date</label><input name="date" type="date" value="2026-09-08" /></div>
+      <div class="field"><label>Start time</label><input name="time" type="time" value="16:00" /></div>
+      <div class="field"><label>Duration</label><select name="duration"><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90" selected>90 min</option><option value="120">120 min</option></select></div>
+      <div class="field"><label>Priority</label><select name="priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div class="field full"><label>Notes</label><textarea name="notes" placeholder="What will make this block successful?">${payload?.summary || ""}</textarea></div>
+    </form>
+    <div class="timeline-item">
+      <h4>Planning rule</h4>
+      <p>Keep planner blocks specific, time-bound, and course-linked. Optional Google Calendar sync should remain student-controlled.</p>
+    </div>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="addPlannerTask()">${icon("plus", 17)}Add plan</button>`;
+  return drawerShell("Add Planner Item", "Personal planning row for the StudentPlanner and PlannerTasks sheets.", body, footer);
+}
+
+function addPlannerTask() {
+  const form = document.querySelector("#plannerForm");
+  if (!form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  state.plannerTasks.push({
+    id: `plan-${Date.now()}`,
+    ownerId: currentStudentId(),
+    title: data.title,
+    type: data.type,
+    courseCode: data.courseCode,
+    date: data.date,
+    time: data.time,
+    duration: Number(data.duration || 60),
+    priority: data.priority,
+    status: "Planned",
+    notes: data.notes || "Planner item created.",
+  });
+  state.view = "planner";
+  closeDrawer();
+  saveAndRender("Planner item added.");
+}
+
+function plannerTaskDrawer(id) {
+  const item = state.plannerTasks.find((task) => task.id === id);
+  if (!item) return drawerShell("Planner item not found", "The selected item is no longer available.", "");
+  const linkedCourse = course(item.courseCode);
+  const canPlan = state.role === "student" || canEdit();
+  const body = `
+    <div class="meta-grid">
+      <div class="meta-box"><span>Course</span><strong>${item.courseCode}</strong></div>
+      <div class="meta-box"><span>When</span><strong>${dateLabel(item.date)} ${item.time}</strong></div>
+      <div class="meta-box"><span>Duration</span><strong>${item.duration} min</strong></div>
+      <div class="meta-box"><span>Priority</span><strong>${item.priority}</strong></div>
+    </div>
+    <div class="timeline-item"><h4>${linkedCourse?.title || "Course"}</h4><p>${linkedCourse?.outcomes || "Course-linked planning item."}</p></div>
+    <div class="timeline-item"><h4>Notes</h4><p>${item.notes}</p></div>
+    ${
+      canPlan
+        ? `<div class="field">
+            <label>Status</label>
+            <select onchange="updatePlannerTaskStatus('${item.id}', this.value)">
+              ${["Planned", "In progress", "Done", "Deferred"].map((status) => `<option ${item.status === status ? "selected" : ""}>${status}</option>`).join("")}
+            </select>
+          </div>`
+        : `<div class="timeline-item"><h4>Status</h4><p>${item.status}</p></div>`
+    }
+  `;
+  const footer = `<button class="button ghost" onclick="openDrawer('appointmentForm', {courseCode:'${item.courseCode}', summary:'Support requested from planner item.'})">${icon("appointment", 17)}Book help</button><button class="button primary" onclick="closeDrawer()">${icon("check", 17)}Done</button>`;
+  return drawerShell(item.title, "Student planner detail", body, footer);
+}
+
+function updatePlannerTaskStatus(id, status) {
+  const item = state.plannerTasks.find((task) => task.id === id);
+  if (!item) return;
+  item.status = status;
+  saveAndRender(`${item.title} marked ${status}.`);
+}
+
+function appointmentFormDrawer(payload = {}) {
+  const targets = appointmentTargetOptions();
+  const selectedCourse = payload?.courseCode || state.courses[0]?.code || "";
+  const body = `
+    <form id="appointmentForm" class="form-grid">
+      <div class="field full">
+        <label>Request from</label>
+        <input value="${participantName(currentActorId())} - ${roleDef().label}" readonly />
+      </div>
+      <div class="field full">
+        <label>Book with</label>
+        <select name="targetId" required>${targets.map((p) => `<option value="${p.id}">${p.name} - ${p.kind}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Course</label>
+        <select name="courseCode">${state.courses.map((c) => `<option value="${c.code}" ${c.code === selectedCourse ? "selected" : ""}>${c.code} ${c.title}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select name="category">
+          ${[
+            "Course clarification",
+            "Tutorial support",
+            "Assessment guidance",
+            "Research discussion",
+            "Internship guidance",
+            "Thesis/project support",
+            "Welfare/adjustment",
+            "Admin support",
+            "Tutor workload",
+            "General advising",
+          ]
+            .map((category) => `<option>${category}</option>`)
+            .join("")}
+        </select>
+      </div>
+      <div class="field"><label>Preferred date</label><input name="preferredDate" type="date" value="2026-09-09" /></div>
+      <div class="field"><label>Time</label><input name="time" type="time" value="15:00" /></div>
+      <div class="field"><label>Duration</label><select name="duration"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="45">45 min</option><option value="60">60 min</option></select></div>
+      <div class="field"><label>Mode</label><select name="mode"><option>In person</option><option>Online</option><option>Hybrid</option></select></div>
+      <div class="field full"><label>Reason / agenda</label><textarea name="summary" placeholder="What should the meeting solve?">${payload?.summary || ""}</textarea></div>
+    </form>
+    <div class="timeline-item">
+      <h4>Booking workflow</h4>
+      <p>Requests begin as Requested and can move through Awaiting confirmation, Confirmed, Reschedule proposed, Completed, Cancelled, or No-show.</p>
+    </div>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="addAppointment()">${icon("appointment", 17)}Submit request</button>`;
+  return drawerShell("Request Appointment", "Role-aware booking request for academic support and coordination.", body, footer);
+}
+
+function addAppointment() {
+  const form = document.querySelector("#appointmentForm");
+  if (!form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  state.appointments.unshift({
+    id: `apt-${Date.now()}`,
+    requesterId: currentActorId(),
+    targetId: data.targetId,
+    courseCode: data.courseCode,
+    category: data.category,
+    preferredDate: data.preferredDate,
+    time: data.time,
+    duration: Number(data.duration || 30),
+    mode: data.mode,
+    status: "Requested",
+    summary: data.summary || "Appointment request submitted.",
+    privateNote: "No private note yet.",
+  });
+  state.view = "appointments";
+  closeDrawer();
+  saveAndRender("Appointment request submitted.");
+}
+
+function appointmentDrawer(id) {
+  const item = state.appointments.find((appointment) => appointment.id === id);
+  if (!item) return drawerShell("Appointment not found", "The selected booking is no longer available.", "");
+  const linkedCourse = course(item.courseCode);
+  const body = `
+    <div class="meta-grid">
+      <div class="meta-box"><span>Requester</span><strong>${participantName(item.requesterId)}</strong></div>
+      <div class="meta-box"><span>With</span><strong>${participantName(item.targetId)}</strong></div>
+      <div class="meta-box"><span>When</span><strong>${dateLabel(item.preferredDate)} ${item.time}</strong></div>
+      <div class="meta-box"><span>Mode</span><strong>${item.mode}</strong></div>
+    </div>
+    <div class="timeline-item"><h4>${item.courseCode} ${linkedCourse?.title || ""}</h4><p>${item.summary}</p></div>
+    <div class="timeline-item"><h4>Status</h4><p>${appointmentStatusBadge(item.status)}</p></div>
+    ${
+      canSeeSensitive()
+        ? `<div class="timeline-item"><h4>Internal note</h4><p>${item.privateNote}</p></div>`
+        : ""
+    }
+    ${
+      canUpdateAppointment(item)
+        ? `<div class="field">
+            <label>Update booking status</label>
+            <select onchange="updateAppointmentStatus('${item.id}', this.value)">
+              ${["Draft", "Requested", "Awaiting confirmation", "Confirmed", "Reschedule proposed", "Completed", "Cancelled", "No-show"].map((status) => `<option ${item.status === status ? "selected" : ""}>${status}</option>`).join("")}
+            </select>
+          </div>`
+        : ""
+    }
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Close</button>${
+    canCreateAppointment()
+      ? `<button class="button primary" onclick="openDrawer('appointmentForm', {courseCode:'${item.courseCode}', summary:'Follow-up appointment request.'})">${icon("appointment", 17)}Follow up</button>`
+      : ""
+  }`;
+  return drawerShell(item.category, "Appointment detail and booking trail", body, footer);
+}
+
+function updateAppointmentStatus(id, status) {
+  const item = state.appointments.find((appointment) => appointment.id === id);
+  if (!item) return;
+  item.status = status;
+  saveAndRender(`Appointment moved to ${status}.`);
+}
+
 function render() {
   document.querySelector("#app").innerHTML = appLayout();
 }
@@ -3126,6 +4069,11 @@ window.addSession = addSession;
 window.addTimesheet = addTimesheet;
 window.addTask = addTask;
 window.updateTaskStatus = updateTaskStatus;
+window.addPlannerTask = addPlannerTask;
+window.updatePlannerTaskStatus = updatePlannerTaskStatus;
+window.toggleStudentCalendarSync = toggleStudentCalendarSync;
+window.addAppointment = addAppointment;
+window.updateAppointmentStatus = updateAppointmentStatus;
 window.state = state;
 
 migrateProgrammeData();
