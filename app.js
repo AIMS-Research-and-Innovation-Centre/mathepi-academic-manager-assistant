@@ -1,0 +1,3037 @@
+const ICONS = {
+  activity:
+    '<path d="M22 12h-4l-3 7L9 5l-3 7H2"/><path d="M22 12h-4l-3 7L9 5l-3 7H2"/>',
+  alert:
+    '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  book:
+    '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H22"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H22v20H6.5A2.5 2.5 0 0 1 4 19.5z"/><path d="M8 7h8"/><path d="M8 11h6"/>',
+  calendar:
+    '<path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/>',
+  check:
+    '<path d="M20 6 9 17l-5-5"/>',
+  clock:
+    '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  cloud:
+    '<path d="M17.5 19H7a5 5 0 1 1 1.2-9.9 7 7 0 0 1 13.6 2.2A4 4 0 0 1 17.5 19Z"/>',
+  command:
+    '<path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0 0-6Z"/>',
+  database:
+    '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/>',
+  drive:
+    '<path d="m7 3 10 18"/><path d="M17 3 7 21"/><path d="M3 14h18"/><path d="m7 3-4 7 4 11h10l4-7-4-11Z"/>',
+  edit:
+    '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  filter:
+    '<path d="M22 3H2l8 9.5V19l4 2v-8.5Z"/>',
+  graduation:
+    '<path d="m22 10-10-5-10 5 10 5 10-5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/><path d="M22 10v6"/>',
+  mail:
+    '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
+  menu:
+    '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
+  phone:
+    '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.7 2.6a2 2 0 0 1-.5 2.1L8.1 9.6a16 16 0 0 0 6.3 6.3l1.2-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.6 2.6.7a2 2 0 0 1 1.7 2Z"/>',
+  plus:
+    '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  search:
+    '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  shield:
+    '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',
+  sheet:
+    '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/><path d="M8 9h2"/>',
+  spark:
+    '<path d="M12 2v5"/><path d="M12 17v5"/><path d="m4.9 4.9 3.5 3.5"/><path d="m15.6 15.6 3.5 3.5"/><path d="M2 12h5"/><path d="M17 12h5"/><path d="m4.9 19.1 3.5-3.5"/><path d="m15.6 8.4 3.5-3.5"/>',
+  users:
+    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+};
+
+const COURSE_TYPES = {
+  skills: { label: "Core Skills", color: "blue" },
+  specialization: { label: "Specialization", color: "maroon" },
+  elective: { label: "Elective", color: "teal" },
+  professional: { label: "Professional", color: "gold" },
+  practical: { label: "Practical", color: "green" },
+};
+
+const DEFAULT_COURSES = [
+  {
+    code: "MES01",
+    title: "Mathematical Problem Solving",
+    type: "skills",
+    units: 6,
+    hours: 60,
+    block: "Block 1",
+    lecturerId: "lec-01",
+    tutorIds: ["tut-01"],
+    software: "Mathematical computing software",
+    prerequisites: "Bachelor's degree with a mathematics component",
+    outcomes:
+      "Apply mathematical principles, build proof strategies, and conduct advanced problem solving.",
+  },
+  {
+    code: "MES02",
+    title: "Differential Equations and Modelling",
+    type: "skills",
+    units: 6,
+    hours: 60,
+    block: "Block 2",
+    lecturerId: "lec-02",
+    tutorIds: ["tut-02"],
+    software: "Python, R",
+    prerequisites: "MES01",
+    outcomes:
+      "Solve ODEs/PDEs and connect analytical methods to epidemic modelling.",
+  },
+  {
+    code: "MES03",
+    title: "Physical Problem Solving",
+    type: "skills",
+    units: 6,
+    hours: 60,
+    block: "Block 3",
+    lecturerId: "lec-03",
+    tutorIds: ["tut-03"],
+    software: "Computational physics tools",
+    prerequisites: "MES01",
+    outcomes:
+      "Translate physical systems into mathematical and computational formulations.",
+  },
+  {
+    code: "MES04",
+    title: "Introduction to Probability and Statistics",
+    type: "skills",
+    units: 6,
+    hours: 60,
+    block: "Block 2",
+    lecturerId: "lec-04",
+    tutorIds: ["tut-04"],
+    software: "R, Python",
+    prerequisites: "Probability, statistics, and algebra foundation",
+    outcomes:
+      "Use probability laws, estimation, testing, regression, and epidemiological measures.",
+  },
+  {
+    code: "MES05",
+    title: "Introduction to R and Python",
+    type: "skills",
+    units: 6,
+    hours: 60,
+    block: "Block 1",
+    lecturerId: "lec-05",
+    tutorIds: ["tut-01", "tut-05"],
+    software: "R, Python, Quarto",
+    prerequisites: "Basic programming recommended",
+    outcomes:
+      "Manage data, visualize results, run basic analyses, and create reproducible reports.",
+  },
+  {
+    code: "MES06",
+    title: "Scientific Computing and LaTeX",
+    type: "skills",
+    units: 6,
+    hours: 60,
+    block: "Block 3",
+    lecturerId: "lec-06",
+    tutorIds: ["tut-02"],
+    software: "SageMath, LaTeX, R, Python",
+    prerequisites: "MES05",
+    outcomes:
+      "Implement numerical algorithms and prepare scientific work with LaTeX.",
+  },
+  {
+    code: "MEC01",
+    title: "Introduction to Epidemiology",
+    type: "specialization",
+    units: 6,
+    hours: 60,
+    block: "Block 4",
+    lecturerId: "lec-07",
+    tutorIds: ["tut-06"],
+    software: "N/A",
+    prerequisites: "MES04",
+    outcomes:
+      "Explain epidemiological concepts, calculate measures, and appraise study designs.",
+  },
+  {
+    code: "MEC02",
+    title: "Epidemiology for Disease Modelling",
+    type: "specialization",
+    units: 6,
+    hours: 60,
+    block: "Block 5",
+    lecturerId: "lec-08",
+    tutorIds: ["tut-06"],
+    software: "R, Python",
+    prerequisites: "MEC01",
+    outcomes:
+      "Use disease parameters and research designs to support infectious disease modelling.",
+  },
+  {
+    code: "MEC03",
+    title: "Introduction to Mathematical Modelling",
+    type: "specialization",
+    units: 6,
+    hours: 60,
+    block: "Block 4",
+    lecturerId: "lec-09",
+    tutorIds: ["tut-07"],
+    software: "R, Python",
+    prerequisites: "MES02, MES04",
+    outcomes:
+      "Build and interpret foundational models for population health systems.",
+  },
+  {
+    code: "MEC04",
+    title: "Developing Mathematical Models in Public Health",
+    type: "specialization",
+    units: 6,
+    hours: 60,
+    block: "Block 5",
+    lecturerId: "lec-10",
+    tutorIds: ["tut-07"],
+    software: "R, Python",
+    prerequisites: "MEC03",
+    outcomes:
+      "Translate public health questions into model structures and scenarios.",
+  },
+  {
+    code: "MEC05",
+    title: "Model Fitting and Validation",
+    type: "specialization",
+    units: 6,
+    hours: 60,
+    block: "Block 6",
+    lecturerId: "lec-11",
+    tutorIds: ["tut-08"],
+    software: "R, Python",
+    prerequisites: "MEC03, MES04",
+    outcomes:
+      "Fit, validate, and communicate mathematical epidemiology models.",
+  },
+  {
+    code: "MEC06",
+    title: "Numerical Methods",
+    type: "specialization",
+    units: 6,
+    hours: 60,
+    block: "Block 6",
+    lecturerId: "lec-12",
+    tutorIds: [],
+    software: "Python, R",
+    prerequisites: "MES02, MES06",
+    outcomes:
+      "Use numerical methods for differential equations, integration, and simulation.",
+  },
+  {
+    code: "MEC07",
+    title: "Introduction to Data Analysis",
+    type: "specialization",
+    units: 6,
+    hours: 60,
+    block: "Block 7",
+    lecturerId: "lec-13",
+    tutorIds: ["tut-05"],
+    software: "R, Python",
+    prerequisites: "MES05, MES04",
+    outcomes:
+      "Clean, analyse, visualize, and interpret epidemiological datasets.",
+  },
+  {
+    code: "MEC08",
+    title: "Advanced Data Analysis",
+    type: "specialization",
+    units: 6,
+    hours: 60,
+    block: "Block 7",
+    lecturerId: "lec-14",
+    tutorIds: ["tut-08"],
+    software: "R, Python",
+    prerequisites: "MEC07",
+    outcomes:
+      "Apply advanced statistical and computational analysis in epidemiology.",
+  },
+  {
+    code: "MEC09",
+    title: "Professional, Project, and Entrepreneurship Development",
+    type: "professional",
+    units: 6,
+    hours: 60,
+    block: "Block 8",
+    lecturerId: "lec-15",
+    tutorIds: [],
+    software: "Portfolio and project tools",
+    prerequisites: "None",
+    outcomes:
+      "Prepare students for internships, projects, entrepreneurship, and career readiness.",
+  },
+  {
+    code: "MEC10",
+    title: "AI-Driven Epidemiology and Digital Health Surveillance",
+    type: "specialization",
+    units: 6,
+    hours: 60,
+    block: "Block 8",
+    lecturerId: null,
+    tutorIds: [],
+    software: "Python, digital health tooling",
+    prerequisites: "MEC07, MEC08",
+    outcomes:
+      "Use AI-enabled workflows and digital surveillance tools for public health intelligence.",
+  },
+  {
+    code: "MEE01",
+    title: "Survival Analysis",
+    type: "elective",
+    units: 6,
+    hours: 60,
+    block: "Block 9",
+    lecturerId: "lec-16",
+    tutorIds: ["tut-04"],
+    software: "R",
+    prerequisites: "MES04",
+    outcomes:
+      "Model time-to-event data and interpret hazard, survival, and censoring patterns.",
+  },
+  {
+    code: "MEE02",
+    title: "Time Series Analysis",
+    type: "elective",
+    units: 6,
+    hours: 60,
+    block: "Block 9",
+    lecturerId: null,
+    tutorIds: [],
+    software: "R, Python",
+    prerequisites: "MEC07",
+    outcomes:
+      "Analyse temporal epidemiological data and forecasting signals.",
+  },
+  {
+    code: "MEE03",
+    title: "Bayesian Statistics",
+    type: "elective",
+    units: 6,
+    hours: 60,
+    block: "Block 9",
+    lecturerId: "lec-17",
+    tutorIds: ["tut-08"],
+    software: "Stan, R, Python",
+    prerequisites: "MES04",
+    outcomes:
+      "Use Bayesian reasoning for uncertainty, inference, and epidemiological decisions.",
+  },
+  {
+    code: "MEE04",
+    title: "Stochastic Models",
+    type: "elective",
+    units: 6,
+    hours: 60,
+    block: "Block 9",
+    lecturerId: null,
+    tutorIds: [],
+    software: "R, Python",
+    prerequisites: "MEC03",
+    outcomes:
+      "Model random processes and stochastic epidemic systems.",
+  },
+  {
+    code: "MEI01",
+    title: "Internship and Thesis",
+    type: "practical",
+    units: 36,
+    hours: 720,
+    block: "Internship + Thesis",
+    lecturerId: "lec-18",
+    tutorIds: [],
+    software: "Research/project tools",
+    prerequisites: "Academic phase completion",
+    outcomes:
+      "Translate learning into research or industry practice and complete thesis/project output.",
+  },
+];
+
+const DEFAULT_PEOPLE = [
+  {
+    id: "lec-01",
+    kind: "Lecturer",
+    name: "Dr. Amina Njoroge",
+    affiliation: "AIMS RIC",
+    email: "amina.njoroge@example.org",
+    phone: "+250 780 000 101",
+    expertise: "Problem solving, proof strategies",
+    availability: "Block 1 confirmed",
+    status: "Confirmed",
+    lastContact: "2026-05-12",
+    nextFollowUp: "2026-08-17",
+    workload: 1,
+    notes: "Send final teaching template before onboarding.",
+  },
+  {
+    id: "lec-02",
+    kind: "Lecturer",
+    name: "Prof. Daniel Mwangi",
+    affiliation: "University partner",
+    email: "daniel.mwangi@example.org",
+    phone: "+254 700 000 202",
+    expertise: "Differential equations, epidemic dynamics",
+    availability: "Awaiting travel confirmation",
+    status: "Awaiting response",
+    lastContact: "2026-05-16",
+    nextFollowUp: "2026-05-24",
+    workload: 1,
+    notes: "Needs block dates and honorarium confirmation.",
+  },
+  {
+    id: "lec-03",
+    kind: "Lecturer",
+    name: "Dr. Salma Bekele",
+    affiliation: "Regional collaborator",
+    email: "salma.bekele@example.org",
+    phone: "+251 900 000 303",
+    expertise: "Physical systems and modelling",
+    availability: "Needs follow-up",
+    status: "Needs follow-up",
+    lastContact: "2026-05-08",
+    nextFollowUp: "2026-05-22",
+    workload: 1,
+    notes: "Check whether practical lab format is possible.",
+  },
+  {
+    id: "lec-04",
+    kind: "Lecturer",
+    name: "Dr. Yves Mugisha",
+    affiliation: "AIMS Rwanda",
+    email: "yves.mugisha@example.org",
+    phone: "+250 780 000 404",
+    expertise: "Probability and statistics",
+    availability: "Confirmed",
+    status: "Confirmed",
+    lastContact: "2026-05-11",
+    nextFollowUp: "2026-08-31",
+    workload: 1,
+    notes: "Prefers morning sessions.",
+  },
+  {
+    id: "lec-05",
+    kind: "Lecturer",
+    name: "Dr. Grace Wanjiru",
+    affiliation: "KEMRI",
+    email: "grace.wanjiru@example.org",
+    phone: "+254 700 000 505",
+    expertise: "R, Python, reproducible research",
+    availability: "Confirmed",
+    status: "Confirmed",
+    lastContact: "2026-05-14",
+    nextFollowUp: "2026-08-20",
+    workload: 1,
+    notes: "Share software setup checklist with students.",
+  },
+  {
+    id: "lec-06",
+    kind: "Lecturer",
+    name: "Dr. Jean Hakizimana",
+    affiliation: "AIMS RIC",
+    email: "jean.hakizimana@example.org",
+    phone: "+250 780 000 606",
+    expertise: "Scientific computing, LaTeX",
+    availability: "Contacted",
+    status: "Contacted",
+    lastContact: "2026-05-18",
+    nextFollowUp: "2026-05-27",
+    workload: 1,
+    notes: "Waiting for preferred software stack.",
+  },
+  {
+    id: "lec-07",
+    kind: "Lecturer",
+    name: "Dr. Miriam Otieno",
+    affiliation: "KEMRI",
+    email: "miriam.otieno@example.org",
+    phone: "+254 700 000 707",
+    expertise: "Epidemiology, study design",
+    availability: "Confirmed",
+    status: "Confirmed",
+    lastContact: "2026-05-10",
+    nextFollowUp: "2026-10-30",
+    workload: 1,
+    notes: "Coordinate reading list with library access.",
+  },
+  {
+    id: "lec-08",
+    kind: "Lecturer",
+    name: "Dr. Pascaline Umuhoza",
+    affiliation: "Public health partner",
+    email: "pascaline.umuhoza@example.org",
+    phone: "+250 780 000 808",
+    expertise: "Disease modelling epidemiology",
+    availability: "Awaiting response",
+    status: "Awaiting response",
+    lastContact: "2026-05-13",
+    nextFollowUp: "2026-05-23",
+    workload: 1,
+    notes: "Needs confirmation for Block 5 travel dates.",
+  },
+  {
+    id: "lec-09",
+    kind: "Lecturer",
+    name: "Prof. Samuel Okello",
+    affiliation: "AIMS collaborator",
+    email: "samuel.okello@example.org",
+    phone: "+256 700 000 909",
+    expertise: "Mathematical modelling",
+    availability: "Confirmed",
+    status: "Confirmed",
+    lastContact: "2026-05-15",
+    nextFollowUp: "2026-10-26",
+    workload: 1,
+    notes: "Requested sample outbreak datasets.",
+  },
+  {
+    id: "lec-10",
+    kind: "Lecturer",
+    name: "Dr. Lydia Kamau",
+    affiliation: "KEMRI",
+    email: "lydia.kamau@example.org",
+    phone: "+254 700 001 010",
+    expertise: "Public health modelling",
+    availability: "Confirmed",
+    status: "Confirmed",
+    lastContact: "2026-05-09",
+    nextFollowUp: "2026-11-16",
+    workload: 1,
+    notes: "Can support project briefs.",
+  },
+  {
+    id: "lec-11",
+    kind: "Lecturer",
+    name: "Dr. Nadia El-Sayed",
+    affiliation: "External expert",
+    email: "nadia.elsayed@example.org",
+    phone: "+20 100 000 111",
+    expertise: "Model fitting and validation",
+    availability: "Needs follow-up",
+    status: "Needs follow-up",
+    lastContact: "2026-05-03",
+    nextFollowUp: "2026-05-21",
+    workload: 1,
+    notes: "Overdue response on remote teaching option.",
+  },
+  {
+    id: "lec-12",
+    kind: "Lecturer",
+    name: "Dr. Kwame Mensah",
+    affiliation: "AIMS network",
+    email: "kwame.mensah@example.org",
+    phone: "+233 500 000 121",
+    expertise: "Numerical methods",
+    availability: "Contacted",
+    status: "Contacted",
+    lastContact: "2026-05-17",
+    nextFollowUp: "2026-05-29",
+    workload: 1,
+    notes: "Tutor is still missing.",
+  },
+  {
+    id: "lec-13",
+    kind: "Lecturer",
+    name: "Dr. Irene Habimana",
+    affiliation: "AIMS Rwanda",
+    email: "irene.habimana@example.org",
+    phone: "+250 780 001 313",
+    expertise: "Data analysis",
+    availability: "Confirmed",
+    status: "Confirmed",
+    lastContact: "2026-05-14",
+    nextFollowUp: "2027-01-04",
+    workload: 1,
+    notes: "Drive folder should include dataset governance note.",
+  },
+  {
+    id: "lec-14",
+    kind: "Lecturer",
+    name: "Dr. Kojo Boateng",
+    affiliation: "AIMS RIC",
+    email: "kojo.boateng@example.org",
+    phone: "+233 500 000 141",
+    expertise: "Advanced data analysis",
+    availability: "Confirmed",
+    status: "Confirmed",
+    lastContact: "2026-05-12",
+    nextFollowUp: "2027-01-11",
+    workload: 1,
+    notes: "Can co-supervise capstone datasets.",
+  },
+  {
+    id: "lec-15",
+    kind: "Lecturer",
+    name: "Ms. Nelly Mutesi",
+    affiliation: "Innovation partner",
+    email: "nelly.mutesi@example.org",
+    phone: "+250 780 001 515",
+    expertise: "Entrepreneurship and project readiness",
+    availability: "Confirmed",
+    status: "Confirmed",
+    lastContact: "2026-05-07",
+    nextFollowUp: "2027-02-01",
+    workload: 1,
+    notes: "Prepare internship pitch clinic.",
+  },
+  {
+    id: "lec-16",
+    kind: "Lecturer",
+    name: "Dr. Peter Onyango",
+    affiliation: "KEMRI",
+    email: "peter.onyango@example.org",
+    phone: "+254 700 001 616",
+    expertise: "Survival analysis",
+    availability: "Confirmed",
+    status: "Confirmed",
+    lastContact: "2026-05-19",
+    nextFollowUp: "2027-02-22",
+    workload: 1,
+    notes: "Elective enrollment cap should be confirmed.",
+  },
+  {
+    id: "lec-17",
+    kind: "Lecturer",
+    name: "Dr. Fatima Hassan",
+    affiliation: "External expert",
+    email: "fatima.hassan@example.org",
+    phone: "+255 700 001 717",
+    expertise: "Bayesian statistics",
+    availability: "Awaiting response",
+    status: "Awaiting response",
+    lastContact: "2026-05-20",
+    nextFollowUp: "2026-05-25",
+    workload: 1,
+    notes: "Ask if remote guest lectures are acceptable.",
+  },
+  {
+    id: "lec-18",
+    kind: "Lecturer",
+    name: "Programme Supervision Panel",
+    affiliation: "AIMS RIC and KEMRI",
+    email: "mathepi.supervision@example.org",
+    phone: "+250 780 001 818",
+    expertise: "Internship, thesis supervision",
+    availability: "Standing panel",
+    status: "Confirmed",
+    lastContact: "2026-05-18",
+    nextFollowUp: "2027-03-15",
+    workload: 1,
+    notes: "Coordinate partner placements and thesis review workflow.",
+  },
+  {
+    id: "tut-01",
+    kind: "Tutor",
+    name: "Alice Ishimwe",
+    affiliation: "AIMS RIC",
+    email: "alice.ishimwe@example.org",
+    phone: "+250 780 002 001",
+    expertise: "R/Python and problem solving",
+    availability: "Blocks 1-2",
+    status: "Confirmed",
+    lastContact: "2026-05-15",
+    nextFollowUp: "2026-08-24",
+    workload: 2,
+    notes: "Can run evening clinic.",
+  },
+  {
+    id: "tut-02",
+    kind: "Tutor",
+    name: "Eric Ndayisaba",
+    affiliation: "AIMS Rwanda",
+    email: "eric.ndayisaba@example.org",
+    phone: "+250 780 002 002",
+    expertise: "Numerical methods and LaTeX",
+    availability: "Blocks 2-3",
+    status: "Confirmed",
+    lastContact: "2026-05-16",
+    nextFollowUp: "2026-09-07",
+    workload: 2,
+    notes: "Useful for coding clinics.",
+  },
+  {
+    id: "tut-03",
+    kind: "Tutor",
+    name: "Brian Kato",
+    affiliation: "AIMS RIC",
+    email: "brian.kato@example.org",
+    phone: "+256 700 002 003",
+    expertise: "Physics and modelling",
+    availability: "Block 3",
+    status: "Contacted",
+    lastContact: "2026-05-14",
+    nextFollowUp: "2026-05-26",
+    workload: 1,
+    notes: "Needs travel check.",
+  },
+  {
+    id: "tut-04",
+    kind: "Tutor",
+    name: "Chantal Uwase",
+    affiliation: "KEMRI partner",
+    email: "chantal.uwase@example.org",
+    phone: "+250 780 002 004",
+    expertise: "Statistics and survival analysis",
+    availability: "Blocks 2 and 9",
+    status: "Confirmed",
+    lastContact: "2026-05-18",
+    nextFollowUp: "2026-09-01",
+    workload: 2,
+    notes: "Good fit for applied tutorials.",
+  },
+  {
+    id: "tut-05",
+    kind: "Tutor",
+    name: "David Mutua",
+    affiliation: "AIMS RIC",
+    email: "david.mutua@example.org",
+    phone: "+254 700 002 005",
+    expertise: "Data analysis",
+    availability: "Blocks 1 and 7",
+    status: "Confirmed",
+    lastContact: "2026-05-18",
+    nextFollowUp: "2027-01-01",
+    workload: 2,
+    notes: "Can help with data governance labs.",
+  },
+  {
+    id: "tut-06",
+    kind: "Tutor",
+    name: "Esther Akello",
+    affiliation: "KEMRI",
+    email: "esther.akello@example.org",
+    phone: "+254 700 002 006",
+    expertise: "Epidemiology",
+    availability: "Blocks 4-5",
+    status: "Awaiting response",
+    lastContact: "2026-05-12",
+    nextFollowUp: "2026-05-22",
+    workload: 2,
+    notes: "Follow up on availability letter.",
+  },
+  {
+    id: "tut-07",
+    kind: "Tutor",
+    name: "Jean Paul Sibomana",
+    affiliation: "AIMS Rwanda",
+    email: "jeanpaul.sibomana@example.org",
+    phone: "+250 780 002 007",
+    expertise: "Mathematical modelling",
+    availability: "Blocks 4-5",
+    status: "Confirmed",
+    lastContact: "2026-05-19",
+    nextFollowUp: "2026-10-05",
+    workload: 2,
+    notes: "Can lead model-building labs.",
+  },
+  {
+    id: "tut-08",
+    kind: "Tutor",
+    name: "Martha Namugisha",
+    affiliation: "AIMS network",
+    email: "martha.namugisha@example.org",
+    phone: "+256 700 002 008",
+    expertise: "Model fitting, Bayesian statistics",
+    availability: "Blocks 6-9",
+    status: "Confirmed",
+    lastContact: "2026-05-20",
+    nextFollowUp: "2026-12-08",
+    workload: 3,
+    notes: "Watch workload; assigned across several advanced courses.",
+  },
+];
+
+const DEFAULT_BLOCKS = [
+  {
+    id: "onboarding",
+    title: "Introduction and Onboarding Week",
+    start: "2026-08-31",
+    end: "2026-09-04",
+    kind: "onboarding",
+    note: "Orientation, software setup, student onboarding, programme briefing",
+    courses: [],
+  },
+  {
+    id: "block-1",
+    title: "Block 1",
+    start: "2026-09-07",
+    end: "2026-09-25",
+    kind: "teaching",
+    note: "Core skills launch",
+    courses: ["MES01", "MES05"],
+  },
+  {
+    id: "block-2",
+    title: "Block 2",
+    start: "2026-09-28",
+    end: "2026-10-16",
+    kind: "teaching",
+    note: "Quantitative foundations",
+    courses: ["MES02", "MES04"],
+  },
+  {
+    id: "reading-1",
+    title: "Reading Week and AHC Convening",
+    start: "2026-10-19",
+    end: "2026-10-23",
+    kind: "reading",
+    note: "AHC Convening Week in Nairobi",
+    courses: [],
+  },
+  {
+    id: "block-3",
+    title: "Block 3",
+    start: "2026-10-26",
+    end: "2026-11-13",
+    kind: "teaching",
+    note: "Scientific and physical computation",
+    courses: ["MES03", "MES06"],
+  },
+  {
+    id: "block-4",
+    title: "Block 4",
+    start: "2026-11-16",
+    end: "2026-12-04",
+    kind: "teaching",
+    note: "Epidemiology and modelling begin",
+    courses: ["MEC01", "MEC03"],
+  },
+  {
+    id: "block-5",
+    title: "Block 5",
+    start: "2026-12-07",
+    end: "2026-12-24",
+    kind: "teaching",
+    note: "Public health model development",
+    courses: ["MEC02", "MEC04"],
+  },
+  {
+    id: "vacation",
+    title: "Vacation and December Holiday",
+    start: "2026-12-25",
+    end: "2027-01-03",
+    kind: "holiday",
+    note: "Break",
+    courses: [],
+  },
+  {
+    id: "block-6",
+    title: "Block 6",
+    start: "2027-01-04",
+    end: "2027-01-22",
+    kind: "teaching",
+    note: "Fitting, validation, and numerical methods",
+    courses: ["MEC05", "MEC06"],
+  },
+  {
+    id: "block-7",
+    title: "Block 7",
+    start: "2027-01-25",
+    end: "2027-02-12",
+    kind: "teaching",
+    note: "Data analysis sequence",
+    courses: ["MEC07", "MEC08"],
+  },
+  {
+    id: "reading-2",
+    title: "Reading Week",
+    start: "2027-02-15",
+    end: "2027-02-19",
+    kind: "reading",
+    note: "Reflection, catch-up, elective selection",
+    courses: [],
+  },
+  {
+    id: "block-8",
+    title: "Block 8",
+    start: "2027-02-22",
+    end: "2027-03-12",
+    kind: "teaching",
+    note: "Professional development and digital surveillance",
+    courses: ["MEC09", "MEC10"],
+  },
+  {
+    id: "block-9",
+    title: "Block 9",
+    start: "2027-03-15",
+    end: "2027-04-02",
+    kind: "teaching",
+    note: "Elective pathways",
+    courses: ["MEE01", "MEE02", "MEE03", "MEE04"],
+  },
+  {
+    id: "internship",
+    title: "Internship",
+    start: "2027-04-05",
+    end: "2027-08-06",
+    kind: "practical",
+    note: "Mandatory placement with research or industry partners",
+    courses: ["MEI01"],
+  },
+  {
+    id: "thesis",
+    title: "Thesis Writing, Review, and Vivas",
+    start: "2027-08-09",
+    end: "2027-09-10",
+    kind: "thesis",
+    note: "Thesis/project write-up and examination cycle",
+    courses: ["MEI01"],
+  },
+  {
+    id: "graduation",
+    title: "Graduation",
+    start: "2027-09-23",
+    end: "2027-09-24",
+    kind: "graduation",
+    note: "Graduation window",
+    courses: [],
+  },
+];
+
+const DEFAULT_SESSIONS = [
+  {
+    id: "s-001",
+    courseCode: "MES01",
+    day: "Monday",
+    time: "09:00",
+    duration: 2,
+    type: "Lecture",
+    room: "KEMRI Seminar Room",
+    blockId: "block-1",
+    personId: "lec-01",
+  },
+  {
+    id: "s-002",
+    courseCode: "MES05",
+    day: "Monday",
+    time: "14:00",
+    duration: 2,
+    type: "Practical",
+    room: "Computing Lab",
+    blockId: "block-1",
+    personId: "lec-05",
+  },
+  {
+    id: "s-003",
+    courseCode: "MES01",
+    day: "Wednesday",
+    time: "11:00",
+    duration: 2,
+    type: "Tutorial",
+    room: "Tutorial Studio A",
+    blockId: "block-1",
+    personId: "tut-01",
+  },
+  {
+    id: "s-004",
+    courseCode: "MES05",
+    day: "Thursday",
+    time: "14:00",
+    duration: 2,
+    type: "Coding Clinic",
+    room: "Computing Lab",
+    blockId: "block-1",
+    personId: "tut-05",
+  },
+  {
+    id: "s-005",
+    courseCode: "MEC03",
+    day: "Tuesday",
+    time: "09:00",
+    duration: 2,
+    type: "Lecture",
+    room: "KEMRI Seminar Room",
+    blockId: "block-4",
+    personId: "lec-09",
+  },
+  {
+    id: "s-006",
+    courseCode: "MEC01",
+    day: "Tuesday",
+    time: "14:00",
+    duration: 2,
+    type: "Lecture",
+    room: "Public Health Lab",
+    blockId: "block-4",
+    personId: "lec-07",
+  },
+  {
+    id: "s-007",
+    courseCode: "MEC03",
+    day: "Thursday",
+    time: "11:00",
+    duration: 2,
+    type: "Model Lab",
+    room: "Computing Lab",
+    blockId: "block-4",
+    personId: "tut-07",
+  },
+  {
+    id: "s-008",
+    courseCode: "MEC10",
+    day: "Wednesday",
+    time: "09:00",
+    duration: 2,
+    type: "Seminar",
+    room: "Digital Surveillance Studio",
+    blockId: "block-8",
+    personId: null,
+  },
+  {
+    id: "s-009",
+    courseCode: "MEE03",
+    day: "Friday",
+    time: "11:00",
+    duration: 2,
+    type: "Elective Lab",
+    room: "Computing Lab",
+    blockId: "block-9",
+    personId: "tut-08",
+  },
+];
+
+const COURSE_DETAILS = {
+  MES01: {
+    aim: "To provide students with comprehensive problem-solving strategies using analytical and computational tools, fostering mathematical thinking and creativity across diverse mathematical fields.",
+    content:
+      "Logical reasoning and proof techniques; combinatorics and graph theory applications; number theory and abstract algebra problems; calculus, differential equations, real analysis, matrix theory, and linear algebra problem-solving.",
+  },
+  MES02: {
+    aim: "To teach students how to solve and analyze ordinary and partial differential equations using rigorous analytical methods and numerical computations, with applications in epidemic modelling.",
+    content:
+      "First-order and second-order ODEs; systems of linear equations and stability analysis; PDEs; finite difference methods; error analysis; applications to epidemiological models.",
+  },
+  MES03: {
+    aim: "To provide students with basic physics knowledge and problem-solving strategies that exploit physical laws, mathematical methods, and computational tools for analyzing physical systems.",
+    content:
+      "Fundamental physics concepts; group problem-solving with measurements; analytical techniques; computer-aided physics calculations; interdisciplinary applications in biological systems.",
+  },
+  MES04: {
+    aim: "To provide fundamental knowledge in probability and statistical theory essential for epidemiological applications, focusing on data collection, parameter estimation, and statistical modelling.",
+    content:
+      "Descriptive statistics; probability laws; Bayes theorem; random variables; discrete and continuous distributions; parameter estimation; hypothesis testing; regression and epidemiological applications.",
+  },
+  MES05: {
+    aim: "To equip students with foundational programming skills in both R and Python for data management, analysis, and visualization, with applications in epidemiological research.",
+    content:
+      "Data types, structures, and functions in R and Python; data-frame manipulation; descriptive statistics; visualization; measures of association; linear regression; reproducible reporting.",
+  },
+  MES06: {
+    aim: "To equip students with computational mathematics skills, enabling them to bridge mathematical theory and computational practice through programming and algorithm implementation.",
+    content:
+      "Scientific computing fundamentals; SageMath; matrix operations; linear systems; nonlinear equation solving; numerical ODE solutions; numerical integration and optimization.",
+  },
+  MEC01: {
+    aim: "To equip learners with fundamental epidemiological knowledge, concepts, and skills for describing disease patterns, calculating key measures, and critiquing epidemiological studies.",
+    content:
+      "Definition, history, and scope of epidemiology; disease frequency and association measures; ecological, case-control, cohort, and randomized study designs; causal inference and critical appraisal.",
+  },
+  MEC02: {
+    aim: "To provide advanced knowledge of disease epidemiology and equip students with skills to calculate disease parameters, apply epidemiological concepts to modelling, and design infectious disease studies.",
+    content:
+      "Communicable and non-communicable disease epidemiology; transmission mechanisms; parameter estimation; DHS, DHIS2, and surveillance data; disease ecology, One Health, vaccines, resistance, and behavior.",
+  },
+  MEC03: {
+    aim: "To equip students with mathematical concepts for modelling biological systems using ODEs, enabling translation of complex biological phenomena into predictive mathematical frameworks.",
+    content:
+      "Research question development; population growth; logistic equations; SIR and SEIR models; equilibrium and stability analysis; R0 calculations; age-structured population models.",
+  },
+  MEC04: {
+    aim: "To advance students' modelling skills through specialized compartmental models, within-host dynamics, intervention modelling, and optimal control theory applications in public health.",
+    content:
+      "Advanced SIS and SEIR models; vector-borne disease modelling; within-host dynamics of HIV, TB, and other diseases; intervention scenario modelling; optimal control and Pontryagin's Maximum Principle.",
+  },
+  MEC05: {
+    aim: "To connect mechanistic models with real data through parameter estimation, model validation, calibration, and statistical inference techniques, ensuring model reliability and practical usefulness.",
+    content:
+      "Least squares and maximum likelihood estimation; Bayesian parameter estimation; model validation and goodness-of-fit; sensitivity analysis; uncertainty quantification; bootstrapping and out-of-sample validation.",
+  },
+  MEC06: {
+    aim: "To provide computational methods required to solve mathematical models used in epidemiology, enabling effective simulation, analysis, and interpretation of complex disease dynamics.",
+    content:
+      "Numerical solutions of ODEs, PDEs, and delay differential equations; stability and error propagation; Runge-Kutta and finite element methods; SIR/SEIR simulation and health intervention scenarios.",
+  },
+  MEC07: {
+    aim: "To equip students with comprehensive skills in data collation, cleaning, exploratory analysis, and statistical methods to answer health-related questions using epidemiological data.",
+    content:
+      "Data collection and sampling; data wrangling and error checking; univariate and bivariate descriptive statistics; linear regression and diagnostics; systematic reviews and meta-analysis interpretation.",
+  },
+  MEC08: {
+    aim: "To introduce advanced data analysis methods for complex epidemiological data, including generalized linear models, spatial analysis, and machine learning applications in public health.",
+    content:
+      "Generalized linear models; complex survey and hierarchical data; spatial data analysis and disease mapping; machine learning techniques for prediction and public health decision support.",
+  },
+  MEC09: {
+    aim: "To prepare students for successful transitions to employment, entrepreneurship, or further studies through professional development, project management, and career readiness skills.",
+    content:
+      "Resume and cover-letter writing; interview preparation; grant and proposal development; time and stress management; team collaboration; workplace diversity; innovation and entrepreneurial thinking.",
+  },
+  MEC10: {
+    aim: "To equip students with AI and machine learning techniques for modern epidemiological surveillance, outbreak prediction, and digital health innovation, with attention to African contexts and data challenges.",
+    content:
+      "AI for syndromic surveillance; social media, search, and news signals; deep learning for disease diagnostics; federated learning; chatbots and mobile health; bias detection in African health AI systems.",
+  },
+  MEE01: {
+    aim: "To equip students with skills to analyze time-to-event data using non-parametric and regression methods, with applications in public health decision-making and policy.",
+    content:
+      "Censoring mechanisms and survival functions; Kaplan-Meier and Nelson-Aalen estimators; Cox regression; proportional hazards assumptions; competing risks; graphical interpretation.",
+  },
+  MEE02: {
+    aim: "To provide students with skills to analyze, model, and forecast time series data for public health surveillance and research applications.",
+    content:
+      "Time series decomposition and smoothing; stationarity testing; autocorrelation functions; ARIMA and seasonal ARIMA modelling; volatility modelling; machine learning approaches for time series.",
+  },
+  MEE03: {
+    aim: "To introduce a Bayesian statistical framework for data analysis and inference, allowing incorporation of prior knowledge and uncertainty in epidemiological applications.",
+    content:
+      "Bayesian versus frequentist inference; prior and posterior distributions; conjugate and non-informative priors; Markov Chain Monte Carlo; Bayesian modelling for health science problems.",
+  },
+  MEE04: {
+    aim: "To introduce stochastic modelling concepts, including stochastic differential equations and agent-based simulations, for more realistic representation of biological systems.",
+    content:
+      "Stochasticity in biological systems; stochastic differential equations; agent-based model design; simulation coding; interpretation of stochastic simulations in disease dynamics and public health.",
+  },
+  MEI01: {
+    aim: "To provide students with practical experience in mathematical epidemiology through research or industry placement, culminating in a substantial thesis or project report.",
+    content:
+      "Research project design and implementation; data collection, analysis, and interpretation; scientific writing and presentation; professional collaboration; project management; reflection on methods and findings.",
+  },
+};
+
+const DEFAULT_TIMESHEETS = [
+  {
+    id: "ts-001",
+    tutorId: "tut-01",
+    courseCode: "MES05",
+    date: "2026-09-08",
+    category: "Coding clinic",
+    hours: 2.5,
+    activity: "Prepared R/Python setup clinic and supported reproducible reporting exercises.",
+    status: "Approved",
+  },
+  {
+    id: "ts-002",
+    tutorId: "tut-07",
+    courseCode: "MEC03",
+    date: "2026-11-19",
+    category: "Model lab",
+    hours: 3,
+    activity: "Guided students through SIR model implementation and interpretation.",
+    status: "Submitted",
+  },
+  {
+    id: "ts-003",
+    tutorId: "tut-08",
+    courseCode: "MEC05",
+    date: "2027-01-08",
+    category: "Assignment support",
+    hours: 4,
+    activity: "Held model-fitting office hours and reviewed validation questions.",
+    status: "Review",
+  },
+  {
+    id: "ts-004",
+    tutorId: "tut-04",
+    courseCode: "MEE01",
+    date: "2027-03-18",
+    category: "Elective tutorial",
+    hours: 2,
+    activity: "Kaplan-Meier tutorial preparation and student support.",
+    status: "Draft",
+  },
+];
+
+const DEFAULT_TASKS = [
+  {
+    id: "task-001",
+    title: "Collect travel documentation",
+    area: "Student reporting",
+    owner: "Centre Coordinators",
+    due: "2026-07-31",
+    status: "In progress",
+    priority: "High",
+    details: "Passport, visa, invitation letters, emergency contact, and arrival forms for incoming students.",
+  },
+  {
+    id: "task-002",
+    title: "Confirm flight tickets and arrival schedule",
+    area: "Travel logistics",
+    owner: "Academic & Research Manager",
+    due: "2026-08-07",
+    status: "Planned",
+    priority: "High",
+    details: "Track booking status, airport pickups, arrival windows, and exceptional travel needs.",
+  },
+  {
+    id: "task-003",
+    title: "Secure accommodation allocation",
+    area: "Accommodation",
+    owner: "Centre Coordinators",
+    due: "2026-08-14",
+    status: "Planned",
+    priority: "High",
+    details: "Room list, check-in instructions, gender-sensitive allocation, accessibility needs, and welcome packs.",
+  },
+  {
+    id: "task-004",
+    title: "Prepare classroom and lecture hall",
+    area: "Facilities",
+    owner: "Centre Operations",
+    due: "2026-08-21",
+    status: "Planned",
+    priority: "Medium",
+    details: "Projector, internet, whiteboards, power, seating, hybrid-teaching backup, signage, and safety check.",
+  },
+  {
+    id: "task-005",
+    title: "Arrange meals and daily logistics",
+    area: "Student welfare",
+    owner: "Centre Coordinators",
+    due: "2026-08-24",
+    status: "Planned",
+    priority: "Medium",
+    details: "Meal plans, dietary restrictions, campus access, transport shuttles, orientation day logistics.",
+  },
+  {
+    id: "task-006",
+    title: "Hire and onboard tutors",
+    area: "Teaching support",
+    owner: "Head Tutor",
+    due: "2026-08-10",
+    status: "In progress",
+    priority: "High",
+    details: "Tutor contracts, availability, workload expectations, timesheet protocol, and course assignments.",
+  },
+  {
+    id: "task-007",
+    title: "Appoint and confirm lecturers",
+    area: "Teaching appointments",
+    owner: "Academic & Research Manager",
+    due: "2026-08-15",
+    status: "In progress",
+    priority: "High",
+    details: "Lecturer invitation, availability confirmation, appointment letter, course outline, and Drive folder access.",
+  },
+];
+
+const ROLES = {
+  "super-admin": {
+    label: "Super Admin",
+    hint: "Full system, integration, and user management",
+    canEdit: true,
+    canSensitive: true,
+    views: [
+      "dashboard",
+      "calendar",
+      "courses",
+      "people",
+      "contact",
+      "timesheets",
+      "tasks",
+      "google",
+      "access",
+    ],
+  },
+  manager: {
+    label: "Academic & Research Manager",
+    hint: "Calendar, courses, lecturers, tutors, and follow-up control",
+    canEdit: true,
+    canSensitive: true,
+    views: ["dashboard", "calendar", "courses", "people", "contact", "timesheets", "tasks", "google"],
+  },
+  "centre-coordinator": {
+    label: "Centre Coordinator",
+    hint: "Manager-level visibility for coordination, without write access",
+    canEdit: false,
+    canSensitive: true,
+    views: ["dashboard", "calendar", "courses", "people", "contact", "timesheets", "tasks", "google"],
+  },
+  "head-tutor": {
+    label: "Head Tutor",
+    hint: "Tutor workload, tutor profiles, assigned work, and lecturer-course tracking",
+    canEdit: false,
+    canSensitive: true,
+    views: ["dashboard", "calendar", "courses", "people", "contact", "timesheets", "tasks"],
+  },
+  lecturer: {
+    label: "Lecturer",
+    hint: "Assigned courses, timetable, materials, and confirmation",
+    canEdit: false,
+    canSensitive: false,
+    views: ["dashboard", "calendar", "courses", "contact"],
+  },
+  tutor: {
+    label: "Tutor",
+    hint: "Assigned tutorials, course materials, timesheet logging, and workload balance",
+    canEdit: false,
+    canSensitive: false,
+    views: ["dashboard", "calendar", "courses", "timesheets", "tasks"],
+  },
+  viewer: {
+    label: "Viewer / Partner",
+    hint: "Read-only approved programme information",
+    canEdit: false,
+    canSensitive: false,
+    views: ["dashboard", "calendar", "courses"],
+  },
+};
+
+const NAV = [
+  { id: "dashboard", label: "Command", icon: "command" },
+  { id: "calendar", label: "Calendar", icon: "calendar" },
+  { id: "courses", label: "Courses", icon: "book" },
+  { id: "people", label: "Lecturers & Tutors", icon: "users" },
+  { id: "contact", label: "Contact Hub", icon: "mail" },
+  { id: "timesheets", label: "Timesheets", icon: "clock" },
+  { id: "tasks", label: "Tasks & Activities", icon: "activity" },
+  { id: "google", label: "Sheets & Drive", icon: "cloud" },
+  { id: "access", label: "Access Control", icon: "shield" },
+];
+
+const STATUS_COLOR = {
+  Confirmed: "green",
+  Contacted: "blue",
+  "Awaiting response": "gold",
+  "Needs follow-up": "danger",
+  "Not contacted": "gray",
+  Declined: "danger",
+  "Replacement needed": "danger",
+};
+
+const state = {
+  view: "dashboard",
+  role: "manager",
+  query: "",
+  calendarMode: "timeline",
+  blockId: "block-4",
+  selected: null,
+  drawer: null,
+  toast: null,
+  googleConnected: false,
+  courses: load("mathepi-courses", DEFAULT_COURSES),
+  people: load("mathepi-people", DEFAULT_PEOPLE),
+  blocks: load("mathepi-blocks", DEFAULT_BLOCKS),
+  sessions: load("mathepi-sessions", DEFAULT_SESSIONS),
+  timesheets: load("mathepi-timesheets", DEFAULT_TIMESHEETS),
+  tasks: load("mathepi-tasks", DEFAULT_TASKS),
+};
+
+function load(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : structuredClone(fallback);
+  } catch {
+    return structuredClone(fallback);
+  }
+}
+
+function save() {
+  localStorage.setItem("mathepi-courses", JSON.stringify(state.courses));
+  localStorage.setItem("mathepi-people", JSON.stringify(state.people));
+  localStorage.setItem("mathepi-blocks", JSON.stringify(state.blocks));
+  localStorage.setItem("mathepi-sessions", JSON.stringify(state.sessions));
+  localStorage.setItem("mathepi-timesheets", JSON.stringify(state.timesheets));
+  localStorage.setItem("mathepi-tasks", JSON.stringify(state.tasks));
+}
+
+function icon(name, size = 20) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ICONS.spark}</svg>`;
+}
+
+function today() {
+  return new Date("2026-05-21T09:00:00+02:00");
+}
+
+function dateLabel(iso) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(`${iso}T10:00:00`));
+}
+
+function shortDate(iso) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(`${iso}T10:00:00`));
+}
+
+function daysUntil(iso) {
+  const target = new Date(`${iso}T10:00:00`);
+  return Math.ceil((target - today()) / 86400000);
+}
+
+function roleDef() {
+  return ROLES[state.role];
+}
+
+function canView(view) {
+  return roleDef().views.includes(view);
+}
+
+function canEdit() {
+  return roleDef().canEdit;
+}
+
+function canSeeSensitive() {
+  return roleDef().canSensitive;
+}
+
+function course(code) {
+  return state.courses.find((item) => item.code === code);
+}
+
+function person(id) {
+  return state.people.find((item) => item.id === id);
+}
+
+function assignedCourses(personId) {
+  return state.courses.filter(
+    (item) => item.lecturerId === personId || item.tutorIds.includes(personId),
+  );
+}
+
+function filteredCourses() {
+  const query = state.query.trim().toLowerCase();
+  if (!query) return state.courses;
+  return state.courses.filter((item) =>
+    [item.code, item.title, item.block, item.type, item.software]
+      .join(" ")
+      .toLowerCase()
+      .includes(query),
+  );
+}
+
+function filteredPeople(kind = null) {
+  const query = state.query.trim().toLowerCase();
+  return state.people.filter((item) => {
+    const kindOk = kind ? item.kind === kind : true;
+    const text = [
+      item.name,
+      item.kind,
+      item.affiliation,
+      item.email,
+      item.expertise,
+      item.status,
+    ]
+      .join(" ")
+      .toLowerCase();
+    return kindOk && (!query || text.includes(query));
+  });
+}
+
+function currentTutorId() {
+  return "tut-01";
+}
+
+function visibleTimesheets() {
+  if (state.role === "tutor") {
+    return state.timesheets.filter((item) => item.tutorId === currentTutorId());
+  }
+  return state.timesheets;
+}
+
+function tutorHours(tutorId) {
+  return state.timesheets
+    .filter((item) => item.tutorId === tutorId)
+    .reduce((total, item) => total + Number(item.hours || 0), 0);
+}
+
+function balanceLabel(hours) {
+  if (hours >= 12) return { label: "Watch balance", color: "danger" };
+  if (hours >= 8) return { label: "Busy week", color: "gold" };
+  return { label: "Healthy load", color: "green" };
+}
+
+function visibleTasks() {
+  if (!state.query.trim()) return state.tasks;
+  const q = state.query.trim().toLowerCase();
+  return state.tasks.filter((item) =>
+    [item.title, item.area, item.owner, item.status, item.priority, item.details]
+      .join(" ")
+      .toLowerCase()
+      .includes(q),
+  );
+}
+
+function activeBlock() {
+  return state.blocks.find((item) => item.id === state.blockId) || state.blocks[1];
+}
+
+function startBlock() {
+  const firstTeaching = state.blocks.find((item) => item.id === "block-1");
+  return firstTeaching || state.blocks[0];
+}
+
+function nextStartLabel() {
+  const start = startBlock();
+  const days = daysUntil(start.start);
+  return `${days} days`;
+}
+
+function statusBadge(status) {
+  return `<span class="badge ${STATUS_COLOR[status] || "gray"}">${status}</span>`;
+}
+
+function typeBadge(type) {
+  const meta = COURSE_TYPES[type] || COURSE_TYPES.skills;
+  return `<span class="badge ${meta.color}">${meta.label}</span>`;
+}
+
+function initials(name) {
+  return name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function overduePeople() {
+  const now = today();
+  return state.people
+    .filter((item) => {
+      const d = new Date(`${item.nextFollowUp}T10:00:00`);
+      return d <= now && ["Needs follow-up", "Awaiting response", "Contacted"].includes(item.status);
+    })
+    .sort((a, b) => a.nextFollowUp.localeCompare(b.nextFollowUp));
+}
+
+function missingTutorCourses() {
+  return state.courses.filter((item) => item.tutorIds.length === 0 && item.type !== "practical");
+}
+
+function unconfirmedLecturerCourses() {
+  return state.courses.filter((item) => {
+    const lead = person(item.lecturerId);
+    return !lead || lead.status !== "Confirmed";
+  });
+}
+
+function workloadWarnings() {
+  return state.people.filter((item) => item.workload >= 3);
+}
+
+function conflicts() {
+  const issues = [];
+  const slots = {};
+  state.sessions.forEach((session) => {
+    const key = `${session.personId}-${session.blockId}-${session.day}-${session.time}`;
+    if (session.personId) {
+      if (slots[key]) {
+        issues.push({
+          title: "Double-booked session",
+          detail: `${person(session.personId)?.name || "Unknown"} is assigned to overlapping sessions.`,
+          icon: "alert",
+          color: "danger",
+        });
+      }
+      slots[key] = true;
+    }
+    if (!session.personId) {
+      issues.push({
+        title: "Session missing owner",
+        detail: `${session.courseCode} ${course(session.courseCode)?.title || ""} needs lecturer or tutor assignment.`,
+        icon: "users",
+        color: "gold",
+      });
+    }
+  });
+  missingTutorCourses()
+    .slice(0, 3)
+    .forEach((item) =>
+      issues.push({
+        title: "Tutor missing",
+        detail: `${item.code} ${item.title} has no tutor assigned.`,
+        icon: "users",
+        color: "danger",
+      }),
+    );
+  unconfirmedLecturerCourses()
+    .slice(0, 3)
+    .forEach((item) =>
+      issues.push({
+        title: "Lecturer not confirmed",
+        detail: `${item.code} ${item.title} needs lecturer confirmation.`,
+        icon: "mail",
+        color: "gold",
+      }),
+    );
+  return issues;
+}
+
+function saveAndRender(message) {
+  save();
+  toast(message);
+  render();
+}
+
+function toast(message) {
+  state.toast = message;
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => {
+    state.toast = null;
+    render();
+  }, 2600);
+}
+
+function setView(view) {
+  state.view = canView(view) ? view : "dashboard";
+  state.drawer = null;
+  render();
+}
+
+function openDrawer(type, payload = null) {
+  state.drawer = { type, payload };
+  render();
+}
+
+function closeDrawer() {
+  state.drawer = null;
+  render();
+}
+
+function setRole(role) {
+  state.role = role;
+  if (!canView(state.view)) state.view = "dashboard";
+  render();
+}
+
+function appLayout() {
+  const nav = NAV.filter((item) => canView(item.id));
+  const viewMeta = NAV.find((item) => item.id === state.view) || NAV[0];
+  return `
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-panel">
+          <div class="logo-lockup">
+            <img src="assets/aims-ric-logo.png" alt="AIMS Research & Innovation Centre logo" />
+            <div>
+              <p class="brand-kicker">AIMS RIC x KEMRI</p>
+              <h1 class="brand-title">MathEpi Assistant</h1>
+            </div>
+          </div>
+          <div class="assistant-pulse">
+            <div class="pulse-top"><span>Operations pulse</span><span class="pulse-dot"></span></div>
+            <p class="pulse-copy">${overduePeople().length} follow-up${overduePeople().length === 1 ? "" : "s"} need attention. Block 1 begins in ${nextStartLabel()}.</p>
+          </div>
+        </div>
+        <nav class="nav">
+          ${nav
+            .map(
+              (item) => `
+              <button class="nav-button ${state.view === item.id ? "active" : ""}" onclick="setView('${item.id}')">
+                ${icon(item.icon)}
+                <span>${item.label}</span>
+                ${item.id === "contact" ? `<span class="count">${overduePeople().length}</span>` : ""}
+              </button>
+            `,
+            )
+            .join("")}
+        </nav>
+        <div class="role-card">
+          <label for="roleSwitch">Role simulation</label>
+          <select id="roleSwitch" onchange="setRole(this.value)">
+            ${Object.entries(ROLES)
+              .map(
+                ([id, role]) =>
+                  `<option value="${id}" ${state.role === id ? "selected" : ""}>${role.label}</option>`,
+              )
+              .join("")}
+          </select>
+        </div>
+      </aside>
+      <section class="content">
+        <header class="topbar">
+          <div class="page-title">
+            <h1>${viewMeta.label}</h1>
+            <p>${roleDef().hint}</p>
+          </div>
+          <div class="top-actions">
+            <div class="search">
+              ${icon("search", 18)}
+              <input placeholder="Search courses, people, blocks..." value="${escapeHtml(state.query)}" oninput="state.query=this.value; render()" />
+            </div>
+            ${
+              canEdit()
+                ? `<button class="button primary" onclick="openDrawer('quickAdd')">${icon("plus", 18)}Add</button>`
+                : `<button class="button ghost" disabled>${icon("shield", 18)}Read only</button>`
+            }
+          </div>
+        </header>
+        <main class="main">${renderView()}</main>
+      </section>
+    </div>
+    ${mobileNav(nav)}
+    ${state.drawer ? renderDrawer() : ""}
+    ${state.toast ? `<div class="toast">${icon("check", 18)}${escapeHtml(state.toast)}</div>` : ""}
+  `;
+}
+
+function mobileNav(nav) {
+  const mobile = nav.slice(0, 5);
+  return `
+    <nav class="mobile-bottom-nav">
+      ${mobile
+        .map(
+          (item) => `
+          <button class="${state.view === item.id ? "active" : ""}" onclick="setView('${item.id}')">
+            ${icon(item.icon, 21)}
+            <span>${item.label.split(" ")[0]}</span>
+          </button>
+        `,
+        )
+        .join("")}
+    </nav>
+  `;
+}
+
+function renderView() {
+  switch (state.view) {
+    case "calendar":
+      return renderCalendar();
+    case "courses":
+      return renderCourses();
+    case "people":
+      return renderPeople();
+    case "contact":
+      return renderContact();
+    case "timesheets":
+      return renderTimesheets();
+    case "tasks":
+      return renderTasks();
+    case "google":
+      return renderGoogle();
+    case "access":
+      return renderAccess();
+    default:
+      return renderDashboard();
+  }
+}
+
+function renderDashboard() {
+  const active = activeBlock();
+  const risks = conflicts();
+  const activeCourses = active.courses.map(course).filter(Boolean);
+  return `
+    <div class="view">
+      <section class="hero-strip">
+        <div class="card mission-card">
+          <div class="card-body">
+            <div>
+              <span class="mission-eyebrow">${icon("spark", 16)} Personal academic operations assistant</span>
+              <h2>Know what needs action before the programme feels it.</h2>
+              <p>Coordinate blocks, lecturers, tutors, course data, contacts, Drive documents, and Google Sheets-backed operations from one responsive command centre.</p>
+            </div>
+            <div class="hero-actions">
+              <button class="button primary" onclick="setView('contact')">${icon("mail", 18)}Review follow-ups</button>
+              <button class="button ghost" onclick="setView('calendar')">${icon("calendar", 18)}Open timetable</button>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-grid">
+          ${kpi("Courses", state.courses.length, "Curriculum items loaded", "book", "blue")}
+          ${kpi("Follow-ups", overduePeople().length, "Need attention today", "alert", "danger")}
+          ${kpi("Tutor gaps", missingTutorCourses().length, "Courses without tutor", "users", "gold")}
+          ${kpi("Starts in", nextStartLabel(), "Block 1 countdown", "clock", "green")}
+        </div>
+      </section>
+
+      <section class="quick-grid">
+        ${quick("Contact lecturer", "Open the tracker and next follow-up actions.", "mail", "maroon", "setView('contact')")}
+        ${
+          canEdit()
+            ? quick("Schedule session", "Add a lecture, practical, tutorial, or assessment.", "calendar", "teal", "openDrawer('sessionForm')")
+            : quick("My timetable", "Review assigned courses and upcoming sessions.", "calendar", "teal", "setView('calendar')")
+        }
+        ${
+          canView("timesheets")
+            ? quick("Timesheets", "Track tutor hours, activities, and balance signals.", "clock", "gold", "setView('timesheets')")
+            : quick("Course view", "Review approved course information.", "book", "gold", "setView('courses')")
+        }
+        ${
+          canView("tasks")
+            ? quick("Task board", "Pre-arrival documentation, travel, housing, facilities, and appointments.", "activity", "green", "setView('tasks')")
+            : quick("Course view", "Review approved programme information.", "book", "green", "setView('courses')")
+        }
+      </section>
+
+      <section class="section-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Current Planning Block</h2>
+              <p>${dateLabel(active.start)} to ${dateLabel(active.end)}</p>
+            </div>
+            <span class="badge maroon">${active.title}</span>
+          </div>
+          <div class="card-body">
+            <div class="timeline">
+              ${activeCourses
+                .map(
+                  (item) => `
+                  <article class="course-row">
+                    <div>
+                      <h4>${item.code} ${item.title}</h4>
+                      <p>${item.outcomes}</p>
+                      <div class="row-tags">
+                        ${typeBadge(item.type)}
+                        <span class="chip gray">${item.hours} hours</span>
+                        <span class="chip ${person(item.lecturerId)?.status === "Confirmed" ? "green" : "gold"}">
+                          ${person(item.lecturerId)?.name || "Lecturer missing"}
+                        </span>
+                      </div>
+                    </div>
+                    <button class="button ghost icon-only" onclick="openDrawer('course', '${item.code}')" aria-label="Open ${item.code}">${icon("edit", 18)}</button>
+                  </article>
+                `,
+                )
+                .join("")}
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Assistant Priorities</h2>
+              <p>Highest-value actions for the manager.</p>
+            </div>
+            <span class="badge danger">${risks.length} signals</span>
+          </div>
+          <div class="card-body assistant-stack">
+            ${assistantPriorities()
+              .map(
+                (item) => `
+                <div class="priority">
+                  <span class="icon-box ${item.color}">${icon(item.icon, 18)}</span>
+                  <div><strong>${item.title}</strong><span>${item.detail}</span></div>
+                </div>
+              `,
+              )
+              .join("")}
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function kpi(label, value, note, iconName, color) {
+  return `
+    <div class="kpi">
+      <div class="kpi-top">
+        <span class="kpi-label">${label}</span>
+        <span class="icon-box ${color}">${icon(iconName, 17)}</span>
+      </div>
+      <p class="kpi-value">${value}</p>
+      <p class="kpi-note">${note}</p>
+    </div>
+  `;
+}
+
+function quick(title, text, iconName, color, action) {
+  return `
+    <button class="quick-action" onclick="${canEdit() || action.includes("setView") ? action : "toast('This role has read-only access.')" }">
+      <span class="icon-box ${color}">${icon(iconName, 18)}</span>
+      <span><strong>${title}</strong><span>${text}</span></span>
+    </button>
+  `;
+}
+
+function assistantPriorities() {
+  const list = [
+    ...overduePeople()
+      .slice(0, 2)
+      .map((item) => ({
+        title: `Follow up with ${item.name}`,
+        detail: `${item.status}; next follow-up was ${dateLabel(item.nextFollowUp)}.`,
+        icon: "mail",
+        color: "danger",
+      })),
+    ...missingTutorCourses()
+      .slice(0, 2)
+      .map((item) => ({
+        title: `Assign tutor for ${item.code}`,
+        detail: `${item.title} is scheduled in ${item.block}.`,
+        icon: "users",
+        color: "gold",
+      })),
+    {
+      title: "Confirm Google Sheet ownership",
+      detail: "Prepare Calendar, Courses, People, Sessions, Contacts, and Settings tabs before OAuth is enabled.",
+      icon: "sheet",
+      color: "green",
+    },
+  ];
+  return list.slice(0, 5);
+}
+
+function renderCalendar() {
+  const active = activeBlock();
+  return `
+    <div class="view">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Academic Calendar and Timetable</h2>
+            <p>Course titles appear directly in block and timetable slots.</p>
+          </div>
+          <div class="toolbar">
+            <div class="tabs">
+              ${["timeline", "week", "agenda"].map((mode) => `<button class="tab ${state.calendarMode === mode ? "active" : ""}" onclick="state.calendarMode='${mode}'; render()">${mode}</button>`).join("")}
+            </div>
+            <select class="button ghost" onchange="state.blockId=this.value; render()">
+              ${state.blocks
+                .filter((item) => item.kind === "teaching" || item.kind === "practical" || item.kind === "thesis")
+                .map((item) => `<option value="${item.id}" ${state.blockId === item.id ? "selected" : ""}>${item.title}</option>`)
+                .join("")}
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          ${state.calendarMode === "timeline" ? renderTimeline() : ""}
+          ${state.calendarMode === "week" ? renderWeek(active) : ""}
+          ${state.calendarMode === "agenda" ? renderAgenda() : ""}
+        </div>
+      </div>
+      <section class="calendar-layout">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>${active.title} Focus</h2>
+              <p>${shortDate(active.start)} to ${shortDate(active.end)} · ${active.note}</p>
+            </div>
+            ${canEdit() ? `<button class="button soft" onclick="openDrawer('sessionForm')">${icon("plus", 17)}Session</button>` : ""}
+          </div>
+          <div class="card-body">
+            ${renderBlockCourses(active)}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Legend and Checks</h2>
+              <p>Operational view for planning gaps.</p>
+            </div>
+          </div>
+          <div class="card-body insight-list">
+            ${Object.entries(COURSE_TYPES).map(([key, meta]) => `<span class="chip ${meta.color}">${meta.label}</span>`).join("")}
+            ${conflicts()
+              .slice(0, 4)
+              .map(
+                (item) => `
+                <div class="insight">
+                  <span class="icon-box ${item.color}">${icon(item.icon, 18)}</span>
+                  <div><h4>${item.title}</h4><p>${item.detail}</p></div>
+                </div>
+              `,
+              )
+              .join("")}
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderTimeline() {
+  return `
+    <div class="timeline">
+      ${state.blocks
+        .map((block) => {
+          const active = block.id === state.blockId;
+          return `
+            <article class="phase ${active ? "active" : ""}" onclick="state.blockId='${block.id}'; render()">
+              <div class="phase-date">${shortDate(block.start)}<br />${shortDate(block.end)}</div>
+              <div>
+                <h3 class="phase-title">${block.title}</h3>
+                <p class="phase-meta">${block.note}</p>
+              </div>
+              <div class="phase-courses">
+                ${
+                  block.courses.length
+                    ? block.courses
+                        .map((code) => {
+                          const item = course(code);
+                          return item ? `<span class="chip ${COURSE_TYPES[item.type].color}">${item.code} ${item.title}</span>` : "";
+                        })
+                        .join("")
+                    : `<span class="chip gray">${block.kind}</span>`
+                }
+              </div>
+            </article>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function renderWeek(block) {
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  const times = ["09:00", "11:00", "14:00", "16:00"];
+  return `
+    <div class="scroll-x">
+      <div class="week-grid">
+        <div class="week-head">Time</div>
+        ${days.map((day) => `<div class="week-head">${day}</div>`).join("")}
+        ${times
+          .map(
+            (time) => `
+            <div class="time-cell">${time}</div>
+            ${days
+              .map((day) => {
+                const sessions = state.sessions.filter((s) => s.blockId === block.id && s.day === day && s.time === time);
+                return `<div class="week-cell">${sessions.map(renderSession).join("")}</div>`;
+              })
+              .join("")}
+          `,
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderSession(session) {
+  const item = course(session.courseCode);
+  const owner = person(session.personId);
+  return `
+    <button class="session-card ${item?.type || "skills"}" onclick="openDrawer('session', '${session.id}')">
+      <strong>${session.courseCode} ${item?.title || ""}</strong>
+      <span>${session.type} · ${owner?.name || "Unassigned"}</span>
+      <span>${session.room}</span>
+    </button>
+  `;
+}
+
+function renderAgenda() {
+  const items = state.sessions
+    .filter((session) => session.blockId === state.blockId)
+    .sort((a, b) => `${a.day}${a.time}`.localeCompare(`${b.day}${b.time}`));
+  return `
+    <div class="agenda-list">
+      ${
+        items.length
+          ? items
+              .map((session) => {
+                const item = course(session.courseCode);
+                const owner = person(session.personId);
+                return `
+                  <article class="agenda-item">
+                    <div>
+                      <h4>${session.day} ${session.time} · ${session.courseCode} ${item?.title || ""}</h4>
+                      <p>${session.type} in ${session.room} · ${owner?.name || "Unassigned"}</p>
+                      <div class="row-tags">${item ? typeBadge(item.type) : ""}<span class="chip gray">${session.duration} hours</span></div>
+                    </div>
+                    <button class="button ghost icon-only" onclick="openDrawer('session', '${session.id}')">${icon("edit", 18)}</button>
+                  </article>
+                `;
+              })
+              .join("")
+          : `<div class="empty">No sessions in this block yet.</div>`
+      }
+    </div>
+  `;
+}
+
+function renderBlockCourses(block) {
+  if (!block.courses.length) return `<div class="empty">No course assigned to this phase.</div>`;
+  return `
+    <div class="course-list">
+      ${block.courses
+        .map(course)
+        .filter(Boolean)
+        .map(renderCourseRow)
+        .join("")}
+    </div>
+  `;
+}
+
+function renderCourses() {
+  return `
+    <div class="view">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Course Management</h2>
+            <p>Curriculum data, assignments, Google Drive documents, and operational notes.</p>
+          </div>
+          ${canEdit() ? `<button class="button primary" onclick="openDrawer('courseForm')">${icon("plus", 17)}Course</button>` : ""}
+        </div>
+        <div class="card-body">
+          <div class="course-list">
+            ${filteredCourses().map(renderCourseRow).join("") || `<div class="empty">No course matches your search.</div>`}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCourseRow(item) {
+  const lead = person(item.lecturerId);
+  return `
+    <article class="course-row">
+      <div>
+        <h4>${item.code} ${item.title}</h4>
+        <p>${item.block} · ${item.hours} hours · ${lead ? lead.name : "Lecturer not assigned"}</p>
+        <div class="row-tags">
+          ${typeBadge(item.type)}
+          ${lead ? statusBadge(lead.status) : `<span class="badge danger">Lecturer missing</span>`}
+          <span class="chip ${item.tutorIds.length ? "green" : "danger"}">${item.tutorIds.length} tutor${item.tutorIds.length === 1 ? "" : "s"}</span>
+          <span class="chip gray">${item.software}</span>
+        </div>
+      </div>
+      <button class="button ghost" onclick="openDrawer('course', '${item.code}')">${icon("edit", 17)}Open</button>
+    </article>
+  `;
+}
+
+function renderPeople() {
+  return `
+    <div class="view section-grid">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Lecturers</h2>
+            <p>Confirmation, expertise, contact data, and workload.</p>
+          </div>
+          ${canEdit() ? `<button class="button primary" onclick="openDrawer('personForm', {kind:'Lecturer'})">${icon("plus", 17)}Lecturer</button>` : ""}
+        </div>
+        <div class="card-body people-list">
+          ${filteredPeople("Lecturer").map(renderPersonRow).join("") || `<div class="empty">No lecturer matches your search.</div>`}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Tutors</h2>
+            <p>Coverage and tutorial readiness.</p>
+          </div>
+          ${canEdit() ? `<button class="button soft" onclick="openDrawer('personForm', {kind:'Tutor'})">${icon("plus", 17)}Tutor</button>` : ""}
+        </div>
+        <div class="card-body people-list">
+          ${filteredPeople("Tutor").map(renderPersonRow).join("") || `<div class="empty">No tutor matches your search.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPersonRow(item) {
+  const assigned = assignedCourses(item.id);
+  const sensitive = canSeeSensitive();
+  return `
+    <article class="person-row">
+      <div class="profile-head">
+        <span class="avatar">${initials(item.name)}</span>
+        <div>
+          <h4>${item.name}</h4>
+          <p>${item.affiliation} · ${item.expertise}</p>
+          <div class="row-tags">
+            ${statusBadge(item.status)}
+            <span class="chip gray">${assigned.length} course${assigned.length === 1 ? "" : "s"}</span>
+            ${sensitive ? `<span class="chip blue">${item.email}</span>` : `<span class="chip gray">contact hidden</span>`}
+          </div>
+        </div>
+      </div>
+      <button class="button ghost" onclick="openDrawer('person', '${item.id}')">${icon("edit", 17)}Open</button>
+    </article>
+  `;
+}
+
+function renderContact() {
+  const lecturers = filteredPeople("Lecturer").sort((a, b) => {
+    const priority = { "Needs follow-up": 0, "Awaiting response": 1, Contacted: 2, "Not contacted": 3, Confirmed: 4 };
+    return (priority[a.status] ?? 9) - (priority[b.status] ?? 9) || a.nextFollowUp.localeCompare(b.nextFollowUp);
+  });
+  return `
+    <div class="view section-grid">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Contact Lecturer Hub</h2>
+            <p>Track outreach status, communication notes, and next follow-up dates.</p>
+          </div>
+          ${canEdit() ? `<button class="button primary" onclick="openDrawer('messageDraft')">${icon("mail", 17)}Draft reminder</button>` : ""}
+        </div>
+        <div class="card-body people-list">
+          ${lecturers
+            .map(
+              (item) => `
+              <article class="person-row">
+                <div>
+                  <h4>${item.name}</h4>
+                  <p>${item.expertise} · ${assignedCourses(item.id).map((c) => c.code).join(", ") || "No course assigned"}</p>
+                  <div class="row-tags">
+                    ${statusBadge(item.status)}
+                    <span class="chip gray">Last: ${dateLabel(item.lastContact)}</span>
+                    <span class="chip ${new Date(`${item.nextFollowUp}T10:00:00`) <= today() ? "danger" : "blue"}">Next: ${dateLabel(item.nextFollowUp)}</span>
+                  </div>
+                </div>
+                <button class="button ghost" onclick="openDrawer('person', '${item.id}')">${icon("phone", 17)}Contact</button>
+              </article>
+            `,
+            )
+            .join("")}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Tracker Summary</h2>
+            <p>Communication pipeline by status.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <table class="mini-table">
+            <thead><tr><th>Status</th><th>Count</th><th>Action</th></tr></thead>
+            <tbody>
+              ${["Not contacted", "Contacted", "Awaiting response", "Confirmed", "Needs follow-up", "Declined", "Replacement needed"]
+                .map((status) => {
+                  const count = state.people.filter((p) => p.kind === "Lecturer" && p.status === status).length;
+                  return `<tr><td>${statusBadge(status)}</td><td>${count}</td><td>${status === "Confirmed" ? "Monitor" : "Follow up"}</td></tr>`;
+                })
+                .join("")}
+            </tbody>
+          </table>
+          <div style="height: 14px"></div>
+          <div class="assistant-stack">
+            ${overduePeople()
+              .slice(0, 3)
+              .map(
+                (item) => `
+                <div class="priority">
+                  <span class="icon-box danger">${icon("alert", 18)}</span>
+                  <div><strong>${item.name}</strong><span>${item.notes}</span></div>
+                </div>
+              `,
+              )
+              .join("") || `<div class="empty">No overdue follow-ups.</div>`}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTimesheets() {
+  const rows = visibleTimesheets();
+  const tutor = person(currentTutorId());
+  const canLog = state.role === "tutor" || canEdit();
+  const assignmentPanel =
+    state.role === "tutor"
+      ? renderTutorAssignments(tutor)
+      : renderTutorBalanceBoard();
+  return `
+    <div class="view section-grid">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Tutor Timesheets and Balance</h2>
+            <p>Log tutorial, marking, preparation, student support, and research-support time.</p>
+          </div>
+          ${canLog ? `<button class="button primary" onclick="openDrawer('timesheetForm')">${icon("plus", 17)}Log time</button>` : `<span class="badge gray">Read only</span>`}
+        </div>
+        <div class="card-body">
+          <table class="mini-table">
+            <thead><tr><th>Date</th><th>Tutor</th><th>Course</th><th>Activity</th><th>Hours</th><th>Status</th></tr></thead>
+            <tbody>
+              ${
+                rows.length
+                  ? rows
+                      .map((entry) => {
+                        const p = person(entry.tutorId);
+                        return `
+                          <tr>
+                            <td>${dateLabel(entry.date)}</td>
+                            <td>${p?.name || "Unknown"}</td>
+                            <td>${entry.courseCode}</td>
+                            <td><strong>${entry.category}</strong><br /><span style="color:var(--muted)">${entry.activity}</span></td>
+                            <td>${entry.hours}</td>
+                            <td><span class="badge ${entry.status === "Approved" ? "green" : entry.status === "Review" ? "gold" : "blue"}">${entry.status}</span></td>
+                          </tr>
+                        `;
+                      })
+                      .join("")
+                  : `<tr><td colspan="6">No timesheet rows yet.</td></tr>`
+              }
+            </tbody>
+          </table>
+          <div style="height: 14px"></div>
+          <div class="timeline-item">
+            <h4>Centre Coordinator Pool</h4>
+            <p>The Centre Coordinator role is designed for multiple people. Each coordinator can see the same operational picture as the Academic and Research Manager, but without write access to programme data.</p>
+            <div class="row-tags">
+              <span class="chip teal">Coordinator 1</span>
+              <span class="chip teal">Coordinator 2</span>
+              <span class="chip gray">More can be invited</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${assignmentPanel}
+    </div>
+  `;
+}
+
+function renderTutorAssignments(tutor) {
+  const assigned = assignedCourses(tutor.id);
+  const total = tutorHours(tutor.id);
+  const balance = balanceLabel(total);
+  return `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2>My Assigned Work</h2>
+          <p>${tutor.name} · ${total} logged hours this cycle.</p>
+        </div>
+        <span class="badge ${balance.color}">${balance.label}</span>
+      </div>
+      <div class="card-body course-list">
+        ${assigned
+          .map(
+            (item) => `
+            <article class="course-row">
+              <div>
+                <h4>${item.code} ${item.title}</h4>
+                <p>${item.block} · ${COURSE_TYPES[item.type]?.label || item.type}</p>
+                <div class="row-tags">
+                  ${typeBadge(item.type)}
+                  <span class="chip gray">${item.hours} course hours</span>
+                  <span class="chip blue">${item.software}</span>
+                </div>
+              </div>
+              <button class="button ghost icon-only" onclick="openDrawer('course', '${item.code}')" aria-label="Open ${item.code}">${icon("book", 18)}</button>
+            </article>
+          `,
+          )
+          .join("")}
+        <div class="timeline-item">
+          <h4>Work/research/life balance signal</h4>
+          <p>Logged hours are used by the Academic and Research Manager to spot overload, protect preparation time, and keep tutorial support sustainable.</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTutorBalanceBoard() {
+  const tutors = state.people.filter((item) => item.kind === "Tutor");
+  return `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2>Tutor Workload Radar</h2>
+          <p>Head Tutor and manager view for sustainable support coverage.</p>
+        </div>
+      </div>
+      <div class="card-body people-list">
+        ${tutors
+          .map((item) => {
+            const hours = tutorHours(item.id);
+            const balance = balanceLabel(hours);
+            const assigned = assignedCourses(item.id);
+            const percent = Math.min(100, Math.round((hours / 14) * 100));
+            return `
+              <article class="person-row">
+                <div>
+                  <h4>${item.name}</h4>
+                  <p>${assigned.map((c) => c.code).join(", ") || "No assigned courses"} · ${hours} logged hours</p>
+                  <div class="row-tags">
+                    <span class="badge ${balance.color}">${balance.label}</span>
+                    <span class="chip gray">${item.expertise}</span>
+                  </div>
+                  <div class="progress" style="margin-top:10px"><span style="width:${percent}%"></span></div>
+                </div>
+                <button class="button ghost" onclick="openDrawer('person', '${item.id}')">${icon("users", 17)}Profile</button>
+              </article>
+            `;
+          })
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderTasks() {
+  const tasks = visibleTasks();
+  const areas = [...new Set(state.tasks.map((item) => item.area))];
+  return `
+    <div class="view">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Tasks and Pre-Arrival Activities</h2>
+            <p>Operational readiness before students report: travel, housing, lecturers, tutors, facilities, meals, and documentation.</p>
+          </div>
+          ${canEdit() ? `<button class="button primary" onclick="openDrawer('taskForm')">${icon("plus", 17)}Task</button>` : `<span class="badge gray">Read only</span>`}
+        </div>
+        <div class="card-body">
+          <div class="quick-grid">
+            ${areas
+              .slice(0, 4)
+              .map((area) => {
+                const count = state.tasks.filter((task) => task.area === area).length;
+                return `
+                  <div class="kpi">
+                    <div class="kpi-top"><span class="kpi-label">${area}</span><span class="icon-box teal">${icon("check", 17)}</span></div>
+                    <p class="kpi-value">${count}</p>
+                    <p class="kpi-note">active readiness item${count === 1 ? "" : "s"}</p>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Readiness Board</h2>
+            <p>Designed so Centre Coordinators can monitor, while manager/admin control updates.</p>
+          </div>
+        </div>
+        <div class="card-body course-list">
+          ${tasks
+            .map(
+              (task) => `
+              <article class="course-row">
+                <div>
+                  <h4>${task.title}</h4>
+                  <p>${task.details}</p>
+                  <div class="row-tags">
+                    <span class="badge ${task.priority === "High" ? "danger" : "gold"}">${task.priority}</span>
+                    <span class="chip ${task.status === "Done" ? "green" : task.status === "In progress" ? "blue" : "gray"}">${task.status}</span>
+                    <span class="chip gray">${task.owner}</span>
+                    <span class="chip teal">${dateLabel(task.due)}</span>
+                  </div>
+                </div>
+                ${
+                  canEdit()
+                    ? `<button class="button ghost" onclick="openDrawer('task', '${task.id}')">${icon("edit", 17)}Open</button>`
+                    : `<span class="badge gray">${task.area}</span>`
+                }
+              </article>
+            `,
+            )
+            .join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderGoogle() {
+  const tabs = [
+    "CalendarBlocks",
+    "Courses",
+    "People",
+    "Sessions",
+    "Contacts",
+    "Timesheets",
+    "Tasks",
+    "DriveDocuments",
+    "AccessRoles",
+  ];
+  return `
+    <div class="view section-grid">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Google Sheets and Drive Integration</h2>
+            <p>Prepared for the programme database to live in Google Sheets and documents in Drive.</p>
+          </div>
+          <span class="badge ${state.googleConnected ? "green" : "gold"}">${state.googleConnected ? "Connected" : "Prototype mode"}</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field">
+              <label>Google Sheet ID</label>
+              <input value="1-mathepi-academic-operations-sheet-id" />
+            </div>
+            <div class="field">
+              <label>Drive Root Folder ID</label>
+              <input value="drive-folder-mathepi-programme" />
+            </div>
+            <div class="field full">
+              <label>OAuth Client Status</label>
+              <input value="Use environment variables in GitHub-connected deployment" />
+            </div>
+          </div>
+          <div style="height: 14px"></div>
+          <div class="quick-grid">
+            ${quick("Connect OAuth", "Swap prototype state to connected mode.", "shield", "green", "state.googleConnected=!state.googleConnected; toast(state.googleConnected?'Google workspace connected in prototype mode.':'Google workspace disconnected.'); render()")}
+            ${quick("Sync courses", "Courses tab receives seeded curriculum fields.", "sheet", "blue", "toast('Courses sync simulated. Wire this to Google Sheets API.')")}
+            ${quick("Open Drive map", "Course folders, CVs, outlines, and notes.", "drive", "gold", "openDrawer('driveMap')")}
+            ${quick("Export JSON", "Download-ready structure for backend handoff.", "database", "teal", "openDrawer('export')")}
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Recommended Sheet Tabs</h2>
+            <p>Clean enough for Google Sheets now, backend later.</p>
+          </div>
+        </div>
+        <div class="card-body timeline-list">
+          ${tabs
+            .map(
+              (tab) => `
+              <div class="timeline-item">
+                <h4>${tab}</h4>
+                <p>${sheetDescription(tab)}</p>
+              </div>
+            `,
+            )
+            .join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function sheetDescription(tab) {
+  const map = {
+    CalendarBlocks: "block_id, phase, start_date, end_date, kind, notes",
+    Courses: "code, title, type, hours, units, lecturer_id, tutor_ids, outcomes",
+    People: "person_id, role, affiliation, email, phone, expertise, status, workload",
+    Sessions: "session_id, course_code, block_id, day, time, room, owner_id",
+    Contacts: "person_id, status, last_contact, next_follow_up, notes, message_template",
+    Timesheets: "timesheet_id, tutor_id, course_code, date, category, hours, activity, status",
+    Tasks: "task_id, title, area, owner, due_date, priority, status, details",
+    DriveDocuments: "document_id, course_code, folder_id, url, visibility, version",
+    AccessRoles: "email, role, active, invited_by, last_login",
+  };
+  return map[tab] || "";
+}
+
+function renderAccess() {
+  return `
+    <div class="view section-grid">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Role-Based Access</h2>
+            <p>Designed for a private GitHub repo and invited users.</p>
+          </div>
+          <span class="badge maroon">Private repo ready</span>
+        </div>
+        <div class="card-body">
+          <table class="mini-table">
+            <thead><tr><th>Role</th><th>Access</th><th>Sensitive Data</th></tr></thead>
+            <tbody>
+              ${Object.values(ROLES)
+                .map(
+                  (role) => `
+                  <tr>
+                    <td><strong>${role.label}</strong></td>
+                    <td>${role.views.map((v) => NAV.find((n) => n.id === v)?.label).join(", ")}</td>
+                    <td>${role.canSensitive ? "Visible" : "Hidden"}</td>
+                  </tr>
+                `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Deployment Notes</h2>
+            <p>Security rules to keep when moving from prototype to production.</p>
+          </div>
+        </div>
+        <div class="card-body assistant-stack">
+          ${[
+            ["shield", "Do not store Google secrets in GitHub", "Use environment variables on Vercel/Netlify or a secure backend."],
+            ["users", "Invite selected users", "Private repository access and app access should be managed separately."],
+            ["database", "Enforce permissions server-side", "UI role gates are helpful for UX but not sufficient for sensitive production data."],
+            ["cloud", "Audit Drive visibility", "Lecturer contacts, internal notes, and CVs should only be exposed to authorized roles."],
+          ]
+            .map(
+              ([iconName, title, detail]) => `
+              <div class="priority">
+                <span class="icon-box maroon">${icon(iconName, 18)}</span>
+                <div><strong>${title}</strong><span>${detail}</span></div>
+              </div>
+            `,
+            )
+            .join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDrawer() {
+  const { type, payload } = state.drawer;
+  let content = "";
+  if (type === "course") content = courseDrawer(payload);
+  if (type === "person") content = personDrawer(payload);
+  if (type === "session") content = sessionDrawer(payload);
+  if (type === "quickAdd") content = quickAddDrawer();
+  if (type === "courseForm") content = courseFormDrawer();
+  if (type === "personForm") content = personFormDrawer(payload);
+  if (type === "sessionForm") content = sessionFormDrawer();
+  if (type === "messageDraft") content = messageDraftDrawer();
+  if (type === "driveMap") content = driveMapDrawer();
+  if (type === "export") content = exportDrawer();
+  if (type === "timesheetForm") content = timesheetFormDrawer();
+  if (type === "taskForm") content = taskFormDrawer();
+  if (type === "task") content = taskDrawer(payload);
+  return `<div class="drawer-backdrop" onclick="if(event.target.classList.contains('drawer-backdrop')) closeDrawer()">${content}</div>`;
+}
+
+function drawerShell(title, subtitle, body, footer = "") {
+  return `
+    <aside class="drawer">
+      <div class="drawer-header">
+        <div><h2>${title}</h2><p>${subtitle}</p></div>
+        <button class="button ghost icon-only" onclick="closeDrawer()" aria-label="Close drawer">${icon("x", 18)}</button>
+      </div>
+      <div class="drawer-body">${body}</div>
+      ${footer ? `<div class="drawer-footer">${footer}</div>` : ""}
+    </aside>
+  `;
+}
+
+function courseDrawer(code) {
+  const item = course(code);
+  if (!item) return drawerShell("Course not found", "The selected course is no longer available.", "");
+  const lead = person(item.lecturerId);
+  const tutors = item.tutorIds.map(person).filter(Boolean);
+  const detail = COURSE_DETAILS[item.code];
+  const body = `
+    <div class="meta-grid">
+      <div class="meta-box"><span>Course code</span><strong>${item.code}</strong></div>
+      <div class="meta-box"><span>Type</span><strong>${COURSE_TYPES[item.type]?.label || item.type}</strong></div>
+      <div class="meta-box"><span>Block</span><strong>${item.block}</strong></div>
+      <div class="meta-box"><span>Hours / units</span><strong>${item.hours} hrs · ${item.units} units</strong></div>
+    </div>
+    <div class="timeline-item"><h4>Lecturer</h4><p>${lead ? `${lead.name} · ${lead.status}` : "Not assigned"}</p></div>
+    <div class="timeline-item"><h4>Tutors</h4><p>${tutors.length ? tutors.map((t) => t.name).join(", ") : "No tutor assigned yet"}</p></div>
+    <div class="timeline-item"><h4>Prerequisites</h4><p>${item.prerequisites}</p></div>
+    <div class="timeline-item"><h4>Software and tools</h4><p>${item.software}</p></div>
+    <div class="timeline-item"><h4>Learning outcomes</h4><p>${item.outcomes}</p></div>
+    <div class="timeline-item"><h4>Google Drive folder</h4><p>Drive/${item.code}-${item.title.replaceAll(" ", "-")} · course outline, materials, assessments, notes</p></div>
+    <div class="timeline-item">
+      <h4>Course Description</h4>
+      <p>${detail?.aim || "Course description to be synced from the curriculum PDF."}</p>
+    </div>
+    <div class="timeline-item">
+      <h4>Course Content</h4>
+      <p>${detail?.content || "Content outline to be added."}</p>
+    </div>
+  `;
+  const footer = canEdit()
+    ? `<button class="button ghost" onclick="openDrawer('sessionForm', {courseCode:'${item.code}'})">${icon("calendar", 17)}Schedule</button>
+       <button class="button primary" onclick="toast('Course editing scaffold is ready for Google Sheets sync.')">${icon("edit", 17)}Edit in Sheet</button>`
+    : `<button class="button ghost" onclick="closeDrawer()">Close</button>`;
+  return drawerShell(`${item.code} ${item.title}`, `${COURSE_TYPES[item.type]?.label || "Course"} · ${item.block}`, body, footer);
+}
+
+function personDrawer(id) {
+  const item = person(id);
+  if (!item) return drawerShell("Person not found", "The selected profile is no longer available.", "");
+  const assigned = assignedCourses(item.id);
+  const body = `
+    <div class="profile-head">
+      <span class="avatar">${initials(item.name)}</span>
+      <div>
+        <h3 style="margin:0">${item.name}</h3>
+        <p style="margin:5px 0 0;color:var(--muted)">${item.kind} · ${item.affiliation}</p>
+      </div>
+    </div>
+    <div class="meta-grid">
+      <div class="meta-box"><span>Status</span><strong>${item.status}</strong></div>
+      <div class="meta-box"><span>Workload</span><strong>${item.workload} course${item.workload === 1 ? "" : "s"}</strong></div>
+      <div class="meta-box"><span>Email</span><strong>${canSeeSensitive() ? item.email : "Hidden for this role"}</strong></div>
+      <div class="meta-box"><span>Phone / WhatsApp</span><strong>${canSeeSensitive() ? item.phone : "Hidden for this role"}</strong></div>
+    </div>
+    <div class="timeline-item"><h4>Expertise</h4><p>${item.expertise}</p></div>
+    <div class="timeline-item"><h4>Availability</h4><p>${item.availability}</p></div>
+    <div class="timeline-item"><h4>Assigned courses</h4><p>${assigned.length ? assigned.map((c) => `${c.code} ${c.title}`).join("; ") : "No assignment yet"}</p></div>
+    <div class="timeline-item"><h4>Communication history</h4><p>Last contact: ${dateLabel(item.lastContact)}. Next follow-up: ${dateLabel(item.nextFollowUp)}. ${item.notes}</p></div>
+    ${
+      canEdit()
+        ? `<div class="field">
+            <label>Update contact status</label>
+            <select onchange="updatePersonStatus('${item.id}', this.value)">
+              ${["Not contacted", "Contacted", "Awaiting response", "Confirmed", "Needs follow-up", "Declined", "Replacement needed"]
+                .map((status) => `<option ${item.status === status ? "selected" : ""}>${status}</option>`)
+                .join("")}
+            </select>
+          </div>`
+        : ""
+    }
+  `;
+  const footer = canEdit()
+    ? `<button class="button ghost" onclick="openDrawer('messageDraft', '${item.id}')">${icon("mail", 17)}Draft message</button>
+       <button class="button primary" onclick="closeDrawer()">${icon("check", 17)}Done</button>`
+    : `<button class="button ghost" onclick="closeDrawer()">Close</button>`;
+  return drawerShell(item.name, `${item.kind} contact and assignment profile`, body, footer);
+}
+
+function updatePersonStatus(id, status) {
+  const item = person(id);
+  if (!item) return;
+  item.status = status;
+  item.lastContact = "2026-05-21";
+  if (status === "Confirmed") item.nextFollowUp = "2026-08-15";
+  if (status === "Needs follow-up") item.nextFollowUp = "2026-05-22";
+  saveAndRender(`${item.name} status updated to ${status}.`);
+}
+
+function sessionDrawer(id) {
+  const session = state.sessions.find((item) => item.id === id);
+  if (!session) return drawerShell("Session not found", "The selected session is no longer available.", "");
+  const item = course(session.courseCode);
+  const owner = person(session.personId);
+  const body = `
+    <div class="meta-grid">
+      <div class="meta-box"><span>Course</span><strong>${session.courseCode}</strong></div>
+      <div class="meta-box"><span>Type</span><strong>${session.type}</strong></div>
+      <div class="meta-box"><span>Schedule</span><strong>${session.day} ${session.time}</strong></div>
+      <div class="meta-box"><span>Room</span><strong>${session.room}</strong></div>
+    </div>
+    <div class="timeline-item"><h4>${item?.title || "Course title missing"}</h4><p>${item?.outcomes || ""}</p></div>
+    <div class="timeline-item"><h4>Assigned person</h4><p>${owner ? `${owner.name} · ${owner.kind} · ${owner.status}` : "Unassigned"}</p></div>
+  `;
+  return drawerShell(`${session.courseCode} ${session.type}`, "Timetable session detail", body, `<button class="button ghost" onclick="closeDrawer()">Close</button>`);
+}
+
+function quickAddDrawer() {
+  const body = `
+    <div class="quick-grid">
+      ${quick("New course", "Add curriculum item", "book", "blue", "openDrawer('courseForm')")}
+      ${quick("New lecturer", "Add teaching lead", "users", "maroon", "openDrawer('personForm', {kind:'Lecturer'})")}
+      ${quick("New tutor", "Add tutorial support", "users", "gold", "openDrawer('personForm', {kind:'Tutor'})")}
+      ${quick("New session", "Add timetable slot", "calendar", "teal", "openDrawer('sessionForm')")}
+    </div>
+  `;
+  return drawerShell("Quick Add", "Choose the academic object to add.", body);
+}
+
+function courseFormDrawer() {
+  const body = `
+    <form id="courseForm" class="form-grid">
+      <div class="field"><label>Code</label><input name="code" placeholder="MEC11" required /></div>
+      <div class="field"><label>Type</label><select name="type">${Object.entries(COURSE_TYPES).map(([id, meta]) => `<option value="${id}">${meta.label}</option>`).join("")}</select></div>
+      <div class="field full"><label>Title</label><input name="title" placeholder="Course title" required /></div>
+      <div class="field"><label>Block</label><input name="block" placeholder="Block 8" /></div>
+      <div class="field"><label>Hours</label><input name="hours" type="number" value="60" /></div>
+      <div class="field full"><label>Learning outcomes</label><textarea name="outcomes" placeholder="What students should be able to do"></textarea></div>
+    </form>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="addCourse()">${icon("plus", 17)}Add course</button>`;
+  return drawerShell("Add Course", "Prototype save goes to local storage; production sync goes to Google Sheets.", body, footer);
+}
+
+function addCourse() {
+  const form = document.querySelector("#courseForm");
+  if (!form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  state.courses.push({
+    code: data.code.toUpperCase(),
+    title: data.title,
+    type: data.type,
+    units: Math.round(Number(data.hours || 60) / 10),
+    hours: Number(data.hours || 60),
+    block: data.block || "Unassigned",
+    lecturerId: null,
+    tutorIds: [],
+    software: "To be confirmed",
+    prerequisites: "To be confirmed",
+    outcomes: data.outcomes || "Learning outcomes to be added.",
+  });
+  closeDrawer();
+  saveAndRender(`${data.code.toUpperCase()} added.`);
+}
+
+function personFormDrawer(payload = {}) {
+  const kind = payload?.kind || "Lecturer";
+  const body = `
+    <form id="personForm" class="form-grid">
+      <div class="field"><label>Role</label><select name="kind"><option ${kind === "Lecturer" ? "selected" : ""}>Lecturer</option><option ${kind === "Tutor" ? "selected" : ""}>Tutor</option></select></div>
+      <div class="field"><label>Status</label><select name="status"><option>Not contacted</option><option>Contacted</option><option>Awaiting response</option><option>Confirmed</option><option>Needs follow-up</option></select></div>
+      <div class="field full"><label>Name</label><input name="name" placeholder="Full name" required /></div>
+      <div class="field"><label>Affiliation</label><input name="affiliation" placeholder="Institution" /></div>
+      <div class="field"><label>Expertise</label><input name="expertise" placeholder="Epidemiology, modelling..." /></div>
+      <div class="field"><label>Email</label><input name="email" type="email" placeholder="name@example.org" /></div>
+      <div class="field"><label>Phone / WhatsApp</label><input name="phone" placeholder="+250..." /></div>
+      <div class="field full"><label>Notes</label><textarea name="notes" placeholder="Communication notes"></textarea></div>
+    </form>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="addPerson()">${icon("plus", 17)}Add person</button>`;
+  return drawerShell(`Add ${kind}`, "Create a lecturer or tutor profile and sync later to Google Sheets.", body, footer);
+}
+
+function addPerson() {
+  const form = document.querySelector("#personForm");
+  if (!form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  const id = `${data.kind === "Tutor" ? "tut" : "lec"}-${Date.now()}`;
+  state.people.push({
+    id,
+    kind: data.kind,
+    name: data.name,
+    affiliation: data.affiliation || "To be confirmed",
+    email: data.email || "to-be-confirmed@example.org",
+    phone: data.phone || "To be confirmed",
+    expertise: data.expertise || "To be confirmed",
+    availability: "To be confirmed",
+    status: data.status,
+    lastContact: "2026-05-21",
+    nextFollowUp: "2026-05-28",
+    workload: 0,
+    notes: data.notes || "New contact created.",
+  });
+  closeDrawer();
+  saveAndRender(`${data.name} added.`);
+}
+
+function sessionFormDrawer() {
+  const body = `
+    <form id="sessionForm" class="form-grid">
+      <div class="field"><label>Course</label><select name="courseCode">${state.courses.map((c) => `<option value="${c.code}">${c.code} ${c.title}</option>`).join("")}</select></div>
+      <div class="field"><label>Block</label><select name="blockId">${state.blocks.filter((b) => b.kind === "teaching" || b.kind === "practical" || b.kind === "thesis").map((b) => `<option value="${b.id}" ${b.id === state.blockId ? "selected" : ""}>${b.title}</option>`).join("")}</select></div>
+      <div class="field"><label>Day</label><select name="day">${["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((d) => `<option>${d}</option>`).join("")}</select></div>
+      <div class="field"><label>Time</label><select name="time">${["09:00", "11:00", "14:00", "16:00"].map((t) => `<option>${t}</option>`).join("")}</select></div>
+      <div class="field"><label>Session type</label><input name="type" value="Lecture" /></div>
+      <div class="field"><label>Room</label><input name="room" value="KEMRI Seminar Room" /></div>
+      <div class="field full"><label>Assigned lecturer/tutor</label><select name="personId"><option value="">Unassigned</option>${state.people.map((p) => `<option value="${p.id}">${p.name} · ${p.kind}</option>`).join("")}</select></div>
+    </form>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="addSession()">${icon("plus", 17)}Add session</button>`;
+  return drawerShell("Add Timetable Session", "Create a visible course slot in the timetable.", body, footer);
+}
+
+function addSession() {
+  const form = document.querySelector("#sessionForm");
+  if (!form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  state.sessions.push({
+    id: `s-${Date.now()}`,
+    courseCode: data.courseCode,
+    day: data.day,
+    time: data.time,
+    duration: 2,
+    type: data.type || "Lecture",
+    room: data.room || "To be confirmed",
+    blockId: data.blockId,
+    personId: data.personId || null,
+  });
+  state.blockId = data.blockId;
+  state.calendarMode = "week";
+  closeDrawer();
+  saveAndRender(`${data.courseCode} session added.`);
+}
+
+function messageDraftDrawer(personId = null) {
+  const recipient = personId ? person(personId) : overduePeople()[0] || state.people.find((p) => p.kind === "Lecturer");
+  const body = `
+    <div class="timeline-item">
+      <h4>Recipient</h4>
+      <p>${recipient ? `${recipient.name} · ${recipient.email}` : "No lecturer selected"}</p>
+    </div>
+    <div class="field">
+      <label>Draft reminder</label>
+      <textarea readonly>${recipient ? `Dear ${recipient.name.split(" ")[0]},\n\nI hope you are well. I am following up on your availability for the KEMRI MathEpi programme. We are updating the academic timetable and would appreciate your confirmation, preferred teaching format, and any materials you would like us to prepare.\n\nKind regards,\nAcademic and Research Manager` : ""}</textarea>
+    </div>
+    <div class="timeline-item"><h4>Assistant suggestion</h4><p>Use this when status is Contacted, Awaiting response, or Needs follow-up. Attach the relevant block date and course outline from Drive.</p></div>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Close</button><button class="button primary" onclick="toast('Draft copied conceptually. Wire copy/email action in production.')">${icon("mail", 17)}Use draft</button>`;
+  return drawerShell("Lecturer Reminder Draft", "Assistant-generated communication template.", body, footer);
+}
+
+function driveMapDrawer() {
+  const body = `
+    <div class="timeline-list">
+      ${["Programme Curriculum", "Academic Calendar", "Lecturer CVs", "Course Outlines", "Teaching Materials", "Assessments", "Meeting Notes", "Internship & Thesis"].map((folder) => `<div class="timeline-item"><h4>${folder}</h4><p>Google Drive folder mapped for role-aware visibility and course linking.</p></div>`).join("")}
+    </div>
+  `;
+  return drawerShell("Google Drive Map", "Suggested folder structure for programme documents.", body, `<button class="button ghost" onclick="closeDrawer()">Close</button>`);
+}
+
+function exportDrawer() {
+  const payload = {
+    courses: state.courses,
+    people: state.people,
+    blocks: state.blocks,
+    sessions: state.sessions,
+    timesheets: state.timesheets,
+    tasks: state.tasks,
+  };
+  const body = `<div class="field"><label>Prototype data export</label><textarea readonly style="min-height:360px">${escapeHtml(JSON.stringify(payload, null, 2))}</textarea></div>`;
+  return drawerShell("Data Export", "JSON structure ready for backend or Google Sheets sync.", body, `<button class="button ghost" onclick="closeDrawer()">Close</button>`);
+}
+
+function timesheetFormDrawer() {
+  const tutorOptions =
+    state.role === "tutor"
+      ? [person(currentTutorId())]
+      : state.people.filter((item) => item.kind === "Tutor");
+  const body = `
+    <form id="timesheetForm" class="form-grid">
+      <div class="field">
+        <label>Tutor</label>
+        <select name="tutorId">${tutorOptions.map((p) => `<option value="${p.id}">${p.name}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input name="date" type="date" value="2026-05-21" />
+      </div>
+      <div class="field">
+        <label>Course</label>
+        <select name="courseCode">${state.courses.map((c) => `<option value="${c.code}">${c.code} ${c.title}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Hours</label>
+        <input name="hours" type="number" step="0.25" min="0.25" value="2" />
+      </div>
+      <div class="field">
+        <label>Activity category</label>
+        <select name="category">
+          <option>Tutorial</option>
+          <option>Preparation</option>
+          <option>Marking</option>
+          <option>Student support</option>
+          <option>Research support</option>
+          <option>Admin coordination</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select name="status"><option>Submitted</option><option>Draft</option><option>Review</option><option>Approved</option></select>
+      </div>
+      <div class="field full">
+        <label>Activity done</label>
+        <textarea name="activity" placeholder="Describe the work completed, students supported, marking done, or research support provided."></textarea>
+      </div>
+    </form>
+    <div class="timeline-item">
+      <h4>Balance note</h4>
+      <p>Tutors can submit their own timesheet entries; programme-level data edits remain limited to the Academic and Research Manager and Super Admin.</p>
+    </div>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="addTimesheet()">${icon("clock", 17)}Submit time</button>`;
+  return drawerShell("Log Tutor Time", "Timesheet row prepared for a future Google Sheets Timesheets tab.", body, footer);
+}
+
+function addTimesheet() {
+  const form = document.querySelector("#timesheetForm");
+  if (!form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  state.timesheets.push({
+    id: `ts-${Date.now()}`,
+    tutorId: data.tutorId,
+    courseCode: data.courseCode,
+    date: data.date,
+    category: data.category,
+    hours: Number(data.hours || 0),
+    activity: data.activity || "Timesheet activity submitted.",
+    status: data.status,
+  });
+  closeDrawer();
+  saveAndRender("Timesheet entry submitted.");
+}
+
+function taskFormDrawer() {
+  const body = `
+    <form id="taskForm" class="form-grid">
+      <div class="field full"><label>Task title</label><input name="title" placeholder="Prepare arrival packs" required /></div>
+      <div class="field"><label>Area</label><input name="area" placeholder="Student reporting" /></div>
+      <div class="field"><label>Owner</label><input name="owner" placeholder="Centre Coordinators" /></div>
+      <div class="field"><label>Due date</label><input name="due" type="date" value="2026-08-15" /></div>
+      <div class="field"><label>Priority</label><select name="priority"><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div class="field"><label>Status</label><select name="status"><option>Planned</option><option>In progress</option><option>Blocked</option><option>Done</option></select></div>
+      <div class="field full"><label>Details</label><textarea name="details" placeholder="Documents, stakeholders, dependencies, and what done means."></textarea></div>
+    </form>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="addTask()">${icon("plus", 17)}Add task</button>`;
+  return drawerShell("Add Readiness Task", "Create a pre-arrival or operations activity.", body, footer);
+}
+
+function addTask() {
+  const form = document.querySelector("#taskForm");
+  if (!form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  state.tasks.push({
+    id: `task-${Date.now()}`,
+    title: data.title,
+    area: data.area || "Operations",
+    owner: data.owner || "Academic & Research Manager",
+    due: data.due || "2026-08-15",
+    status: data.status || "Planned",
+    priority: data.priority || "Medium",
+    details: data.details || "Details to be added.",
+  });
+  closeDrawer();
+  saveAndRender("Task added to readiness board.");
+}
+
+function taskDrawer(id) {
+  const task = state.tasks.find((item) => item.id === id);
+  if (!task) return drawerShell("Task not found", "The selected task is no longer available.", "");
+  const body = `
+    <div class="meta-grid">
+      <div class="meta-box"><span>Area</span><strong>${task.area}</strong></div>
+      <div class="meta-box"><span>Owner</span><strong>${task.owner}</strong></div>
+      <div class="meta-box"><span>Due</span><strong>${dateLabel(task.due)}</strong></div>
+      <div class="meta-box"><span>Priority</span><strong>${task.priority}</strong></div>
+    </div>
+    <div class="timeline-item"><h4>Details</h4><p>${task.details}</p></div>
+    <div class="field">
+      <label>Status</label>
+      <select onchange="updateTaskStatus('${task.id}', this.value)">
+        ${["Planned", "In progress", "Blocked", "Done"].map((status) => `<option ${task.status === status ? "selected" : ""}>${status}</option>`).join("")}
+      </select>
+    </div>
+  `;
+  return drawerShell(task.title, "Readiness task detail", body, `<button class="button primary" onclick="closeDrawer()">${icon("check", 17)}Done</button>`);
+}
+
+function updateTaskStatus(id, status) {
+  const task = state.tasks.find((item) => item.id === id);
+  if (!task) return;
+  task.status = status;
+  saveAndRender(`${task.title} moved to ${status}.`);
+}
+
+function render() {
+  document.querySelector("#app").innerHTML = appLayout();
+}
+
+window.setView = setView;
+window.setRole = setRole;
+window.openDrawer = openDrawer;
+window.closeDrawer = closeDrawer;
+window.render = render;
+window.toast = toast;
+window.updatePersonStatus = updatePersonStatus;
+window.addCourse = addCourse;
+window.addPerson = addPerson;
+window.addSession = addSession;
+window.addTimesheet = addTimesheet;
+window.addTask = addTask;
+window.updateTaskStatus = updateTaskStatus;
+window.state = state;
+
+render();
