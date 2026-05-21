@@ -1090,6 +1090,12 @@ button {
     var(--aims-maroon);
 }
 
+.groups-hero {
+  background:
+    linear-gradient(120deg, rgba(93, 9, 17, 0.97), rgba(35, 132, 95, 0.82)),
+    var(--aims-maroon);
+}
+
 .planner-hero h2,
 .support-hero h2 {
   max-width: 820px;
@@ -1118,7 +1124,10 @@ button {
 .appointment-list,
 .availability-list,
 .todo-list,
-.support-list {
+.support-list,
+.group-list,
+.invitation-list,
+.student-directory {
   display: grid;
   gap: 12px;
 }
@@ -1127,6 +1136,8 @@ button {
 .appointment-card,
 .todo-card,
 .support-card,
+.group-card,
+.invitation-card,
 .sync-panel {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1141,7 +1152,8 @@ button {
 
 .planner-card-top,
 .appointment-main,
-.support-main {
+.support-main,
+.group-main {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
   gap: 12px;
@@ -1152,6 +1164,8 @@ button {
 .appointment-card h4,
 .todo-card h4,
 .support-card h4,
+.group-card h4,
+.invitation-card h4,
 .sync-panel h4 {
   margin: 0;
   font-size: 14px;
@@ -1162,6 +1176,8 @@ button {
 .appointment-card p,
 .todo-card p,
 .support-card p,
+.group-card p,
+.invitation-card p,
 .sync-panel p {
   margin: 5px 0 0;
   color: var(--muted);
@@ -1183,7 +1199,9 @@ button {
 }
 
 .todo-card,
-.support-card {
+.support-card,
+.group-card,
+.invitation-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
@@ -1195,6 +1213,99 @@ button {
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.invite-actions {
+  display: grid;
+  gap: 8px;
+  justify-items: stretch;
+}
+
+.student-mini {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.student-mini strong,
+.student-mini span,
+.student-mini small {
+  display: block;
+}
+
+.student-mini span,
+.student-mini small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.mini-heading {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.check-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.check-card strong,
+.check-card small {
+  display: block;
+}
+
+.check-card small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.activity-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.activity-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px;
+  border-radius: 7px;
+  background: #f5f7f9;
+}
+
+.activity-row strong,
+.activity-row span {
+  display: block;
+}
+
+.activity-row span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .availability-preview {
@@ -1514,6 +1625,8 @@ button {
   .appointment-card,
   .todo-card,
   .support-card,
+  .group-card,
+  .invitation-card,
   .sync-panel {
     grid-template-columns: 1fr;
   }
@@ -1539,10 +1652,19 @@ button {
   }
 
   .planner-card-actions,
-  .todo-actions {
+  .todo-actions,
+  .invite-actions {
     display: grid;
     grid-template-columns: 1fr;
     justify-content: stretch;
+  }
+
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-row {
+    grid-template-columns: 1fr;
   }
 
   .drawer {
@@ -1626,6 +1748,10 @@ button {
 :root[data-theme="dark"] .appointment-card,
 :root[data-theme="dark"] .todo-card,
 :root[data-theme="dark"] .support-card,
+:root[data-theme="dark"] .group-card,
+:root[data-theme="dark"] .invitation-card,
+:root[data-theme="dark"] .student-mini,
+:root[data-theme="dark"] .check-card,
 :root[data-theme="dark"] .sync-panel,
 :root[data-theme="dark"] .phase,
 :root[data-theme="dark"] .week-grid,
@@ -1675,6 +1801,10 @@ button {
 
 :root[data-theme="dark"] .progress {
   background: #2b313a;
+}
+
+:root[data-theme="dark"] .activity-row {
+  background: #141820;
 }
 
 :root[data-theme="dark"] .mobile-bottom-nav {

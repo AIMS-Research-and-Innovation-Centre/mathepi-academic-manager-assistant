@@ -27,6 +27,8 @@ const ICONS = {
     '<path d="M22 3H2l8 9.5V19l4 2v-8.5Z"/>',
   graduation:
     '<path d="m22 10-10-5-10 5 10 5 10-5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/><path d="M22 10v6"/>',
+  group:
+    '<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><circle cx="12" cy="17" r="3"/><path d="M10.4 10.5 11.3 14"/><path d="m13.6 10.5-.9 3.5"/><path d="M9.3 16.2H7a4 4 0 0 0-4 4"/><path d="M14.7 16.2H17a4 4 0 0 1 4 4"/>',
   mail:
     '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
   menu:
@@ -1367,6 +1369,185 @@ const DEFAULT_STUDENT_TODOS = [
   },
 ];
 
+const DEFAULT_STUDENTS = [
+  {
+    id: "student-01",
+    name: "MathEpi Student",
+    cohort: "2026/27",
+    email: "student@mathepi.local",
+    interests: "Mathematical modelling, reproducible analysis",
+    contactOptIn: false,
+  },
+  {
+    id: "student-02",
+    name: "Amina Niyonsenga",
+    cohort: "2026/27",
+    email: "amina.n@example.org",
+    interests: "R programming, epidemiology, survival analysis",
+    contactOptIn: true,
+  },
+  {
+    id: "student-03",
+    name: "Brian Otieno",
+    cohort: "2026/27",
+    email: "brian.o@example.org",
+    interests: "Disease modelling, Python, stochastic simulation",
+    contactOptIn: false,
+  },
+  {
+    id: "student-04",
+    name: "Chipo Moyo",
+    cohort: "2026/27",
+    email: "chipo.m@example.org",
+    interests: "Statistics, clinical trial design, Bayesian methods",
+    contactOptIn: true,
+  },
+  {
+    id: "student-05",
+    name: "Daniel Kato",
+    cohort: "2026/27",
+    email: "daniel.k@example.org",
+    interests: "Scientific computing, LaTeX, data visualization",
+    contactOptIn: false,
+  },
+  {
+    id: "student-06",
+    name: "Esther Wanjiru",
+    cohort: "2026/27",
+    email: "esther.w@example.org",
+    interests: "Public health surveillance, time series, field data",
+    contactOptIn: true,
+  },
+];
+
+const STUDY_GROUP_PURPOSES = [
+  "Revision",
+  "Assignment support",
+  "Coding practice",
+  "Reading group",
+  "Exam prep",
+  "Internship/thesis preparation",
+  "Course clinic",
+];
+
+const INVITATION_STATUS_COLOR = {
+  Draft: "gray",
+  Invited: "blue",
+  Accepted: "green",
+  Declined: "danger",
+  "Maybe / Request different time": "gold",
+  Removed: "gray",
+};
+
+const DEFAULT_STUDY_GROUPS = [
+  {
+    id: "grp-001",
+    name: "R/Python Reproducibility Circle",
+    organizerId: "student-01",
+    courseCode: "MES05",
+    purpose: "Coding practice",
+    meetingDate: "2026-09-09",
+    meetingTime: "17:00",
+    mode: "Hybrid",
+    location: "KEMRI Computer Lab / Google Meet",
+    capacity: 6,
+    status: "Forming",
+    notes: "Work through setup issues, Quarto structure, and one reproducible mini-report.",
+    advisorIds: ["tut-01"],
+  },
+  {
+    id: "grp-002",
+    name: "Epidemiology Concepts Reading Group",
+    organizerId: "student-04",
+    courseCode: "MEC01",
+    purpose: "Reading group",
+    meetingDate: "2026-11-03",
+    meetingTime: "18:30",
+    mode: "Online",
+    location: "Google Meet",
+    capacity: 5,
+    status: "Confirmed",
+    notes: "Compare incidence, prevalence, study designs, and surveillance examples before MEC01 starts.",
+    advisorIds: [],
+  },
+];
+
+const DEFAULT_STUDY_GROUP_INVITATIONS = [
+  {
+    id: "sgi-001",
+    groupId: "grp-001",
+    invitedStudentId: "student-02",
+    invitedBy: "student-01",
+    status: "Accepted",
+    responseNote: "Can join after the coding clinic.",
+    createdAt: "2026-09-03",
+    respondedAt: "2026-09-04",
+  },
+  {
+    id: "sgi-002",
+    groupId: "grp-001",
+    invitedStudentId: "student-03",
+    invitedBy: "student-01",
+    status: "Invited",
+    responseNote: "",
+    createdAt: "2026-09-03",
+    respondedAt: "",
+  },
+  {
+    id: "sgi-003",
+    groupId: "grp-002",
+    invitedStudentId: "student-01",
+    invitedBy: "student-04",
+    status: "Invited",
+    responseNote: "Proposed for the week before MEC01.",
+    createdAt: "2026-10-28",
+    respondedAt: "",
+  },
+  {
+    id: "sgi-004",
+    groupId: "grp-002",
+    invitedStudentId: "student-06",
+    invitedBy: "student-04",
+    status: "Accepted",
+    responseNote: "",
+    createdAt: "2026-10-28",
+    respondedAt: "2026-10-29",
+  },
+];
+
+const DEFAULT_STUDY_GROUP_ACTIVITIES = [
+  {
+    id: "sga-001",
+    groupId: "grp-001",
+    title: "Each member runs the R/Python install check",
+    type: "To-do",
+    assignedTo: "student-02",
+    due: "2026-09-08",
+    status: "Open",
+    notes: "Bring screenshots of setup errors and package versions.",
+  },
+  {
+    id: "sga-002",
+    groupId: "grp-001",
+    title: "Build one shared Quarto template",
+    type: "Coding task",
+    assignedTo: "student-01",
+    due: "2026-09-09",
+    status: "In progress",
+    notes: "Use a simple epidemic curve example for the template.",
+  },
+  {
+    id: "sga-003",
+    groupId: "grp-002",
+    title: "Summarize incidence vs prevalence",
+    type: "Reading note",
+    assignedTo: "student-06",
+    due: "2026-11-02",
+    status: "Open",
+    notes: "Prepare one example from public health surveillance.",
+  },
+];
+
 const INTERNAL_RECIPIENTS = [
   {
     id: "manager-01",
@@ -1610,6 +1791,7 @@ const ROLES = {
       "dashboard",
       "calendar",
       "planner",
+      "groups",
       "courses",
       "people",
       "appointments",
@@ -1626,42 +1808,42 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
     hint: "Manager-level visibility for coordination, without write access",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
   },
   "head-tutor": {
     label: "Head Tutor",
     hint: "Tutor workload, tutor profiles, assigned work, and lecturer-course tracking",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "support", "contact", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "groups", "support", "contact", "timesheets", "tasks"],
   },
   lecturer: {
     label: "Lecturer",
     hint: "Assigned courses, timetable, materials, and confirmation",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "appointments", "support", "contact"],
+    views: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "contact"],
   },
   tutor: {
     label: "Tutor",
     hint: "Assigned tutorials, course materials, timesheet logging, and workload balance",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "appointments", "support", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "timesheets", "tasks"],
   },
   student: {
     label: "Student",
     hint: "Calendar, courses, teaching teams, planner, and appointment requests",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "planner", "courses", "appointments", "support"],
+    views: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
   },
   "support-counsellor": {
     label: "Support / Counsellor",
@@ -1690,6 +1872,7 @@ const NAV = [
   { id: "dashboard", label: "Command", icon: "command" },
   { id: "calendar", label: "Calendar", icon: "calendar" },
   { id: "planner", label: "Student Planner", short: "Planner", icon: "planner" },
+  { id: "groups", label: "Study Groups", short: "Groups", icon: "group" },
   { id: "courses", label: "Courses", icon: "book" },
   { id: "people", label: "Lecturers & Tutors", short: "People", icon: "users" },
   { id: "appointments", label: "Appointments", icon: "appointment" },
@@ -1751,6 +1934,10 @@ const state = {
   tasks: load("mathepi-tasks", DEFAULT_TASKS),
   plannerTasks: load("mathepi-planner-tasks", DEFAULT_PLANNER_TASKS),
   studentTodos: load("mathepi-student-todos", DEFAULT_STUDENT_TODOS),
+  students: load("mathepi-students", DEFAULT_STUDENTS),
+  studyGroups: load("mathepi-study-groups", DEFAULT_STUDY_GROUPS),
+  studyGroupInvitations: load("mathepi-study-group-invitations", DEFAULT_STUDY_GROUP_INVITATIONS),
+  studyGroupActivities: load("mathepi-study-group-activities", DEFAULT_STUDY_GROUP_ACTIVITIES),
   appointments: load("mathepi-appointments", DEFAULT_APPOINTMENTS),
   availability: load("mathepi-availability", DEFAULT_AVAILABILITY),
   supportRequests: load("mathepi-support-requests", DEFAULT_SUPPORT_REQUESTS),
@@ -1818,6 +2005,10 @@ function save() {
   localStorage.setItem("mathepi-tasks", JSON.stringify(state.tasks));
   localStorage.setItem("mathepi-planner-tasks", JSON.stringify(state.plannerTasks));
   localStorage.setItem("mathepi-student-todos", JSON.stringify(state.studentTodos));
+  localStorage.setItem("mathepi-students", JSON.stringify(state.students));
+  localStorage.setItem("mathepi-study-groups", JSON.stringify(state.studyGroups));
+  localStorage.setItem("mathepi-study-group-invitations", JSON.stringify(state.studyGroupInvitations));
+  localStorage.setItem("mathepi-study-group-activities", JSON.stringify(state.studyGroupActivities));
   localStorage.setItem("mathepi-appointments", JSON.stringify(state.appointments));
   localStorage.setItem("mathepi-availability", JSON.stringify(state.availability));
   localStorage.setItem("mathepi-support-requests", JSON.stringify(state.supportRequests));
@@ -1930,6 +2121,14 @@ function currentStudentId() {
   return "student-01";
 }
 
+function student(id) {
+  return state.students.find((item) => item.id === id);
+}
+
+function studentName(id) {
+  return student(id)?.name || "Unknown student";
+}
+
 function currentLecturerId() {
   return "lec-07";
 }
@@ -1951,7 +2150,12 @@ function currentActorId() {
 
 function appointmentContacts() {
   return [
-    { id: currentStudentId(), name: "MathEpi Student", kind: "Student", email: "student@mathepi.local" },
+    ...state.students.map((item) => ({
+      id: item.id,
+      name: item.name,
+      kind: "Student",
+      email: item.email,
+    })),
     ...INTERNAL_RECIPIENTS,
     ...state.people.map((item) => ({
       id: item.id,
@@ -2067,6 +2271,82 @@ function visibleTodos() {
     return state.studentTodos.filter((item) => item.ownerId === currentStudentId());
   }
   return state.studentTodos;
+}
+
+function studyGroup(id) {
+  return state.studyGroups.find((item) => item.id === id);
+}
+
+function groupInvitations(groupId) {
+  return state.studyGroupInvitations.filter((item) => item.groupId === groupId);
+}
+
+function groupActivities(groupId) {
+  return state.studyGroupActivities.filter((item) => item.groupId === groupId);
+}
+
+function acceptedGroupMembers(groupId) {
+  const group = studyGroup(groupId);
+  const accepted = groupInvitations(groupId)
+    .filter((item) => item.status === "Accepted")
+    .map((item) => item.invitedStudentId);
+  return [...new Set([group?.organizerId, ...accepted].filter(Boolean))];
+}
+
+function pendingStudyGroupInvites() {
+  if (state.role !== "student") return [];
+  return state.studyGroupInvitations.filter(
+    (item) =>
+      item.invitedStudentId === currentStudentId() &&
+      ["Invited", "Maybe / Request different time"].includes(item.status),
+  );
+}
+
+function visibleStudyGroups() {
+  const actor = currentActorId();
+  if (["manager", "super-admin", "centre-coordinator"].includes(state.role)) return state.studyGroups;
+  if (state.role === "student") {
+    return state.studyGroups.filter((group) => {
+      const invite = groupInvitations(group.id).find((item) => item.invitedStudentId === currentStudentId());
+      return group.organizerId === currentStudentId() || invite?.status === "Accepted";
+    });
+  }
+  if (state.role === "tutor" || state.role === "lecturer" || state.role === "head-tutor") {
+    return state.studyGroups.filter((group) => group.advisorIds?.includes(actor));
+  }
+  return [];
+}
+
+function canManageStudyGroup(group) {
+  return state.role === "student" && group.organizerId === currentStudentId();
+}
+
+function invitationStatusBadge(status) {
+  return `<span class="badge ${INVITATION_STATUS_COLOR[status] || "gray"}">${status}</span>`;
+}
+
+function groupReadiness(group) {
+  const accepted = acceptedGroupMembers(group.id).length;
+  const pending = groupInvitations(group.id).filter((item) => item.status === "Invited").length;
+  const activities = groupActivities(group.id);
+  const hasAgenda = activities.length > 0;
+  if (accepted >= 3 && hasAgenda && pending === 0) return { label: "Ready", color: "green" };
+  if (accepted >= 2 && hasAgenda) return { label: "Almost ready", color: "gold" };
+  return { label: "Needs setup", color: "danger" };
+}
+
+function groupConflictNote(group) {
+  const plannerConflict = state.plannerTasks.find(
+    (item) => item.ownerId === currentStudentId() && item.date === group.meetingDate && item.time === group.meetingTime,
+  );
+  if (plannerConflict && state.role === "student") {
+    return `This overlaps with your planner block: ${plannerConflict.title}.`;
+  }
+  const courseSessions = state.sessions.filter((session) => session.courseCode === group.courseCode && session.time === group.meetingTime);
+  if (courseSessions.length) {
+    return `${group.courseCode} has teaching activity near ${group.meetingTime}; confirm the group time with members.`;
+  }
+  return "No obvious timetable or planner conflict detected in the prototype data.";
 }
 
 function todoStatusBadge(status) {
@@ -2411,6 +2691,9 @@ function topbarAction() {
   if (state.view === "planner" && state.role === "student") {
     return `<button class="button primary" onclick="openDrawer('plannerForm')">${icon("plus", 18)}Plan</button>`;
   }
+  if (state.view === "groups" && state.role === "student") {
+    return `<button class="button primary" onclick="openDrawer('studyGroupForm')">${icon("group", 18)}Group</button>`;
+  }
   if (state.view === "appointments" && canCreateAppointment()) {
     return `<button class="button primary" onclick="openDrawer('appointmentForm')">${icon("appointment", 18)}Request</button>`;
   }
@@ -2496,8 +2779,8 @@ function appLayout() {
 function mobileNav(nav) {
   const priorityIds =
     state.role === "student"
-      ? ["dashboard", "calendar", "planner", "support", "appointments"]
-      : ["dashboard", "calendar", "courses", "appointments", "support"];
+      ? ["dashboard", "planner", "groups", "support", "appointments"]
+      : ["dashboard", "calendar", "courses", "groups", "support"];
   const priority = priorityIds.map((id) => nav.find((item) => item.id === id)).filter(Boolean);
   const first = priority.length >= 5 ? priority.slice(0, 5) : nav.slice(0, 5);
   const active = nav.find((item) => item.id === state.view);
@@ -2524,6 +2807,8 @@ function renderView() {
       return renderCalendar();
     case "planner":
       return renderStudentPlanner();
+    case "groups":
+      return renderStudyGroups();
     case "courses":
       return renderCourses();
     case "people":
@@ -2650,18 +2935,18 @@ function dashboardQuickActions() {
         action: "setView('planner')",
       },
       {
+        title: "Study groups",
+        text: "Create groups, invite classmates, and plan agendas.",
+        icon: "group",
+        color: "teal",
+        action: "setView('groups')",
+      },
+      {
         title: "Support hub",
         text: "Request academic, logistics, wellness, or technical support.",
         icon: "support",
-        color: "teal",
-        action: "setView('support')",
-      },
-      {
-        title: "Book appointment",
-        text: "Request time with tutors, lecturers, coordinators, or the manager.",
-        icon: "appointment",
         color: "gold",
-        action: "setView('appointments')",
+        action: "setView('support')",
       },
       {
         title: "My timetable",
@@ -2729,6 +3014,7 @@ function quick(title, text, iconName, color, action) {
   const selfServiceAction =
     action.includes("supportForm") ||
     action.includes("appointmentForm") ||
+    (state.role === "student" && action.includes("studyGroupForm")) ||
     (state.role === "student" && action.includes("todoForm")) ||
     (state.role === "student" && action.includes("plannerForm")) ||
     (state.role === "tutor" && action.includes("timesheetForm"));
@@ -3784,6 +4070,182 @@ function renderSupportCard(item) {
   `;
 }
 
+function renderStudyGroups() {
+  const groups = visibleStudyGroups();
+  const pending = pendingStudyGroupInvites();
+  const activeByCourse = state.studyGroups.reduce((acc, group) => {
+    acc[group.courseCode] = (acc[group.courseCode] || 0) + 1;
+    return acc;
+  }, {});
+  const topCourse = Object.entries(activeByCourse).sort((a, b) => b[1] - a[1])[0];
+  return `
+    <div class="view groups-view">
+      <section class="support-hero groups-hero">
+        <div>
+          <span class="mission-eyebrow">${icon("group", 16)} Student-led study groups</span>
+          <h2>Let students form focused study circles, invite classmates, and turn good intentions into agendas.</h2>
+          <p>Invitations require approval before membership. Group plans stay visible to members, while managers see aggregate learning patterns rather than private group discussion.</p>
+        </div>
+        <div class="planner-metrics">
+          ${kpi("My groups", groups.length, "visible to this role", "group", "blue")}
+          ${kpi("Pending", pending.length, "invitations waiting", "mail", pending.length ? "gold" : "green")}
+          ${kpi("Top course", topCourse ? topCourse[0] : "None", "study group demand", "book", "teal")}
+        </div>
+      </section>
+
+      ${
+        state.role === "student"
+          ? `<section class="quick-grid">
+              ${quick("Create group", "Invite classmates and propose an agenda.", "group", "maroon", "openDrawer('studyGroupForm')")}
+              ${quick("My invitations", "Accept, decline, or request another time.", "mail", "gold", "setView('groups')")}
+              ${quick("Planner links", "Use to-dos and planner blocks to suggest group topics.", "planner", "blue", "setView('planner')")}
+              ${quick("Book advisor", "Invite tutor or lecturer help when needed.", "appointment", "teal", "setView('appointments')")}
+            </section>`
+          : ""
+      }
+
+      <section class="section-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>${state.role === "student" ? "My Study Groups" : "Study Group Overview"}</h2>
+              <p>${state.role === "student" ? "Groups you organize or have accepted." : "Aggregate view of active course study groups without private student discussion details."}</p>
+            </div>
+            ${state.role === "student" ? `<button class="button primary" onclick="openDrawer('studyGroupForm')">${icon("plus", 17)}Group</button>` : `<span class="badge gray">Aggregate</span>`}
+          </div>
+          <div class="card-body group-list">
+            ${groups.length ? groups.map(renderStudyGroupCard).join("") : `<div class="empty">No study groups visible yet.</div>`}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>${state.role === "student" ? "Invitations and Directory" : "Group Intelligence"}</h2>
+              <p>${state.role === "student" ? "Classmate invitations require consent before joining." : "Course demand and readiness signals."}</p>
+            </div>
+          </div>
+          <div class="card-body assistant-stack">
+            ${state.role === "student" ? renderStudentInvitationsAndDirectory(pending) : renderGroupAggregateInsights()}
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderStudyGroupCard(group) {
+  const readiness = groupReadiness(group);
+  const members = acceptedGroupMembers(group.id);
+  const activities = groupActivities(group.id);
+  const isMemberView = state.role === "student";
+  return `
+    <article class="group-card">
+      <div class="group-main">
+        <span class="icon-box ${readiness.color}">${icon("group", 18)}</span>
+        <div>
+          <h4>${group.name}</h4>
+          <p>${group.courseCode} ${course(group.courseCode)?.title || ""} &middot; ${group.purpose} &middot; ${dateLabel(group.meetingDate)} ${group.meetingTime}</p>
+          <p>${isMemberView ? group.notes : "Private discussion details hidden in aggregate view."}</p>
+          <div class="row-tags">
+            <span class="badge ${readiness.color}">${readiness.label}</span>
+            <span class="chip blue">${members.length}/${group.capacity} accepted</span>
+            <span class="chip teal">${group.mode}</span>
+            <span class="chip gray">${activities.length} activities</span>
+          </div>
+        </div>
+      </div>
+      <button class="button ghost" onclick="openDrawer('studyGroup', '${group.id}')">${icon("edit", 17)}Open</button>
+    </article>
+  `;
+}
+
+function renderStudentInvitationsAndDirectory(pending) {
+  return `
+    <div class="invitation-list">
+      <h3 class="mini-heading">Pending Invitations</h3>
+      ${
+        pending.length
+          ? pending.map(renderGroupInvitationCard).join("")
+          : `<div class="empty">No pending study-group invitations.</div>`
+      }
+    </div>
+    <div class="student-directory">
+      <h3 class="mini-heading">Classmate Directory</h3>
+      ${state.students
+        .filter((item) => item.id !== currentStudentId())
+        .map(
+          (item) => `
+          <div class="student-mini">
+            <span class="avatar">${initials(item.name)}</span>
+            <div>
+              <strong>${item.name}</strong>
+              <span>${item.interests}</span>
+              <span>${item.contactOptIn ? "Contact opt-in" : "Contact hidden until invited/accepted"}</span>
+            </div>
+          </div>
+        `,
+        )
+        .join("")}
+    </div>
+    <div class="priority">
+      <span class="icon-box green">${icon("shield", 18)}</span>
+      <div>
+        <strong>Consent rule</strong>
+        <span>Invited students are not added automatically. They must accept, decline, or ask for another time.</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderGroupInvitationCard(invite) {
+  const group = studyGroup(invite.groupId);
+  if (!group) return "";
+  return `
+    <article class="invitation-card">
+      <div>
+        <h4>${group.name}</h4>
+        <p>${studentName(invite.invitedBy)} invited you for ${group.courseCode} on ${dateLabel(group.meetingDate)} at ${group.meetingTime}.</p>
+        <div class="row-tags">
+          ${invitationStatusBadge(invite.status)}
+          <span class="chip teal">${group.mode}</span>
+          <span class="chip gray">${group.purpose}</span>
+        </div>
+      </div>
+      <div class="invite-actions">
+        <button class="button ghost" onclick="updateStudyGroupInvitation('${invite.id}', 'Accepted')">${icon("check", 17)}Accept</button>
+        <button class="button ghost" onclick="updateStudyGroupInvitation('${invite.id}', 'Maybe / Request different time')">${icon("clock", 17)}Maybe</button>
+        <button class="button ghost" onclick="updateStudyGroupInvitation('${invite.id}', 'Declined')">${icon("x", 17)}Decline</button>
+      </div>
+    </article>
+  `;
+}
+
+function renderGroupAggregateInsights() {
+  const byCourse = Object.entries(
+    state.studyGroups.reduce((acc, group) => {
+      acc[group.courseCode] = (acc[group.courseCode] || 0) + 1;
+      return acc;
+    }, {}),
+  ).sort((a, b) => b[1] - a[1]);
+  return `
+    ${byCourse
+      .map(
+        ([code, count]) => `
+        <div class="priority">
+          <span class="icon-box blue">${icon("book", 18)}</span>
+          <div><strong>${code} ${course(code)?.title || ""}</strong><span>${count} active study group${count === 1 ? "" : "s"}.</span></div>
+        </div>
+      `,
+      )
+      .join("")}
+    <div class="priority">
+      <span class="icon-box maroon">${icon("shield", 18)}</span>
+      <div><strong>Private by default</strong><span>Managers see group activity patterns, not member discussion notes unless policy allows moderation.</span></div>
+    </div>
+  `;
+}
+
 function renderGoogle() {
   const tabs = [
     "CalendarBlocks",
@@ -3796,6 +4258,13 @@ function renderGoogle() {
     "StudentPlanner",
     "StudentTodos",
     "PlannerTasks",
+    "Students",
+    "StudyGroups",
+    "StudyGroupMembers",
+    "StudyGroupInvitations",
+    "StudyGroupActivities",
+    "StudyGroupMeetings",
+    "StudyGroupTaskAssignments",
     "Appointments",
     "Availability",
     "AppointmentNotes",
@@ -3881,6 +4350,13 @@ function sheetDescription(tab) {
     StudentPlanner: "student_id, preferred_study_windows, planning_mode, calendar_sync_opt_in",
     StudentTodos: "todo_id, student_id, course_code, title, category, due_date, priority, status, notes",
     PlannerTasks: "planner_id, student_id, course_code, date, time, duration, type, priority, status, notes",
+    Students: "student_id, name, cohort, email, interests, contact_opt_in",
+    StudyGroups: "group_id, name, organizer_id, course_code, purpose, mode, meeting_time, location, capacity, status, created_at",
+    StudyGroupMembers: "group_id, student_id, member_role, joined_at, status",
+    StudyGroupInvitations: "invitation_id, group_id, invited_student_id, invited_by, status, response_note, created_at, responded_at",
+    StudyGroupActivities: "activity_id, group_id, title, type, assigned_to, due_date, status, notes",
+    StudyGroupMeetings: "meeting_id, group_id, date, time, mode, location, agenda, objective, status",
+    StudyGroupTaskAssignments: "assignment_id, activity_id, student_id, role, status, completed_at",
     Appointments: "appointment_id, requester_id, target_id, course_code, category, preferred_date, time, mode, status",
     Availability: "availability_id, person_id, day, time, mode, location, focus",
     AppointmentNotes: "appointment_id, visibility, note, created_by, created_at",
@@ -3978,6 +4454,8 @@ function renderDrawer() {
   if (type === "plannerTask") content = plannerTaskDrawer(payload);
   if (type === "todoForm") content = todoFormDrawer(payload);
   if (type === "todo") content = todoDrawer(payload);
+  if (type === "studyGroupForm") content = studyGroupFormDrawer(payload);
+  if (type === "studyGroup") content = studyGroupDrawer(payload);
   if (type === "appointmentForm") content = appointmentFormDrawer(payload);
   if (type === "appointment") content = appointmentDrawer(payload);
   if (type === "supportForm") content = supportFormDrawer(payload);
@@ -4117,6 +4595,7 @@ function quickAddDrawer() {
       ${quick("New session", "Add timetable slot", "calendar", "teal", "openDrawer('sessionForm')")}
       ${quick("New appointment", "Request or schedule support", "appointment", "green", "openDrawer('appointmentForm')")}
       ${quick("Support request", "Route care, workload, logistics, or IT support", "support", "maroon", "openDrawer('supportForm')")}
+      ${quick("Study group", "Create a student-led learning group", "group", "blue", "openDrawer('studyGroupForm')")}
     </div>
   `;
   return drawerShell("Quick Add", "Choose the academic object to add.", body);
@@ -4273,6 +4752,10 @@ function exportDrawer() {
     tasks: state.tasks,
     plannerTasks: state.plannerTasks,
     studentTodos: state.studentTodos,
+    students: state.students,
+    studyGroups: state.studyGroups,
+    studyGroupInvitations: state.studyGroupInvitations,
+    studyGroupActivities: state.studyGroupActivities,
     appointments: state.appointments,
     availability: state.availability,
     supportRequests: state.supportRequests,
@@ -4841,6 +5324,186 @@ function updateSupportStatus(id, status) {
   saveAndRender(`Support request moved to ${status}.`);
 }
 
+function studyGroupFormDrawer() {
+  const inviteOptions = state.students.filter((item) => item.id !== currentStudentId());
+  const body = `
+    <form id="studyGroupForm" class="form-grid">
+      <div class="field full"><label>Group name</label><input name="name" placeholder="MES05 coding study circle" required /></div>
+      <div class="field">
+        <label>Linked course</label>
+        <select name="courseCode">${state.courses.map((c) => `<option value="${c.code}">${c.code} ${c.title}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Purpose</label>
+        <select name="purpose">${STUDY_GROUP_PURPOSES.map((purpose) => `<option>${purpose}</option>`).join("")}</select>
+      </div>
+      <div class="field"><label>Meeting date</label><input name="meetingDate" type="date" value="2026-09-09" /></div>
+      <div class="field"><label>Meeting time</label><input name="meetingTime" type="time" value="17:00" /></div>
+      <div class="field"><label>Mode</label><select name="mode"><option>In person</option><option>Online</option><option selected>Hybrid</option></select></div>
+      <div class="field"><label>Capacity</label><input name="capacity" type="number" min="2" max="12" value="6" /></div>
+      <div class="field full"><label>Location or meeting link</label><input name="location" placeholder="KEMRI Computer Lab / Google Meet" /></div>
+      <div class="field full"><label>Group plan / objective</label><textarea name="notes" placeholder="What should the group accomplish in the first meeting?"></textarea></div>
+      <div class="field full">
+        <label>Invite classmates</label>
+        <div class="checkbox-grid">
+          ${inviteOptions
+            .map(
+              (item) => `
+              <label class="check-card">
+                <input type="checkbox" name="inviteIds" value="${item.id}" />
+                <span><strong>${item.name}</strong><small>${item.interests}</small></span>
+              </label>
+            `,
+            )
+            .join("")}
+        </div>
+      </div>
+    </form>
+    <div class="timeline-item">
+      <h4>Approval workflow</h4>
+      <p>Selected classmates receive invitations only. They join the group after they accept, decline, or request a different time.</p>
+    </div>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="addStudyGroup()">${icon("group", 17)}Create group</button>`;
+  return drawerShell("Create Study Group", "Student-led study group with opt-in invitations.", body, footer);
+}
+
+function addStudyGroup() {
+  const form = document.querySelector("#studyGroupForm");
+  if (!form.reportValidity()) return;
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData);
+  const groupId = `grp-${Date.now()}`;
+  state.studyGroups.unshift({
+    id: groupId,
+    name: data.name,
+    organizerId: currentStudentId(),
+    courseCode: data.courseCode,
+    purpose: data.purpose,
+    meetingDate: data.meetingDate,
+    meetingTime: data.meetingTime,
+    mode: data.mode,
+    location: data.location || "To be confirmed",
+    capacity: Number(data.capacity || 6),
+    status: "Forming",
+    notes: data.notes || "Group objective to be refined by members.",
+    advisorIds: [],
+  });
+  formData.getAll("inviteIds").forEach((studentId) => {
+    state.studyGroupInvitations.push({
+      id: `sgi-${Date.now()}-${studentId}`,
+      groupId,
+      invitedStudentId: studentId,
+      invitedBy: currentStudentId(),
+      status: "Invited",
+      responseNote: "",
+      createdAt: "2026-05-21",
+      respondedAt: "",
+    });
+  });
+  if (data.notes) {
+    state.studyGroupActivities.push({
+      id: `sga-${Date.now()}`,
+      groupId,
+      title: "First meeting objective",
+      type: "Agenda",
+      assignedTo: currentStudentId(),
+      due: data.meetingDate,
+      status: "Open",
+      notes: data.notes,
+    });
+  }
+  state.view = "groups";
+  closeDrawer();
+  saveAndRender("Study group created and invitations sent.");
+}
+
+function studyGroupDrawer(id) {
+  const group = studyGroup(id);
+  if (!group) return drawerShell("Study group not found", "The selected group is no longer available.", "");
+  const readiness = groupReadiness(group);
+  const members = acceptedGroupMembers(group.id);
+  const invitations = groupInvitations(group.id);
+  const activities = groupActivities(group.id);
+  const canManage = canManageStudyGroup(group);
+  const body = `
+    <div class="meta-grid">
+      <div class="meta-box"><span>Organizer</span><strong>${studentName(group.organizerId)}</strong></div>
+      <div class="meta-box"><span>Course</span><strong>${group.courseCode}</strong></div>
+      <div class="meta-box"><span>Meeting</span><strong>${dateLabel(group.meetingDate)} ${group.meetingTime}</strong></div>
+      <div class="meta-box"><span>Readiness</span><strong>${readiness.label}</strong></div>
+    </div>
+    <div class="timeline-item"><h4>Objective</h4><p>${state.role === "student" || group.advisorIds?.includes(currentActorId()) ? group.notes : "Private group plan hidden in aggregate view."}</p></div>
+    <div class="timeline-item"><h4>Conflict check</h4><p>${groupConflictNote(group)}</p></div>
+    <div class="timeline-item">
+      <h4>Members</h4>
+      <p>${members.map(studentName).join(", ")}</p>
+      <div class="row-tags">
+        <span class="chip blue">${members.length}/${group.capacity} accepted</span>
+        ${invitations.map((invite) => `<span class="chip ${INVITATION_STATUS_COLOR[invite.status] || "gray"}">${studentName(invite.invitedStudentId)}: ${invite.status}</span>`).join("")}
+      </div>
+    </div>
+    <div class="timeline-item">
+      <h4>Activity Plan</h4>
+      <div class="activity-list">
+        ${
+          activities.length
+            ? activities.map((item) => `
+                <div class="activity-row">
+                  <div><strong>${item.title}</strong><span>${item.type} &middot; ${studentName(item.assignedTo)} &middot; due ${dateLabel(item.due)}</span></div>
+                  <span class="badge ${item.status === "Done" ? "green" : item.status === "In progress" ? "gold" : "blue"}">${item.status}</span>
+                </div>
+              `).join("")
+            : `<p>No activity plan yet.</p>`
+        }
+      </div>
+    </div>
+    ${
+      canManage
+        ? `<form id="groupActivityForm" class="form-grid">
+            <div class="field full"><label>Add agenda/task</label><input name="title" placeholder="Prepare one worked example" required /></div>
+            <div class="field"><label>Type</label><select name="type"><option>Agenda</option><option>To-do</option><option>Reading note</option><option>Coding task</option><option>Presentation</option></select></div>
+            <div class="field"><label>Assign to</label><select name="assignedTo">${members.map((studentId) => `<option value="${studentId}">${studentName(studentId)}</option>`).join("")}</select></div>
+            <div class="field"><label>Due date</label><input name="due" type="date" value="${group.meetingDate}" /></div>
+            <div class="field full"><label>Notes</label><textarea name="notes" placeholder="What should this person prepare?"></textarea></div>
+          </form>`
+        : ""
+    }
+  `;
+  const footer = canManage
+    ? `<button class="button ghost" onclick="openDrawer('studyGroupForm')">${icon("group", 17)}New group</button><button class="button primary" onclick="addStudyGroupActivity('${group.id}')">${icon("todo", 17)}Add activity</button>`
+    : `<button class="button ghost" onclick="closeDrawer()">Close</button>`;
+  return drawerShell(group.name, `${group.courseCode} ${group.purpose} group`, body, footer);
+}
+
+function addStudyGroupActivity(groupId) {
+  const form = document.querySelector("#groupActivityForm");
+  if (!form || !form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  state.studyGroupActivities.push({
+    id: `sga-${Date.now()}`,
+    groupId,
+    title: data.title,
+    type: data.type,
+    assignedTo: data.assignedTo,
+    due: data.due,
+    status: "Open",
+    notes: data.notes || "Group activity added.",
+  });
+  saveAndRender("Study group activity added.");
+}
+
+function updateStudyGroupInvitation(id, status) {
+  const invite = state.studyGroupInvitations.find((item) => item.id === id);
+  if (!invite) return;
+  invite.status = status;
+  invite.respondedAt = "2026-05-21";
+  if (status === "Maybe / Request different time") {
+    invite.responseNote = "Requested a different meeting time.";
+  }
+  saveAndRender(`Study group invitation marked ${status}.`);
+}
+
 function render() {
   document.querySelector("#app").innerHTML = appLayout();
 }
@@ -4870,6 +5533,9 @@ window.addAppointment = addAppointment;
 window.updateAppointmentStatus = updateAppointmentStatus;
 window.addSupportRequest = addSupportRequest;
 window.updateSupportStatus = updateSupportStatus;
+window.addStudyGroup = addStudyGroup;
+window.addStudyGroupActivity = addStudyGroupActivity;
+window.updateStudyGroupInvitation = updateStudyGroupInvitation;
 window.state = state;
 
 migrateProgrammeData();
