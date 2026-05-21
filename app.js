@@ -49,8 +49,14 @@ const ICONS = {
     '<path d="M12 2v5"/><path d="M12 17v5"/><path d="m4.9 4.9 3.5 3.5"/><path d="m15.6 15.6 3.5 3.5"/><path d="M2 12h5"/><path d="M17 12h5"/><path d="m4.9 19.1 3.5-3.5"/><path d="m15.6 8.4 3.5-3.5"/>',
   sun:
     '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  support:
+    '<path d="M12 21s-7-4.3-9.2-9A5.2 5.2 0 0 1 12 6.2 5.2 5.2 0 0 1 21.2 12C19 16.7 12 21 12 21Z"/><path d="M12 9v5"/><path d="M9.5 11.5h5"/>',
+  todo:
+    '<path d="M9 11 11 13 15 9"/><path d="M9 17h6"/><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3h6v4H9z"/>',
   users:
     '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>',
+  wrench:
+    '<path d="M14.7 6.3a4 4 0 0 0-5 5L3 18v3h3l6.7-6.7a4 4 0 0 0 5-5l-2.4 2.4-2-2.1 2.4-2.3Z"/>',
   x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
 };
 
@@ -1302,6 +1308,65 @@ const DEFAULT_PLANNER_TASKS = [
   },
 ];
 
+const TODO_CATEGORIES = {
+  Study: { label: "Study", color: "blue" },
+  Assignment: { label: "Assignment", color: "gold" },
+  Revision: { label: "Revision", color: "green" },
+  Reading: { label: "Reading", color: "teal" },
+  Admin: { label: "Admin", color: "gray" },
+  Internship: { label: "Internship", color: "maroon" },
+  "Thesis/Project": { label: "Thesis/Project", color: "danger" },
+  Wellness: { label: "Wellness", color: "green" },
+  Logistics: { label: "Logistics", color: "teal" },
+};
+
+const DEFAULT_STUDENT_TODOS = [
+  {
+    id: "todo-001",
+    ownerId: "student-01",
+    title: "Complete R/Python setup checklist",
+    courseCode: "MES05",
+    category: "Study",
+    due: "2026-09-06",
+    priority: "High",
+    status: "Open",
+    notes: "Install R, Python, Quarto, and test the reproducible report template.",
+  },
+  {
+    id: "todo-002",
+    ownerId: "student-01",
+    title: "Prepare questions for MES01 clinic",
+    courseCode: "MES01",
+    category: "Revision",
+    due: "2026-09-08",
+    priority: "Medium",
+    status: "In progress",
+    notes: "List two proof techniques and one problem that needs tutor support.",
+  },
+  {
+    id: "todo-003",
+    ownerId: "student-01",
+    title: "Submit accommodation confirmation",
+    courseCode: "MEI01",
+    category: "Logistics",
+    due: "2026-08-26",
+    priority: "High",
+    status: "Open",
+    notes: "Confirm arrival time, room allocation, and emergency contact details.",
+  },
+  {
+    id: "todo-004",
+    ownerId: "student-01",
+    title: "Block protected rest time",
+    courseCode: "MES01",
+    category: "Wellness",
+    due: "2026-09-12",
+    priority: "Medium",
+    status: "Open",
+    notes: "Keep one recovery block in the planner before the next teaching week.",
+  },
+];
+
 const INTERNAL_RECIPIENTS = [
   {
     id: "manager-01",
@@ -1326,6 +1391,18 @@ const INTERNAL_RECIPIENTS = [
     name: "Head Tutor",
     kind: "Head Tutor",
     email: "head.tutor@aimsric.org",
+  },
+  {
+    id: "support-01",
+    name: "Confidential Support Desk",
+    kind: "Support / Counsellor",
+    email: "support@aimsric.org",
+  },
+  {
+    id: "it-01",
+    name: "IT & Learning Systems Support",
+    kind: "IT Support",
+    email: "it.support@aimsric.org",
   },
 ];
 
@@ -1436,6 +1513,93 @@ const DEFAULT_APPOINTMENTS = [
   },
 ];
 
+const SUPPORT_CATEGORIES = [
+  "Academic support",
+  "Teaching support",
+  "Tutor workload",
+  "Staff wellbeing",
+  "Counselling referral",
+  "Logistics support",
+  "Accommodation/travel support",
+  "IT/technical support",
+  "Facilities/classroom support",
+  "Conflict or escalation",
+];
+
+const SUPPORT_STATUS_COLOR = {
+  Draft: "gray",
+  Submitted: "blue",
+  Triage: "gold",
+  Assigned: "blue",
+  "In progress": "gold",
+  "Waiting on requester": "gray",
+  Resolved: "green",
+  Closed: "green",
+  Escalated: "danger",
+};
+
+const URGENCY_COLOR = {
+  Normal: "green",
+  Soon: "gold",
+  Urgent: "danger",
+  Critical: "danger",
+};
+
+const DEFAULT_SUPPORT_REQUESTS = [
+  {
+    id: "sup-001",
+    requesterId: "student-01",
+    title: "Confidential wellbeing check-in",
+    category: "Counselling referral",
+    urgency: "Soon",
+    status: "Submitted",
+    visibility: "confidential",
+    assignedTo: "support-01",
+    date: "2026-09-09",
+    summary: "Student requested a private check-in without sharing details in the app.",
+    privateNote: "Student prefers a confidential appointment after class; no clinical notes stored here.",
+  },
+  {
+    id: "sup-002",
+    requesterId: "tut-01",
+    title: "Coding clinic workload is rising",
+    category: "Tutor workload",
+    urgency: "Soon",
+    status: "Triage",
+    visibility: "academic",
+    assignedTo: "head-tutor-01",
+    date: "2026-09-10",
+    summary: "Tutor needs load review before more student support sessions are added.",
+    privateNote: "Head Tutor can rebalance clinic coverage with a second tutor.",
+  },
+  {
+    id: "sup-003",
+    requesterId: "lec-07",
+    title: "Projector and hybrid teaching setup",
+    category: "Facilities/classroom support",
+    urgency: "Normal",
+    status: "Assigned",
+    visibility: "coordination",
+    assignedTo: "coord-02",
+    date: "2026-11-02",
+    summary: "Lecturer needs room AV and Google Meet backup confirmed before MEC01 starts.",
+    privateNote: "Facilities check requested.",
+  },
+  {
+    id: "sup-004",
+    requesterId: "coord-01",
+    title: "Student Drive access issue",
+    category: "IT/technical support",
+    urgency: "Urgent",
+    status: "In progress",
+    visibility: "technical",
+    assignedTo: "it-01",
+    date: "2026-08-28",
+    summary: "Several students need access to shared folders before orientation.",
+    privateNote: "Check invite domain and sharing policy.",
+  },
+];
+
 const ROLES = {
   "super-admin": {
     label: "Super Admin",
@@ -1449,6 +1613,7 @@ const ROLES = {
       "courses",
       "people",
       "appointments",
+      "support",
       "contact",
       "timesheets",
       "tasks",
@@ -1461,42 +1626,56 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "support", "contact", "timesheets", "tasks", "google"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
     hint: "Manager-level visibility for coordination, without write access",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "support", "contact", "timesheets", "tasks", "google"],
   },
   "head-tutor": {
     label: "Head Tutor",
     hint: "Tutor workload, tutor profiles, assigned work, and lecturer-course tracking",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "contact", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "support", "contact", "timesheets", "tasks"],
   },
   lecturer: {
     label: "Lecturer",
     hint: "Assigned courses, timetable, materials, and confirmation",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "appointments", "contact"],
+    views: ["dashboard", "calendar", "courses", "appointments", "support", "contact"],
   },
   tutor: {
     label: "Tutor",
     hint: "Assigned tutorials, course materials, timesheet logging, and workload balance",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "appointments", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "appointments", "support", "timesheets", "tasks"],
   },
   student: {
     label: "Student",
     hint: "Calendar, courses, teaching teams, planner, and appointment requests",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "planner", "courses", "appointments"],
+    views: ["dashboard", "calendar", "planner", "courses", "appointments", "support"],
+  },
+  "support-counsellor": {
+    label: "Support / Counsellor",
+    hint: "Confidential support triage, counselling referrals, and wellbeing requests",
+    canEdit: false,
+    canSensitive: true,
+    views: ["dashboard", "appointments", "support"],
+  },
+  "it-support": {
+    label: "IT Support",
+    hint: "Learning systems, Drive access, classroom technology, and technical tickets",
+    canEdit: false,
+    canSensitive: false,
+    views: ["dashboard", "appointments", "support", "tasks"],
   },
   viewer: {
     label: "Viewer / Partner",
@@ -1514,6 +1693,7 @@ const NAV = [
   { id: "courses", label: "Courses", icon: "book" },
   { id: "people", label: "Lecturers & Tutors", short: "People", icon: "users" },
   { id: "appointments", label: "Appointments", icon: "appointment" },
+  { id: "support", label: "Support & Wellness", short: "Support", icon: "support" },
   { id: "contact", label: "Contact Hub", icon: "mail" },
   { id: "timesheets", label: "Timesheets", icon: "clock" },
   { id: "tasks", label: "Tasks & Activities", icon: "activity" },
@@ -1570,8 +1750,10 @@ const state = {
   timesheets: load("mathepi-timesheets", DEFAULT_TIMESHEETS),
   tasks: load("mathepi-tasks", DEFAULT_TASKS),
   plannerTasks: load("mathepi-planner-tasks", DEFAULT_PLANNER_TASKS),
+  studentTodos: load("mathepi-student-todos", DEFAULT_STUDENT_TODOS),
   appointments: load("mathepi-appointments", DEFAULT_APPOINTMENTS),
   availability: load("mathepi-availability", DEFAULT_AVAILABILITY),
+  supportRequests: load("mathepi-support-requests", DEFAULT_SUPPORT_REQUESTS),
 };
 
 function migrateProgrammeData() {
@@ -1635,8 +1817,10 @@ function save() {
   localStorage.setItem("mathepi-timesheets", JSON.stringify(state.timesheets));
   localStorage.setItem("mathepi-tasks", JSON.stringify(state.tasks));
   localStorage.setItem("mathepi-planner-tasks", JSON.stringify(state.plannerTasks));
+  localStorage.setItem("mathepi-student-todos", JSON.stringify(state.studentTodos));
   localStorage.setItem("mathepi-appointments", JSON.stringify(state.appointments));
   localStorage.setItem("mathepi-availability", JSON.stringify(state.availability));
+  localStorage.setItem("mathepi-support-requests", JSON.stringify(state.supportRequests));
   localStorage.setItem("mathepi-student-calendar", String(state.studentCalendarConnected));
 }
 
@@ -1759,6 +1943,8 @@ function currentActorId() {
     manager: "manager-01",
     "centre-coordinator": "coord-01",
     "super-admin": "manager-01",
+    "support-counsellor": "support-01",
+    "it-support": "it-01",
   };
   return map[state.role] || "viewer";
 }
@@ -1876,21 +2062,158 @@ function canUpdateAppointment(item) {
   return item.requesterId === actor || item.targetId === actor;
 }
 
+function visibleTodos() {
+  if (state.role === "student") {
+    return state.studentTodos.filter((item) => item.ownerId === currentStudentId());
+  }
+  return state.studentTodos;
+}
+
+function todoStatusBadge(status) {
+  const map = { Open: "blue", "In progress": "gold", Done: "green", Deferred: "gray" };
+  return `<span class="badge ${map[status] || "gray"}">${status}</span>`;
+}
+
+function todoPriorityBadge(priority) {
+  return `<span class="chip ${priority === "High" ? "danger" : priority === "Medium" ? "gold" : "gray"}">${priority}</span>`;
+}
+
+function supportStatusBadge(status) {
+  return `<span class="badge ${SUPPORT_STATUS_COLOR[status] || "gray"}">${status}</span>`;
+}
+
+function urgencyBadge(urgency) {
+  return `<span class="badge ${URGENCY_COLOR[urgency] || "gray"}">${urgency}</span>`;
+}
+
+function canCreateSupportRequest() {
+  return state.role !== "viewer";
+}
+
+function supportScopeText() {
+  const map = {
+    student: "Student Support & Wellness",
+    tutor: "Tutor Support & Workload",
+    lecturer: "Lecturer Teaching Support",
+    "head-tutor": "Head Tutor Support Desk",
+    "centre-coordinator": "Coordination & Logistics Support",
+    manager: "Programme Support Overview",
+    "super-admin": "Support Governance",
+    "support-counsellor": "Confidential Support Queue",
+    "it-support": "IT & Learning Systems Support",
+  };
+  return map[state.role] || "Support";
+}
+
+function canSeeSupportPrivate(item) {
+  const actor = currentActorId();
+  if (item.requesterId === actor) return true;
+  if (state.role === "support-counsellor" && item.visibility === "confidential") return true;
+  if (state.role === "it-support" && item.visibility === "technical") return true;
+  if (state.role === "super-admin") return false;
+  return item.visibility !== "confidential" && (item.assignedTo === actor || state.role === "manager");
+}
+
+function canManageSupport(item) {
+  const actor = currentActorId();
+  if (canEdit() && item.visibility !== "confidential") return true;
+  if (state.role === "support-counsellor" && item.visibility === "confidential") return true;
+  if (state.role === "it-support" && item.visibility === "technical") return true;
+  if (state.role === "head-tutor" && item.category === "Tutor workload") return true;
+  return item.assignedTo === actor;
+}
+
+function visibleSupportRequests() {
+  const actor = currentActorId();
+  if (state.role === "student" || state.role === "tutor" || state.role === "lecturer") {
+    return state.supportRequests.filter((item) => item.requesterId === actor || item.assignedTo === actor);
+  }
+  if (state.role === "support-counsellor") {
+    return state.supportRequests.filter((item) => item.visibility === "confidential" || item.assignedTo === actor);
+  }
+  if (state.role === "it-support") {
+    return state.supportRequests.filter((item) => item.visibility === "technical" || item.assignedTo === actor);
+  }
+  if (state.role === "head-tutor") {
+    return state.supportRequests.filter(
+      (item) =>
+        item.assignedTo === actor ||
+        item.category === "Tutor workload" ||
+        (participantKind(item.requesterId) === "Tutor" && item.visibility !== "confidential"),
+    );
+  }
+  if (state.role === "centre-coordinator") {
+    return state.supportRequests.filter((item) =>
+      ["coordination", "technical"].includes(item.visibility) || item.assignedTo === actor,
+    );
+  }
+  if (state.role === "manager" || state.role === "super-admin") return state.supportRequests;
+  return [];
+}
+
+function supportAssignmentFor(category) {
+  if (category === "Counselling referral" || category === "Staff wellbeing") return "support-01";
+  if (category === "IT/technical support") return "it-01";
+  if (category === "Tutor workload") return "head-tutor-01";
+  if (category === "Logistics support" || category === "Accommodation/travel support") return "coord-01";
+  if (category === "Facilities/classroom support") return "coord-02";
+  return "manager-01";
+}
+
+function supportVisibilityFor(category) {
+  if (category === "Counselling referral" || category === "Staff wellbeing") return "confidential";
+  if (category === "IT/technical support") return "technical";
+  if (
+    category === "Logistics support" ||
+    category === "Accommodation/travel support" ||
+    category === "Facilities/classroom support"
+  ) {
+    return "coordination";
+  }
+  return "academic";
+}
+
+function availabilityFor(personId) {
+  return state.availability.filter((item) => item.personId === personId);
+}
+
+function appointmentLoadFor(personId) {
+  return state.appointments.filter(
+    (item) => item.targetId === personId && !["Completed", "Cancelled", "No-show"].includes(item.status),
+  );
+}
+
+function appointmentConflictNote(personId, preferredDate, time) {
+  const duplicate = state.appointments.find(
+    (item) =>
+      item.targetId === personId &&
+      item.preferredDate === preferredDate &&
+      item.time === time &&
+      !["Cancelled", "No-show"].includes(item.status),
+  );
+  if (duplicate) return `${participantName(personId)} already has an appointment request at that time.`;
+  const teachingConflict = state.sessions.find((session) => session.personId === personId && session.time === time);
+  if (teachingConflict) {
+    return `${participantName(personId)} may be teaching ${teachingConflict.courseCode} at ${time}; confirm before booking.`;
+  }
+  return "No obvious appointment conflict detected in the prototype data.";
+}
+
 function appointmentTargetOptions() {
   const contacts = appointmentContacts().filter((item) => item.id !== currentActorId());
   if (state.role === "student") {
     return contacts.filter((item) =>
-      ["Tutor", "Lecturer", "Academic Manager", "Centre Coordinator"].includes(item.kind),
+      ["Tutor", "Lecturer", "Academic Manager", "Centre Coordinator", "Support / Counsellor", "IT Support"].includes(item.kind),
     );
   }
   if (state.role === "tutor") {
     return contacts.filter((item) =>
-      ["Head Tutor", "Academic Manager", "Centre Coordinator", "Lecturer"].includes(item.kind),
+      ["Head Tutor", "Academic Manager", "Centre Coordinator", "Lecturer", "Support / Counsellor", "IT Support"].includes(item.kind),
     );
   }
   if (state.role === "lecturer") {
     return contacts.filter((item) =>
-      ["Tutor", "Head Tutor", "Academic Manager", "Centre Coordinator"].includes(item.kind),
+      ["Tutor", "Head Tutor", "Academic Manager", "Centre Coordinator", "IT Support", "Support / Counsellor"].includes(item.kind),
     );
   }
   if (state.role === "head-tutor") {
@@ -2091,6 +2414,9 @@ function topbarAction() {
   if (state.view === "appointments" && canCreateAppointment()) {
     return `<button class="button primary" onclick="openDrawer('appointmentForm')">${icon("appointment", 18)}Request</button>`;
   }
+  if (state.view === "support" && canCreateSupportRequest()) {
+    return `<button class="button primary" onclick="openDrawer('supportForm')">${icon("support", 18)}Support</button>`;
+  }
   if (state.view === "timesheets" && state.role === "tutor") {
     return `<button class="button primary" onclick="openDrawer('timesheetForm')">${icon("clock", 18)}Log time</button>`;
   }
@@ -2152,9 +2478,8 @@ function appLayout() {
               ${icon("search", 18)}
               <input placeholder="Search courses, people, blocks..." value="${escapeHtml(state.query)}" oninput="state.query=this.value; render()" />
             </div>
-            <button class="button ghost theme-toggle" onclick="toggleTheme()" aria-label="Switch to ${state.theme === "dark" ? "light" : "dark"} mode">
+            <button class="button ghost icon-only theme-toggle" onclick="toggleTheme()" aria-label="Switch to ${state.theme === "dark" ? "light" : "dark"} mode" title="Switch to ${state.theme === "dark" ? "light" : "dark"} mode">
               ${icon(state.theme === "dark" ? "sun" : "moon", 18)}
-              <span>${state.theme === "dark" ? "Light" : "Dark"}</span>
             </button>
             ${topbarAction()}
           </div>
@@ -2169,9 +2494,14 @@ function appLayout() {
 }
 
 function mobileNav(nav) {
-  const first = nav.slice(0, 5);
+  const priorityIds =
+    state.role === "student"
+      ? ["dashboard", "calendar", "planner", "support", "appointments"]
+      : ["dashboard", "calendar", "courses", "appointments", "support"];
+  const priority = priorityIds.map((id) => nav.find((item) => item.id === id)).filter(Boolean);
+  const first = priority.length >= 5 ? priority.slice(0, 5) : nav.slice(0, 5);
   const active = nav.find((item) => item.id === state.view);
-  const mobile = active && !first.some((item) => item.id === active.id) ? [...nav.slice(0, 4), active] : first;
+  const mobile = active && !first.some((item) => item.id === active.id) ? [...first.slice(0, 4), active] : first;
   return `
     <nav class="mobile-bottom-nav">
       ${mobile
@@ -2200,6 +2530,8 @@ function renderView() {
       return renderPeople();
     case "appointments":
       return renderAppointments();
+    case "support":
+      return renderSupport();
     case "contact":
       return renderContact();
     case "timesheets":
@@ -2318,25 +2650,25 @@ function dashboardQuickActions() {
         action: "setView('planner')",
       },
       {
-        title: "Book support",
+        title: "Support hub",
+        text: "Request academic, logistics, wellness, or technical support.",
+        icon: "support",
+        color: "teal",
+        action: "setView('support')",
+      },
+      {
+        title: "Book appointment",
         text: "Request time with tutors, lecturers, coordinators, or the manager.",
         icon: "appointment",
-        color: "teal",
+        color: "gold",
         action: "setView('appointments')",
       },
       {
         title: "My timetable",
         text: "Review block sessions and course timing.",
         icon: "calendar",
-        color: "gold",
-        action: "setView('calendar')",
-      },
-      {
-        title: "Course team",
-        text: "Open courses to see lecturers, tutors, and descriptions.",
-        icon: "book",
         color: "green",
-        action: "setView('courses')",
+        action: "setView('calendar')",
       },
     ];
   }
@@ -2360,13 +2692,13 @@ function dashboardQuickActions() {
       action: canEdit() ? "openDrawer('sessionForm')" : "setView('calendar')",
     },
     {
-      title: canView("appointments") ? "Appointments" : "Course view",
-      text: canView("appointments")
-        ? "See booking requests, availability, and support demand."
+      title: canView("support") ? "Support hub" : "Course view",
+      text: canView("support")
+        ? "Track academic support, wellbeing, workload, logistics, and technical requests."
         : "Review approved course information.",
-      icon: canView("appointments") ? "appointment" : "book",
+      icon: canView("support") ? "support" : "book",
       color: "gold",
-      action: canView("appointments") ? "setView('appointments')" : "setView('courses')",
+      action: canView("support") ? "setView('support')" : "setView('courses')",
     },
     {
       title: canView("tasks") ? "Task board" : "Course view",
@@ -2394,8 +2726,14 @@ function kpi(label, value, note, iconName, color) {
 }
 
 function quick(title, text, iconName, color, action) {
+  const selfServiceAction =
+    action.includes("supportForm") ||
+    action.includes("appointmentForm") ||
+    (state.role === "student" && action.includes("todoForm")) ||
+    (state.role === "student" && action.includes("plannerForm")) ||
+    (state.role === "tutor" && action.includes("timesheetForm"));
   return `
-    <button class="quick-action" onclick="${canEdit() || action.includes("setView") ? action : "toast('This role has read-only access.')" }">
+    <button class="quick-action" onclick="${canEdit() || action.includes("setView") || selfServiceAction ? action : "toast('This role has read-only access.')" }">
       <span class="icon-box ${color}">${icon(iconName, 18)}</span>
       <span><strong>${title}</strong><span>${text}</span></span>
     </button>
@@ -3006,9 +3344,11 @@ function renderTasks() {
 
 function renderStudentPlanner() {
   const tasks = visiblePlannerTasks();
+  const todos = visibleTodos();
   const shown = plannerTasksForMode();
   const totalHours = Math.round(tasks.reduce((sum, item) => sum + Number(item.duration || 0) / 60, 0) * 10) / 10;
   const completed = tasks.filter((item) => item.status === "Done").length;
+  const openTodos = todos.filter((item) => item.status !== "Done");
   const focus = shown.find((item) => item.priority === "High" && item.status !== "Done") || shown[0] || tasks[0];
   const dayLoads = tasks.reduce((acc, item) => {
     acc[item.date] = (acc[item.date] || 0) + Number(item.duration || 0) / 60;
@@ -3027,6 +3367,7 @@ function renderStudentPlanner() {
         <div class="planner-metrics">
           ${kpi("Planned hours", totalHours, "across visible student plan", "clock", "blue")}
           ${kpi("Completed", completed, "planner items finished", "check", "green")}
+          ${kpi("To-dos", openTodos.length, "open action items", "todo", openTodos.length > 4 ? "gold" : "teal")}
         </div>
       </section>
 
@@ -3089,7 +3430,14 @@ function renderStudentPlanner() {
               <span class="icon-box gold">${icon("appointment", 18)}</span>
               <div>
                 <strong>Support suggestion</strong>
-                <span>${focus ? `If ${focus.courseCode} feels stuck, book a tutor or lecturer appointment from the Appointments tab.` : "Use appointments when a course item remains unresolved."}</span>
+                <span>${focus ? `If ${focus.courseCode} feels stuck, book a tutor, lecturer, or support appointment.` : "Use appointments or the support hub when an item remains unresolved."}</span>
+              </div>
+            </div>
+            <div class="priority">
+              <span class="icon-box ${openTodos.some((item) => item.priority === "High") ? "danger" : "teal"}">${icon("todo", 18)}</span>
+              <div>
+                <strong>To-do nudge</strong>
+                <span>${openTodos.length ? `${openTodos.length} open item${openTodos.length === 1 ? "" : "s"} need attention; convert the hardest one into a planner block.` : "All visible to-dos are closed."}</span>
               </div>
             </div>
             <div class="sync-panel">
@@ -3105,7 +3453,45 @@ function renderStudentPlanner() {
           </div>
         </div>
       </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2>Student To-Do List</h2>
+            <p>Course-linked action list for study, assignments, logistics, wellness, internship, and thesis preparation.</p>
+          </div>
+          ${canPlan ? `<button class="button primary" onclick="openDrawer('todoForm')">${icon("todo", 17)}To-do</button>` : ""}
+        </div>
+        <div class="card-body todo-list">
+          ${
+            todos.length
+              ? todos.map(renderTodoCard).join("")
+              : `<div class="empty">No to-do items yet. Add one and convert it into a planner block when ready.</div>`
+          }
+        </div>
+      </section>
     </div>
+  `;
+}
+
+function renderTodoCard(item) {
+  const meta = TODO_CATEGORIES[item.category] || TODO_CATEGORIES.Study;
+  return `
+    <article class="todo-card">
+      <div>
+        <h4>${item.title}</h4>
+        <p>${item.courseCode} &middot; due ${dateLabel(item.due)} &middot; ${item.notes}</p>
+        <div class="row-tags">
+          <span class="chip ${meta.color}">${meta.label}</span>
+          ${todoPriorityBadge(item.priority)}
+          ${todoStatusBadge(item.status)}
+        </div>
+      </div>
+      <div class="todo-actions">
+        <button class="button ghost" onclick="openDrawer('todo', '${item.id}')">${icon("edit", 17)}Open</button>
+        <button class="button ghost" onclick="convertTodoToPlan('${item.id}')">${icon("planner", 17)}Plan</button>
+      </div>
+    </article>
   `;
 }
 
@@ -3249,6 +3635,155 @@ function renderAvailabilitySlot(item) {
   `;
 }
 
+function renderSupport() {
+  const requests = visibleSupportRequests();
+  const open = requests.filter((item) => !["Resolved", "Closed"].includes(item.status));
+  const confidentialAll = state.supportRequests.filter((item) => item.visibility === "confidential");
+  const critical = requests.filter((item) => ["Urgent", "Critical"].includes(item.urgency));
+  return `
+    <div class="view support-view">
+      <section class="support-hero">
+        <div>
+          <span class="mission-eyebrow">${icon("support", 16)} ${supportScopeText()}</span>
+          <h2>Route academic, wellbeing, workload, logistics, and technical support without exposing private details.</h2>
+          <p>This hub is built as a care system, not a surveillance tool. Sensitive wellness details stay confidential while the programme can still see workload and escalation patterns.</p>
+        </div>
+        <div class="planner-metrics">
+          ${kpi("Open", open.length, "visible support cases", "support", open.length > 5 ? "gold" : "blue")}
+          ${kpi("Urgent", critical.length, "needs fast triage", "alert", critical.length ? "danger" : "green")}
+          ${kpi("Private", state.role === "manager" ? confidentialAll.length : requests.filter((item) => item.visibility === "confidential").length, "confidential signal only", "shield", "maroon")}
+        </div>
+      </section>
+
+      <section class="quick-grid">
+        ${supportQuickActions().map((item) => quick(item.title, item.text, item.icon, item.color, item.action)).join("")}
+      </section>
+
+      <section class="section-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Support Requests</h2>
+              <p>Role-aware queue with private wellness notes hidden unless assigned to confidential support.</p>
+            </div>
+            ${canCreateSupportRequest() ? `<button class="button primary" onclick="openDrawer('supportForm')">${icon("support", 17)}Request</button>` : ""}
+          </div>
+          <div class="card-body support-list">
+            ${requests.length ? requests.map(renderSupportCard).join("") : `<div class="empty">No support requests visible to this role.</div>`}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Support Intelligence</h2>
+              <p>Useful signals without turning support into monitoring.</p>
+            </div>
+            <span class="badge ${critical.length ? "danger" : "green"}">${critical.length ? "Action" : "Stable"}</span>
+          </div>
+          <div class="card-body assistant-stack">
+            ${supportInsights(requests).map(
+              (item) => `
+                <div class="priority">
+                  <span class="icon-box ${item.color}">${icon(item.icon, 18)}</span>
+                  <div><strong>${item.title}</strong><span>${item.detail}</span></div>
+                </div>
+              `,
+            ).join("")}
+            <div class="sync-panel">
+              <div>
+                <h4>Privacy-by-design rule</h4>
+                <p>Wellness notes should remain visible only to the requester and assigned confidential support handler. Managers see aggregate signals and unresolved escalations.</p>
+              </div>
+              <span class="badge maroon">Private</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function supportQuickActions() {
+  if (state.role === "student") {
+    return [
+      { title: "Confidential check-in", text: "Request counselling or wellbeing support without clinical labels.", icon: "support", color: "maroon", action: "openDrawer('supportForm', {category:'Counselling referral'})" },
+      { title: "Academic help", text: "Ask for study, assessment, or course support.", icon: "book", color: "blue", action: "openDrawer('supportForm', {category:'Academic support'})" },
+      { title: "Logistics help", text: "Travel, accommodation, meals, and settling-in support.", icon: "cloud", color: "teal", action: "openDrawer('supportForm', {category:'Accommodation/travel support'})" },
+      { title: "Book appointment", text: "Schedule time with the right support person.", icon: "appointment", color: "gold", action: "setView('appointments')" },
+    ];
+  }
+  if (state.role === "it-support") {
+    return [
+      { title: "Technical queue", text: "Drive access, login, classroom AV, devices, and internet.", icon: "wrench", color: "blue", action: "openDrawer('supportForm', {category:'IT/technical support'})" },
+      { title: "Urgent issues", text: "Review active urgent or critical technical cases.", icon: "alert", color: "danger", action: "setView('support')" },
+      { title: "Availability", text: "Use appointment slots for support windows.", icon: "appointment", color: "teal", action: "setView('appointments')" },
+      { title: "Tasks", text: "Coordinate setup work with operations.", icon: "activity", color: "green", action: "setView('tasks')" },
+    ];
+  }
+  return [
+    { title: "Request support", text: "Create an academic, workload, wellbeing, logistics, or IT request.", icon: "support", color: "maroon", action: "openDrawer('supportForm')" },
+    { title: "Workload signal", text: "Use support requests with timesheets and appointments.", icon: "activity", color: "gold", action: canView("timesheets") ? "setView('timesheets')" : "setView('support')" },
+    { title: "Book appointment", text: "Move support into a scheduled conversation.", icon: "appointment", color: "teal", action: "setView('appointments')" },
+    { title: "Privacy routing", text: "Keep sensitive notes with assigned handlers only.", icon: "shield", color: "green", action: "setView('support')" },
+  ];
+}
+
+function supportInsights(requests) {
+  const urgent = requests.filter((item) => ["Urgent", "Critical"].includes(item.urgency));
+  const confidential = requests.filter((item) => item.visibility === "confidential");
+  const technical = requests.filter((item) => item.visibility === "technical");
+  const workload = requests.filter((item) => item.category === "Tutor workload" || item.category === "Teaching support");
+  return [
+    {
+      title: urgent.length ? "Urgent support exists" : "No urgent visible cases",
+      detail: urgent.length
+        ? `${urgent.length} case${urgent.length === 1 ? "" : "s"} should be triaged before routine planning.`
+        : "Visible support requests are not currently marked urgent or critical.",
+      icon: urgent.length ? "alert" : "check",
+      color: urgent.length ? "danger" : "green",
+    },
+    {
+      title: "Confidential support signal",
+      detail:
+        state.role === "support-counsellor"
+          ? `${confidential.length} confidential request${confidential.length === 1 ? "" : "s"} visible to the support queue.`
+          : `${confidential.length} confidential request${confidential.length === 1 ? "" : "s"} exist; private notes are hidden from this role.`,
+      icon: "shield",
+      color: "maroon",
+    },
+    {
+      title: "Workload and technical pattern",
+      detail: `${workload.length} workload/teaching case${workload.length === 1 ? "" : "s"} and ${technical.length} technical case${technical.length === 1 ? "" : "s"} are visible.`,
+      icon: "activity",
+      color: "blue",
+    },
+  ];
+}
+
+function renderSupportCard(item) {
+  const privateVisible = canSeeSupportPrivate(item);
+  return `
+    <article class="support-card">
+      <div class="support-main">
+        <span class="icon-box ${item.visibility === "technical" ? "blue" : item.visibility === "confidential" ? "maroon" : "teal"}">${icon(item.visibility === "technical" ? "wrench" : "support", 18)}</span>
+        <div>
+          <h4>${item.title}</h4>
+          <p>${participantName(item.requesterId)} &middot; ${item.category} &middot; assigned to ${participantName(item.assignedTo)}</p>
+          <p>${item.summary}</p>
+          <div class="row-tags">
+            ${urgencyBadge(item.urgency)}
+            ${supportStatusBadge(item.status)}
+            <span class="chip ${item.visibility === "confidential" ? "maroon" : item.visibility === "technical" ? "blue" : "gray"}">${item.visibility}</span>
+            <span class="chip gray">${privateVisible ? "notes visible" : "private notes hidden"}</span>
+          </div>
+        </div>
+      </div>
+      <button class="button ghost" onclick="openDrawer('supportRequest', '${item.id}')">${icon("edit", 17)}Open</button>
+    </article>
+  `;
+}
+
 function renderGoogle() {
   const tabs = [
     "CalendarBlocks",
@@ -3259,10 +3794,19 @@ function renderGoogle() {
     "Timesheets",
     "Tasks",
     "StudentPlanner",
+    "StudentTodos",
     "PlannerTasks",
     "Appointments",
     "Availability",
     "AppointmentNotes",
+    "SupportRequests",
+    "WellnessRequests",
+    "StaffSupportRequests",
+    "TechnicalSupportTickets",
+    "SupportAssignments",
+    "SupportReferrals",
+    "ConsentAudit",
+    "EmergencyAccessAudit",
     "CalendarSyncSettings",
     "DriveDocuments",
     "AccessRoles",
@@ -3335,10 +3879,19 @@ function sheetDescription(tab) {
     Timesheets: "timesheet_id, tutor_id, course_code, date, category, hours, activity, status",
     Tasks: "task_id, title, area, owner, due_date, priority, status, details",
     StudentPlanner: "student_id, preferred_study_windows, planning_mode, calendar_sync_opt_in",
+    StudentTodos: "todo_id, student_id, course_code, title, category, due_date, priority, status, notes",
     PlannerTasks: "planner_id, student_id, course_code, date, time, duration, type, priority, status, notes",
     Appointments: "appointment_id, requester_id, target_id, course_code, category, preferred_date, time, mode, status",
     Availability: "availability_id, person_id, day, time, mode, location, focus",
     AppointmentNotes: "appointment_id, visibility, note, created_by, created_at",
+    SupportRequests: "support_id, requester_id, category, urgency, status, visibility, assigned_to, summary",
+    WellnessRequests: "support_id, requester_id, urgency, status, confidential_handler, consent_scope",
+    StaffSupportRequests: "support_id, staff_id, category, workload_signal, urgency, status, assigned_to",
+    TechnicalSupportTickets: "ticket_id, requester_id, system_area, urgency, status, assigned_it_staff",
+    SupportAssignments: "support_id, assigned_to, assigned_by, assigned_at, role_scope",
+    SupportReferrals: "support_id, referral_type, referral_status, consent_record, follow_up_date",
+    ConsentAudit: "consent_id, user_id, support_id, scope, granted_at, withdrawn_at",
+    EmergencyAccessAudit: "access_id, support_id, accessor_id, reason, timestamp, review_status",
     CalendarSyncSettings: "user_id, provider, sync_enabled, selected_calendars, reminder_preferences",
     DriveDocuments: "document_id, course_code, folder_id, url, visibility, version",
     AccessRoles: "email, role, active, invited_by, last_login",
@@ -3423,8 +3976,12 @@ function renderDrawer() {
   if (type === "task") content = taskDrawer(payload);
   if (type === "plannerForm") content = plannerFormDrawer(payload);
   if (type === "plannerTask") content = plannerTaskDrawer(payload);
+  if (type === "todoForm") content = todoFormDrawer(payload);
+  if (type === "todo") content = todoDrawer(payload);
   if (type === "appointmentForm") content = appointmentFormDrawer(payload);
   if (type === "appointment") content = appointmentDrawer(payload);
+  if (type === "supportForm") content = supportFormDrawer(payload);
+  if (type === "supportRequest") content = supportRequestDrawer(payload);
   return `<div class="drawer-backdrop" onclick="if(event.target.classList.contains('drawer-backdrop')) closeDrawer()">${content}</div>`;
 }
 
@@ -3559,6 +4116,7 @@ function quickAddDrawer() {
       ${quick("New tutor", "Add tutorial support", "users", "gold", "openDrawer('personForm', {kind:'Tutor'})")}
       ${quick("New session", "Add timetable slot", "calendar", "teal", "openDrawer('sessionForm')")}
       ${quick("New appointment", "Request or schedule support", "appointment", "green", "openDrawer('appointmentForm')")}
+      ${quick("Support request", "Route care, workload, logistics, or IT support", "support", "maroon", "openDrawer('supportForm')")}
     </div>
   `;
   return drawerShell("Quick Add", "Choose the academic object to add.", body);
@@ -3714,8 +4272,10 @@ function exportDrawer() {
     timesheets: state.timesheets,
     tasks: state.tasks,
     plannerTasks: state.plannerTasks,
+    studentTodos: state.studentTodos,
     appointments: state.appointments,
     availability: state.availability,
+    supportRequests: state.supportRequests,
   };
   const body = `<div class="field"><label>Prototype data export</label><textarea readonly style="min-height:360px">${escapeHtml(JSON.stringify(payload, null, 2))}</textarea></div>`;
   return drawerShell("Data Export", "JSON structure ready for backend or Google Sheets sync.", body, `<button class="button ghost" onclick="closeDrawer()">Close</button>`);
@@ -3933,18 +4493,57 @@ function updatePlannerTaskStatus(id, status) {
   saveAndRender(`${item.title} marked ${status}.`);
 }
 
+function appointmentAvailabilityPanel(personId, preferredDate = "2026-09-09", time = "15:00") {
+  if (!personId) return `<div class="timeline-item"><h4>Availability</h4><p>Select a person to see availability.</p></div>`;
+  const slots = availabilityFor(personId);
+  const load = appointmentLoadFor(personId);
+  const conflict = appointmentConflictNote(personId, preferredDate, time);
+  return `
+    <div class="availability-preview">
+      <div class="timeline-item">
+        <h4>${participantName(personId)} availability</h4>
+        <p>${participantKind(personId)} &middot; ${load.length} active appointment${load.length === 1 ? "" : "s"} in the prototype queue.</p>
+        <div class="row-tags">
+          ${
+            slots.length
+              ? slots.map((slot) => `<span class="chip teal">${slot.day} ${slot.time} &middot; ${slot.mode}</span>`).join("")
+              : `<span class="chip gray">No public slot listed</span>`
+          }
+        </div>
+      </div>
+      <div class="timeline-item">
+        <h4>Conflict check</h4>
+        <p>${conflict}</p>
+      </div>
+    </div>
+  `;
+}
+
+function refreshAppointmentAvailability() {
+  const form = document.querySelector("#appointmentForm");
+  const panel = document.querySelector("#appointmentAvailability");
+  if (!form || !panel) return;
+  const data = Object.fromEntries(new FormData(form));
+  panel.innerHTML = appointmentAvailabilityPanel(data.targetId, data.preferredDate, data.time);
+}
+
 function appointmentFormDrawer(payload = {}) {
   const targets = appointmentTargetOptions();
   const selectedCourse = payload?.courseCode || state.courses[0]?.code || "";
+  const selectedTarget = payload?.targetId || targets[0]?.id || "";
   const body = `
     <form id="appointmentForm" class="form-grid">
-      <div class="field full">
+      <div class="field">
         <label>Request from</label>
-        <input value="${participantName(currentActorId())} - ${roleDef().label}" readonly />
+        <input value="${participantName(currentActorId())}" readonly />
+      </div>
+      <div class="field">
+        <label>Requestor role</label>
+        <input value="${roleDef().label}" readonly />
       </div>
       <div class="field full">
         <label>Book with</label>
-        <select name="targetId" required>${targets.map((p) => `<option value="${p.id}">${p.name} - ${p.kind}</option>`).join("")}</select>
+        <select name="targetId" required onchange="refreshAppointmentAvailability()">${targets.map((p) => `<option value="${p.id}" ${p.id === selectedTarget ? "selected" : ""}>${p.name} - ${p.kind}</option>`).join("")}</select>
       </div>
       <div class="field">
         <label>Course</label>
@@ -3969,12 +4568,13 @@ function appointmentFormDrawer(payload = {}) {
             .join("")}
         </select>
       </div>
-      <div class="field"><label>Preferred date</label><input name="preferredDate" type="date" value="2026-09-09" /></div>
-      <div class="field"><label>Time</label><input name="time" type="time" value="15:00" /></div>
+      <div class="field"><label>Preferred date</label><input name="preferredDate" type="date" value="2026-09-09" onchange="refreshAppointmentAvailability()" /></div>
+      <div class="field"><label>Time</label><input name="time" type="time" value="15:00" onchange="refreshAppointmentAvailability()" /></div>
       <div class="field"><label>Duration</label><select name="duration"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="45">45 min</option><option value="60">60 min</option></select></div>
       <div class="field"><label>Mode</label><select name="mode"><option>In person</option><option>Online</option><option>Hybrid</option></select></div>
       <div class="field full"><label>Reason / agenda</label><textarea name="summary" placeholder="What should the meeting solve?">${payload?.summary || ""}</textarea></div>
     </form>
+    <div id="appointmentAvailability">${appointmentAvailabilityPanel(selectedTarget, "2026-09-09", "15:00")}</div>
     <div class="timeline-item">
       <h4>Booking workflow</h4>
       <p>Requests begin as Requested and can move through Awaiting confirmation, Confirmed, Reschedule proposed, Completed, Cancelled, or No-show.</p>
@@ -4051,6 +4651,196 @@ function updateAppointmentStatus(id, status) {
   saveAndRender(`Appointment moved to ${status}.`);
 }
 
+function todoFormDrawer(payload = {}) {
+  const selectedCourse = payload?.courseCode || state.courses[0]?.code || "";
+  const body = `
+    <form id="todoForm" class="form-grid">
+      <div class="field full"><label>To-do title</label><input name="title" placeholder="Finish reading notes" required /></div>
+      <div class="field"><label>Category</label><select name="category">${Object.keys(TODO_CATEGORIES).map((category) => `<option>${category}</option>`).join("")}</select></div>
+      <div class="field"><label>Course</label><select name="courseCode">${state.courses.map((c) => `<option value="${c.code}" ${c.code === selectedCourse ? "selected" : ""}>${c.code} ${c.title}</option>`).join("")}</select></div>
+      <div class="field"><label>Due date</label><input name="due" type="date" value="2026-09-08" /></div>
+      <div class="field"><label>Priority</label><select name="priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div class="field full"><label>Notes</label><textarea name="notes" placeholder="What needs to be done?"></textarea></div>
+    </form>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="addTodo()">${icon("todo", 17)}Add to-do</button>`;
+  return drawerShell("Add Student To-Do", "Course-linked action item that can be converted into a planner block.", body, footer);
+}
+
+function addTodo() {
+  const form = document.querySelector("#todoForm");
+  if (!form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  state.studentTodos.unshift({
+    id: `todo-${Date.now()}`,
+    ownerId: currentStudentId(),
+    title: data.title,
+    courseCode: data.courseCode,
+    category: data.category,
+    due: data.due,
+    priority: data.priority,
+    status: "Open",
+    notes: data.notes || "To-do item created.",
+  });
+  state.view = "planner";
+  closeDrawer();
+  saveAndRender("Student to-do added.");
+}
+
+function todoDrawer(id) {
+  const item = state.studentTodos.find((todo) => todo.id === id);
+  if (!item) return drawerShell("To-do not found", "The selected item is no longer available.", "");
+  const linkedCourse = course(item.courseCode);
+  const body = `
+    <div class="meta-grid">
+      <div class="meta-box"><span>Course</span><strong>${item.courseCode}</strong></div>
+      <div class="meta-box"><span>Due</span><strong>${dateLabel(item.due)}</strong></div>
+      <div class="meta-box"><span>Category</span><strong>${item.category}</strong></div>
+      <div class="meta-box"><span>Priority</span><strong>${item.priority}</strong></div>
+    </div>
+    <div class="timeline-item"><h4>${linkedCourse?.title || "Linked course"}</h4><p>${item.notes}</p></div>
+    <div class="field">
+      <label>Status</label>
+      <select onchange="updateTodoStatus('${item.id}', this.value)">
+        ${["Open", "In progress", "Done", "Deferred"].map((status) => `<option ${item.status === status ? "selected" : ""}>${status}</option>`).join("")}
+      </select>
+    </div>
+  `;
+  const footer = `<button class="button ghost" onclick="convertTodoToPlan('${item.id}')">${icon("planner", 17)}Convert to plan</button><button class="button primary" onclick="closeDrawer()">${icon("check", 17)}Done</button>`;
+  return drawerShell(item.title, "Student to-do detail", body, footer);
+}
+
+function updateTodoStatus(id, status) {
+  const item = state.studentTodos.find((todo) => todo.id === id);
+  if (!item) return;
+  item.status = status;
+  saveAndRender(`${item.title} marked ${status}.`);
+}
+
+function convertTodoToPlan(id) {
+  const item = state.studentTodos.find((todo) => todo.id === id);
+  if (!item) return;
+  state.plannerTasks.unshift({
+    id: `plan-${Date.now()}`,
+    ownerId: item.ownerId,
+    title: item.title,
+    type: item.category === "Wellness" ? "Wellness" : item.category === "Reading" ? "Reading" : "Study",
+    courseCode: item.courseCode,
+    date: item.due,
+    time: "16:00",
+    duration: item.priority === "High" ? 90 : 60,
+    priority: item.priority,
+    status: "Planned",
+    notes: item.notes,
+  });
+  item.status = item.status === "Done" ? "Done" : "In progress";
+  state.view = "planner";
+  closeDrawer();
+  saveAndRender("To-do converted into a planner block.");
+}
+
+function supportFormDrawer(payload = {}) {
+  const category = payload?.category || (state.role === "it-support" ? "IT/technical support" : state.role === "student" ? "Academic support" : "Teaching support");
+  const body = `
+    <form id="supportForm" class="form-grid">
+      <div class="field">
+        <label>Request from</label>
+        <input value="${participantName(currentActorId())}" readonly />
+      </div>
+      <div class="field">
+        <label>Requestor role</label>
+        <input value="${roleDef().label}" readonly />
+      </div>
+      <div class="field full"><label>Support title</label><input name="title" placeholder="What support do you need?" required /></div>
+      <div class="field">
+        <label>Category</label>
+        <select name="category">${SUPPORT_CATEGORIES.map((item) => `<option ${item === category ? "selected" : ""}>${item}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Urgency</label>
+        <select name="urgency"><option>Normal</option><option>Soon</option><option>Urgent</option><option>Critical</option></select>
+      </div>
+      <div class="field full">
+        <label>Optional notes</label>
+        <textarea name="summary" placeholder="Share only what is necessary. You do not need to disclose sensitive wellness details here."></textarea>
+      </div>
+    </form>
+    <div class="timeline-item">
+      <h4>Confidentiality note</h4>
+      <p>Wellness and counselling requests are routed to confidential support. Academic, logistics, and IT requests are routed only to the relevant support handlers.</p>
+    </div>
+  `;
+  const footer = `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="addSupportRequest()">${icon("support", 17)}Submit support request</button>`;
+  return drawerShell("Request Support", "Academic, wellbeing, workload, logistics, facilities, or IT support.", body, footer);
+}
+
+function addSupportRequest() {
+  const form = document.querySelector("#supportForm");
+  if (!form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  const assignedTo = supportAssignmentFor(data.category);
+  const visibility = supportVisibilityFor(data.category);
+  state.supportRequests.unshift({
+    id: `sup-${Date.now()}`,
+    requesterId: currentActorId(),
+    title: data.title,
+    category: data.category,
+    urgency: data.urgency,
+    status: "Submitted",
+    visibility,
+    assignedTo,
+    date: "2026-05-21",
+    summary: data.summary || "Support request submitted.",
+    privateNote:
+      visibility === "confidential"
+        ? "Private details should be handled by the confidential support handler outside the broad academic view."
+        : data.summary || "No additional private note.",
+  });
+  state.view = "support";
+  closeDrawer();
+  saveAndRender("Support request submitted.");
+}
+
+function supportRequestDrawer(id) {
+  const item = state.supportRequests.find((request) => request.id === id);
+  if (!item) return drawerShell("Support request not found", "The selected support case is no longer available.", "");
+  const privateVisible = canSeeSupportPrivate(item);
+  const body = `
+    <div class="meta-grid">
+      <div class="meta-box"><span>Requester</span><strong>${participantName(item.requesterId)}</strong></div>
+      <div class="meta-box"><span>Assigned to</span><strong>${participantName(item.assignedTo)}</strong></div>
+      <div class="meta-box"><span>Urgency</span><strong>${item.urgency}</strong></div>
+      <div class="meta-box"><span>Visibility</span><strong>${item.visibility}</strong></div>
+    </div>
+    <div class="timeline-item"><h4>${item.category}</h4><p>${item.summary}</p></div>
+    <div class="timeline-item"><h4>Private note</h4><p>${privateVisible ? item.privateNote : "Hidden for this role. Use authorized support routing for sensitive details."}</p></div>
+    ${
+      item.urgency === "Critical"
+        ? `<div class="timeline-item"><h4>Critical escalation</h4><p>Escalate immediately through approved programme support channels. Do not expose confidential notes broadly.</p></div>`
+        : ""
+    }
+    ${
+      canManageSupport(item)
+        ? `<div class="field">
+            <label>Status</label>
+            <select onchange="updateSupportStatus('${item.id}', this.value)">
+              ${["Draft", "Submitted", "Triage", "Assigned", "In progress", "Waiting on requester", "Resolved", "Closed", "Escalated"].map((status) => `<option ${item.status === status ? "selected" : ""}>${status}</option>`).join("")}
+            </select>
+          </div>`
+        : ""
+    }
+  `;
+  const footer = `<button class="button ghost" onclick="openDrawer('appointmentForm', {targetId:'${item.assignedTo}', summary:'Follow-up for support request.'})">${icon("appointment", 17)}Book follow-up</button><button class="button primary" onclick="closeDrawer()">${icon("check", 17)}Done</button>`;
+  return drawerShell(item.title, "Support request detail", body, footer);
+}
+
+function updateSupportStatus(id, status) {
+  const item = state.supportRequests.find((request) => request.id === id);
+  if (!item) return;
+  item.status = status;
+  saveAndRender(`Support request moved to ${status}.`);
+}
+
 function render() {
   document.querySelector("#app").innerHTML = appLayout();
 }
@@ -4072,8 +4862,14 @@ window.updateTaskStatus = updateTaskStatus;
 window.addPlannerTask = addPlannerTask;
 window.updatePlannerTaskStatus = updatePlannerTaskStatus;
 window.toggleStudentCalendarSync = toggleStudentCalendarSync;
+window.addTodo = addTodo;
+window.updateTodoStatus = updateTodoStatus;
+window.convertTodoToPlan = convertTodoToPlan;
+window.refreshAppointmentAvailability = refreshAppointmentAvailability;
 window.addAppointment = addAppointment;
 window.updateAppointmentStatus = updateAppointmentStatus;
+window.addSupportRequest = addSupportRequest;
+window.updateSupportStatus = updateSupportStatus;
 window.state = state;
 
 migrateProgrammeData();

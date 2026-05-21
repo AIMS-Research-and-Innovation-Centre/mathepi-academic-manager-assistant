@@ -15,7 +15,10 @@ Open `index.html` in a browser. No build step is required.
 - Centre Coordinator and Head Tutor coordination roles
 - Student role for calendar, courses, and course-specific lecturer/tutor visibility
 - Student Planner with day/week/month planning, course-linked tasks, balance signals, and optional Google Calendar-ready sync controls
+- Student To-Do list with course links, priorities, categories, due dates, and conversion into planner blocks
 - Appointment and booking module across students, tutors, lecturers, Head Tutor, Centre Coordinators, and Academic & Research Manager
+- Whole-programme Support & Wellness hub for students, tutors, lecturers, coordinators, support/counsellor, and IT support workflows
+- Compact icon-only dark/light mode toggle for mobile and tablet space efficiency
 - Tutor timesheets, assigned-work view, and workload balance signals
 - Pre-arrival Tasks & Activities board for travel, accommodation, facilities, meals, tutor hiring, and lecturer appointments
 - Google Sheets/Drive integration panel prepared for OAuth/API wiring

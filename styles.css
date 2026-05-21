@@ -593,7 +593,10 @@ button {
 }
 
 .theme-toggle {
-  min-width: 92px;
+  width: 40px;
+  min-width: 40px;
+  padding: 0;
+  flex: 0 0 40px;
 }
 
 .tabs {
@@ -1065,7 +1068,8 @@ button {
   gap: 12px;
 }
 
-.planner-hero {
+.planner-hero,
+.support-hero {
   min-height: 220px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.44fr);
@@ -1080,7 +1084,14 @@ button {
   box-shadow: var(--shadow);
 }
 
-.planner-hero h2 {
+.support-hero {
+  background:
+    linear-gradient(120deg, rgba(93, 9, 17, 0.97), rgba(49, 95, 156, 0.82)),
+    var(--aims-maroon);
+}
+
+.planner-hero h2,
+.support-hero h2 {
   max-width: 820px;
   margin: 12px 0 8px;
   font-size: clamp(25px, 4vw, 44px);
@@ -1088,7 +1099,8 @@ button {
   letter-spacing: 0;
 }
 
-.planner-hero p {
+.planner-hero p,
+.support-hero p {
   max-width: 780px;
   margin: 0;
   color: rgba(255, 255, 255, 0.82);
@@ -1104,13 +1116,17 @@ button {
 
 .planner-board,
 .appointment-list,
-.availability-list {
+.availability-list,
+.todo-list,
+.support-list {
   display: grid;
   gap: 12px;
 }
 
 .planner-card,
 .appointment-card,
+.todo-card,
+.support-card,
 .sync-panel {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1124,7 +1140,8 @@ button {
 }
 
 .planner-card-top,
-.appointment-main {
+.appointment-main,
+.support-main {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
   gap: 12px;
@@ -1133,6 +1150,8 @@ button {
 
 .planner-card h4,
 .appointment-card h4,
+.todo-card h4,
+.support-card h4,
 .sync-panel h4 {
   margin: 0;
   font-size: 14px;
@@ -1141,6 +1160,8 @@ button {
 
 .planner-card p,
 .appointment-card p,
+.todo-card p,
+.support-card p,
 .sync-panel p {
   margin: 5px 0 0;
   color: var(--muted);
@@ -1159,6 +1180,26 @@ button {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
+}
+
+.todo-card,
+.support-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.todo-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.availability-preview {
+  display: grid;
+  gap: 10px;
 }
 
 .sync-panel {
@@ -1284,7 +1325,8 @@ button {
   .hero-strip,
   .section-grid,
   .calendar-layout,
-  .planner-hero {
+  .planner-hero,
+  .support-hero {
     grid-template-columns: 1fr;
   }
 
@@ -1366,7 +1408,8 @@ button {
     max-width: calc(100vw - 32px);
     margin-top: 14px;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: auto auto;
+    justify-content: start;
   }
 
   .top-actions .search {
@@ -1378,11 +1421,17 @@ button {
     max-width: 100%;
   }
 
-  .top-actions .button,
+  .top-actions .button:not(.theme-toggle),
   .toolbar .button,
   .drawer-footer .button {
     width: 100%;
     max-width: calc(100vw - 32px);
+  }
+
+  .top-actions .theme-toggle {
+    width: 40px;
+    max-width: 40px;
+    justify-self: start;
   }
 
   .mission-card {
@@ -1463,30 +1512,37 @@ button {
   .agenda-item,
   .insight,
   .appointment-card,
+  .todo-card,
+  .support-card,
   .sync-panel {
     grid-template-columns: 1fr;
   }
 
-  .planner-hero {
+  .planner-hero,
+  .support-hero {
     min-height: 300px;
     padding: 16px;
     align-items: start;
   }
 
-  .planner-hero h2 {
+  .planner-hero h2,
+  .support-hero h2 {
     max-width: 310px;
     font-size: 24px;
     line-height: 1.05;
   }
 
-  .planner-hero p {
+  .planner-hero p,
+  .support-hero p {
     max-width: 310px;
     font-size: 14px;
   }
 
-  .planner-card-actions {
+  .planner-card-actions,
+  .todo-actions {
     display: grid;
     grid-template-columns: 1fr;
+    justify-content: stretch;
   }
 
   .drawer {
@@ -1568,6 +1624,8 @@ button {
 :root[data-theme="dark"] .timeline-item,
 :root[data-theme="dark"] .planner-card,
 :root[data-theme="dark"] .appointment-card,
+:root[data-theme="dark"] .todo-card,
+:root[data-theme="dark"] .support-card,
 :root[data-theme="dark"] .sync-panel,
 :root[data-theme="dark"] .phase,
 :root[data-theme="dark"] .week-grid,
