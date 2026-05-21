@@ -161,7 +161,7 @@ button {
   align-items: center;
   gap: 11px;
   text-align: left;
-  font-weight: 750;
+  font-weight: 560;
 }
 
 .nav-button:hover,
@@ -207,7 +207,7 @@ button {
   padding: 10px;
   background: rgba(255, 255, 255, 0.94);
   color: var(--ink);
-  font-weight: 750;
+  font-weight: 560;
 }
 
 .content {
