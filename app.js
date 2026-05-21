@@ -29,6 +29,8 @@ const ICONS = {
     '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
   menu:
     '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
+  moon:
+    '<path d="M12 3a6 6 0 0 0 9 7.4A9 9 0 1 1 12 3Z"/>',
   phone:
     '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.7 2.6a2 2 0 0 1-.5 2.1L8.1 9.6a16 16 0 0 0 6.3 6.3l1.2-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.6 2.6.7a2 2 0 0 1 1.7 2Z"/>',
   plus:
@@ -41,6 +43,8 @@ const ICONS = {
     '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/><path d="M8 9h2"/>',
   spark:
     '<path d="M12 2v5"/><path d="M12 17v5"/><path d="m4.9 4.9 3.5 3.5"/><path d="m15.6 15.6 3.5 3.5"/><path d="M2 12h5"/><path d="M17 12h5"/><path d="m4.9 19.1 3.5-3.5"/><path d="m15.6 8.4 3.5-3.5"/>',
+  sun:
+    '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
   users:
     '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>',
   x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
@@ -1310,6 +1314,7 @@ const state = {
   selected: null,
   drawer: null,
   toast: null,
+  theme: localStorage.getItem("mathepi-theme") || "light",
   googleConnected: false,
   courses: load("mathepi-courses", DEFAULT_COURSES),
   people: load("mathepi-people", DEFAULT_PEOPLE),
@@ -1411,6 +1416,17 @@ function daysUntil(iso) {
 
 function roleDef() {
   return ROLES[state.role];
+}
+
+function applyTheme() {
+  document.documentElement.dataset.theme = state.theme;
+}
+
+function toggleTheme() {
+  state.theme = state.theme === "dark" ? "light" : "dark";
+  localStorage.setItem("mathepi-theme", state.theme);
+  applyTheme();
+  render();
 }
 
 function canView(view) {
@@ -1709,6 +1725,10 @@ function appLayout() {
               ${icon("search", 18)}
               <input placeholder="Search courses, people, blocks..." value="${escapeHtml(state.query)}" oninput="state.query=this.value; render()" />
             </div>
+            <button class="button ghost theme-toggle" onclick="toggleTheme()" aria-label="Switch to ${state.theme === "dark" ? "light" : "dark"} mode">
+              ${icon(state.theme === "dark" ? "sun" : "moon", 18)}
+              <span>${state.theme === "dark" ? "Light" : "Dark"}</span>
+            </button>
             ${
               canEdit()
                 ? `<button class="button primary" onclick="openDrawer('quickAdd')">${icon("plus", 18)}Add</button>`
@@ -3065,6 +3085,7 @@ function render() {
 
 window.setView = setView;
 window.setRole = setRole;
+window.toggleTheme = toggleTheme;
 window.openDrawer = openDrawer;
 window.closeDrawer = closeDrawer;
 window.render = render;
@@ -3080,4 +3101,5 @@ window.state = state;
 
 migrateProgrammeData();
 save();
+applyTheme();
 render();

@@ -21,6 +21,25 @@
   --radius: 8px;
   --sidebar: 284px;
   --mobile-nav: 74px;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --aims-maroon: #a31826;
+  --aims-maroon-dark: #710c16;
+  --aims-maroon-soft: rgba(233, 75, 91, 0.15);
+  --ink: #f4f7fb;
+  --muted: #aeb8c6;
+  --line: #303741;
+  --panel: #191d24;
+  --paper: #101319;
+  --teal-soft: rgba(24, 166, 160, 0.16);
+  --gold-soft: rgba(227, 178, 75, 0.16);
+  --green-soft: rgba(70, 187, 134, 0.16);
+  --blue-soft: rgba(95, 145, 219, 0.18);
+  --danger-soft: rgba(232, 82, 103, 0.16);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+  color-scheme: dark;
 }
 
 * {
@@ -36,7 +55,8 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont,
     sans-serif;
   letter-spacing: 0;
   overflow-x: hidden;
@@ -206,8 +226,11 @@ button {
   border-radius: 7px;
   padding: 10px;
   background: rgba(255, 255, 255, 0.94);
-  color: var(--ink);
+  color: #18191f;
   font-weight: 560;
+  font-size: 13px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
 }
 
 .content {
@@ -562,6 +585,10 @@ button {
 .button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+.theme-toggle {
+  min-width: 92px;
 }
 
 .tabs {
@@ -1386,4 +1413,64 @@ button {
   .top-actions .button {
     max-width: 358px;
   }
+}
+
+:root[data-theme="dark"] .topbar {
+  background: rgba(16, 19, 25, 0.9);
+}
+
+:root[data-theme="dark"] .search input,
+:root[data-theme="dark"] .kpi,
+:root[data-theme="dark"] .quick-action,
+:root[data-theme="dark"] .button,
+:root[data-theme="dark"] .button.ghost,
+:root[data-theme="dark"] .tabs,
+:root[data-theme="dark"] .insight,
+:root[data-theme="dark"] .agenda-item,
+:root[data-theme="dark"] .person-row,
+:root[data-theme="dark"] .course-row,
+:root[data-theme="dark"] .timeline-item,
+:root[data-theme="dark"] .phase,
+:root[data-theme="dark"] .week-grid,
+:root[data-theme="dark"] .week-cell,
+:root[data-theme="dark"] .meta-box,
+:root[data-theme="dark"] .priority,
+:root[data-theme="dark"] .empty,
+:root[data-theme="dark"] .field input,
+:root[data-theme="dark"] .field select,
+:root[data-theme="dark"] .field textarea,
+:root[data-theme="dark"] .drawer {
+  background: var(--panel);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .week-head,
+:root[data-theme="dark"] .time-cell,
+:root[data-theme="dark"] .drawer-footer {
+  background: #141820;
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .button.primary {
+  color: #fff;
+  background: var(--aims-maroon);
+}
+
+:root[data-theme="dark"] .button.soft {
+  color: #ffb9c1;
+  background: rgba(233, 75, 91, 0.13);
+}
+
+:root[data-theme="dark"] .quick-action:hover {
+  border-color: rgba(255, 172, 183, 0.36);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+}
+
+:root[data-theme="dark"] .progress {
+  background: #2b313a;
+}
+
+:root[data-theme="dark"] .mobile-bottom-nav {
+  background: rgba(25, 29, 36, 0.96);
 }
