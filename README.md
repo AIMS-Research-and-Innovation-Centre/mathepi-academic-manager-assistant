@@ -13,6 +13,7 @@ Open `index.html` in a browser. No build step is required.
 - Course, lecturer, tutor, and contact tracking modules
 - Role-aware navigation and actions
 - Centre Coordinator and Head Tutor coordination roles
+- Student role for calendar, courses, and course-specific lecturer/tutor visibility
 - Tutor timesheets, assigned-work view, and workload balance signals
 - Pre-arrival Tasks & Activities board for travel, accommodation, facilities, meals, tutor hiring, and lecturer appointments
 - Google Sheets/Drive integration panel prepared for OAuth/API wiring

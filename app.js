@@ -1274,6 +1274,13 @@ const ROLES = {
     canSensitive: false,
     views: ["dashboard", "calendar", "courses", "timesheets", "tasks"],
   },
+  student: {
+    label: "Student",
+    hint: "Calendar, courses, and teaching team for each course",
+    canEdit: false,
+    canSensitive: false,
+    views: ["dashboard", "calendar", "courses"],
+  },
   viewer: {
     label: "Viewer / Partner",
     hint: "Read-only approved programme information",
@@ -2126,13 +2133,17 @@ function renderBlockCourses(block) {
 }
 
 function renderCourses() {
+  const subtitle =
+    state.role === "student"
+      ? "Open any course to see its schedule, lecturer, tutors, description, and learning expectations."
+      : "Curriculum data, assignments, Google Drive documents, and operational notes.";
   return `
     <div class="view">
       <div class="card">
         <div class="card-header">
           <div>
             <h2>Course Management</h2>
-            <p>Curriculum data, assignments, Google Drive documents, and operational notes.</p>
+            <p>${subtitle}</p>
           </div>
           ${canEdit() ? `<button class="button primary" onclick="openDrawer('courseForm')">${icon("plus", 17)}Course</button>` : ""}
         </div>
@@ -2146,8 +2157,22 @@ function renderCourses() {
   `;
 }
 
+function studentCourseTeamChips(lead, tutors) {
+  const tutorText = tutors.length ? tutors.map((t) => t.name).join(", ") : "Tutor not assigned";
+  return `
+    <span class="chip ${lead ? "blue" : "danger"}">Lecturer: ${lead ? lead.name : "Not assigned"}</span>
+    <span class="chip ${tutors.length ? "green" : "danger"}">Tutor: ${tutorText}</span>
+  `;
+}
+
 function renderCourseRow(item) {
   const lead = person(item.lecturerId);
+  const tutors = item.tutorIds.map(person).filter(Boolean);
+  const staffing =
+    state.role === "student"
+      ? studentCourseTeamChips(lead, tutors)
+      : `${lead ? statusBadge(lead.status) : `<span class="badge danger">Lecturer missing</span>`}
+         <span class="chip ${item.tutorIds.length ? "green" : "danger"}">${item.tutorIds.length} tutor${item.tutorIds.length === 1 ? "" : "s"}</span>`;
   return `
     <article class="course-row">
       <div>
@@ -2155,8 +2180,7 @@ function renderCourseRow(item) {
         <p>${item.block} · ${item.hours} hours · ${lead ? lead.name : "Lecturer not assigned"}</p>
         <div class="row-tags">
           ${typeBadge(item.type)}
-          ${lead ? statusBadge(lead.status) : `<span class="badge danger">Lecturer missing</span>`}
-          <span class="chip ${item.tutorIds.length ? "green" : "danger"}">${item.tutorIds.length} tutor${item.tutorIds.length === 1 ? "" : "s"}</span>
+          ${staffing}
           <span class="chip gray">${item.software}</span>
         </div>
       </div>
@@ -2682,6 +2706,11 @@ function courseDrawer(code) {
   const lead = person(item.lecturerId);
   const tutors = item.tutorIds.map(person).filter(Boolean);
   const detail = COURSE_DETAILS[item.code];
+  const lecturerText = lead
+    ? state.role === "student"
+      ? lead.name
+      : `${lead.name} · ${lead.status}`
+    : "Not assigned";
   const body = `
     <div class="meta-grid">
       <div class="meta-box"><span>Course code</span><strong>${item.code}</strong></div>
@@ -2689,7 +2718,7 @@ function courseDrawer(code) {
       <div class="meta-box"><span>Block</span><strong>${item.block}</strong></div>
       <div class="meta-box"><span>Hours / units</span><strong>${item.hours} hrs · ${item.units} units</strong></div>
     </div>
-    <div class="timeline-item"><h4>Lecturer</h4><p>${lead ? `${lead.name} · ${lead.status}` : "Not assigned"}</p></div>
+    <div class="timeline-item"><h4>Lecturer</h4><p>${lecturerText}</p></div>
     <div class="timeline-item"><h4>Tutors</h4><p>${tutors.length ? tutors.map((t) => t.name).join(", ") : "No tutor assigned yet"}</p></div>
     <div class="timeline-item"><h4>Prerequisites</h4><p>${item.prerequisites}</p></div>
     <div class="timeline-item"><h4>Software and tools</h4><p>${item.software}</p></div>
