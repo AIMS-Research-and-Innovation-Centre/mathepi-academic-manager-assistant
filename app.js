@@ -347,7 +347,7 @@ const DEFAULT_COURSES = [
     software: "Research/project tools",
     prerequisites: "Academic phase completion",
     outcomes:
-      "Translate learning into research or industry practice and complete thesis/project output.",
+      "Complete a six-month research or industry internship and translate the work into thesis/project output.",
   },
 ];
 
@@ -866,16 +866,16 @@ const DEFAULT_BLOCKS = [
     id: "internship",
     title: "Internship",
     start: "2027-04-05",
-    end: "2027-08-06",
+    end: "2027-10-04",
     kind: "practical",
-    note: "Mandatory placement with research or industry partners",
+    note: "Six-month mandatory placement with research or industry partners",
     courses: ["MEI01"],
   },
   {
     id: "thesis",
     title: "Thesis Writing, Review, and Vivas",
-    start: "2027-08-09",
-    end: "2027-09-10",
+    start: "2027-10-05",
+    end: "2027-11-05",
     kind: "thesis",
     note: "Thesis/project write-up and examination cycle",
     courses: ["MEI01"],
@@ -883,8 +883,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "graduation",
     title: "Graduation",
-    start: "2027-09-23",
-    end: "2027-09-24",
+    start: "2027-11-23",
+    end: "2027-11-24",
     kind: "graduation",
     note: "Graduation window",
     courses: [],
@@ -1095,9 +1095,9 @@ const COURSE_DETAILS = {
       "Stochasticity in biological systems; stochastic differential equations; agent-based model design; simulation coding; interpretation of stochastic simulations in disease dynamics and public health.",
   },
   MEI01: {
-    aim: "To provide students with practical experience in mathematical epidemiology through research or industry placement, culminating in a substantial thesis or project report.",
+    aim: "To provide students with six months of practical experience in mathematical epidemiology through research or industry placement, culminating in a substantial thesis or project report.",
     content:
-      "Research project design and implementation; data collection, analysis, and interpretation; scientific writing and presentation; professional collaboration; project management; reflection on methods and findings.",
+      "Six-month internship planning and implementation; data collection, analysis, and interpretation; scientific writing and presentation; professional collaboration; project management; reflection on methods and findings.",
   },
 };
 
@@ -1318,6 +1318,50 @@ const state = {
   timesheets: load("mathepi-timesheets", DEFAULT_TIMESHEETS),
   tasks: load("mathepi-tasks", DEFAULT_TASKS),
 };
+
+function migrateProgrammeData() {
+  const internship = state.blocks.find((item) => item.id === "internship");
+  if (internship) {
+    Object.assign(internship, {
+      title: "Internship",
+      start: "2027-04-05",
+      end: "2027-10-04",
+      kind: "practical",
+      note: "Six-month mandatory placement with research or industry partners",
+      courses: ["MEI01"],
+    });
+  }
+
+  const thesis = state.blocks.find((item) => item.id === "thesis");
+  if (thesis) {
+    Object.assign(thesis, {
+      title: "Thesis Writing, Review, and Vivas",
+      start: "2027-10-05",
+      end: "2027-11-05",
+      kind: "thesis",
+      note: "Thesis/project write-up and examination cycle",
+      courses: ["MEI01"],
+    });
+  }
+
+  const graduation = state.blocks.find((item) => item.id === "graduation");
+  if (graduation) {
+    Object.assign(graduation, {
+      title: "Graduation",
+      start: "2027-11-23",
+      end: "2027-11-24",
+      kind: "graduation",
+      note: "Graduation window",
+      courses: [],
+    });
+  }
+
+  const practical = state.courses.find((item) => item.code === "MEI01");
+  if (practical) {
+    practical.outcomes =
+      "Complete a six-month research or industry internship and translate the work into thesis/project output.";
+  }
+}
 
 function load(key, fallback) {
   try {
@@ -3034,4 +3078,6 @@ window.addTask = addTask;
 window.updateTaskStatus = updateTaskStatus;
 window.state = state;
 
+migrateProgrammeData();
+save();
 render();
