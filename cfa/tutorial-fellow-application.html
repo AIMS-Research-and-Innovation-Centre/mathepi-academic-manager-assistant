@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mathematical Epidemiology - Tutorial Fellows Application</title>
+<style>
+  :root{
+    --paper:#F2F1ED; --surface:#FFFFFF; --ink:#15161A; --ink-soft:#41444B; --line:#D6D3CB;
+    --field-border:#9C9A90; --navy:#0C1940; --navy-bright:#2D68B2; --maroon:#800000;
+    --maroon-deep:#770F05; --orange:#FF8C00; --green:#1E7A4D; --grey:#5F5F5F;
+    --radius:16px; --font:"Segoe UI Variable","Segoe UI",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .view[hidden]{display:none}
+  :focus-visible{outline:3px solid var(--orange);outline-offset:3px;border-radius:8px}
+  .shell{display:grid;grid-template-columns:262px 1fr;min-height:100vh}
+  .side{background:var(--navy);color:#C7D0E4;padding:26px 18px;display:flex;flex-direction:column;gap:28px;position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:11px;padding:0 8px}
+  .brand-glyph{width:34px;height:34px;border-radius:9px;background:var(--maroon);display:grid;place-items:center;color:#fff;font-weight:700}
+  .brand-name{font-weight:700;font-size:18px;color:#fff;line-height:1.1}
+  .brand-name small{display:block;font-size:10px;letter-spacing:.18em;color:#8FA0C4;font-weight:700;margin-top:3px}
+  .nav{display:flex;flex-direction:column;gap:3px}
+  .nav-link{display:flex;align-items:center;gap:13px;padding:12px 13px;border-radius:11px;color:#AEB9D2;text-decoration:none;font-size:15px;font-weight:600;border-left:3px solid transparent;cursor:pointer;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left;font-family:var(--font)}
+  .nav-link:hover{background:rgba(255,255,255,.06);color:#E8ECF6}
+  .nav-link.active{background:rgba(255,255,255,.08);color:#fff;border-left-color:var(--orange)}
+  .side-foot{margin-top:auto}.who{display:flex;align-items:center;gap:12px;padding:13px;border-radius:12px;background:rgba(255,255,255,.05)}
+  .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--maroon),#E75526);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none}
+  .who b{color:#fff;font-size:14.5px;display:block}.who span{font-size:11px;color:#8FA0C4}
+  .main{padding:34px 40px 60px;max-width:1160px}.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--maroon);margin:0 0 14px;font-weight:700}
+  .greeting{font-weight:700;font-size:34px;line-height:1.1;margin:0 0 10px}.lead{font-size:18px;color:var(--ink-soft);margin:0 0 30px;max-width:66ch}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.opp{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--maroon);border-radius:14px;padding:22px 24px;display:flex;flex-direction:column}
+  .opp-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}.opp-cat{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--maroon);font-weight:700}
+  .funded{font-size:11.5px;font-weight:700;color:var(--green);background:rgba(30,122,77,.12);border-radius:99px;padding:5px 11px}
+  .opp h3{font-size:20px;line-height:1.2;margin:0 0 8px}.opp-desc{font-size:14.5px;color:var(--ink-soft);margin:0 0 16px;flex:1}
+  .opp-facts{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:18px}.fct{font-size:12.5px;color:var(--ink-soft);font-weight:600}
+  .btn-ghost,.btn-primary,.btn-back,.btn-draft{font-family:var(--font);font-weight:700;cursor:pointer}
+  .btn-ghost{display:inline-flex;align-items:center;gap:9px;background:transparent;color:var(--maroon);font-size:15px;border:1.5px solid var(--maroon);border-radius:10px;padding:12px 20px;min-height:46px;align-self:flex-start}
+  .btn-ghost:hover{background:var(--maroon);color:#fff}.btn-primary{display:inline-flex;align-items:center;gap:11px;background:var(--maroon);color:#fff;font-size:16.5px;border:none;border-radius:11px;padding:15px 28px;min-height:54px}
+  .btn-primary:hover{background:var(--maroon-deep)}.btn-primary[disabled],.btn-ghost[disabled],.nav-link[disabled]{cursor:not-allowed;opacity:.58}
+  .topbar,.form-top{position:sticky;top:0;z-index:20;background:var(--paper);padding:18px 0;border-bottom:1px solid var(--line)}
+  .detail-wrap,.form-body,.form-top-inner{max-width:940px;margin:0 auto;padding:0 32px}.back-link{display:inline-flex;align-items:center;gap:8px;color:var(--maroon);text-decoration:none;font-size:14.5px;font-weight:700;background:none;border:none;cursor:pointer;font-family:var(--font)}
+  .detail-title{font-weight:700;font-size:40px;line-height:1.08;letter-spacing:-.02em;margin:22px 0 24px;color:var(--navy)}
+  .badges{display:flex;flex-wrap:wrap;gap:12px;margin:28px 0 10px}.badge{font-size:13px;font-weight:700;border-radius:99px;padding:8px 16px;display:inline-flex;align-items:center;gap:8px}.badge.prog{border:1.5px solid var(--maroon);color:var(--maroon)}.badge.kind{background:#ECECEA;color:var(--ink-soft)}
+  .call-status{display:inline-flex;align-items:center;gap:8px;border-radius:99px;padding:7px 12px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}.call-status.open{background:rgba(30,122,77,.12);color:var(--green)}.call-status.closed{background:rgba(128,0,0,.12);color:var(--maroon)}
+  .call-notice{border:1.5px solid var(--line);border-left:5px solid var(--green);border-radius:14px;background:#fff;padding:14px 16px;margin:0 0 18px;color:var(--ink-soft);font-size:14.5px}.call-notice.closed{border-left-color:var(--maroon);background:#fff8f8;color:var(--ink)}
+  .detail-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 24px;padding:22px 0;border-top:1px solid var(--line)}.dm span{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey);font-weight:700;display:block;margin-bottom:6px}.dm b{font-size:16.5px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;margin-bottom:18px}.card h2{font-size:21px;margin:0 0 16px;color:var(--navy)}.card p,.card li{color:var(--ink-soft)}.detail-actions{display:flex;gap:14px;margin:18px 0 60px}
+  .programme-tiles{display:grid;gap:12px;margin:18px 0 4px}.programme-tile{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start;background:linear-gradient(135deg,#fff,#F8F8F5);border:1px solid var(--line);border-radius:16px;padding:16px 18px}.programme-tile span{width:34px;height:34px;border-radius:999px;display:grid;place-items:center;background:rgba(128,0,0,.1);color:var(--maroon);font-weight:800}.programme-tile b{display:block;color:var(--navy);font-size:16px;margin-bottom:4px}.programme-tile p{margin:0;color:var(--ink-soft);font-size:14.5px;line-height:1.5}
+  .form-top{padding:0}.form-top-inner{padding-top:18px;padding-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:16px}.form-prg{font-size:13px;color:var(--ink-soft);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.top-right{display:flex;align-items:center;gap:18px}.autosave{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink-soft);font-weight:600}.autosave .as-dot{width:9px;height:9px;border-radius:50%;background:var(--navy-bright);flex:none}.btn-draft{background:var(--surface);border:1.5px solid var(--field-border);color:var(--ink);font-size:14px;border-radius:9px;padding:9px 15px;min-height:42px}
+  .form-body{padding-top:22px;padding-bottom:64px}.segbar{display:flex;gap:9px;margin:0 0 18px}.seg{flex:1;height:9px;border-radius:99px;background:#E2DFD7;border:none;padding:0;cursor:pointer}.seg.done{background:var(--navy-bright)}.seg.cur{background:var(--orange)}
+  .step-num{font-size:14px;color:var(--ink-soft);margin:8px 0 12px;font-weight:600}.step-title{font-weight:700;font-size:31px;line-height:1.12;margin:0}.step-intro{font-size:17px;color:var(--ink-soft);margin:11px 0 28px;max-width:62ch}
+  .subhead{font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--maroon);margin:26px 0 14px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2px 22px}.col-full{grid-column:1 / -1}.field{margin-bottom:20px}.field>label{display:block;font-size:15.5px;font-weight:700;margin-bottom:7px}.opt{font-weight:400;color:var(--grey);font-size:13.5px}
+  .input{width:100%;font-family:var(--font);font-size:16.5px;color:var(--ink);background:var(--surface);border:1.5px solid var(--field-border);border-radius:11px;padding:13px 15px;min-height:50px}textarea.input{resize:vertical;min-height:130px;line-height:1.6}.input:focus{outline:none;border-color:var(--maroon);box-shadow:0 0 0 4px rgba(128,0,0,.13)}select.input{appearance:none;background:#fff;padding-right:42px;cursor:pointer}.field-help{font-size:14.5px;color:var(--ink-soft);margin:7px 0 0}.field-err{display:none;font-size:14px;color:var(--maroon);margin:8px 0 0;font-weight:700}.has-error .field-err{display:block}.has-error .input{border-color:var(--maroon);box-shadow:0 0 0 4px rgba(128,0,0,.1)}
+  .radio-row,.check-row{display:flex;flex-wrap:wrap;gap:10px}.pill{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);background:var(--surface);border-radius:12px;font-size:15px;font-weight:600}.pill input{accent-color:var(--maroon)}
+  .slot{border:1.5px dashed var(--field-border);border-radius:13px;padding:16px 18px;margin:6px 0 20px;background:var(--surface)}.slot.filled{border-style:solid;border-color:var(--line)}.slot-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:3px}.slot-label{font-size:15px;font-weight:700}.slot-req{font-size:11px;letter-spacing:.05em;color:var(--grey);font-weight:700;text-transform:uppercase}.slot-note{font-size:13.5px;color:var(--ink-soft);margin:0 0 12px}.btn-upload{display:inline-flex;align-items:center;gap:9px;background:var(--surface);border:1.5px solid var(--navy);color:var(--navy);font-family:var(--font);font-weight:700;font-size:14.5px;border-radius:10px;padding:11px 17px;cursor:pointer}.file-name{font-size:14.5px;font-weight:700}.file-sub{font-size:12.5px;color:var(--ink-soft);font-weight:600}.file-x{background:none;border:none;color:var(--maroon);cursor:pointer;font-weight:700;margin-left:12px}
+  .reference-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:0 0 16px}.reference-card h3{margin:0 0 14px;color:var(--navy);font-size:18px}
+  .declaration{background:var(--surface);border:1.5px solid var(--field-border);border-radius:14px;padding:8px 20px;margin-top:8px}.check-line{display:flex;align-items:flex-start;gap:12px;padding:11px 0;font-weight:600}.check-line input{width:22px;height:22px;accent-color:var(--maroon);margin-top:2px}
+  .actions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:34px;padding-top:24px;border-top:1px solid var(--line)}.revgroup{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:16px;background:var(--surface)}.revgroup h3{margin:0 0 12px;font-size:17px}.rev-item{display:grid;grid-template-columns:220px 1fr;gap:14px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}.rev-item:last-child{border-bottom:none}.rev-key{color:var(--ink-soft);font-weight:600}.rev-val.empty{color:var(--maroon);font-weight:700}
+  .done-wrap{text-align:center;padding:26px 0 10px;max-width:620px;margin:0 auto}.done-badge{width:84px;height:84px;border-radius:50%;background:rgba(45,104,178,.12);color:var(--navy-bright);display:grid;place-items:center;margin:0 auto 22px;font-size:42px}.done-wrap h2{font-size:28px;margin:0 0 12px}.done-wrap p{font-size:16.5px;color:var(--ink-soft);margin:0 auto 22px;max-width:52ch}
+  @media(max-width:960px){.shell{grid-template-columns:1fr}.side{position:static;height:auto}.grid,.detail-meta{grid-template-columns:1fr}.main{padding:26px 20px 52px}}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr}.rev-item{grid-template-columns:1fr;gap:2px}.detail-title{font-size:30px}.form-top-inner,.form-body,.detail-wrap{padding-left:20px;padding-right:20px}.actions{align-items:stretch;flex-direction:column-reverse}.actions button{width:100%;justify-content:center}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="view" id="view-home">
+    <div class="shell">
+      <aside class="side">
+        <div class="brand"><div class="brand-glyph">A</div><div class="brand-name">AIMS<small>APPLICANT PORTAL</small></div></div>
+        <nav class="nav" aria-label="Main">
+          <button class="nav-link active" data-nav="home">Home</button>
+          <button class="nav-link" data-nav="form">Start application</button>
+          <button class="nav-link" data-nav="dashboard">Your Applications</button>
+        </nav>
+        <div class="side-foot"><div class="who"><div class="avatar">TF</div><div><b>Tutorial Fellow</b><span>Applicant</span></div></div></div>
+      </aside>
+      <main class="main">
+        <p class="eyebrow">Mathematical Epidemiology Programme</p>
+        <h1 class="greeting">Tutorial Fellows at AIMS RW/KEMRI</h1>
+        <p class="lead">Apply for a Tutorial Fellowship supporting MathEpi teaching, mentoring, hands-on sessions, marking, and research growth at AIMS RW/KEMRI.</p>
+        <div class="grid">
+          <article class="opp">
+            <div class="opp-top"><span class="opp-cat">CFA tutorial fellows</span><span class="funded">AIMS RW/KEMRI</span><span class="call-status open" data-call-status>Open</span></div>
+            <h3>Mathematical Epidemiology - Tutorial Fellows Application</h3>
+            <p class="opp-desc">Join a dynamic, ambitious MathEpi team where your mathematics supports a pan-African cohort of excellent students, real public-health questions, and your next step as an independent scholar.</p>
+            <div class="call-notice" data-call-notice>Applications are open. Complete and submit the form before the call closes.</div>
+            <div class="opp-facts"><span class="fct">AIMS RW/KEMRI</span><span class="fct">Passport and PhD certificate</span><span class="fct">Within 2 years of graduation</span></div>
+            <button class="btn-ghost" data-nav="details">View opportunity -></button>
+          </article>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="view" id="view-details" hidden>
+    <div class="topbar"><div class="detail-wrap"><button class="back-link" data-nav="home"><- All opportunities</button></div></div>
+    <div class="detail-wrap">
+      <div class="badges"><span class="badge prog">TUTORIAL FELLOWS CFA</span><span class="badge kind">AIMS RW/KEMRI</span><span class="call-status open" data-call-status>Open</span></div>
+      <h1 class="detail-title">Tutorial Fellows at AIMS RW/KEMRI</h1>
+      <div class="call-notice" data-call-notice>Applications are open. Complete and submit the form before the call closes.</div>
+      <div class="detail-meta">
+        <div class="dm"><span>Role mix</span><b>70% tutoring / 30% research</b></div>
+        <div class="dm"><span>Host</span><b>AIMS RW/KEMRI</b></div>
+        <div class="dm"><span>Eligibility</span><b>Recent PhD</b></div>
+        <div class="dm"><span>Documents</span><b>Passport and PhD certificate</b></div>
+        <div class="dm"><span>Start date</span><b>1 Oct 2026</b></div>
+      </div>
+      <div class="card">
+        <h2>About the fellowship</h2>
+        <p>This Tutorial Fellowship is for recent PhD graduates, within two years of graduation, who want to grow in a lively mathematical epidemiology environment while working closely with a pan-African cohort of excellent students, visiting lecturers, and applied public-health collaborators.</p>
+        <p>Fellows will support tutorials, hands-on sessions, marking, student consultations, and course delivery logistics. They must also be ready to step in for teaching support if a lecturer is unavailable.</p>
+        <p>The role is structured for meaningful academic development: about 70% of the appointment is dedicated to high-quality tutoring and student support, while about 30% is reserved as protected research time in a productive, collaborative work environment.</p>
+        <div class="programme-tiles">
+          <div class="programme-tile"><span>1</span><div><b>Quantitative PhD profile</b><p>Applicants should hold a recent PhD in mathematics, applied mathematics, statistics, biostatistics, mathematical epidemiology, computational biology, public health modelling, AI, machine learning, data science, or a closely related quantitative field.</p></div></div>
+          <div class="programme-tile"><span>2</span><div><b>Applied scientific track record</b><p>Applicants should demonstrate strong mathematical foundations and application of quantitative methods to biology, epidemiology, public health, health systems, infectious diseases, or related scientific domains.</p></div></div>
+          <div class="programme-tile"><span>3</span><div><b>Residence and readiness</b><p>Applicants should be prepared to be in residence at AIMS RW/KEMRI and support teaching continuity when programme needs arise.</p></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Required documents</h2>
+        <ul>
+          <li>Passport biodata page.</li>
+          <li>PhD certificate as a legible PDF showing the exact graduation month/date.</li>
+          <li>At least two structured references with title, name, affiliation, designation, relationship, email, and phone number.</li>
+        </ul>
+      </div>
+      <div class="detail-actions"><button class="btn-primary" data-nav="form">Start application -></button></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-form" hidden>
+    <div class="form-top">
+      <div class="form-top-inner">
+        <div style="display:flex;align-items:center;gap:14px;min-width:0">
+          <button class="back-link" data-nav="home"><- All opportunities</button>
+          <span class="form-prg">Mathematical Epidemiology - Tutorial Fellows Application</span>
+        </div>
+        <div class="top-right"><span class="autosave"><span class="as-dot"></span><span id="autosaveText">All changes saved</span></span><button class="btn-draft" id="draftBtn" type="button">Save draft</button></div>
+      </div>
+    </div>
+    <div class="form-body"><div id="stepArea"></div></div>
+  </div>
+
+  <div class="view" id="view-dashboard" hidden>
+    <div class="shell">
+      <aside class="side">
+        <div class="brand"><div class="brand-glyph">A</div><div class="brand-name">AIMS<small>APPLICANT PORTAL</small></div></div>
+        <nav class="nav" aria-label="Main">
+          <button class="nav-link" data-nav="home">Home</button>
+          <button class="nav-link" data-nav="form">Start application</button>
+          <button class="nav-link active" data-nav="dashboard">Your Applications</button>
+        </nav>
+      </aside>
+      <main class="main">
+        <p class="eyebrow">Applicant dashboard</p>
+        <h1 class="greeting">Saved Tutorial Fellow applications</h1>
+        <div id="applicationList"></div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "mathepi-tutorial-fellow-application-v1";
+const SUBMISSIONS_KEY = "mathepi-tutorial-fellow-submissions-v1";
+const CFA_STATUS_KEY = "mathepi-cfa-status-v1";
+const GOOGLE_BACKEND_URL_KEY = "mathepi-apps-script-url";
+const CALL_ID = "tutors";
+const POSITION_START_DATE = "2026-10-01";
+const POSITION_START_LABEL = "1 Oct 2026";
+const MIN_PHD_COMPLETION_DATE = "2024-10-01";
+const COUNTRY_OPTIONS = [
+  "Rwanda", "Kenya", "Cameroon", "Ghana", "Senegal", "South Africa", "Tanzania", "Uganda",
+  "Ethiopia", "Nigeria", "Benin", "Burundi", "Côte d'Ivoire", "Democratic Republic of the Congo",
+  "Egypt", "Malawi", "Morocco", "Mozambique", "Namibia", "Somalia", "Sudan", "Zambia", "Zimbabwe",
+  "United Kingdom", "United States", "Canada", "France", "Germany", "Netherlands", "Other"
+];
+const DESIGNATION_OPTIONS = [
+  "Postdoctoral fellow", "Research fellow", "Lecturer", "Assistant lecturer", "Teaching assistant",
+  "Research scientist", "Data scientist", "Consultant", "PhD graduate", "Other"
+];
+const REF_DESIGNATION_OPTIONS = [
+  "Professor", "Associate Professor", "Senior Lecturer", "Lecturer", "Research Scientist",
+  "Principal Investigator", "PhD Supervisor", "Head of Department", "Director", "Other"
+];
+const defaults = {
+  status: "Open",
+  step: 0,
+  title: "",
+  applicant: "",
+  gender: "",
+  email: "",
+  phone: "",
+  hasWhatsApp: "",
+  contactWhatsApp: "",
+  nationality: "",
+  country: "",
+  address: "",
+  affiliation: "",
+  designation: "",
+  phdInstitution: "",
+  phdField: "",
+  phdCompletion: "",
+  thesisTitleExplainer: "",
+  researchArea: "",
+  quantitativeBackground: "",
+  appliedTrackRecord: "",
+  teachingExperience: "",
+  tutoringExperience: "",
+  mentoringExperience: "",
+  researchExperience: "",
+  teachingSupport: "",
+  researchPlan: "",
+  careerGrowth: "",
+  availability: "",
+  residenceReady: "",
+  teachingGapReady: "",
+  englishCommunication: "",
+  aimsAlumni: "",
+  aimsCentre: "",
+  aimsProgrammeYear: "",
+  passport: "",
+  phdCertificate: "",
+  ref1Title: "",
+  ref1Name: "",
+  ref1Affiliation: "",
+  ref1Designation: "",
+  ref1Role: "",
+  ref1Email: "",
+  ref1Phone: "",
+  ref2Title: "",
+  ref2Name: "",
+  ref2Affiliation: "",
+  ref2Designation: "",
+  ref2Role: "",
+  ref2Email: "",
+  ref2Phone: "",
+  ref3Title: "",
+  ref3Name: "",
+  ref3Affiliation: "",
+  ref3Designation: "",
+  ref3Role: "",
+  ref3Email: "",
+  ref3Phone: "",
+  womenEncouraged: "Women are encouraged to apply.",
+  declarationAccuracy: false,
+  declarationResidence: false,
+  declarationDocuments: false,
+};
+
+let state = load(STORAGE_KEY, defaults);
+let passportPayload = null;
+let phdCertificatePayload = null;
+let saveTimer = null;
+
+function load(key, fallback) {
+  try { return Object.assign({}, fallback, JSON.parse(localStorage.getItem(key) || "{}")); }
+  catch (e) { return Object.assign({}, fallback); }
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  const autosave = document.querySelector("#autosaveText");
+  if (autosave) autosave.textContent = "Saved " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function appsScriptUrl() {
+  return (window.MATHEPI_APPS_SCRIPT_URL || localStorage.getItem(GOOGLE_BACKEND_URL_KEY) || "").trim();
+}
+
+function hasAppsScriptBridge() {
+  return !!(window.google && google.script && google.script.run);
+}
+
+function googleBackendAvailable() {
+  return hasAppsScriptBridge() || !!appsScriptUrl();
+}
+
+function googleApi(action, payload) {
+  if (hasAppsScriptBridge()) {
+    return new Promise((resolve, reject) => {
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).apiPost({ action, payload });
+    });
+  }
+  const endpoint = appsScriptUrl();
+  if (!endpoint) return Promise.reject(new Error("Apps Script Web App URL is not configured."));
+  return fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action, payload }),
+  }).then((response) => {
+    if (!response.ok) throw new Error("Apps Script request failed: " + response.status);
+    return response.json();
+  });
+}
+
+async function refreshCallStatusFromGoogle() {
+  if (!googleBackendAvailable()) return;
+  try {
+    const result = await googleApi("getCfaStatus", { id: CALL_ID });
+    if (result && result.status) {
+      const statuses = load(CFA_STATUS_KEY, {});
+      statuses[CALL_ID] = result.status;
+      localStorage.setItem(CFA_STATUS_KEY, JSON.stringify(statuses));
+      state.status = result.status;
+      syncCallStatusUi();
+    }
+  } catch (e) {}
+}
+
+function syncCallStatusUi() {
+  const localStatuses = load(CFA_STATUS_KEY, {});
+  const status = localStatuses[CALL_ID] || state.status || "Open";
+  state.status = status;
+  document.querySelectorAll("[data-call-status]").forEach((node) => {
+    node.textContent = status;
+    node.classList.toggle("open", status === "Open");
+    node.classList.toggle("closed", status !== "Open");
+  });
+  document.querySelectorAll("[data-call-notice]").forEach((node) => {
+    node.textContent = status === "Open"
+      ? "Applications are open. Complete and submit the form before the call closes."
+      : "This call is closed. New applications cannot be submitted.";
+    node.classList.toggle("closed", status !== "Open");
+  });
+  document.querySelectorAll('[data-nav="form"]').forEach((node) => {
+    node.disabled = status !== "Open";
+    node.title = status === "Open" ? "" : "This call is closed.";
+  });
+}
+
+const steps = [
+  { title: "Applicant details", intro: "Tell us who you are and how the programme team can reach you.", render: identityStep },
+  { title: "PhD and quantitative background", intro: "Confirm the recent PhD requirement and your quantitative/applied scientific fit.", render: phdStep },
+  { title: "Tutoring and research fit", intro: "Describe your teaching-support experience and your 70/30 fellowship plan.", render: fitStep },
+  { title: "Availability and readiness", intro: "Confirm AIMS RW/KEMRI residence readiness and teaching-support continuity.", render: readinessStep },
+  { title: "Documents and references", intro: "Attach the required files and provide at least two references.", render: documentsStep },
+  { title: "Review and submit", intro: "Check your application before sending it to the programme team.", render: reviewStep },
+];
+
+function field(name, label, type = "text", required = true, help = "", attrs = "") {
+  return `<div class="field" data-field="${name}">
+    <label>${label}${required ? "" : ' <span class="opt">(optional)</span>'}</label>
+    <input class="input" type="${type}" name="${name}" value="${escapeHtml(state[name] || "")}" ${required ? "required" : ""} ${attrs} />
+    ${help ? `<p class="field-help">${help}</p>` : ""}
+    <p class="field-err">This field is required.</p>
+  </div>`;
+}
+
+function textarea(name, label, required = true, help = "") {
+  return `<div class="field col-full" data-field="${name}">
+    <label>${label}${required ? "" : ' <span class="opt">(optional)</span>'}</label>
+    <textarea class="input" name="${name}" ${required ? "required" : ""}>${escapeHtml(state[name] || "")}</textarea>
+    ${help ? `<p class="field-help">${help}</p>` : ""}
+    <p class="field-err">This field is required.</p>
+  </div>`;
+}
+
+function selectField(name, label, options, required = true) {
+  return `<div class="field" data-field="${name}">
+    <label>${label}</label>
+    <select class="input" name="${name}" ${required ? "required" : ""}>
+      <option value="">Select</option>
+      ${options.map((item) => `<option ${state[name] === item ? "selected" : ""}>${item}</option>`).join("")}
+    </select>
+    <p class="field-err">This field is required.</p>
+  </div>`;
+}
+
+function identityStep() {
+  return `<div class="grid2">
+    ${selectField("title", "Title", ["Dr", "Prof", "Mr", "Ms", "Mrs", "Mx", "Other"])}
+    ${field("applicant", "Full name")}
+    ${selectField("gender", "Gender", ["Female", "Male", "Non-binary", "Prefer not to say"])}
+    ${field("email", "Email address", "email")}
+    ${field("phone", "Phone number")}
+    ${selectField("hasWhatsApp", "Does this number have WhatsApp?", ["Yes", "No"])}
+    ${selectField("contactWhatsApp", "May we contact you using WhatsApp?", ["Yes", "No"])}
+    ${selectField("nationality", "Nationality", COUNTRY_OPTIONS)}
+    ${selectField("country", "Country of residence", COUNTRY_OPTIONS)}
+    ${field("address", "Current address")}
+    ${field("affiliation", "Current affiliation")}
+    ${selectField("designation", "Current designation or role", DESIGNATION_OPTIONS)}
+  </div>`;
+}
+
+function phdStep() {
+  return `<div class="grid2">
+    ${field("phdInstitution", "PhD institution")}
+    ${field("phdField", "PhD field")}
+    ${field("phdCompletion", "PhD completion date", "date", true, "The position starts on " + POSITION_START_LABEL + ". Eligible PhD completion dates must fall between 1 Oct 2024 and 1 Oct 2026.", `min="${MIN_PHD_COMPLETION_DATE}" max="${POSITION_START_DATE}"`)}
+    ${textarea("thesisTitleExplainer", "Thesis title and 3 sentences explainer")}
+    ${textarea("researchArea", "Research area")}
+    ${textarea("quantitativeBackground", "Quantitative field background", true, "Include mathematics, applied mathematics, statistics, biostatistics, mathematical epidemiology, computational biology, public health modelling, AI, machine learning, data science, or related quantitative training.")}
+    ${textarea("appliedTrackRecord", "Applied quantitative track record", true, "Describe applications to biology, epidemiology, public health, health systems, infectious diseases, or other scientific domains.")}
+  </div>`;
+}
+
+function fitStep() {
+  return `<div class="grid2">
+    ${textarea("teachingExperience", "Relevant teaching experience")}
+    ${textarea("tutoringExperience", "Relevant tutoring, teaching assistant, marking, hands-on session, or lab-support experience")}
+    ${textarea("mentoringExperience", "Relevant mentoring and student-support experience")}
+    ${textarea("researchExperience", "Relevant research experience")}
+    ${textarea("teachingSupport", "How would you support tutorials, hands-on sessions, marking, student consultation, and course delivery?")}
+    ${textarea("researchPlan", "Propose a research idea and plan for the 30% research and career-development contribution")}
+    ${textarea("careerGrowth", "How would this fellowship support your career growth?")}
+  </div>`;
+}
+
+function readinessStep() {
+  return `<div class="grid2">
+    ${selectField("availability", "Availability for AIMS RW/KEMRI", ["Available for the full fellowship period", "Tentatively available", "Need to discuss dates"])}
+    ${selectField("residenceReady", "Ready to be in residence at AIMS RW/KEMRI?", ["Yes", "Tentative", "No"])}
+    ${selectField("teachingGapReady", "Ready to fill teaching-support gaps if a lecturer is unavailable?", ["Yes", "With notice", "No"])}
+    ${selectField("englishCommunication", "Strong English communication and interpersonal skills?", ["Yes", "Developing", "No"])}
+    ${selectField("aimsAlumni", "Are you an AIMS alumnus/alumna?", ["Yes", "No"])}
+    ${field("aimsCentre", "If yes, AIMS centre", "text", false)}
+    ${field("aimsProgrammeYear", "If yes, programme/year", "text", false)}
+    ${textarea("womenEncouraged", "Equity note", false)}
+  </div>`;
+}
+
+function uploadSlot(kind, label, note, required = true, accept = ".pdf,.doc,.docx") {
+  const value = state[kind] || "";
+  return `<div class="slot ${value ? "filled" : ""}" data-file-slot="${kind}">
+    <div class="slot-head"><span class="slot-label">${label}</span><span class="slot-req">${required ? "Required" : "Optional"}</span></div>
+    <p class="slot-note">${note}</p>
+    ${value
+      ? `<div><span class="file-name">${escapeHtml(value)}</span><button class="file-x" type="button" data-clear-file="${kind}">Remove</button><div class="file-sub">Selected for upload when you submit.</div></div>`
+      : `<label class="btn-upload">Choose file<input type="file" hidden data-file="${kind}" accept="${accept}" /></label>`}
+  </div>`;
+}
+
+function documentsStep() {
+  return `<div>
+    ${uploadSlot("passport", "Passport biodata page", "Attach the passport biodata page, as in the lecturer call.", true, ".pdf,.jpg,.jpeg,.png")}
+    ${uploadSlot("phdCertificate", "PhD certificate", "Attach a legible PDF showing the exact graduation date or month.", true, ".pdf")}
+    ${referenceBlock(1, true)}
+    ${referenceBlock(2, true)}
+    ${referenceBlock(3, false)}
+  </div>`;
+}
+
+function referenceBlock(index, required) {
+  const req = required ? "" : ' <span class="opt">(optional)</span>';
+  return `<div class="reference-card">
+    <h3>Reference ${index}${req}</h3>
+    <div class="grid2">
+      ${field(`ref${index}Title`, "Title", "text", required)}
+      ${field(`ref${index}Name`, "Full name", "text", required)}
+      ${field(`ref${index}Affiliation`, "Institutional affiliation", "text", required)}
+      ${selectField(`ref${index}Designation`, "Designation", REF_DESIGNATION_OPTIONS, required)}
+      ${field(`ref${index}Role`, "Role / relationship to applicant", "text", required)}
+      ${field(`ref${index}Email`, "Email", "email", required)}
+      ${field(`ref${index}Phone`, "Phone number", "tel", required)}
+    </div>
+  </div>`;
+}
+
+function reviewStep() {
+  const groups = [
+    ["Applicant", ["title", "applicant", "gender", "email", "phone", "hasWhatsApp", "contactWhatsApp", "nationality", "country", "address", "affiliation", "designation"]],
+    ["PhD and background", ["phdInstitution", "phdField", "phdCompletion", "thesisTitleExplainer", "researchArea", "quantitativeBackground", "appliedTrackRecord"]],
+    ["Fellowship fit", ["teachingExperience", "tutoringExperience", "mentoringExperience", "researchExperience", "teachingSupport", "researchPlan", "careerGrowth", "availability", "residenceReady", "teachingGapReady", "englishCommunication", "aimsAlumni", "aimsCentre", "aimsProgrammeYear"]],
+    ["Documents", ["passport", "phdCertificate"]],
+    ["Reference 1", ["ref1Title", "ref1Name", "ref1Affiliation", "ref1Designation", "ref1Role", "ref1Email", "ref1Phone"]],
+    ["Reference 2", ["ref2Title", "ref2Name", "ref2Affiliation", "ref2Designation", "ref2Role", "ref2Email", "ref2Phone"]],
+    ["Reference 3", ["ref3Title", "ref3Name", "ref3Affiliation", "ref3Designation", "ref3Role", "ref3Email", "ref3Phone"]],
+  ];
+  return `${groups.map(([title, keys]) => `<div class="revgroup"><h3>${title}</h3>${keys.map(reviewItem).join("")}</div>`).join("")}
+    <div class="declaration">
+      ${checkLine("declarationAccuracy", "I confirm that the information provided is accurate.")}
+      ${checkLine("declarationResidence", "I understand the Tutorial Fellowship requires AIMS RW/KEMRI residence and readiness to support teaching continuity.")}
+      ${checkLine("declarationDocuments", "I confirm that my passport biodata page, PhD certificate, and references are included.")}
+    </div>`;
+}
+
+function reviewItem(key) {
+  const label = key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
+  const value = state[key] || "";
+  return `<div class="rev-item"><div class="rev-key">${label}</div><div class="rev-val ${value ? "" : "empty"}">${escapeHtml(value || "Missing")}</div></div>`;
+}
+
+function checkLine(name, label) {
+  return `<label class="check-line"><input type="checkbox" name="${name}" ${state[name] ? "checked" : ""} required /> <span>${label}</span></label>`;
+}
+
+function renderStep() {
+  const step = steps[state.step];
+  const done = state.step === steps.length - 1;
+  document.querySelector("#stepArea").innerHTML = `
+    <div class="segbar">${steps.map((_, i) => `<button class="seg ${i < state.step ? "done" : ""} ${i === state.step ? "cur" : ""}" data-step="${i}" aria-label="Step ${i + 1}"></button>`).join("")}</div>
+    <div class="step-num">Step ${state.step + 1} of ${steps.length}</div>
+    <h2 class="step-title">${step.title}</h2>
+    <p class="step-intro">${step.intro}</p>
+    <form id="stepForm" novalidate>
+      ${step.render()}
+      <div class="actions">
+        <button class="btn-ghost" type="button" id="prevBtn" ${state.step === 0 ? "disabled" : ""}>Back</button>
+        <button class="btn-primary" type="submit">${done ? "Submit application" : "Save and continue"}</button>
+      </div>
+    </form>`;
+  bindForm();
+}
+
+function bindForm() {
+  document.querySelectorAll("[data-step]").forEach((node) => node.addEventListener("click", () => { collect(); state.step = Number(node.dataset.step); save(); renderStep(); }));
+  document.querySelectorAll("input, textarea, select").forEach((node) => node.addEventListener("input", scheduleSave));
+  document.querySelectorAll("[data-file]").forEach((node) => node.addEventListener("change", onFile));
+  document.querySelectorAll("[data-clear-file]").forEach((node) => node.addEventListener("click", clearFile));
+  document.querySelector("#prevBtn").addEventListener("click", () => { collect(); state.step = Math.max(0, state.step - 1); save(); renderStep(); });
+  document.querySelector("#stepForm").addEventListener("submit", onSubmitStep);
+}
+
+function collect() {
+  document.querySelectorAll("input[name], textarea[name], select[name]").forEach((node) => {
+    state[node.name] = node.type === "checkbox" ? node.checked : node.value.trim();
+  });
+}
+
+function scheduleSave() {
+  collect();
+  clearTimeout(saveTimer);
+  const autosave = document.querySelector("#autosaveText");
+  if (autosave) autosave.textContent = "Saving...";
+  saveTimer = setTimeout(save, 350);
+}
+
+function validateCurrentStep() {
+  collect();
+  let valid = true;
+  document.querySelectorAll(".field").forEach((wrap) => wrap.classList.remove("has-error"));
+  document.querySelectorAll(".slot").forEach((wrap) => wrap.classList.remove("has-error"));
+  document.querySelectorAll("[required]").forEach((node) => {
+    const empty = node.type === "checkbox" ? !node.checked : !node.value.trim();
+    if (empty) {
+      valid = false;
+      const wrap = node.closest(".field");
+      if (wrap) wrap.classList.add("has-error");
+    }
+  });
+  if (state.step === 1 && state.phdCompletion) {
+    const inWindow = state.phdCompletion >= MIN_PHD_COMPLETION_DATE && state.phdCompletion <= POSITION_START_DATE;
+    if (!inWindow) {
+      valid = false;
+      const wrap = document.querySelector('[data-field="phdCompletion"]');
+      if (wrap) {
+        wrap.classList.add("has-error");
+        const error = wrap.querySelector(".field-err");
+        if (error) error.textContent = "PhD completion must be between 1 Oct 2024 and 1 Oct 2026.";
+      }
+    }
+  }
+  if (state.step === 4) {
+    ["passport", "phdCertificate"].forEach((key) => {
+      if (!state[key]) {
+        valid = false;
+        document.querySelector(`[data-file-slot="${key}"]`)?.classList.add("has-error");
+      }
+    });
+  }
+  return valid;
+}
+
+async function onSubmitStep(event) {
+  event.preventDefault();
+  if (!validateCurrentStep()) return;
+  if (state.step < steps.length - 1) {
+    state.step += 1;
+    save();
+    renderStep();
+    return;
+  }
+  await submitApplication();
+}
+
+function onFile(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const kind = event.target.dataset.file;
+  if (kind === "phdCertificate" && file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+    alert("Please attach the PhD certificate as a legible PDF.");
+    event.target.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const payload = { name: file.name, mimeType: file.type || "application/octet-stream", dataBase64: String(reader.result).split(",")[1] || "" };
+    if (kind === "passport") passportPayload = payload;
+    if (kind === "phdCertificate") phdCertificatePayload = payload;
+    state[kind] = file.name;
+    save();
+    renderStep();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearFile(event) {
+  const kind = event.target.dataset.clearFile;
+  state[kind] = "";
+  if (kind === "passport") passportPayload = null;
+  if (kind === "phdCertificate") phdCertificatePayload = null;
+  save();
+  renderStep();
+}
+
+function snapshot() {
+  return Object.assign({}, state, { submittedAt: new Date().toISOString(), callType: "Tutorial Fellows", host: "AIMS RW/KEMRI" });
+}
+
+async function submitApplication() {
+  if (state.status !== "Open") {
+    alert("This call is closed. New applications cannot be submitted.");
+    return;
+  }
+  const application = snapshot();
+  let message = "Your Tutorial Fellows application has been recorded locally.";
+  try {
+    if (googleBackendAvailable()) {
+      const result = await googleApi("submitTutorialFellowApplication", {
+        application,
+        state,
+        passportFile: passportPayload,
+        phdCertificateFile: phdCertificatePayload,
+      });
+      if (result && result.ok) message = "Your Tutorial Fellows application has been submitted to Google Sheets and supporting files have been saved to Drive.";
+    } else {
+      message = "Your Tutorial Fellows application has been saved locally. Add the Apps Script URL in the main portal to submit to Google.";
+    }
+  } catch (error) {
+    message = "Your application was saved locally, but Google sync failed: " + (error.message || error);
+  }
+  const submissions = load(SUBMISSIONS_KEY, { items: [] });
+  submissions.items = submissions.items || [];
+  submissions.items.unshift(application);
+  localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(submissions));
+  localStorage.removeItem(STORAGE_KEY);
+  state = Object.assign({}, defaults, { status: state.status });
+  passportPayload = null;
+  phdCertificatePayload = null;
+  document.querySelector("#stepArea").innerHTML = `<div class="done-wrap"><div class="done-badge">OK</div><h2>Application submitted</h2><p>${escapeHtml(message)}</p><button class="btn-primary" type="button" data-nav="dashboard">View saved applications</button></div>`;
+  bindNav();
+}
+
+function renderDashboard() {
+  const submissions = load(SUBMISSIONS_KEY, { items: [] }).items || [];
+  document.querySelector("#applicationList").innerHTML = submissions.length
+    ? submissions.map((item) => `<article class="card"><h2>${escapeHtml(item.applicant || "Tutorial Fellow applicant")}</h2><p>${escapeHtml(item.email || "")}</p><p>${escapeHtml(item.phdField || "")} - ${escapeHtml(item.submittedAt || "")}</p></article>`).join("")
+    : `<article class="card"><h2>No applications yet</h2><p class="lead">Start a Tutorial Fellows application when ready.</p></article>`;
+}
+
+function show(view) {
+  if (view === "form" && state.status !== "Open") return;
+  document.querySelectorAll(".view").forEach((node) => node.hidden = true);
+  document.querySelector("#view-" + view).hidden = false;
+  document.querySelectorAll("[data-nav]").forEach((node) => node.classList.toggle("active", node.dataset.nav === view));
+  if (view === "form") renderStep();
+  if (view === "dashboard") renderDashboard();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function bindNav() {
+  document.querySelectorAll("[data-nav]").forEach((node) => node.addEventListener("click", () => show(node.dataset.nav)));
+}
+
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+}
+
+document.querySelector("#draftBtn")?.addEventListener("click", () => { collect(); save(); });
+bindNav();
+syncCallStatusUi();
+refreshCallStatusFromGoogle();
+</script>
+</body>
+</html>

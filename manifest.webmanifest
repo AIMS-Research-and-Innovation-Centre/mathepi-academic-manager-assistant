@@ -1,0 +1,42 @@
+{
+  "name": "MathEpi Academic Manager",
+  "short_name": "MathEpi",
+  "description": "AIMS RIC MathEpi academic operations, CFA, calendar, roles, and Google Sheets/Drive assistant.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#8d111c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity", "business"],
+  "shortcuts": [
+    {
+      "name": "CFA",
+      "short_name": "CFA",
+      "description": "Open call-for-applications workspace.",
+      "url": "./index.html#cfa",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Calendar",
+      "short_name": "Calendar",
+      "description": "Open the academic calendar.",
+      "url": "./index.html#calendar",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

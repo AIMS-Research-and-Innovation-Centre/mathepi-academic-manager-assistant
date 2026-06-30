@@ -1,0 +1,3125 @@
+﻿<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mathematical Epidemiology - Lecturer Application Portal</title>
+<style>
+  :root{
+    --paper:#F2F1ED; --surface:#FFFFFF; --ink:#15161A; --ink-soft:#41444B; --line:#D6D3CB; --field-border:#9C9A90;
+    --navy:#0C1940; --navy-bright:#2D68B2; --maroon:#800000; --maroon-deep:#770F05;
+    --orange:#FF8C00; --orange-deep:#E75526; --grey:#5F5F5F; --green:#1E7A4D; --seg-up:#E2DFD7;
+    --radius:16px; --font:"Segoe UI Variable","Segoe UI",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ background:var(--paper); color:var(--ink); font-family:var(--font); font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased; }
+  .view[hidden]{ display:none; }
+  :focus-visible{ outline:3px solid var(--orange-deep); outline-offset:3px; border-radius:8px; }
+  .shell{ display:grid; grid-template-columns:262px 1fr; min-height:100vh; }
+  .side{ background:var(--navy); color:#C7D0E4; padding:26px 18px; display:flex; flex-direction:column; gap:28px; position:sticky; top:0; height:100vh; }
+  .brand{ display:flex; align-items:center; gap:11px; padding:0 8px; }
+  .brand-glyph{ width:34px; height:34px; border-radius:9px; background:var(--maroon); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:17px; flex:none; }
+  .brand-name{ font-weight:700; font-size:18px; color:#fff; line-height:1.1; }
+  .brand-name small{ display:block; font-size:10px; letter-spacing:.18em; color:#8FA0C4; font-weight:700; margin-top:3px; }
+  .nav{ display:flex; flex-direction:column; gap:3px; }
+  .nav-link{ display:flex; align-items:center; gap:13px; padding:12px 13px; border-radius:11px; color:#AEB9D2; text-decoration:none; font-size:15px; font-weight:600; border-left:3px solid transparent; cursor:pointer; background:none; border-top:none; border-right:none; border-bottom:none; width:100%; text-align:left; font-family:var(--font); }
+  .nav-link:hover{ background:rgba(255,255,255,.06); color:#E8ECF6; }
+  .nav-link.active{ background:rgba(255,255,255,.08); color:#fff; border-left-color:var(--orange); }
+  .side-foot{ margin-top:auto; }
+  .who{ display:flex; align-items:center; gap:12px; padding:13px; border-radius:12px; background:rgba(255,255,255,.05); }
+  .avatar{ width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--maroon),var(--orange-deep)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex:none; }
+  .who b{ color:#fff; font-size:14.5px; font-weight:700; display:block; }
+  .who span{ font-size:11px; color:#8FA0C4; }
+  .main{ padding:34px 40px 60px; max-width:1160px; }
+  .eyebrow{ font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--maroon); margin:0 0 14px; font-weight:700; }
+  .greeting{ font-weight:700; font-size:34px; line-height:1.1; letter-spacing:-.01em; margin:0 0 10px; }
+  .lead{ font-size:18px; color:var(--ink-soft); margin:0 0 30px; max-width:65ch; }
+  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+  .opp{ background:var(--surface); border:1px solid var(--line); border-left:5px solid var(--maroon); border-radius:14px; padding:22px 24px; display:flex; flex-direction:column; }
+  .opp-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+  .opp-cat{ font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--maroon); font-weight:700; }
+  .funded{ font-size:11.5px; font-weight:700; color:var(--green); background:rgba(30,122,77,.12); border-radius:99px; padding:5px 11px; }
+  .opp h3{ font-weight:700; font-size:19px; line-height:1.2; margin:0 0 8px; }
+  .opp-desc{ font-size:14.5px; color:var(--ink-soft); margin:0 0 16px; flex:1; }
+  .opp-facts{ display:flex; flex-wrap:wrap; gap:14px; margin-bottom:18px; }
+  .fct{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-soft); font-weight:600; }
+  .btn-ghost,.btn-primary,.btn-back,.btn-draft{ font-family:var(--font); font-weight:700; cursor:pointer; }
+  .btn-ghost{ display:inline-flex; align-items:center; gap:9px; background:transparent; color:var(--maroon); font-size:15px; border:1.5px solid var(--maroon); border-radius:10px; padding:12px 20px; min-height:46px; align-self:flex-start; }
+  .btn-ghost:hover{ background:var(--maroon); color:#fff; }
+  .btn-primary{ display:inline-flex; align-items:center; gap:11px; background:var(--maroon); color:#fff; font-size:16.5px; border:none; border-radius:11px; padding:15px 28px; min-height:54px; }
+  .btn-primary:hover{ background:var(--maroon-deep); }
+  .btn-back{ display:inline-flex; align-items:center; gap:9px; background:none; border:none; color:var(--ink-soft); font-size:15px; padding:12px 8px; border-radius:10px; }
+  .btn-back:hover{ color:var(--ink); }
+  .topbar,.form-top{ position:sticky; top:0; z-index:20; background:var(--paper); padding:18px 0; border-bottom:1px solid var(--line); }
+  .detail-wrap,.form-body,.form-top-inner{ max-width:920px; margin:0 auto; padding:0 32px; }
+  .back-link{ display:inline-flex; align-items:center; gap:8px; color:var(--maroon); text-decoration:none; font-size:14.5px; font-weight:700; background:none; border:none; cursor:pointer; font-family:var(--font); }
+  .detail-title{ font-weight:700; font-size:40px; line-height:1.08; letter-spacing:-.02em; margin:22px 0 24px; color:var(--navy); }
+  .badges{ display:flex; flex-wrap:wrap; gap:12px; margin:28px 0 10px; }
+  .badge{ font-size:13px; font-weight:700; border-radius:99px; padding:8px 16px; display:inline-flex; align-items:center; gap:8px; }
+  .badge.prog{ border:1.5px solid var(--maroon); color:var(--maroon); }
+  .badge.kind{ background:#ECECEA; color:var(--ink-soft); }
+  .call-status{display:inline-flex;align-items:center;gap:8px;border-radius:99px;padding:7px 12px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .call-status.open{background:rgba(30,122,77,.12);color:var(--green)}
+  .call-status.closed{background:rgba(128,0,0,.12);color:var(--maroon)}
+  .call-notice{border:1.5px solid var(--line);border-left:5px solid var(--green);border-radius:14px;background:#fff;padding:14px 16px;margin:0 0 18px;color:var(--ink-soft);font-size:14.5px}
+  .call-notice.closed{border-left-color:var(--maroon);background:#fff8f8;color:var(--ink)}
+  .btn-primary[disabled],.btn-ghost[disabled],.nav-link[disabled]{cursor:not-allowed;opacity:.58}
+  .detail-meta{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px 24px; padding:22px 0; border-top:1px solid var(--line); }
+  .dm span{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--grey); font-weight:700; display:block; margin-bottom:6px; }
+  .dm b{ font-size:16.5px; }
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:26px 28px; margin-bottom:18px; }
+  .card h2{ font-weight:700; font-size:21px; margin:0 0 16px; }
+  .card p,.card li{ color:var(--ink-soft); }
+  .detail-actions{ display:flex; gap:14px; margin:18px 0 60px; }
+  .form-top{ padding:0; }
+  .form-top-inner{ padding-top:18px; padding-bottom:18px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .form-prg{ font-size:13px; color:var(--ink-soft); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .top-right{ display:flex; align-items:center; gap:18px; }
+  .autosave{ display:inline-flex; align-items:center; gap:9px; font-size:13.5px; color:var(--ink-soft); font-weight:600; }
+  .autosave .as-dot{ width:9px; height:9px; border-radius:50%; background:var(--navy-bright); flex:none; }
+  .btn-draft{ background:var(--surface); border:1.5px solid var(--field-border); color:var(--ink); font-size:14px; border-radius:9px; padding:9px 15px; min-height:42px; }
+  .form-body{ padding-top:22px; padding-bottom:64px; }
+  .segbar{ display:flex; gap:9px; margin:0 0 18px; }
+  .seg{ flex:1; height:9px; border-radius:99px; background:var(--seg-up); border:none; padding:0; cursor:pointer; }
+  .seg.done{ background:var(--navy-bright); }
+  .seg.cur{ background:var(--orange); }
+  .step-num{ font-size:14px; color:var(--ink-soft); margin:8px 0 12px; font-weight:600; }
+  .step-title{ font-weight:700; font-size:31px; line-height:1.12; margin:0; letter-spacing:-.01em; }
+  .step-intro{ font-size:17px; color:var(--ink-soft); margin:11px 0 28px; max-width:62ch; }
+  .subhead{ font-weight:700; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--maroon); margin:26px 0 14px; padding-bottom:7px; border-bottom:1px solid var(--line); }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:2px 22px; }
+  .col-full{ grid-column:1 / -1; }
+  .field{ margin-bottom:20px; }
+  .field > label,.matrix-label{ display:block; font-size:15.5px; font-weight:700; margin-bottom:7px; }
+  .opt{ font-weight:400; color:var(--grey); font-size:13.5px; }
+  .input{ width:100%; font-family:var(--font); font-size:16.5px; color:var(--ink); background:var(--surface); border:1.5px solid var(--field-border); border-radius:11px; padding:13px 15px; min-height:50px; }
+  textarea.input{ resize:vertical; min-height:130px; line-height:1.6; }
+  .input:focus{ outline:none; border-color:var(--maroon); box-shadow:0 0 0 4px rgba(128,0,0,.13); }
+  select.input{ appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2341444B' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 15px center; padding-right:42px; cursor:pointer; }
+  .field-help{ font-size:14.5px; color:var(--ink-soft); margin:7px 0 0; }
+  .field-err{ display:none; font-size:14px; color:var(--maroon); margin:8px 0 0; font-weight:700; }
+  .has-error .field-err{ display:block; }
+  .has-error .input{ border-color:var(--maroon); box-shadow:0 0 0 4px rgba(128,0,0,.1); }
+  .slot{ border:1.5px dashed var(--field-border); border-radius:13px; padding:16px 18px; margin:6px 0 20px; background:var(--surface); }
+  .slot.filled{ border-style:solid; border-color:var(--line); }
+  .slot-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:3px; }
+  .slot-label{ font-size:15px; font-weight:700; }
+  .slot-req{ font-size:11px; letter-spacing:.05em; color:var(--grey); font-weight:700; text-transform:uppercase; }
+  .slot-note{ font-size:13.5px; color:var(--ink-soft); margin:0 0 12px; }
+  .btn-upload{ display:inline-flex; align-items:center; gap:9px; background:var(--surface); border:1.5px solid var(--navy); color:var(--navy); font-family:var(--font); font-weight:700; font-size:14.5px; border-radius:10px; padding:11px 17px; cursor:pointer; }
+  .file-name{ font-size:14.5px; font-weight:700; }
+  .file-sub{ font-size:12.5px; color:var(--ink-soft); font-weight:600; }
+  .file-x{ background:none; border:none; color:var(--maroon); cursor:pointer; font-weight:700; margin-left:12px; }
+  .radio-row,.check-row{ display:flex; flex-wrap:wrap; gap:10px; }
+  .pill{ display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--line); background:var(--surface); border-radius:12px; font-size:15px; font-weight:600; }
+  .pill input{ accent-color:var(--maroon); }
+  .matrix-wrap{ overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:14px; margin-bottom:22px; }
+  table.matrix{ width:100%; border-collapse:collapse; min-width:740px; }
+  .matrix th,.matrix td{ border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:11px 10px; text-align:center; font-size:14px; }
+  .matrix th:first-child,.matrix td:first-child{ text-align:left; font-weight:700; position:sticky; left:0; background:var(--surface); }
+  .matrix tr:last-child td{ border-bottom:none; }
+  .matrix th:last-child,.matrix td:last-child{ border-right:none; }
+  .matrix input{ width:20px; height:20px; accent-color:var(--maroon); }
+  .calendar-grid{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:14px; }
+  .calendar-card{ display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:flex-start; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; cursor:pointer; }
+  .calendar-card:hover{ border-color:var(--navy-bright); }
+  .calendar-card input{ width:20px; height:20px; margin-top:3px; accent-color:var(--maroon); }
+  .calendar-card b{ display:block; font-size:15.5px; color:var(--navy); }
+  .calendar-card span{ display:block; font-size:13.5px; color:var(--ink-soft); margin-top:2px; }
+  .calendar-card em{ display:block; font-style:normal; font-size:13px; color:var(--grey); margin-top:3px; }
+  .field-note-box{ background:#F7F8FA; border:1px solid var(--line); border-radius:13px; padding:14px 16px; color:var(--ink-soft); font-size:14.5px; margin:12px 0 18px; }
+  .declaration{ background:var(--surface); border:1.5px solid var(--field-border); border-radius:14px; padding:8px 20px; margin-top:8px; }
+  .check-line{ display:flex; align-items:flex-start; gap:12px; padding:11px 0; font-weight:600; }
+  .check-line input{ width:22px; height:22px; accent-color:var(--maroon); margin-top:2px; }
+  .actions{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:34px; padding-top:24px; border-top:1px solid var(--line); }
+  .revgroup{ border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin-bottom:16px; background:var(--surface); }
+  .revgroup h3{ margin:0 0 12px; font-size:17px; }
+  .rev-item{ display:grid; grid-template-columns:220px 1fr; gap:14px; padding:8px 0; border-bottom:1px solid var(--line); font-size:15px; }
+  .rev-item:last-child{ border-bottom:none; }
+  .rev-key{ color:var(--ink-soft); font-weight:600; }
+  .rev-val.empty{ color:var(--maroon); font-weight:700; }
+  .done-wrap{ text-align:center; padding:26px 0 10px; max-width:600px; margin:0 auto; }
+  .done-badge{ width:84px; height:84px; border-radius:50%; background:rgba(45,104,178,.12); color:var(--navy-bright); display:flex; align-items:center; justify-content:center; margin:0 auto 22px; font-size:42px; }
+  .done-wrap h2{ font-weight:700; font-size:28px; margin:0 0 12px; }
+  .done-wrap p{ font-size:16.5px; color:var(--ink-soft); margin:0 auto 22px; max-width:50ch; }
+  @media (max-width:960px){ .shell{grid-template-columns:1fr}.side{position:static;height:auto}.grid,.detail-meta{grid-template-columns:1fr}.main{padding:26px 20px 52px} }
+  @media (max-width:680px){ .grid2{grid-template-columns:1fr}.rev-item{grid-template-columns:1fr;gap:2px}.detail-title{font-size:30px}.form-top-inner,.form-body,.detail-wrap{padding-left:20px;padding-right:20px} }
+
+  .course-panel{background:linear-gradient(180deg,#fff,#fbfaf7);border:1px solid var(--line);border-radius:18px;padding:22px;margin:16px 0;box-shadow:0 10px 30px rgba(12,25,64,.06)}
+  .course-panel h3{margin:0 0 8px;color:var(--navy);font-size:23px}.course-badges{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}.course-badge{border-radius:99px;background:#ECECEA;color:var(--ink-soft);padding:6px 12px;font-size:12px;font-weight:700}.course-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.mini-card{background:#F7F8FA;border:1px solid var(--line);border-radius:13px;padding:14px}.mini-card b{display:block;color:var(--navy);margin-bottom:4px}.mini-card p,.mini-card li{font-size:14px;margin:0;color:var(--ink-soft)}
+  .host-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0 18px}.host-card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:18px;cursor:pointer;transition:.15s}.host-card:hover,.host-card.selected{border-color:var(--maroon);box-shadow:0 8px 24px rgba(128,0,0,.08)}.host-card h3{margin:0 0 6px;color:var(--navy)}.host-card p{margin:0;color:var(--ink-soft);font-size:14px}.host-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.choice-btn{border:1px solid var(--maroon);background:#fff;color:var(--maroon);border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}.choice-btn.active{background:var(--maroon);color:#fff}
+  .plan-row{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}.plan-row h3{margin:0 0 12px;color:var(--navy)}.soft-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 18px}.btn-soft{background:#fff;border:1.5px solid var(--field-border);border-radius:10px;padding:10px 14px;font-family:var(--font);font-weight:700;cursor:pointer;color:var(--ink)}.btn-soft:hover{border-color:var(--navy)}.danger{color:var(--maroon);border-color:var(--maroon)}
+  .country-select{max-height:50px}.notice-plain{background:#F7F8FA;border:1px solid var(--line);border-radius:13px;padding:14px 16px;color:var(--ink-soft);font-size:14.5px;margin:0 0 18px}.section-tools{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}.field select.input option{font-size:15px}
+  @media(max-width:680px){.course-detail-grid,.host-grid{grid-template-columns:1fr}}
+
+
+  .programme-tiles{display:grid;gap:12px;margin:18px 0 4px}
+  .programme-tile{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start;background:linear-gradient(135deg,#fff,#F8F8F5);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .programme-tile span{width:34px;height:34px;border-radius:999px;display:grid;place-items:center;background:rgba(128,0,0,.1);color:var(--maroon);font-weight:800}
+  .programme-tile b{display:block;color:var(--navy);font-size:16px;margin-bottom:4px}.programme-tile p{margin:0;color:var(--ink-soft);font-size:14.5px;line-height:1.5}
+  .selection-shell{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:14px}
+  .linked-course-layout{display:grid;grid-template-columns:1fr;gap:16px;align-items:start;margin:16px 0 8px}
+  .selection-guide{background:linear-gradient(135deg,rgba(45,104,178,.09),rgba(128,0,0,.07));border:1px solid rgba(45,104,178,.22);border-radius:18px;padding:18px;color:var(--ink-soft);font-size:15px;margin-bottom:16px}
+  .selection-guide b{color:var(--navy)}
+  .selection-sequence{display:grid;gap:16px}
+  .flow-tile{position:relative;background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:22px 22px 22px 76px;box-shadow:0 10px 28px rgba(12,25,64,.06)}
+  .flow-tile::before{content:attr(data-step);position:absolute;left:22px;top:22px;width:34px;height:34px;border-radius:999px;display:grid;place-items:center;background:var(--navy);color:#fff;font-weight:800;font-size:14px}
+  .flow-tile h3{margin:0 0 8px;color:var(--navy);font-size:21px}.flow-tile p{color:var(--ink-soft);font-size:15px;line-height:1.55;margin:8px 0 0}
+  .flow-tile .course-panel,.flow-tile .linked-calendar-card{margin:0;box-shadow:none;border:0;background:transparent;padding:0}
+  .linked-calendar-card{background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 10px 28px rgba(12,25,64,.06)}
+  .linked-calendar-card h3{margin:0 0 8px;color:var(--navy);font-size:20px}.linked-calendar-card .meta{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.linked-calendar-card .meta span{border-radius:99px;background:#F2F1ED;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 10px}.linked-calendar-card p{color:var(--ink-soft);font-size:14.5px;margin:8px 0 0}
+  .commitment-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+  .commitment-strip span{border-radius:14px;background:#F7F8FA;border:1px solid var(--line);padding:12px 14px;color:var(--ink-soft);font-size:13.5px;font-weight:700}
+  .availability-choice{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}.availability-choice label{border:1.5px solid var(--line);border-radius:14px;background:#fff;padding:14px 16px;text-align:left;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px}.availability-choice label:has(input:checked){border-color:var(--maroon);background:rgba(128,0,0,.07);color:var(--maroon)}.availability-choice input{accent-color:var(--maroon);margin:0;width:18px;height:18px}
+  .course-empty{background:#fff;border:1px dashed var(--field-border);border-radius:16px;padding:22px;color:var(--ink-soft);text-align:center}
+  @media(max-width:820px){.linked-course-layout{grid-template-columns:1fr}.availability-choice{grid-template-columns:1fr}.commitment-strip{grid-template-columns:1fr}.flow-tile{padding:68px 18px 18px}.flow-tile::before{left:18px;top:18px}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="view" id="view-home">
+    <div class="shell">
+      <aside class="side">
+        <div class="brand"><div class="brand-glyph">A</div><div class="brand-name">AIMS<small>APPLICANT PORTAL</small></div></div>
+        <nav class="nav" aria-label="Main">
+          <button class="nav-link active" data-nav="home">Home</button>
+          <button class="nav-link" data-nav="form">Start application</button>
+          <button class="nav-link" data-nav="dashboard">Your Applications</button>
+        </nav>
+        <div class="side-foot"><div class="who"><div class="avatar">CO</div><div><b>Cecil Ouma</b><span>Applicant</span></div></div></div>
+      </aside>
+      <main class="main">
+        <p class="eyebrow">Mathematical Epidemiology Programme</p>
+        <h1 class="greeting">Mathematical Epidemiology - Lecturer Application</h1>
+        <p class="lead">Apply to teach in the Mathematical Epidemiology programme. This lecturer call is available only for AIMS Cameroon and AIMS RW/KEMRI pathways.</p>
+        <div class="grid">
+          <article class="opp">
+            <div class="opp-top"><span class="opp-cat">Mathepi application</span><span class="funded">AIMS Cameroon  -  AIMS RW/KEMRI</span><span class="call-status open" data-call-status>Open</span></div>
+            <h3>Mathematical Epidemiology - Lecturer Application</h3>
+            <p class="opp-desc">Submit your lecturer profile, academic background, course selection, teaching experience, and preferred MathEpi host pathway.</p>
+            <div class="call-notice" data-call-notice>Applications are open. Complete and submit the form before the call closes.</div>
+            <div class="opp-facts"><span class="fct">Centres: AIMS Cameroon, AIMS RW/KEMRI</span><span class="fct">Passport biodata page only</span></div>
+            <button class="btn-ghost" data-nav="details">View opportunity -></button>
+          </article>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="view" id="view-details" hidden>
+    <div class="topbar"><div class="detail-wrap"><button class="back-link" data-nav="home"><- All opportunities</button></div></div>
+    <div class="detail-wrap">
+      <div class="badges"><span class="badge prog">MATHEPI APPLICATION</span><span class="badge kind">Cameroon  -  AIMS RW/KEMRI</span><span class="call-status open" data-call-status>Open</span></div>
+      <h1 class="detail-title">Mathematical Epidemiology - Lecturer Application</h1>
+      <div class="call-notice" data-call-notice>Applications are open. Complete and submit the form before the call closes.</div>
+      <div class="detail-meta">
+        <div class="dm"><span>Language</span><b>English</b></div>
+        <div class="dm"><span>Centres</span><b>AIMS Cameroon / AIMS RW/KEMRI</b></div>
+        <div class="dm"><span>Programme</span><b>Mathematical Epidemiology</b></div>
+        <div class="dm"><span>Documents</span><b>Passport biodata page only</b></div>
+      </div>
+      <div class="card">
+        <h2>About the lecturer call</h2>
+        <p>The Mathematical Epidemiology programme prepares students to use mathematics, statistics, computing, and public-health reasoning to understand infectious disease dynamics, surveillance data, intervention design, and health decision-making in African contexts.</p>
+        <p>Courses are delivered in intensive teaching blocks. Each selected lecturer is expected to be in residence with the host centre for the full three-week block attached to their course, supporting lectures, practical sessions, assessment, student consultation, and coordination with the academic team.</p>
+        <p>This form collects lecturer identity, academic and professional background, preferred MathEpi host pathway, course preference, block-linked availability, proposed teaching plan, passport biodata page, and final confirmations for review by the programme team.</p>
+        <div class="programme-tiles">
+          <div class="programme-tile"><span>1</span><div><b>Block-based teaching</b><p>Applicants choose a course and confirm availability for the exact three-week block in which that course is scheduled.</p></div></div>
+          <div class="programme-tile"><span>2</span><div><b>In-residence commitment</b><p>By applying, lecturers acknowledge that selected courses require physical residence at the assigned host pathway for the full block period.</p></div></div>
+          <div class="programme-tile"><span>3</span><div><b>Eligible host pathways</b><p>Applications are considered only for AIMS Cameroon and AIMS RW/KEMRI lecturer deployment pathways.</p></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Required documents</h2>
+        <ul>
+          <li>Only the passport biodata page needs to be attached. Nothing else is required at this stage.</li>
+        </ul>
+      </div>
+      <div class="detail-actions"><button class="btn-primary" data-nav="form">Start application -></button></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-form" hidden>
+    <div class="form-top">
+      <div class="form-top-inner">
+        <div style="display:flex;align-items:center;gap:14px;min-width:0">
+          <button class="back-link" data-nav="home"><- All opportunities</button>
+          <span class="form-prg">Mathematical Epidemiology - Lecturer Application</span>
+        </div>
+        <div class="top-right"><span class="autosave"><span class="as-dot"></span><span id="autosaveText">All changes saved</span></span><button class="btn-draft" id="draftBtn" type="button">Save draft</button></div>
+      </div>
+    </div>
+    <div class="form-body"><div id="stepArea"></div></div>
+  </div>
+
+  <div class="view" id="view-dashboard" hidden>
+    <div class="shell">
+      <aside class="side">
+        <div class="brand"><div class="brand-glyph">A</div><div class="brand-name">AIMS<small>APPLICANT PORTAL</small></div></div>
+        <nav class="nav" aria-label="Main">
+          <button class="nav-link" data-nav="home">Home</button>
+          <button class="nav-link" data-nav="form">Start application</button>
+          <button class="nav-link active" data-nav="dashboard">Your Applications</button>
+        </nav>
+      </aside>
+      <main class="main" id="dashMain"></main>
+    </div>
+  </div>
+</div>
+<input type="file" id="filePicker" accept=".pdf,.jpg,.jpeg,.png" style="display:none" />
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (v) =>
+  String(v ?? "").replace(
+    /[&<>"]/g,
+    (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[m],
+  );
+const countries = [
+  "Afghanistan",
+  "Albania",
+  "Algeria",
+  "American Samoa",
+  "Andorra",
+  "Angola",
+  "Anguilla",
+  "Antarctica",
+  "Antigua and Barbuda",
+  "Argentina",
+  "Armenia",
+  "Aruba",
+  "Australia",
+  "Austria",
+  "Azerbaijan",
+  "Bahamas",
+  "Bahrain",
+  "Bangladesh",
+  "Barbados",
+  "Belarus",
+  "Belgium",
+  "Belize",
+  "Benin",
+  "Bermuda",
+  "Bhutan",
+  "Bolivia, Plurinational State of",
+  "Bonaire, Sint Eustatius and Saba",
+  "Bosnia and Herzegovina",
+  "Botswana",
+  "Bouvet Island",
+  "Brazil",
+  "British Indian Ocean Territory",
+  "Brunei Darussalam",
+  "Bulgaria",
+  "Burkina Faso",
+  "Burundi",
+  "Cabo Verde",
+  "Cambodia",
+  "Cameroon",
+  "Canada",
+  "Cayman Islands",
+  "Central African Republic",
+  "Chad",
+  "Chile",
+  "China",
+  "Christmas Island",
+  "Cocos (Keeling) Islands",
+  "Colombia",
+  "Comoros",
+  "Congo",
+  "Congo, The Democratic Republic of the",
+  "Cook Islands",
+  "Costa Rica",
+  "Croatia",
+  "Cuba",
+  "Cura\u00e7ao",
+  "Cyprus",
+  "Czechia",
+  "C\u00f4te d'Ivoire",
+  "Denmark",
+  "Djibouti",
+  "Dominica",
+  "Dominican Republic",
+  "Ecuador",
+  "Egypt",
+  "El Salvador",
+  "England",
+  "Equatorial Guinea",
+  "Eritrea",
+  "Estonia",
+  "Eswatini",
+  "Ethiopia",
+  "Falkland Islands (Malvinas)",
+  "Faroe Islands",
+  "Fiji",
+  "Finland",
+  "France",
+  "French Guiana",
+  "French Polynesia",
+  "French Southern Territories",
+  "Gabon",
+  "Gambia",
+  "Georgia",
+  "Germany",
+  "Ghana",
+  "Gibraltar",
+  "Greece",
+  "Greenland",
+  "Grenada",
+  "Guadeloupe",
+  "Guam",
+  "Guatemala",
+  "Guernsey",
+  "Guinea",
+  "Guinea-Bissau",
+  "Guyana",
+  "Haiti",
+  "Heard Island and McDonald Islands",
+  "Holy See (Vatican City State)",
+  "Honduras",
+  "Hong Kong",
+  "Hungary",
+  "Iceland",
+  "India",
+  "Indonesia",
+  "Iran, Islamic Republic of",
+  "Iraq",
+  "Ireland",
+  "Isle of Man",
+  "Israel",
+  "Italy",
+  "Jamaica",
+  "Japan",
+  "Jersey",
+  "Jordan",
+  "Kazakhstan",
+  "Kenya",
+  "Kiribati",
+  "Korea, Democratic People's Republic of",
+  "Korea, Republic of",
+  "Kosovo",
+  "Kuwait",
+  "Kyrgyzstan",
+  "Lao People's Democratic Republic",
+  "Latvia",
+  "Lebanon",
+  "Lesotho",
+  "Liberia",
+  "Libya",
+  "Liechtenstein",
+  "Lithuania",
+  "Luxembourg",
+  "Macao",
+  "Madagascar",
+  "Malawi",
+  "Malaysia",
+  "Maldives",
+  "Mali",
+  "Malta",
+  "Marshall Islands",
+  "Martinique",
+  "Mauritania",
+  "Mauritius",
+  "Mayotte",
+  "Mexico",
+  "Micronesia, Federated States of",
+  "Moldova, Republic of",
+  "Monaco",
+  "Mongolia",
+  "Montenegro",
+  "Montserrat",
+  "Morocco",
+  "Mozambique",
+  "Myanmar",
+  "Namibia",
+  "Nauru",
+  "Nepal",
+  "Netherlands",
+  "New Caledonia",
+  "New Zealand",
+  "Nicaragua",
+  "Niger",
+  "Nigeria",
+  "Niue",
+  "Norfolk Island",
+  "North Macedonia",
+  "Northern Mariana Islands",
+  "Norway",
+  "Oman",
+  "Pakistan",
+  "Palau",
+  "Palestine",
+  "Palestine, State of",
+  "Panama",
+  "Papua New Guinea",
+  "Paraguay",
+  "Peru",
+  "Philippines",
+  "Pitcairn",
+  "Poland",
+  "Portugal",
+  "Puerto Rico",
+  "Qatar",
+  "Romania",
+  "Russian Federation",
+  "Rwanda",
+  "R\u00e9union",
+  "Saint Barth\u00e9lemy",
+  "Saint Helena, Ascension and Tristan da Cunha",
+  "Saint Kitts and Nevis",
+  "Saint Lucia",
+  "Saint Martin (French part)",
+  "Saint Pierre and Miquelon",
+  "Saint Vincent and the Grenadines",
+  "Samoa",
+  "San Marino",
+  "Sao Tome and Principe",
+  "Saudi Arabia",
+  "Scotland",
+  "Senegal",
+  "Serbia",
+  "Seychelles",
+  "Sierra Leone",
+  "Singapore",
+  "Sint Maarten (Dutch part)",
+  "Slovakia",
+  "Slovenia",
+  "Solomon Islands",
+  "Somalia",
+  "South Africa",
+  "South Georgia and the South Sandwich Islands",
+  "South Sudan",
+  "Spain",
+  "Sri Lanka",
+  "Sudan",
+  "Suriname",
+  "Svalbard and Jan Mayen",
+  "Sweden",
+  "Switzerland",
+  "Syrian Arab Republic",
+  "Taiwan",
+  "Taiwan, Province of China",
+  "Tajikistan",
+  "Tanzania, United Republic of",
+  "Thailand",
+  "Timor-Leste",
+  "Togo",
+  "Tokelau",
+  "Tonga",
+  "Trinidad and Tobago",
+  "Tunisia",
+  "Turkmenistan",
+  "Turks and Caicos Islands",
+  "Tuvalu",
+  "T\u00fcrkiye",
+  "Uganda",
+  "Ukraine",
+  "United Arab Emirates",
+  "United Kingdom",
+  "United States",
+  "United States Minor Outlying Islands",
+  "Uruguay",
+  "Uzbekistan",
+  "Vanuatu",
+  "Venezuela, Bolivarian Republic of",
+  "Viet Nam",
+  "Virgin Islands, British",
+  "Virgin Islands, U.S.",
+  "Wales",
+  "Wallis and Futuna",
+  "Western Sahara",
+  "Yemen",
+  "Zambia",
+  "Zimbabwe",
+  "\u00c5land Islands",
+];
+const hostPathways = ["AIMS Cameroon", "AIMS RW/KEMRI"];
+const courses = [
+  {
+    id: "MES01",
+    title: "Mathematical Problem Solving",
+    category: "Core Skills",
+    credits: "6",
+    duration: "Block 1",
+    hours: "60",
+    period: "05 Oct 2026 - 23 Oct 2026",
+    software: "Mathematical computing software",
+    description:
+      "Mathematical Problem Solving is a MathEpi core skills course scheduled in Block 1. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Apply mathematical principles, build proof strategies",
+      "conduct advanced problem solving.",
+      "Use Mathematical computing software where relevant to complete applied course tasks.",
+    ],
+    prereq: "Bachelor's degree with a mathematics component",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Foundations and concepts",
+        "Mathematical Problem Solving: foundations and concepts aligned to Apply mathematical principles, build proof strategies, and conduct advanced problem solving.",
+        "Hands-on activity using Mathematical computing software where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Methods and worked examples",
+        "Mathematical Problem Solving: methods and worked examples aligned to Apply mathematical principles, build proof strategies, and conduct advanced problem solving.",
+        "Hands-on activity using Mathematical computing software where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Applied practice and communication",
+        "Mathematical Problem Solving: applied practice and communication aligned to Apply mathematical principles, build proof strategies, and conduct advanced problem solving.",
+        "Hands-on activity using Mathematical computing software where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MES02",
+    title: "Differential Equations and Modelling",
+    category: "Core Skills",
+    credits: "6",
+    duration: "Block 2",
+    hours: "60",
+    period: "26 Oct 2026 - 13 Nov 2026",
+    software: "Python, R",
+    description:
+      "Differential Equations and Modelling is a MathEpi core skills course scheduled in Block 2. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Solve ODEs/PDEs and connect analytical methods to epidemic modelling.",
+      "Use Python, R where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "MES01",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Foundations and concepts",
+        "Differential Equations and Modelling: foundations and concepts aligned to Solve ODEs/PDEs and connect analytical methods to epidemic modelling.",
+        "Hands-on activity using Python, R where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Methods and worked examples",
+        "Differential Equations and Modelling: methods and worked examples aligned to Solve ODEs/PDEs and connect analytical methods to epidemic modelling.",
+        "Hands-on activity using Python, R where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Applied practice and communication",
+        "Differential Equations and Modelling: applied practice and communication aligned to Solve ODEs/PDEs and connect analytical methods to epidemic modelling.",
+        "Hands-on activity using Python, R where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MES03",
+    title: "Physical Problem Solving",
+    category: "Core Skills",
+    credits: "6",
+    duration: "Block 3",
+    hours: "60",
+    period: "23 Nov 2026 - 11 Dec 2026",
+    software: "Computational physics tools",
+    description:
+      "Physical Problem Solving is a MathEpi core skills course scheduled in Block 3. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Translate physical systems into mathematical and computational formulations.",
+      "Use Computational physics tools where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "MES01",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Foundations and concepts",
+        "Physical Problem Solving: foundations and concepts aligned to Translate physical systems into mathematical and computational formulations.",
+        "Hands-on activity using Computational physics tools where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Methods and worked examples",
+        "Physical Problem Solving: methods and worked examples aligned to Translate physical systems into mathematical and computational formulations.",
+        "Hands-on activity using Computational physics tools where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Applied practice and communication",
+        "Physical Problem Solving: applied practice and communication aligned to Translate physical systems into mathematical and computational formulations.",
+        "Hands-on activity using Computational physics tools where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MES04",
+    title: "Introduction to Probability and Statistics",
+    category: "Core Skills",
+    credits: "6",
+    duration: "Block 2",
+    hours: "60",
+    period: "26 Oct 2026 - 13 Nov 2026",
+    software: "R, Python",
+    description:
+      "Introduction to Probability and Statistics is a MathEpi core skills course scheduled in Block 2. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Use probability laws, estimation, testing, regression",
+      "epidemiological measures.",
+      "Use R, Python where relevant to complete applied course tasks.",
+    ],
+    prereq: "Probability, statistics, and algebra foundation",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Foundations and concepts",
+        "Introduction to Probability and Statistics: foundations and concepts aligned to Use probability laws, estimation, testing, regression, and epidemiological measures.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Methods and worked examples",
+        "Introduction to Probability and Statistics: methods and worked examples aligned to Use probability laws, estimation, testing, regression, and epidemiological measures.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Applied practice and communication",
+        "Introduction to Probability and Statistics: applied practice and communication aligned to Use probability laws, estimation, testing, regression, and epidemiological measures.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MES05",
+    title: "Introduction to R and Python",
+    category: "Core Skills",
+    credits: "6",
+    duration: "Block 1",
+    hours: "60",
+    period: "05 Oct 2026 - 23 Oct 2026",
+    software: "R, Python, Quarto",
+    description:
+      "Introduction to R and Python is a MathEpi core skills course scheduled in Block 1. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Manage data, visualize results, run basic analyses",
+      "create reproducible reports.",
+      "Use R, Python, Quarto where relevant to complete applied course tasks.",
+    ],
+    prereq: "Basic programming recommended",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Foundations and concepts",
+        "Introduction to R and Python: foundations and concepts aligned to Manage data, visualize results, run basic analyses, and create reproducible reports.",
+        "Hands-on activity using R, Python, Quarto where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Methods and worked examples",
+        "Introduction to R and Python: methods and worked examples aligned to Manage data, visualize results, run basic analyses, and create reproducible reports.",
+        "Hands-on activity using R, Python, Quarto where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Applied practice and communication",
+        "Introduction to R and Python: applied practice and communication aligned to Manage data, visualize results, run basic analyses, and create reproducible reports.",
+        "Hands-on activity using R, Python, Quarto where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MES06",
+    title: "Scientific Computing and LaTeX",
+    category: "Core Skills",
+    credits: "6",
+    duration: "Block 3",
+    hours: "60",
+    period: "23 Nov 2026 - 11 Dec 2026",
+    software: "SageMath, LaTeX, R, Python",
+    description:
+      "Scientific Computing and LaTeX is a MathEpi core skills course scheduled in Block 3. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Implement numerical algorithms and prepare scientific work with LaTeX.",
+      "Use SageMath, LaTeX, R, Python where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "MES05",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Foundations and concepts",
+        "Scientific Computing and LaTeX: foundations and concepts aligned to Implement numerical algorithms and prepare scientific work with LaTeX.",
+        "Hands-on activity using SageMath, LaTeX, R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Methods and worked examples",
+        "Scientific Computing and LaTeX: methods and worked examples aligned to Implement numerical algorithms and prepare scientific work with LaTeX.",
+        "Hands-on activity using SageMath, LaTeX, R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Applied practice and communication",
+        "Scientific Computing and LaTeX: applied practice and communication aligned to Implement numerical algorithms and prepare scientific work with LaTeX.",
+        "Hands-on activity using SageMath, LaTeX, R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEC01",
+    title: "Introduction to Epidemiology",
+    category: "Specialization",
+    credits: "6",
+    duration: "Block 4",
+    hours: "60",
+    period: "04 Jan 2027 - 22 Jan 2027",
+    software: "N/A",
+    description:
+      "Introduction to Epidemiology is a MathEpi specialization course scheduled in Block 4. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Explain epidemiological concepts, calculate measures",
+      "appraise study designs.",
+      "Use N/A where relevant to complete applied course tasks.",
+    ],
+    prereq: "MES04",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Conceptual framework",
+        "Introduction to Epidemiology: conceptual framework aligned to Explain epidemiological concepts, calculate measures, and appraise study designs.",
+        "Hands-on activity using N/A where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Analytical and computational methods",
+        "Introduction to Epidemiology: analytical and computational methods aligned to Explain epidemiological concepts, calculate measures, and appraise study designs.",
+        "Hands-on activity using N/A where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Application to public health problems",
+        "Introduction to Epidemiology: application to public health problems aligned to Explain epidemiological concepts, calculate measures, and appraise study designs.",
+        "Hands-on activity using N/A where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEC02",
+    title: "Epidemiology for Disease Modelling",
+    category: "Specialization",
+    credits: "6",
+    duration: "Block 5",
+    hours: "60",
+    period: "25 Jan 2027 - 12 Feb 2027",
+    software: "R, Python",
+    description:
+      "Epidemiology for Disease Modelling is a MathEpi specialization course scheduled in Block 5. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Use disease parameters and research designs to support infectious disease modelling.",
+      "Use R, Python where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "MEC01",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Conceptual framework",
+        "Epidemiology for Disease Modelling: conceptual framework aligned to Use disease parameters and research designs to support infectious disease modelling.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Analytical and computational methods",
+        "Epidemiology for Disease Modelling: analytical and computational methods aligned to Use disease parameters and research designs to support infectious disease modelling.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Application to public health problems",
+        "Epidemiology for Disease Modelling: application to public health problems aligned to Use disease parameters and research designs to support infectious disease modelling.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEC03",
+    title: "Introduction to Mathematical Modelling",
+    category: "Specialization",
+    credits: "6",
+    duration: "Block 4",
+    hours: "60",
+    period: "04 Jan 2027 - 22 Jan 2027",
+    software: "R, Python",
+    description:
+      "Introduction to Mathematical Modelling is a MathEpi specialization course scheduled in Block 4. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Build and interpret foundational models for population health systems.",
+      "Use R, Python where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "MES02, MES04",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Conceptual framework",
+        "Introduction to Mathematical Modelling: conceptual framework aligned to Build and interpret foundational models for population health systems.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Analytical and computational methods",
+        "Introduction to Mathematical Modelling: analytical and computational methods aligned to Build and interpret foundational models for population health systems.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Application to public health problems",
+        "Introduction to Mathematical Modelling: application to public health problems aligned to Build and interpret foundational models for population health systems.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEC04",
+    title: "Developing Mathematical Models in Public Health",
+    category: "Specialization",
+    credits: "6",
+    duration: "Block 5",
+    hours: "60",
+    period: "25 Jan 2027 - 12 Feb 2027",
+    software: "R, Python",
+    description:
+      "Developing Mathematical Models in Public Health is a MathEpi specialization course scheduled in Block 5. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Translate public health questions into model structures and scenarios.",
+      "Use R, Python where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "MEC03",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Conceptual framework",
+        "Developing Mathematical Models in Public Health: conceptual framework aligned to Translate public health questions into model structures and scenarios.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Analytical and computational methods",
+        "Developing Mathematical Models in Public Health: analytical and computational methods aligned to Translate public health questions into model structures and scenarios.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Application to public health problems",
+        "Developing Mathematical Models in Public Health: application to public health problems aligned to Translate public health questions into model structures and scenarios.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEC05",
+    title: "Model Fitting and Validation",
+    category: "Specialization",
+    credits: "6",
+    duration: "Block 6",
+    hours: "60",
+    period: "15 Feb 2027 - 05 Mar 2027",
+    software: "R, Python",
+    description:
+      "Model Fitting and Validation is a MathEpi specialization course scheduled in Block 6. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Fit, validate",
+      "communicate mathematical epidemiology models.",
+      "Use R, Python where relevant to complete applied course tasks.",
+    ],
+    prereq: "MEC03, MES04",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Conceptual framework",
+        "Model Fitting and Validation: conceptual framework aligned to Fit, validate, and communicate mathematical epidemiology models.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Analytical and computational methods",
+        "Model Fitting and Validation: analytical and computational methods aligned to Fit, validate, and communicate mathematical epidemiology models.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Application to public health problems",
+        "Model Fitting and Validation: application to public health problems aligned to Fit, validate, and communicate mathematical epidemiology models.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEC06",
+    title: "Numerical Methods",
+    category: "Specialization",
+    credits: "6",
+    duration: "Block 6",
+    hours: "60",
+    period: "15 Feb 2027 - 05 Mar 2027",
+    software: "Python, R",
+    description:
+      "Numerical Methods is a MathEpi specialization course scheduled in Block 6. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Use numerical methods for differential equations, integration",
+      "simulation.",
+      "Use Python, R where relevant to complete applied course tasks.",
+    ],
+    prereq: "MES02, MES06",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Conceptual framework",
+        "Numerical Methods: conceptual framework aligned to Use numerical methods for differential equations, integration, and simulation.",
+        "Hands-on activity using Python, R where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Analytical and computational methods",
+        "Numerical Methods: analytical and computational methods aligned to Use numerical methods for differential equations, integration, and simulation.",
+        "Hands-on activity using Python, R where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Application to public health problems",
+        "Numerical Methods: application to public health problems aligned to Use numerical methods for differential equations, integration, and simulation.",
+        "Hands-on activity using Python, R where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEC07",
+    title: "Introduction to Data Analysis",
+    category: "Specialization",
+    credits: "6",
+    duration: "Block 7",
+    hours: "60",
+    period: "08 Mar 2027 - 26 Mar 2027",
+    software: "R, Python",
+    description:
+      "Introduction to Data Analysis is a MathEpi specialization course scheduled in Block 7. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Clean, analyse, visualize",
+      "interpret epidemiological datasets.",
+      "Use R, Python where relevant to complete applied course tasks.",
+    ],
+    prereq: "MES05, MES04",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Conceptual framework",
+        "Introduction to Data Analysis: conceptual framework aligned to Clean, analyse, visualize, and interpret epidemiological datasets.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Analytical and computational methods",
+        "Introduction to Data Analysis: analytical and computational methods aligned to Clean, analyse, visualize, and interpret epidemiological datasets.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Application to public health problems",
+        "Introduction to Data Analysis: application to public health problems aligned to Clean, analyse, visualize, and interpret epidemiological datasets.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEC08",
+    title: "Advanced Data Analysis",
+    category: "Specialization",
+    credits: "6",
+    duration: "Block 7",
+    hours: "60",
+    period: "08 Mar 2027 - 26 Mar 2027",
+    software: "R, Python",
+    description:
+      "Advanced Data Analysis is a MathEpi specialization course scheduled in Block 7. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Apply advanced statistical and computational analysis in epidemiology.",
+      "Use R, Python where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "MEC07",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Conceptual framework",
+        "Advanced Data Analysis: conceptual framework aligned to Apply advanced statistical and computational analysis in epidemiology.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Analytical and computational methods",
+        "Advanced Data Analysis: analytical and computational methods aligned to Apply advanced statistical and computational analysis in epidemiology.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Application to public health problems",
+        "Advanced Data Analysis: application to public health problems aligned to Apply advanced statistical and computational analysis in epidemiology.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEC09",
+    title: "Professional, Project, and Entrepreneurship Development",
+    category: "Professional",
+    credits: "6",
+    duration: "Block 8",
+    hours: "60",
+    period: "05 Apr 2027 - 23 Apr 2027",
+    software: "Portfolio and project tools",
+    description:
+      "Professional, Project, and Entrepreneurship Development is a MathEpi professional course scheduled in Block 8. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Prepare students for internships, projects, entrepreneurship",
+      "career readiness.",
+      "Use Portfolio and project tools where relevant to complete applied course tasks.",
+    ],
+    prereq: "None",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Career and project readiness",
+        "Professional, Project, and Entrepreneurship Development: career and project readiness aligned to Prepare students for internships, projects, entrepreneurship, and career readiness.",
+        "Hands-on activity using Portfolio and project tools where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Entrepreneurship and stakeholder engagement",
+        "Professional, Project, and Entrepreneurship Development: entrepreneurship and stakeholder engagement aligned to Prepare students for internships, projects, entrepreneurship, and career readiness.",
+        "Hands-on activity using Portfolio and project tools where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Portfolio, pitching, and professional practice",
+        "Professional, Project, and Entrepreneurship Development: portfolio, pitching, and professional practice aligned to Prepare students for internships, projects, entrepreneurship, and career readiness.",
+        "Hands-on activity using Portfolio and project tools where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEC10",
+    title: "AI-Driven Epidemiology and Digital Health Surveillance",
+    category: "Specialization",
+    credits: "6",
+    duration: "Block 8",
+    hours: "60",
+    period: "05 Apr 2027 - 23 Apr 2027",
+    software: "Python, digital health tooling",
+    description:
+      "AI-Driven Epidemiology and Digital Health Surveillance is a MathEpi specialization course scheduled in Block 8. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Use AI-enabled workflows and digital surveillance tools for public health intelligence.",
+      "Use Python, digital health tooling where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "MEC07, MEC08",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Conceptual framework",
+        "AI-Driven Epidemiology and Digital Health Surveillance: conceptual framework aligned to Use AI-enabled workflows and digital surveillance tools for public health intelligence.",
+        "Hands-on activity using Python, digital health tooling where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Analytical and computational methods",
+        "AI-Driven Epidemiology and Digital Health Surveillance: analytical and computational methods aligned to Use AI-enabled workflows and digital surveillance tools for public health intelligence.",
+        "Hands-on activity using Python, digital health tooling where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Application to public health problems",
+        "AI-Driven Epidemiology and Digital Health Surveillance: application to public health problems aligned to Use AI-enabled workflows and digital surveillance tools for public health intelligence.",
+        "Hands-on activity using Python, digital health tooling where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEE01",
+    title: "Survival Analysis",
+    category: "Elective",
+    credits: "6",
+    duration: "Block 9",
+    hours: "60",
+    period: "26 Apr 2027 - 14 May 2027",
+    software: "R",
+    description:
+      "Survival Analysis is a MathEpi elective course scheduled in Block 9. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Model time-to-event data and interpret hazard, survival",
+      "censoring patterns.",
+      "Use R where relevant to complete applied course tasks.",
+    ],
+    prereq: "MES04",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Core theory",
+        "Survival Analysis: core theory aligned to Model time-to-event data and interpret hazard, survival, and censoring patterns.",
+        "Hands-on activity using R where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Implementation and interpretation",
+        "Survival Analysis: implementation and interpretation aligned to Model time-to-event data and interpret hazard, survival, and censoring patterns.",
+        "Hands-on activity using R where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Applied epidemiological case study",
+        "Survival Analysis: applied epidemiological case study aligned to Model time-to-event data and interpret hazard, survival, and censoring patterns.",
+        "Hands-on activity using R where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEE02",
+    title: "Time Series Analysis",
+    category: "Elective",
+    credits: "6",
+    duration: "Block 9",
+    hours: "60",
+    period: "26 Apr 2027 - 14 May 2027",
+    software: "R, Python",
+    description:
+      "Time Series Analysis is a MathEpi elective course scheduled in Block 9. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Analyse temporal epidemiological data and forecasting signals.",
+      "Use R, Python where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "MEC07",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Core theory",
+        "Time Series Analysis: core theory aligned to Analyse temporal epidemiological data and forecasting signals.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Implementation and interpretation",
+        "Time Series Analysis: implementation and interpretation aligned to Analyse temporal epidemiological data and forecasting signals.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Applied epidemiological case study",
+        "Time Series Analysis: applied epidemiological case study aligned to Analyse temporal epidemiological data and forecasting signals.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEE03",
+    title: "Bayesian Statistics",
+    category: "Elective",
+    credits: "6",
+    duration: "Block 9",
+    hours: "60",
+    period: "26 Apr 2027 - 14 May 2027",
+    software: "Stan, R, Python",
+    description:
+      "Bayesian Statistics is a MathEpi elective course scheduled in Block 9. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Use Bayesian reasoning for uncertainty, inference",
+      "epidemiological decisions.",
+      "Use Stan, R, Python where relevant to complete applied course tasks.",
+    ],
+    prereq: "MES04",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Core theory",
+        "Bayesian Statistics: core theory aligned to Use Bayesian reasoning for uncertainty, inference, and epidemiological decisions.",
+        "Hands-on activity using Stan, R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Implementation and interpretation",
+        "Bayesian Statistics: implementation and interpretation aligned to Use Bayesian reasoning for uncertainty, inference, and epidemiological decisions.",
+        "Hands-on activity using Stan, R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Applied epidemiological case study",
+        "Bayesian Statistics: applied epidemiological case study aligned to Use Bayesian reasoning for uncertainty, inference, and epidemiological decisions.",
+        "Hands-on activity using Stan, R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEE04",
+    title: "Stochastic Models",
+    category: "Elective",
+    credits: "6",
+    duration: "Block 9",
+    hours: "60",
+    period: "26 Apr 2027 - 14 May 2027",
+    software: "R, Python",
+    description:
+      "Stochastic Models is a MathEpi elective course scheduled in Block 9. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Model random processes and stochastic epidemic systems.",
+      "Use R, Python where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "MEC03",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Core theory",
+        "Stochastic Models: core theory aligned to Model random processes and stochastic epidemic systems.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Implementation and interpretation",
+        "Stochastic Models: implementation and interpretation aligned to Model random processes and stochastic epidemic systems.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Applied epidemiological case study",
+        "Stochastic Models: applied epidemiological case study aligned to Model random processes and stochastic epidemic systems.",
+        "Hands-on activity using R, Python where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+  {
+    id: "MEI01",
+    title: "Internship and Thesis",
+    category: "Practical",
+    credits: "36",
+    duration: "Internship + Thesis",
+    hours: "720",
+    period: "17 May 2027 - 17 Dec 2027",
+    software: "Research/project tools",
+    description:
+      "Internship and Thesis is a MathEpi practical course scheduled in Internship + Thesis. It develops the concepts, computational practice, and applied reasoning required for mathematical epidemiology and public-health modelling.",
+    outcomes: [
+      "Complete a six-month research or industry internship and translate the work into thesis/project output.",
+      "Use Research/project tools where relevant to complete applied course tasks.",
+      "Communicate methods, assumptions, and results clearly to a public-health audience.",
+    ],
+    prereq: "Academic phase completion",
+    assessment:
+      "Coursework, practical exercises, participation, and a short applied assignment unless otherwise specified by the programme team.",
+    modules: [
+      [
+        "Project scoping and supervision",
+        "Internship and Thesis: project scoping and supervision aligned to Complete a six-month research or industry internship and translate the work into thesis/project output.",
+        "Hands-on activity using Research/project tools where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Implementation and evidence generation",
+        "Internship and Thesis: implementation and evidence generation aligned to Complete a six-month research or industry internship and translate the work into thesis/project output.",
+        "Hands-on activity using Research/project tools where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+      [
+        "Thesis/project write-up and dissemination",
+        "Internship and Thesis: thesis/project write-up and dissemination aligned to Complete a six-month research or industry internship and translate the work into thesis/project output.",
+        "Hands-on activity using Research/project tools where appropriate",
+        "Problem set, practical output, or short reflective submission",
+      ],
+    ],
+  },
+];
+const calendarBlocks = [
+  {
+    id: "block-1",
+    title: "Block 1",
+    dates: "05 Oct 2026 - 23 Oct 2026",
+    kind: "Teaching",
+    note: "MES01 Mathematical Problem Solving; MES05 Introduction to R and Python",
+    courseIds: ["MES01", "MES05"],
+  },
+  {
+    id: "block-2",
+    title: "Block 2",
+    dates: "26 Oct 2026 - 13 Nov 2026",
+    kind: "Teaching",
+    note: "MES02 Differential Equations and Modelling; MES04 Introduction to Probability and Statistics",
+    courseIds: ["MES02", "MES04"],
+  },
+  {
+    id: "block-3",
+    title: "Block 3",
+    dates: "23 Nov 2026 - 11 Dec 2026",
+    kind: "Teaching",
+    note: "MES03 Physical Problem Solving; MES06 Scientific Computing and LaTeX",
+    courseIds: ["MES03", "MES06"],
+  },
+  {
+    id: "block-4",
+    title: "Block 4",
+    dates: "04 Jan 2027 - 22 Jan 2027",
+    kind: "Teaching",
+    note: "MEC01 Introduction to Epidemiology; MEC03 Introduction to Mathematical Modelling",
+    courseIds: ["MEC01", "MEC03"],
+  },
+  {
+    id: "block-5",
+    title: "Block 5",
+    dates: "25 Jan 2027 - 12 Feb 2027",
+    kind: "Teaching",
+    note: "MEC02 Epidemiology for Disease Modelling; MEC04 Developing Mathematical Models in Public Health",
+    courseIds: ["MEC02", "MEC04"],
+  },
+  {
+    id: "block-6",
+    title: "Block 6",
+    dates: "15 Feb 2027 - 05 Mar 2027",
+    kind: "Teaching",
+    note: "MEC05 Model Fitting and Validation; MEC06 Numerical Methods",
+    courseIds: ["MEC05", "MEC06"],
+  },
+  {
+    id: "block-7",
+    title: "Block 7",
+    dates: "08 Mar 2027 - 26 Mar 2027",
+    kind: "Teaching",
+    note: "MEC07 Introduction to Data Analysis; MEC08 Advanced Data Analysis",
+    courseIds: ["MEC07", "MEC08"],
+  },
+  {
+    id: "block-8",
+    title: "Block 8",
+    dates: "05 Apr 2027 - 23 Apr 2027",
+    kind: "Teaching",
+    note: "MEC09 Professional, Project, and Entrepreneurship Development; MEC10 AI-Driven Epidemiology and Digital Health Surveillance",
+    courseIds: ["MEC09", "MEC10"],
+  },
+  {
+    id: "block-9",
+    title: "Block 9",
+    dates: "26 Apr 2027 - 14 May 2027",
+    kind: "Teaching",
+    note: "MEE01 Survival Analysis; MEE02 Time Series Analysis; MEE03 Bayesian Statistics; MEE04 Stochastic Models",
+    courseIds: ["MEE01", "MEE02", "MEE03", "MEE04"],
+  },
+  {
+    id: "internship-plus-thesis",
+    title: "Internship + Thesis",
+    dates: "17 May 2027 - 17 Dec 2027",
+    kind: "Practical",
+    note: "MEI01 Internship and Thesis",
+    courseIds: ["MEI01"],
+  },
+];
+const hearOptions = [
+  "AIMS Alumni",
+  "AIMS Public lectures or Outreach events",
+  "Facebook/Twitter/LinkedIn",
+  "Family member",
+  "Friends/Colleagues",
+  "Internet Search Engines",
+  "Leaflets",
+  "Lecturer/Researcher",
+  "Newspapers",
+  "Radio/Television",
+  "Training or education sites",
+  "Other",
+];
+const aimsCentres = [
+  "AIMS South Africa",
+  "AIMS Senegal",
+  "AIMS Ghana",
+  "AIMS Cameroon",
+  "AIMS Rwanda",
+];
+const aimsPrograms = [
+  "Mathematical Sciences",
+  "AMMI",
+  "AI for Science",
+  "Co-op",
+  "Structured Master's Programme",
+  "Research Programme",
+  "Other",
+];
+const steps = [
+  { id: "email", name: "Email" },
+  { id: "lecturer", name: "Applicant details" },
+  { id: "academic", name: "Academic profile" },
+  { id: "host", name: "Host pathway preference" },
+  { id: "selection", name: "Course selection & calendar" },
+  { id: "plan", name: "Proposed course plan" },
+  { id: "experience", name: "Teaching experience" },
+  { id: "passport", name: "Supporting document upload" },
+  { id: "confirm", name: "Additional information & confirmation" },
+];
+const blankPlan = () => [
+  ["Module 1", "", "", "", ""],
+  ["Module 2", "", "", "", ""],
+];
+const state = {
+  email: "",
+  lecturer: {
+    title: "",
+    name: "",
+    gender: "",
+    affiliation: "",
+    designation: "",
+    address: "",
+    countryResidence: "",
+    nationality: "",
+    dialCode: "",
+    phone: "",
+    whatsapp: "",
+    whatsappConsent: "",
+    coLecturer: "No",
+    coDetails: "",
+  },
+  academic: {
+    highest: "",
+    institution: "",
+    year: "",
+    orcid: "",
+    scholar: "",
+    scopus: "",
+    researchAreas: "",
+    publicationCount: "",
+  },
+  host: { firstHost: "", secondHost: "" },
+  selection: { courseId: "", availability: {} },
+  plan: { rows: blankPlan() },
+  experience: {
+    taught: "",
+    items: [{ courseTitle: "", institution: "", level: "", year: "", mode: "", times: "" }],
+  },
+  passport: null,
+  confirm: {
+    comments: "",
+    heard: [],
+    heardOther: "",
+    alumni: "",
+    alumniCentre: "",
+    alumniProgram: "",
+    alumniYear: "",
+    certify: false,
+    terms: false,
+  },
+};
+let current = 0,
+  maxReached = 0,
+  submitted = false,
+  pendingUpload = null;
+function show(view) {
+  if (view === "form" && !callIsOpen()) view = "details";
+  ["home", "details", "form", "dashboard"].forEach((v) => ($("view-" + v).hidden = v !== view));
+  if (view === "form") renderForm();
+  if (view === "dashboard") renderDashboard();
+  syncCallStatusUi();
+  window.scrollTo({ top: 0 });
+}
+document.addEventListener("click", (e) => {
+  const n = e.target.closest("[data-nav]");
+  if (n) {
+    if (n.dataset.nav === "form" && !callIsOpen()) {
+      show("details");
+      return;
+    }
+    show(n.dataset.nav);
+  }
+});
+function syncCurrentCallState() {
+  if (!$("view-form").hidden && !callIsOpen()) {
+    $("stepArea").innerHTML = closedMessageHtml();
+  }
+  syncCallStatusUi();
+}
+window.addEventListener("storage", (e) => {
+  if (e.key === CFA_STATUS_KEY) syncCurrentCallState();
+});
+window.addEventListener("focus", syncCurrentCallState);
+function segBar() {
+  return (
+    '<div class="segbar" role="navigation" aria-label="Application steps">' +
+    steps
+      .map(
+        (s, i) =>
+          '<button type="button" class="seg ' +
+          (i < current ? "done" : i === current ? "cur" : "") +
+          '" data-step="' +
+          i +
+          '" title="Step ' +
+          (i + 1) +
+          ": " +
+          esc(s.name) +
+          '"' +
+          (i === current ? ' aria-current="step"' : "") +
+          ' aria-label="Step ' +
+          (i + 1) +
+          ": " +
+          esc(s.name) +
+          (i < current ? " (completed)" : i === current ? " (current)" : "") +
+          '"></button>',
+      )
+      .join("") +
+    "</div>"
+  );
+}
+function opts(arr, val) {
+  return (
+    '<option value="">Choose</option>' +
+    arr.map((o) => "<option " + (o === val ? "selected" : "") + ">" + esc(o) + "</option>").join("")
+  );
+}
+function get(scope, key) {
+  return scope === "root" ? state[key] : state[scope][key];
+}
+function input(o) {
+  const scope = o.scope,
+    key = o.key,
+    label = o.label,
+    type = o.type || "text",
+    required = o.required !== false,
+    value = o.value ?? get(scope, key) ?? "",
+    help = o.help || "",
+    options = o.options || [];
+  const id = scope + "-" + key;
+  const helpId = id + "-help";
+  const errId = id + "-err";
+  // Optional HTML attributes passed through to the control
+  const attrParts = [];
+  if (o.autocomplete) attrParts.push('autocomplete="' + esc(o.autocomplete) + '"');
+  if (o.inputmode) attrParts.push('inputmode="' + esc(o.inputmode) + '"');
+  if (o.min !== undefined) attrParts.push('min="' + esc(o.min) + '"');
+  if (o.max !== undefined) attrParts.push('max="' + esc(o.max) + '"');
+  if (o.step !== undefined) attrParts.push('step="' + esc(o.step) + '"');
+  if (o.maxlength !== undefined) attrParts.push('maxlength="' + esc(o.maxlength) + '"');
+  if (o.placeholder) attrParts.push('placeholder="' + esc(o.placeholder) + '"');
+  if (o.pattern) attrParts.push('pattern="' + esc(o.pattern) + '"');
+  const a11y =
+    'aria-describedby="' +
+    (help ? helpId + " " : "") +
+    errId +
+    '" ' +
+    (required ? 'aria-required="true" ' : "");
+  const extra = (attrParts.length ? attrParts.join(" ") + " " : "") + a11y;
+  let control = "";
+  if (type === "select")
+    control =
+      '<select class="input" id="' +
+      id +
+      '" data-scope="' +
+      scope +
+      '" data-key="' +
+      key +
+      '" ' +
+      extra +
+      ">" +
+      opts(options, value) +
+      "</select>";
+  else if (type === "textarea")
+    control =
+      '<textarea class="input" id="' +
+      id +
+      '" data-scope="' +
+      scope +
+      '" data-key="' +
+      key +
+      '" ' +
+      extra +
+      ">" +
+      esc(value) +
+      "</textarea>";
+  else
+    control =
+      '<input class="input" id="' +
+      id +
+      '" type="' +
+      type +
+      '" data-scope="' +
+      scope +
+      '" data-key="' +
+      key +
+      '" value="' +
+      esc(value) +
+      '" ' +
+      extra +
+      "/>";
+  return (
+    '<div class="field" data-wrap="' +
+    id +
+    '"><label for="' +
+    id +
+    '">' +
+    label +
+    (required ? "" : ' <span class="opt">(optional)</span>') +
+    "</label>" +
+    control +
+    (help ? '<p class="field-help" id="' + helpId + '">' + help + "</p>" : "") +
+    '<p class="field-err" id="' + errId + '">This field is required.</p></div>'
+  );
+}
+function countryInput(scope, key, label) {
+  return input({
+    scope,
+    key,
+    label,
+    type: "select",
+    options: countries,
+    help: "Select from the full country list.",
+  });
+}
+function uploadPassport() {
+  const f = state.passport;
+  return (
+    '<div class="notice-plain"><b>Only the passport biodata page needs to be attached. Nothing else is required at this stage.</b><br>No CV, certificates, transcripts, publication PDFs, abstracts, or course outlines are required.</div><div class="slot ' +
+    (f ? "filled" : "") +
+    '" data-slot="passport"><div class="slot-head"><span class="slot-label">Passport Biodata Page</span><span class="slot-req">Required</span></div><p class="slot-note">Accepted formats: PDF, JPG, or PNG. Maximum recommended size: 2 MB.</p>' +
+    (f
+      ? '<div><span class="file-name">' +
+        esc(f.name) +
+        '</span> <span class="file-sub">' +
+        esc(f.size) +
+        '</span><button type="button" class="file-x" data-remove-file="passport">Remove</button></div>'
+      : '<button type="button" class="btn-upload" data-upload="passport">Choose file</button>') +
+    '<p class="field-err">Please upload the passport biodata page.</p></div>'
+  );
+}
+function selectedCourse() {
+  return courses.find((c) => c.id === state.selection.courseId) || null;
+}
+function selectedBlock() {
+  const c = selectedCourse();
+  if (!c) return null;
+  return calendarBlocks.find((b) => b.courseIds && b.courseIds.includes(c.id)) || null;
+}
+function coursePanel() {
+  const c = selectedCourse();
+  if (!c)
+    return '<div class="course-empty"><b>No course selected yet.</b><br>Select a MathEpi course above. The description, prerequisites, outcomes, hours, teaching block, and draft plan will load automatically.</div>';
+  const outs = Array.isArray(c.outcomes) ? c.outcomes : [c.outcomes];
+  return (
+    '<div class="course-panel"><h3>' +
+    esc(c.id + " - " + c.title) +
+    '</h3><div class="course-badges"><span class="course-badge">' +
+    esc(c.category) +
+    '</span><span class="course-badge">' +
+    esc(c.duration) +
+    '</span><span class="course-badge">' +
+    esc(c.hours) +
+    ' contact hours</span><span class="course-badge">' +
+    esc(c.period) +
+    "</span></div><p>" +
+    esc(c.description) +
+    '</p><div class="course-detail-grid"><div class="mini-card"><b>Learning outcomes</b><ul>' +
+    outs.map((x) => "<li>" + esc(x) + "</li>").join("") +
+    '</ul></div><div class="mini-card"><b>Prerequisites</b><p>' +
+    esc(c.prereq) +
+    '</p></div><div class="mini-card"><b>Software / tools</b><p>' +
+    esc(c.software || "To be confirmed") +
+    '</p></div><div class="mini-card"><b>Assessment approach</b><p>' +
+    esc(c.assessment) +
+    "</p></div></div></div>"
+  );
+}
+function calendarAvailability() {
+  const c = selectedCourse();
+  const b = selectedBlock();
+  if (!c)
+    return '<div class="field" data-wrap="selection-availability"><div class="course-empty">Calendar availability appears after course selection, so applicants only answer for the teaching block linked to their chosen course.</div><p class="field-err">Please select a course before marking availability.</p></div>';
+  const key = b ? b.id : c.id;
+  const val = state.selection.availability[key] || "";
+  return (
+    '<div class="field" data-wrap="selection-availability"><div class="linked-calendar-card"><h3>Linked academic calendar block</h3><div class="meta"><span>' +
+    esc(b ? b.title : c.duration) +
+    "</span><span>" +
+    esc(b ? b.dates : c.period) +
+    "</span><span>" +
+    esc(state.host.firstHost || "Host pathway not yet selected") +
+    "</span></div><p><b>Course:</b> " +
+    esc(c.id + " - " + c.title) +
+    "</p><p><b>Courses in this block:</b> " +
+    esc(b ? b.note : c.title) +
+    '</p><div class="commitment-strip"><span>3-week teaching block</span><span>In-residence commitment</span><span>Course-linked availability</span></div><p>This availability question is linked directly to the selected course. By marking availability, you are confirming whether you can be in residence for the full scheduled three-week block. Unrelated calendar blocks are hidden to keep the application easy to follow.</p><div class="availability-choice"><label><input type="radio" name="avail-' +
+    key +
+    '" data-avail="' +
+    key +
+    '" value="Available" ' +
+    (val === "Available" ? "checked" : "") +
+    '>Available</label><label><input type="radio" name="avail-' +
+    key +
+    '" data-avail="' +
+    key +
+    '" value="Potentially Available" ' +
+    (val === "Potentially Available" ? "checked" : "") +
+    '>Tentative</label><label><input type="radio" name="avail-' +
+    key +
+    '" data-avail="' +
+    key +
+    '" value="Not Available" ' +
+    (val === "Not Available" ? "checked" : "") +
+    '>Unavailable</label></div></div><p class="field-err">Please mark your availability for the selected course block.</p></div>'
+  );
+}
+function hostCards() {
+  return (
+    '<div class="host-grid">' +
+    hostPathways
+      .map(
+        (h) =>
+          '<div class="host-card ' +
+          (state.host.firstHost === h || state.host.secondHost === h ? "selected" : "") +
+          '"><h3>' +
+          esc(h) +
+          '</h3><p>Mathepi host pathway for lecturer deployment, scheduling, and course coordination.</p><div class="host-actions"><button type="button" class="choice-btn ' +
+          (state.host.firstHost === h ? "active" : "") +
+          '" data-host-first="' +
+          esc(h) +
+          '">First choice</button><button type="button" class="choice-btn ' +
+          (state.host.secondHost === h ? "active" : "") +
+          '" data-host-second="' +
+          esc(h) +
+          '">Second choice</button></div></div>',
+      )
+      .join("") +
+    '</div><div class="field" data-wrap="host-firstHost"><p class="field-err">Select a first choice host pathway.</p></div><div class="field" data-wrap="host-secondHost"><button type="button" class="btn-soft" data-no-second>No second choice</button><p class="field-help">Second choice is optional and cannot duplicate the first choice. Current second choice: <b>' +
+    (state.host.secondHost ? esc(state.host.secondHost) : "Not selected") +
+    '</b></p><p class="field-err">Second choice cannot duplicate first choice.</p></div>'
+  );
+}
+function planRows() {
+  return state.plan.rows
+    .map(
+      (r, i) =>
+        '<div class="plan-row"><h3>Module ' +
+        (i + 1) +
+        '</h3><div class="grid2">' +
+        planInput(i, 0, "Module title", r[0]) +
+        planInput(i, 1, "Topic / focus", r[1]) +
+        planInput(i, 2, "Learning objectives", "textarea", r[2]) +
+        planInput(i, 3, "Practical activities", "textarea", r[3]) +
+        planInput(i, 4, "Assessment strategy / notes", "textarea", r[4]) +
+        "</div></div>",
+    )
+    .join("");
+}
+function planInput(i, j, label, typeOrVal, valMaybe) {
+  let type = "text",
+    val = typeOrVal;
+  if (typeOrVal === "textarea") {
+    type = "textarea";
+    val = valMaybe;
+  }
+  const id = "plan-" + i + "-" + j;
+  const control =
+    type === "textarea"
+      ? '<textarea class="input" data-plan-i="' +
+        i +
+        '" data-plan-j="' +
+        j +
+        '">' +
+        esc(val) +
+        "</textarea>"
+      : '<input class="input" data-plan-i="' +
+        i +
+        '" data-plan-j="' +
+        j +
+        '" value="' +
+        esc(val) +
+        '" />';
+  return '<div class="field"><label>' + label + "</label>" + control + "</div>";
+}
+function loadStandardPlan() {
+  const c = selectedCourse();
+  // module shape: [title, description, hands-on activity, assessment]
+  // plan row shape: [title, topic/focus, learning objectives, practical activities, assessment notes]
+  state.plan.rows = c
+    ? c.modules.map((m) => [m[0] || "", m[1] || "", "", m[2] || "", m[3] || ""])
+    : blankPlan();
+}
+function renderForm() {
+  if (!callIsOpen()) {
+    $("stepArea").innerHTML = closedMessageHtml();
+    syncCallStatusUi();
+    return;
+  }
+  const step = steps[current];
+  let body = "";
+  if (step.id === "email")
+    body = input({
+      scope: "root",
+      key: "email",
+      label: "Email address",
+      type: "email",
+      value: state.email,
+      autocomplete: "email",
+      inputmode: "email",
+      placeholder: "name@example.org",
+      help: "A copy of the submission would be sent to this email address.",
+    });
+  if (step.id === "lecturer") {
+    const l = state.lecturer;
+    body =
+      '<p class="subhead">Applicant details</p><div class="grid2">' +
+      input({
+        scope: "lecturer",
+        key: "title",
+        label: "Title",
+        type: "select",
+        options: ["Prof.", "Dr.", "Mr.", "Ms.", "Mrs.", "Other"],
+      }) +
+      '<div class="col-full">' +
+      input({
+        scope: "lecturer",
+        key: "name",
+        label: "Name and Surname",
+        autocomplete: "name",
+      }) +
+      "</div>" +
+      input({
+        scope: "lecturer",
+        key: "gender",
+        label: "Gender",
+        type: "select",
+        options: ["Female", "Male", "Prefer not to say", "Other"],
+      }) +
+      input({
+        scope: "lecturer",
+        key: "affiliation",
+        label: "Affiliation / Institution",
+        autocomplete: "organization",
+      }) +
+      input({
+        scope: "lecturer",
+        key: "designation",
+        label: "Designation in Institution",
+        help: "Examples: Research Professor, Lecturer, Senior Lecturer, Research Scientist, Postdoctoral Fellow, Programme Officer, Graduate Researcher.",
+      }) +
+      '<div class="col-full">' +
+      input({
+        scope: "lecturer",
+        key: "address",
+        label: "Institutional or Postal Address",
+        type: "textarea",
+        autocomplete: "street-address",
+      }) +
+      "</div>" +
+      countryInput("lecturer", "countryResidence", "Country of Residence") +
+      countryInput("lecturer", "nationality", "Nationality") +
+      input({
+        scope: "lecturer",
+        key: "dialCode",
+        label: "Phone Number International Dialing Code",
+        type: "select",
+        options: [
+          "+237",
+          "+233",
+          "+250",
+          "+254",
+          "+221",
+          "+27",
+          "+256",
+          "+234",
+          "+1",
+          "+44",
+          "Other",
+        ],
+      }) +
+      input({
+        scope: "lecturer",
+        key: "phone",
+        label: "Phone Number",
+        type: "tel",
+        autocomplete: "tel-national",
+        inputmode: "tel",
+        placeholder: "Digits only",
+      }) +
+      input({
+        scope: "lecturer",
+        key: "whatsapp",
+        label: "Is this phone number registered on WhatsApp?",
+        type: "select",
+        options: ["Yes", "No"],
+      }) +
+      (l.whatsapp === "Yes"
+        ? input({
+            scope: "lecturer",
+            key: "whatsappConsent",
+            label: "May the Mathepi Secretariat contact you via WhatsApp about this application?",
+            type: "select",
+            options: ["Yes", "No"],
+            help: "WhatsApp may be used only for application updates, logistics, and urgent communication.",
+          })
+        : "") +
+      input({
+        scope: "lecturer",
+        key: "coLecturer",
+        label: "Are you applying with an institutional or KEMRI/AIMS contact?",
+        type: "select",
+        options: ["Yes", "No"],
+        required: false,
+      }) +
+      (l.coLecturer === "Yes"
+        ? '<div class="col-full">' +
+          input({
+            scope: "lecturer",
+            key: "coDetails",
+            label: "Contact or collaborator details",
+            type: "textarea",
+            required: false,
+          }) +
+          "</div>"
+        : "") +
+      "</div>";
+  }
+  if (step.id === "academic")
+    body =
+      '<p class="subhead">Abridged academic CV</p><div class="notice-plain">No full CV upload is required. Reviewer evidence is captured through structured fields and researcher profile identifiers.</div><div class="grid2">' +
+      input({
+        scope: "academic",
+        key: "highest",
+        label: "Highest qualification",
+        type: "select",
+        options: ["BSc", "MSc", "MPhil", "PhD", "Other"],
+      }) +
+      input({ scope: "academic", key: "institution", label: "Awarding institution" }) +
+      input({
+        scope: "academic",
+        key: "year",
+        label: "Year awarded",
+        type: "number",
+        min: 1950,
+        max: 2026,
+        inputmode: "numeric",
+      }) +
+      input({
+        scope: "academic",
+        key: "publicationCount",
+        label: "Number of peer-reviewed publications",
+        type: "number",
+        min: 0,
+        max: 2000,
+        inputmode: "numeric",
+        required: false,
+      }) +
+      input({ scope: "academic", key: "orcid", label: "ORCID", type: "url", required: false }) +
+      input({
+        scope: "academic",
+        key: "scholar",
+        label: "Google Scholar profile",
+        type: "url",
+        required: false,
+      }) +
+      input({ scope: "academic", key: "scopus", label: "Scopus Author ID", required: false }) +
+      '<div class="col-full">' +
+      input({
+        scope: "academic",
+        key: "researchAreas",
+        label: "Research areas",
+        type: "textarea",
+      }) +
+      "</div></div>";
+  if (step.id === "host")
+    body =
+      '<p class="field-help">This application is limited to AIMS Cameroon and AIMS RW/KEMRI.</p>' +
+      hostCards();
+  if (step.id === "selection")
+    body =
+      '<div class="selection-guide"><b>Select a course, then confirm your availability for its scheduled teaching block.</b><br>MathEpi courses are delivered in intensive blocks. The course you choose drives the calendar shown below, and selected lecturers are expected to be in residence for the full three-week delivery period.</div>' +
+      input({
+        scope: "selection",
+        key: "courseId",
+        label: "Preferred MathEpi course",
+        type: "select",
+        options: courses.map((c) => c.id + " - " + c.title),
+        value: state.selection.courseId ? selectedCourse().id + " - " + selectedCourse().title : "",
+      }) +
+      '<div class="linked-course-layout selection-sequence"><div class="flow-tile" data-step="1"><h3>Selected course brief</h3>' +
+      coursePanel() +
+      '</div><div class="flow-tile" data-step="2"><h3>Linked calendar and residence commitment</h3>' +
+      calendarAvailability() +
+      "</div></div>";
+  if (step.id === "plan")
+    body =
+      '<div class="soft-actions"><button type="button" class="btn-soft" data-standard-plan>Use Standard MathEpi Template</button><button type="button" class="btn-soft" data-add-module>Add Module</button></div><div class="notice-plain">The proposed plan is prefilled from the selected course. Adjust it as it suits your plan but do not deviate from the course brief.</div><div data-wrap="plan-rows">' +
+      planRows() +
+      '<p class="field-err">Add at least one proposed course module.</p></div>';
+  if (step.id === "experience")
+    body =
+      input({
+        scope: "experience",
+        key: "taught",
+        label: "Have you taught this course or a similar course before?",
+        type: "select",
+        options: ["Yes", "No"],
+      }) +
+      (state.experience.taught === "Yes"
+        ? '<div data-wrap="experience-items">' +
+          state.experience.items
+            .map(
+              (it, i) =>
+                '<div class="plan-row"><div class="slot-head"><h3 style="margin:0">Teaching record ' +
+                (i + 1) +
+                "</h3>" +
+                (state.experience.items.length > 1
+                  ? '<button type="button" class="file-x" data-remove-exp="' +
+                    i +
+                    '">Remove</button>'
+                  : "") +
+                '</div><div class="grid2">' +
+                expInput(i, "courseTitle", "Course title") +
+                expInput(i, "institution", "Institution") +
+                expSelect(i, "level", "Academic level", [
+                  "MSc",
+                  "PhD",
+                  "Professional Training",
+                  "Undergraduate",
+                ]) +
+                expInput(i, "year", "Year", "number") +
+                expSelect(i, "mode", "Delivery mode", ["In-person", "Online", "Hybrid"]) +
+                expInput(i, "times", "Number of times delivered", "number") +
+                "</div></div>",
+            )
+            .join("") +
+          '<button type="button" class="btn-soft" data-add-exp>Add another teaching record</button>' +
+          '<p class="field-err">Complete the course title, institution, level, and year for each teaching record.</p></div>'
+        : "");
+  if (step.id === "passport") body = uploadPassport();
+  if (step.id === "confirm")
+    body =
+      input({
+        scope: "confirm",
+        key: "comments",
+        label: "Additional comments",
+        type: "textarea",
+        required: false,
+      }) +
+      '<p class="matrix-label">Are you an AIMS Alumnus/Alumna?</p><div class="radio-row"><label class="pill"><input type="radio" name="alumni" data-alumni value="Yes" ' +
+      (state.confirm.alumni === "Yes" ? "checked" : "") +
+      '> Yes</label><label class="pill"><input type="radio" name="alumni" data-alumni value="No" ' +
+      (state.confirm.alumni === "No" ? "checked" : "") +
+      "> No</label></div>" +
+      (state.confirm.alumni === "Yes"
+        ? '<div class="grid2" style="margin-top:16px">' +
+          input({
+            scope: "confirm",
+            key: "alumniCentre",
+            label: "AIMS Centre",
+            type: "select",
+            options: aimsCentres,
+          }) +
+          input({
+            scope: "confirm",
+            key: "alumniProgram",
+            label: "Programme",
+            type: "select",
+            options: aimsPrograms,
+          }) +
+          input({
+            scope: "confirm",
+            key: "alumniYear",
+            label: "Graduation year",
+            type: "number",
+            min: 1990,
+            max: 2026,
+            inputmode: "numeric",
+          }) +
+          "</div>"
+        : "") +
+      '<p class="matrix-label">How did you hear about AIMS?</p><div class="check-row">' +
+      hearOptions
+        .map(
+          (o) =>
+            '<label class="pill"><input type="checkbox" data-hear="' +
+            esc(o) +
+            '" ' +
+            (state.confirm.heard.includes(o) ? "checked" : "") +
+            "> " +
+            esc(o) +
+            "</label>",
+        )
+        .join("") +
+      '</div><div style="margin-top:16px">' +
+      input({ scope: "confirm", key: "heardOther", label: "Other", required: false }) +
+      '</div><div class="declaration" data-wrap="declarations"><label class="check-line"><input type="checkbox" data-bool="certify" ' +
+      (state.confirm.certify ? "checked" : "") +
+      '> <span>I certify that the information given above is true and correct to the best of my knowledge.</span></label><label class="check-line"><input type="checkbox" data-bool="terms" ' +
+      (state.confirm.terms ? "checked" : "") +
+      '> <span>I accept the terms of use and authorise AIMS to use the submitted information for admission, internal evaluation, scholarship funding, and programme evaluation purposes.</span></label><p class="field-err">Please complete both confirmations.</p></div>';
+  const clear =
+    '<button type="button" class="btn-back danger" data-clear-current>Clear current section</button><button type="button" class="btn-back danger" data-reset-form>Reset form</button>';
+  const actions =
+    '<div class="actions"><button class="btn-back" type="button" id="backBtn" ' +
+    (current === 0 ? "hidden" : "") +
+    '><- Back</button><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">' +
+    (current === steps.length - 1 ? clear : "") +
+    '<button class="btn-primary" type="button" id="nextBtn">' +
+    (current === steps.length - 1 ? "Submit application" : "Save and continue") +
+    " -></button></div></div>";
+  $("stepArea").innerHTML =
+    segBar() +
+    '<p class="step-num">Step ' +
+    (current + 1) +
+    " of " +
+    steps.length +
+    "  -  " +
+    esc(step.name) +
+    '</p><h1 class="step-title">' +
+    esc(step.name) +
+    '</h1><p class="step-intro">' +
+    intro(step.id) +
+    "</p>" +
+    body +
+    actions;
+}
+function expInput(i, key, label, type = "text") {
+  const val = state.experience.items[i][key] || "";
+  const fid = "exp-" + i + "-" + key;
+  let extra = "";
+  if (type === "number") {
+    extra = ' inputmode="numeric" min="0"';
+    if (key === "year") extra = ' inputmode="numeric" min="1960" max="2026"';
+  }
+  return (
+    '<div class="field"><label for="' +
+    fid +
+    '">' +
+    label +
+    '</label><input class="input" id="' +
+    fid +
+    '" type="' +
+    type +
+    '" data-exp-i="' +
+    i +
+    '" data-exp-key="' +
+    key +
+    '" value="' +
+    esc(val) +
+    '"' +
+    extra +
+    "></div>"
+  );
+}
+function expSelect(i, key, label, arr) {
+  const val = state.experience.items[i][key] || "";
+  return (
+    '<div class="field"><label>' +
+    label +
+    '</label><select class="input" data-exp-i="' +
+    i +
+    '" data-exp-key="' +
+    key +
+    '">' +
+    opts(arr, val) +
+    "</select></div>"
+  );
+}
+function intro(id) {
+  return {
+    email: "Enter the email address that should receive a copy of the submission.",
+    lecturer: "Provide the applicant profile information required for Mathepi screening.",
+    academic: "Complete an abridged CV through structured fields instead of uploading a full CV.",
+    host: "Select the preferred Mathepi host pathway.",
+    selection:
+      "Choose one MathEpi course first. The form will then show only the calendar block linked to that course.",
+    plan: "Review and adjust the proposed course plan generated from the selected course.",
+    experience: "Tell us whether you have taught this course or a similar course before.",
+    passport: "Attach only the passport biodata page. No other document is required.",
+    confirm: "Add optional comments, alumni information, and final declarations.",
+  }[id];
+}
+
+/* ----------------------------------------------------------------------------
+   Persistence (draft autosave + submitted applications)
+   localStorage is used so an in-progress draft survives a page reload when the
+   file is opened directly in a browser. It degrades gracefully if storage is
+   unavailable (private mode, file:// restrictions): the form still works for
+   the current session, it just will not persist.
+---------------------------------------------------------------------------- */
+const DRAFT_KEY = "aims_mathepi_draft_v2";
+const APPS_KEY = "aims_mathepi_apps_v2";
+const CFA_STATUS_KEY = "mathepi-cfa-status-v1";
+const GOOGLE_BACKEND_URL_KEY = "mathepi-apps-script-url";
+const CFA_CALL_ID = "lecturers";
+const DEFAULT_CALL_STATUS = "Open";
+let storageOK = true;
+let passportPayload = null;
+try {
+  const k = "__aims_test__";
+  localStorage.setItem(k, "1");
+  localStorage.removeItem(k);
+} catch (e) {
+  storageOK = false;
+}
+
+function safeGet(key) {
+  if (!storageOK) return null;
+  try {
+    return localStorage.getItem(key);
+  } catch (e) {
+    return null;
+  }
+}
+function safeSet(key, val) {
+  if (!storageOK) return false;
+  try {
+    localStorage.setItem(key, val);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function appsScriptUrl() {
+  return (window.MATHEPI_APPS_SCRIPT_URL || safeGet(GOOGLE_BACKEND_URL_KEY) || "").trim();
+}
+function hasAppsScriptBridge() {
+  return !!(window.google && google.script && google.script.run);
+}
+function googleBackendAvailable() {
+  return hasAppsScriptBridge() || !!appsScriptUrl();
+}
+function googleApi(action, payload = {}) {
+  if (hasAppsScriptBridge()) {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler((error) => reject(new Error(error?.message || String(error))))
+        .apiPost({ action, payload });
+    });
+  }
+  const endpoint = appsScriptUrl();
+  if (!endpoint) return Promise.reject(new Error("Apps Script Web App URL is not configured."));
+  return fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action, payload }),
+  }).then((response) => {
+    if (!response.ok) throw new Error(`Apps Script request failed: ${response.status}`);
+    return response.json();
+  });
+}
+
+async function refreshCallStatusFromGoogle() {
+  if (!googleBackendAvailable()) return;
+  try {
+    const result = await googleApi("getCfaStatus", { id: CFA_CALL_ID });
+    if (result?.status) {
+      const current = JSON.parse(safeGet(CFA_STATUS_KEY) || "{}");
+      current[CFA_CALL_ID] = result.status;
+      safeSet(CFA_STATUS_KEY, JSON.stringify(current));
+      syncCurrentCallState();
+    }
+  } catch (e) {
+    // Local/offline mode is still valid for development.
+  }
+}
+
+function callStatus() {
+  const raw = safeGet(CFA_STATUS_KEY);
+  if (!raw) return DEFAULT_CALL_STATUS;
+  try {
+    const data = JSON.parse(raw);
+    return data && data[CFA_CALL_ID] ? data[CFA_CALL_ID] : DEFAULT_CALL_STATUS;
+  } catch (e) {
+    return DEFAULT_CALL_STATUS;
+  }
+}
+function callIsOpen() {
+  return callStatus() === "Open";
+}
+function syncCallStatusUi() {
+  const open = callIsOpen();
+  const status = open ? "Open" : "Closed";
+  document.querySelectorAll("[data-call-status]").forEach((el) => {
+    el.textContent = status;
+    el.classList.toggle("open", open);
+    el.classList.toggle("closed", !open);
+  });
+  document.querySelectorAll("[data-call-notice]").forEach((el) => {
+    el.textContent = open
+      ? "Applications are open. Complete and submit the form before the call closes."
+      : "Applications are closed. New lecturer applications can no longer be submitted for this call.";
+    el.classList.toggle("closed", !open);
+  });
+  document.querySelectorAll('[data-nav="form"]').forEach((el) => {
+    el.disabled = !open;
+    if (open) el.removeAttribute("aria-disabled");
+    else el.setAttribute("aria-disabled", "true");
+  });
+  const draftBtn = $("draftBtn");
+  if (draftBtn) draftBtn.disabled = !open;
+}
+function closedMessageHtml() {
+  return (
+    '<div class="done-wrap"><div class="done-badge">!</div><h2>Applications closed</h2>' +
+    "<p>New lecturer applications can no longer be received for this call.</p>" +
+    '<button class="btn-primary" data-nav="dashboard">View application status</button></div>'
+  );
+}
+
+// Copy only known keys from a saved object into the live state shape, so a
+// stored draft from an older/newer build can never crash the form.
+function mergeKnown(target, saved) {
+  if (!saved || typeof saved !== "object") return;
+  Object.keys(target).forEach((k) => {
+    if (!(k in saved)) return;
+    const tv = target[k],
+      sv = saved[k];
+    if (Array.isArray(tv)) {
+      if (Array.isArray(sv)) target[k] = sv;
+    } else if (tv && typeof tv === "object") {
+      if (sv && typeof sv === "object" && !Array.isArray(sv)) mergeKnown(tv, sv);
+    } else {
+      target[k] = sv;
+    }
+  });
+}
+
+let saveTimer = null;
+function nowLabel() {
+  const d = new Date();
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+function setSaveText(t) {
+  const el = $("autosaveText");
+  if (el) el.textContent = t;
+}
+// Debounced autosave of the working draft.
+function scheduleSave() {
+  setSaveText("Saving...");
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(persistDraft, 500);
+}
+function persistDraft() {
+  const ok = safeSet(DRAFT_KEY, JSON.stringify({ state, current, submitted }));
+  setSaveText(
+    ok ? "All changes saved  -  " + nowLabel() : "Working in this session (storage unavailable)",
+  );
+}
+function loadDraft() {
+  const raw = safeGet(DRAFT_KEY);
+  if (!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    mergeKnown(state, data.state || {});
+    if (typeof data.current === "number")
+      current = Math.max(0, Math.min(steps.length - 1, data.current));
+    if (data.submitted) submitted = true;
+    maxReached = Math.max(maxReached, current);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+function loadApps() {
+  const raw = safeGet(APPS_KEY);
+  if (!raw) return [];
+  try {
+    const a = JSON.parse(raw);
+    return Array.isArray(a) ? a : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+/* ---------------------------------------------------------------------------- */
+
+function setValue(scope, key, val) {
+  if (scope === "root") state[key] = val;
+  else state[scope][key] = val;
+}
+
+function updateValue(el) {
+  setValue(el.dataset.scope, el.dataset.key, el.value);
+  const wrap = el.closest("[data-wrap]");
+  if (wrap) wrap.classList.remove("has-error");
+  el.removeAttribute("aria-invalid");
+
+  // Course selection drives the calendar + the proposed plan.
+  if (el.dataset.scope === "selection" && el.dataset.key === "courseId") {
+    const c = courses.find((x) => x.id + " - " + x.title === el.value);
+    state.selection.courseId = c ? c.id : "";
+    state.selection.availability = {};
+    loadStandardPlan();
+    persistDraft();
+    renderForm();
+    return;
+  }
+  scheduleSave();
+}
+
+// Re-render but keep the page from jumping (preserve scroll position).
+function renderFormKeepScroll() {
+  const y = window.scrollY;
+  renderForm();
+  window.scrollTo({ top: y });
+}
+
+$("stepArea").addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.dataset.scope) {
+    updateValue(t);
+    return;
+  }
+  if (t.dataset.planI) {
+    state.plan.rows[+t.dataset.planI][+t.dataset.planJ] = t.value;
+    scheduleSave();
+  }
+  if (t.dataset.expI) {
+    state.experience.items[+t.dataset.expI][t.dataset.expKey] = t.value;
+    scheduleSave();
+  }
+});
+
+$("stepArea").addEventListener("change", (e) => {
+  const t = e.target;
+
+  // Conditional fields: when the controlling answer changes, clear the
+  // dependent data so a hidden, stale value cannot be submitted.
+  if (t.dataset.scope === "lecturer" && t.dataset.key === "whatsapp") {
+    state.lecturer.whatsapp = t.value;
+    if (t.value !== "Yes") state.lecturer.whatsappConsent = "";
+    persistDraft();
+    renderForm();
+    return;
+  }
+  if (t.dataset.scope === "lecturer" && t.dataset.key === "coLecturer") {
+    state.lecturer.coLecturer = t.value;
+    if (t.value !== "Yes") state.lecturer.coDetails = "";
+    persistDraft();
+    renderForm();
+    return;
+  }
+
+  if (t.dataset.scope === "experience" && t.dataset.key === "taught") {
+    state.experience.taught = t.value;
+    if (t.value !== "Yes")
+      state.experience.items = [
+        { courseTitle: "", institution: "", level: "", year: "", mode: "", times: "" },
+      ];
+    persistDraft();
+    renderForm();
+    return;
+  }
+
+  if (t.dataset.scope) updateValue(t);
+
+  if (t.dataset.avail) {
+    state.selection.availability[t.dataset.avail] = t.value;
+    const w = document.querySelector('[data-wrap="selection-availability"]');
+    if (w) w.classList.remove("has-error");
+    scheduleSave();
+  }
+  if (t.dataset.hear) {
+    const h = t.dataset.hear;
+    if (t.checked) {
+      if (!state.confirm.heard.includes(h)) state.confirm.heard.push(h);
+    } else state.confirm.heard = state.confirm.heard.filter((x) => x !== h);
+    scheduleSave();
+  }
+  if (t.dataset.bool) {
+    state.confirm[t.dataset.bool] = t.checked;
+    const w = document.querySelector('[data-wrap="declarations"]');
+    if (w) w.classList.remove("has-error");
+    scheduleSave();
+  }
+  if (t.dataset.alumni !== undefined) {
+    state.confirm.alumni = t.value;
+    if (t.value !== "Yes") {
+      state.confirm.alumniCentre = "";
+      state.confirm.alumniProgram = "";
+      state.confirm.alumniYear = "";
+    }
+    persistDraft();
+    renderForm();
+  }
+  if (t.dataset.expI) {
+    state.experience.items[+t.dataset.expI][t.dataset.expKey] = t.value;
+    scheduleSave();
+  }
+});
+
+// Enter advances to the next step (but not inside a textarea).
+$("stepArea").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "textarea" || tag === "button") return;
+  e.preventDefault();
+  const next = $("nextBtn");
+  if (next) next.click();
+});
+
+$("stepArea").addEventListener("click", (e) => {
+  const s = e.target.closest("[data-step]");
+  if (s) {
+    goToStep(+s.dataset.step);
+    return;
+  }
+  if (e.target.closest("#backBtn")) {
+    goToStep(current - 1);
+    return;
+  }
+  if (e.target.closest("#nextBtn")) {
+    if (current < steps.length - 1) goToStep(current + 1);
+    else submit();
+    return;
+  }
+  const up = e.target.closest("[data-upload]");
+  if (up) {
+    pendingUpload = up.dataset.upload;
+    $("filePicker").click();
+    return;
+  }
+  const rm = e.target.closest("[data-remove-file]");
+  if (rm) {
+    state.passport = null;
+    passportPayload = null;
+    persistDraft();
+    renderForm();
+    return;
+  }
+  const hf = e.target.closest("[data-host-first]");
+  if (hf) {
+    state.host.firstHost = hf.dataset.hostFirst;
+    if (state.host.secondHost === state.host.firstHost) state.host.secondHost = "";
+    persistDraft();
+    renderForm();
+    return;
+  }
+  const hs = e.target.closest("[data-host-second]");
+  if (hs) {
+    if (hs.dataset.hostSecond !== state.host.firstHost)
+      state.host.secondHost = hs.dataset.hostSecond;
+    persistDraft();
+    renderForm();
+    return;
+  }
+  if (e.target.closest("[data-no-second]")) {
+    state.host.secondHost = "No second choice";
+    persistDraft();
+    renderForm();
+    return;
+  }
+  if (e.target.closest("[data-standard-plan]")) {
+    loadStandardPlan();
+    persistDraft();
+    renderForm();
+    return;
+  }
+  if (e.target.closest("[data-add-module]")) {
+    state.plan.rows.push(["Module " + (state.plan.rows.length + 1), "", "", "", ""]);
+    persistDraft();
+    renderFormKeepScroll();
+    return;
+  }
+  if (e.target.closest("[data-add-exp]")) {
+    state.experience.items.push({
+      courseTitle: "",
+      institution: "",
+      level: "",
+      year: "",
+      mode: "",
+      times: "",
+    });
+    persistDraft();
+    renderFormKeepScroll();
+    return;
+  }
+  const rmExp = e.target.closest("[data-remove-exp]");
+  if (rmExp) {
+    const i = +rmExp.dataset.removeExp;
+    if (state.experience.items.length > 1) state.experience.items.splice(i, 1);
+    persistDraft();
+    renderFormKeepScroll();
+    return;
+  }
+  if (e.target.closest("[data-clear-current]")) {
+    if (confirm("Clear this section?")) {
+      clearCurrent();
+      persistDraft();
+      renderForm();
+    }
+    return;
+  }
+  if (e.target.closest("[data-reset-form]")) {
+    if (confirm("Reset the entire form? This will clear all fields.")) {
+      resetAll();
+      current = 0;
+      maxReached = 0;
+      submitted = false;
+      persistDraft();
+      renderForm();
+    }
+    return;
+  }
+});
+
+$("filePicker").addEventListener("change", (e) => {
+  const f = e.target.files[0];
+  if (!f || pendingUpload !== "passport") return;
+  const okType = /\.(pdf|jpe?g|png)$/i.test(f.name);
+  if (!okType) {
+    alert("Please choose a PDF, JPG, or PNG file.");
+    e.target.value = "";
+    return;
+  }
+  if (f.size > 5 * 1048576) {
+    alert("That file is larger than 5 MB. Please choose a smaller file.");
+    e.target.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = String(reader.result || "");
+    passportPayload = {
+      name: f.name,
+      mimeType: f.type || "application/octet-stream",
+      dataBase64: dataUrl.includes(",") ? dataUrl.split(",").pop() : dataUrl,
+    };
+    state.passport = {
+      name: f.name,
+      size:
+        f.size > 1048576 ? (f.size / 1048576).toFixed(1) + " MB" : Math.round(f.size / 1024) + " KB",
+    };
+    pendingUpload = null;
+    e.target.value = "";
+    persistDraft();
+    renderForm();
+  };
+  reader.onerror = () => {
+    alert("The file could not be read. Please choose it again.");
+    pendingUpload = null;
+    e.target.value = "";
+  };
+  reader.readAsDataURL(f);
+});
+
+/* ----------------------------- Step navigation ----------------------------- */
+function goToStep(t) {
+  t = Math.max(0, Math.min(steps.length - 1, t));
+  if (t === current) return;
+  if (t < current) {
+    // Moving back is always allowed.
+    current = t;
+    persistDraft();
+    renderForm();
+    return;
+  }
+  // Moving forward requires the current step to be valid, and cannot leap past
+  // the furthest validated step.
+  if (!validate()) return;
+  maxReached = Math.max(maxReached, current + 1);
+  current = Math.min(t, maxReached);
+  persistDraft();
+  renderForm();
+}
+
+/* ----------------------------- Validation ----------------------------------- */
+function mark(sel) {
+  const el = document.querySelector(sel);
+  if (el) {
+    el.classList.add("has-error");
+    const field = el.querySelector(".input, [data-upload]");
+    if (field && field.classList.contains("input")) field.setAttribute("aria-invalid", "true");
+  }
+  return sel;
+}
+
+// Pure, DOM-free check of a step. Returns an array of wrap selectors with errors.
+function stepErrors(id) {
+  const errs = [];
+  const push = (sel, bad) => {
+    if (bad) errs.push(sel);
+  };
+  if (id === "email") {
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email || "");
+    push('[data-wrap="root-email"]', !ok);
+  }
+  if (id === "lecturer") {
+    const l = state.lecturer;
+    [
+      "title",
+      "name",
+      "gender",
+      "affiliation",
+      "designation",
+      "address",
+      "countryResidence",
+      "nationality",
+      "dialCode",
+      "phone",
+      "whatsapp",
+    ].forEach((k) => push('[data-wrap="lecturer-' + k + '"]', !String(l[k] || "").trim()));
+    if (l.whatsapp === "Yes") push('[data-wrap="lecturer-whatsappConsent"]', !l.whatsappConsent);
+  }
+  if (id === "academic") {
+    const a = state.academic;
+    ["highest", "institution", "year", "researchAreas"].forEach((k) =>
+      push('[data-wrap="academic-' + k + '"]', !String(a[k] || "").trim()),
+    );
+  }
+  if (id === "host") {
+    push('[data-wrap="host-firstHost"]', !state.host.firstHost);
+    push(
+      '[data-wrap="host-secondHost"]',
+      !!state.host.secondHost &&
+        state.host.secondHost !== "No second choice" &&
+        state.host.secondHost === state.host.firstHost,
+    );
+  }
+  if (id === "selection") {
+    push('[data-wrap="selection-courseId"]', !state.selection.courseId);
+    push(
+      '[data-wrap="selection-availability"]',
+      !!state.selection.courseId && !Object.keys(state.selection.availability).length,
+    );
+  }
+  if (id === "plan") push('[data-wrap="plan-rows"]', !state.plan.rows.length);
+  if (id === "experience") {
+    push('[data-wrap="experience-taught"]', !state.experience.taught);
+    if (state.experience.taught === "Yes") {
+      const incomplete = state.experience.items.some(
+        (it) =>
+          !String(it.courseTitle || "").trim() ||
+          !String(it.institution || "").trim() ||
+          !String(it.level || "").trim() ||
+          !String(it.year || "").trim(),
+      );
+      push('[data-wrap="experience-items"]', incomplete);
+    }
+  }
+  if (id === "passport") push('[data-slot="passport"]', !state.passport);
+  if (id === "confirm") {
+    if (state.confirm.alumni === "Yes") {
+      ["alumniCentre", "alumniProgram", "alumniYear"].forEach((k) =>
+        push('[data-wrap="confirm-' + k + '"]', !String(state.confirm[k] || "").trim()),
+      );
+    }
+    push('[data-wrap="declarations"]', !state.confirm.certify || !state.confirm.terms);
+  }
+  return errs;
+}
+
+// Validate the step currently on screen, mark + focus the first error.
+function validate() {
+  document.querySelectorAll(".has-error").forEach((x) => x.classList.remove("has-error"));
+  const errors = stepErrors(steps[current].id);
+  errors.forEach(mark);
+  if (errors.length) {
+    const el = document.querySelector(errors[0]);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      const focusable = el.querySelector(".input, button, [tabindex]");
+      if (focusable) focusable.focus({ preventScroll: true });
+    }
+    return false;
+  }
+  return true;
+}
+
+// On final submit, validate every step. If any earlier step fails, jump there.
+function validateAll() {
+  for (let i = 0; i < steps.length; i++) {
+    const errs = stepErrors(steps[i].id);
+    if (errs.length) {
+      current = i;
+      maxReached = Math.max(maxReached, i);
+      renderForm();
+      validate();
+      return false;
+    }
+  }
+  return true;
+}
+
+/* ------------------------------- Clear / reset ------------------------------ */
+function blankLecturer() {
+  return {
+    title: "",
+    name: "",
+    gender: "",
+    affiliation: "",
+    designation: "",
+    address: "",
+    countryResidence: "",
+    nationality: "",
+    dialCode: "",
+    phone: "",
+    whatsapp: "",
+    whatsappConsent: "",
+    coLecturer: "No",
+    coDetails: "",
+  };
+}
+function blankAcademic() {
+  return {
+    highest: "",
+    institution: "",
+    year: "",
+    orcid: "",
+    scholar: "",
+    scopus: "",
+    researchAreas: "",
+    publicationCount: "",
+  };
+}
+function blankExperience() {
+  return {
+    taught: "",
+    items: [{ courseTitle: "", institution: "", level: "", year: "", mode: "", times: "" }],
+  };
+}
+function blankConfirm() {
+  return {
+    comments: "",
+    heard: [],
+    heardOther: "",
+    alumni: "",
+    alumniCentre: "",
+    alumniProgram: "",
+    alumniYear: "",
+    certify: false,
+    terms: false,
+  };
+}
+function clearCurrent() {
+  const id = steps[current].id;
+  if (id === "confirm") state.confirm = blankConfirm();
+  if (id === "passport") {
+    state.passport = null;
+    passportPayload = null;
+  }
+  if (id === "experience") state.experience = blankExperience();
+  if (id === "plan") state.plan = { rows: blankPlan() };
+  if (id === "selection") state.selection = { courseId: "", availability: {} };
+  if (id === "host") state.host = { firstHost: "", secondHost: "" };
+  if (id === "academic") state.academic = blankAcademic();
+  if (id === "lecturer") state.lecturer = blankLecturer();
+  if (id === "email") state.email = "";
+}
+function resetAll() {
+  state.email = "";
+  state.lecturer = blankLecturer();
+  state.academic = blankAcademic();
+  state.host = { firstHost: "", secondHost: "" };
+  state.selection = { courseId: "", availability: {} };
+  state.plan = { rows: blankPlan() };
+  state.experience = blankExperience();
+  state.passport = null;
+  passportPayload = null;
+  state.confirm = blankConfirm();
+}
+
+/* --------------------------------- Submit ----------------------------------- */
+function applicationSnapshot() {
+  const c = selectedCourse();
+  const b = selectedBlock();
+  return {
+    submittedAt: new Date().toISOString(),
+    email: state.email,
+    applicant: [state.lecturer.title, state.lecturer.name].filter(Boolean).join(" "),
+    affiliation: state.lecturer.affiliation,
+    designation: state.lecturer.designation,
+    firstHost: state.host.firstHost,
+    secondHost: state.host.secondHost,
+    course: c ? c.id + " - " + c.title : "",
+    block: b ? b.title + "  -  " + b.dates : "",
+    availability: b ? state.selection.availability[b.id] || "" : "",
+    passport: state.passport ? state.passport.name : "",
+    alumni: state.confirm.alumni,
+  };
+}
+async function submit() {
+  if (!callIsOpen()) {
+    $("stepArea").innerHTML = closedMessageHtml();
+    syncCallStatusUi();
+    window.scrollTo({ top: 0 });
+    return;
+  }
+  if (!validateAll()) return;
+  const snapshot = applicationSnapshot();
+  let googleMessage = "";
+  $("stepArea").innerHTML =
+    '<div class="done-wrap"><div class="done-badge">...</div><h2>Submitting application</h2><p>Saving the lecturer application locally and sending it to Google Sheets/Drive when configured.</p></div>';
+  window.scrollTo({ top: 0 });
+  if (googleBackendAvailable()) {
+    try {
+      const result = await googleApi("submitLecturerApplication", {
+        application: snapshot,
+        state,
+        passportFile: passportPayload,
+      });
+      googleMessage = result?.driveFileUrl
+        ? " and saved to Google Sheets with the passport file in Drive"
+        : " and saved to Google Sheets";
+    } catch (error) {
+      googleMessage = `. Google sync did not complete: ${esc(error.message || "unknown error")}`;
+    }
+  }
+  submitted = true;
+  const apps = loadApps();
+  apps.unshift(snapshot);
+  safeSet(APPS_KEY, JSON.stringify(apps));
+  safeSet(DRAFT_KEY, JSON.stringify({ state, current, submitted }));
+  $("stepArea").innerHTML =
+    '<div class="done-wrap"><div class="done-badge">OK</div><h2>Application submitted</h2><p>Your Mathematical Epidemiology lecturer application for the AIMS Cameroon / AIMS RW/KEMRI pathways has been recorded' +
+    (googleMessage || (storageOK ? " and saved to this browser" : " for this session")) +
+    '.</p><button class="btn-primary" data-nav="dashboard">View application status -></button></div>';
+  window.scrollTo({ top: 0 });
+}
+
+/* ------------------------------- Dashboard ---------------------------------- */
+function fmtDate(iso) {
+  try {
+    return new Date(iso).toLocaleString([], {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch (e) {
+    return iso;
+  }
+}
+function reviewCard(title, rows, meta) {
+  return (
+    '<div class="card"><h2>' +
+    esc(title) +
+    "</h2>" +
+    (meta ? '<p class="field-help" style="margin-top:-8px">' + esc(meta) + "</p>" : "") +
+    rows
+      .map(
+        ([k, v]) =>
+          '<div class="rev-item"><span class="rev-key">' +
+          esc(k) +
+          '</span><span class="rev-val ' +
+          (v ? "" : "empty") +
+          '">' +
+          esc(v || "Not provided") +
+          "</span></div>",
+      )
+      .join("") +
+    "</div>"
+  );
+}
+function renderDashboard() {
+  const apps = loadApps();
+  let html =
+    '<p class="eyebrow">Your applications</p><h1 class="greeting">Application status</h1>';
+
+  // Submitted applications (persisted).
+  if (apps.length) {
+    html +=
+      '<p class="lead">' +
+      (apps.length === 1
+        ? "You have one submitted Mathematical Epidemiology application."
+        : "You have " + apps.length + " submitted Mathematical Epidemiology applications.") +
+      "</p>";
+    apps.forEach((a, i) => {
+      html += reviewCard(
+        "Mathematical Epidemiology - Lecturer Application" + (apps.length > 1 ? " #" + (apps.length - i) : ""),
+        [
+          ["Submitted", fmtDate(a.submittedAt)],
+          ["Email", a.email],
+          ["Applicant", a.applicant],
+          ["Affiliation", a.affiliation],
+          ["First host pathway", a.firstHost],
+          ["Second host pathway", a.secondHost],
+          ["Selected course", a.course],
+          ["Linked calendar block", a.block],
+          ["Availability", a.availability],
+          ["Passport biodata page", a.passport || "Not uploaded"],
+          ["AIMS alumni", a.alumni],
+        ],
+        "Status: Submitted",
+      );
+    });
+  } else {
+    html +=
+      '<p class="lead">No Mathematical Epidemiology application has been submitted yet.</p>';
+  }
+
+  // Draft in progress (only if there is meaningful content and nothing submitted yet,
+  // or if it differs from a submission - shown as a continue prompt).
+  const hasDraft = !!(state.email || state.lecturer.name || state.selection.courseId);
+  if (hasDraft && !submitted) {
+    const c = selectedCourse();
+    html += reviewCard(
+      "Draft in progress",
+      [
+        ["Email", state.email],
+        ["Applicant", [state.lecturer.title, state.lecturer.name].filter(Boolean).join(" ")],
+        ["Selected course", c ? c.id + " - " + c.title : ""],
+        ["Current step", current + 1 + " of " + steps.length + "  -  " + steps[current].name],
+      ],
+      "Status: Not submitted",
+    );
+    html +=
+      '<div class="detail-actions"><button class="btn-primary" data-nav="form">Continue application -></button></div>';
+  }
+
+  $("dashMain").innerHTML = html;
+}
+
+$("draftBtn").addEventListener("click", () => {
+  persistDraft();
+  setSaveText(storageOK ? "Draft saved  -  " + nowLabel() : "Saved for this session");
+});
+
+/* --------------------------------- Boot ------------------------------------- */
+loadDraft();
+show("home");
+syncCallStatusUi();
+refreshCallStatusFromGoogle();
+</script>
+</body>
+</html>
+

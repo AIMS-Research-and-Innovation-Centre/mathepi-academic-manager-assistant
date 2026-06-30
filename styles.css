@@ -83,6 +83,8 @@ button {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background:
@@ -164,14 +166,36 @@ button {
 }
 
 .nav {
-  padding: 14px 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: clamp(8px, 1.5vh, 14px) 10px;
   display: grid;
-  gap: 5px;
+  align-content: start;
+  gap: clamp(3px, 0.7vh, 5px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+
+.nav::-webkit-scrollbar {
+  width: 7px;
+}
+
+.nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nav::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .nav-button {
   width: 100%;
-  padding: 11px 12px;
+  min-height: clamp(38px, 5.7vh, 46px);
+  padding: clamp(8px, 1.25vh, 11px) 12px;
   border: 0;
   border-radius: var(--radius);
   color: rgba(255, 255, 255, 0.77);
@@ -181,7 +205,16 @@ button {
   align-items: center;
   gap: 11px;
   text-align: left;
+  font-size: 15px;
   font-weight: 560;
+  line-height: 1.15;
+}
+
+.nav-button span:not(.count) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nav-button:hover,
@@ -203,7 +236,8 @@ button {
 }
 
 .role-card {
-  margin: auto 14px 16px;
+  flex: 0 0 auto;
+  margin: 0 14px 16px;
   padding: 12px;
   border-radius: var(--radius);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -231,6 +265,38 @@ button {
   font-size: 13px;
   line-height: 1.2;
   text-overflow: ellipsis;
+}
+
+.account-card {
+  display: grid;
+  gap: 8px;
+}
+
+.account-card strong,
+.account-card small {
+  display: block;
+  min-width: 0;
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+
+.account-card strong {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.account-card small {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 11px;
+}
+
+.account-card .button {
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 8px;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
 }
 
 .content {
@@ -426,6 +492,17 @@ button {
   flex-wrap: wrap;
 }
 
+.compact-actions {
+  margin-top: 14px;
+}
+
+.muted-note {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -465,6 +542,159 @@ button {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.4;
+}
+
+.cfa-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.76fr);
+  gap: 18px;
+  align-items: stretch;
+  padding: 20px;
+  border-radius: var(--radius);
+  color: #fff;
+  background:
+    linear-gradient(120deg, rgba(93, 9, 17, 0.97), rgba(49, 95, 156, 0.82)),
+    var(--aims-maroon);
+  box-shadow: var(--shadow);
+}
+
+.cfa-hero h2 {
+  max-width: 780px;
+  margin: 13px 0 8px;
+  font-size: clamp(26px, 4vw, 44px);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.cfa-hero p {
+  max-width: 780px;
+  margin: 0 0 18px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.55;
+}
+
+.cfa-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.call-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.call-card {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-height: 248px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.call-card.featured {
+  border-color: rgba(35, 132, 95, 0.42);
+  box-shadow:
+    inset 4px 0 0 var(--green),
+    var(--shadow);
+}
+
+.call-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.call-status-stack {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.call-code {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.call-card h3 {
+  margin: 0 0 7px;
+  font-size: 19px;
+  line-height: 1.18;
+}
+
+.call-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.call-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.call-card-actions .button {
+  flex: 1 1 138px;
+}
+
+.cfa-flow {
+  display: grid;
+  gap: 10px;
+}
+
+.flow-step {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.flow-step span {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--aims-maroon);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.flow-step p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.prompt-box {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--aims-maroon);
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: #fff;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .quick-grid {
@@ -560,6 +790,7 @@ button {
   color: var(--ink);
   background: #fff;
   box-shadow: none;
+  text-decoration: none;
 }
 
 .button.primary {
@@ -1374,6 +1605,70 @@ button {
   animation: toast-in 0.2s ease-out;
 }
 
+.auth-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(135deg, rgba(141, 17, 28, 0.96), rgba(17, 24, 39, 0.94)),
+    var(--aims-maroon);
+}
+
+.auth-panel {
+  width: min(520px, 100%);
+  padding: clamp(20px, 4vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+}
+
+.auth-brand {
+  display: grid;
+  grid-template-columns: 66px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 26px;
+}
+
+.auth-brand img {
+  width: 66px;
+  height: 66px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: var(--aims-maroon-soft);
+  padding: 5px;
+}
+
+.auth-brand p,
+.auth-copy p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.auth-brand h1,
+.auth-copy h2 {
+  margin: 3px 0 0;
+  color: var(--ink);
+  line-height: 1.05;
+}
+
+.auth-copy {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.auth-copy p {
+  line-height: 1.55;
+}
+
+.auth-form {
+  grid-template-columns: 1fr;
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -1387,6 +1682,78 @@ button {
 
 .desktop-only {
   display: initial;
+}
+
+@media (max-height: 860px) and (min-width: 761px) {
+  .brand-panel {
+    padding: 16px 18px 12px;
+  }
+
+  .logo-lockup {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .logo-lockup img {
+    width: 52px;
+    height: 52px;
+  }
+
+  .assistant-pulse {
+    margin-top: 12px;
+    padding: 10px;
+  }
+
+  .pulse-copy {
+    display: none;
+  }
+
+  .nav {
+    padding-block: 8px;
+  }
+
+  .nav-button {
+    min-height: 39px;
+    padding-block: 8px;
+  }
+
+  .role-card {
+    margin-bottom: 12px;
+    padding: 10px;
+  }
+}
+
+@media (max-height: 720px) and (min-width: 761px) {
+  .assistant-pulse {
+    display: none;
+  }
+
+  .brand-panel {
+    padding-bottom: 10px;
+  }
+
+  .nav-button {
+    min-height: 37px;
+    font-size: 14px;
+  }
+
+  .role-card label {
+    display: none;
+  }
+}
+
+@media (max-height: 660px) and (min-width: 761px) {
+  .role-card {
+    display: none;
+  }
+
+  .nav {
+    padding-block: 7px;
+  }
+
+  .nav-button {
+    min-height: 36px;
+  }
 }
 
 @media (max-width: 1180px) {
@@ -1434,6 +1801,7 @@ button {
   }
 
   .hero-strip,
+  .cfa-hero,
   .section-grid,
   .calendar-layout,
   .planner-hero,
@@ -1442,6 +1810,10 @@ button {
   }
 
   .quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .call-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1579,6 +1951,8 @@ button {
   }
 
   .kpi-grid,
+  .cfa-metrics,
+  .call-grid,
   .quick-grid,
   .form-grid,
   .meta-grid,
@@ -1632,21 +2006,24 @@ button {
   }
 
   .planner-hero,
-  .support-hero {
+  .support-hero,
+  .cfa-hero {
     min-height: 300px;
     padding: 16px;
     align-items: start;
   }
 
   .planner-hero h2,
-  .support-hero h2 {
+  .support-hero h2,
+  .cfa-hero h2 {
     max-width: 310px;
     font-size: 24px;
     line-height: 1.05;
   }
 
   .planner-hero p,
-  .support-hero p {
+  .support-hero p,
+  .cfa-hero p {
     max-width: 310px;
     font-size: 14px;
   }
@@ -1736,6 +2113,7 @@ button {
 :root[data-theme="dark"] .search input,
 :root[data-theme="dark"] .kpi,
 :root[data-theme="dark"] .quick-action,
+:root[data-theme="dark"] .call-card,
 :root[data-theme="dark"] .button,
 :root[data-theme="dark"] .button.ghost,
 :root[data-theme="dark"] .tabs,
@@ -1744,6 +2122,8 @@ button {
 :root[data-theme="dark"] .person-row,
 :root[data-theme="dark"] .course-row,
 :root[data-theme="dark"] .timeline-item,
+:root[data-theme="dark"] .flow-step,
+:root[data-theme="dark"] .prompt-box,
 :root[data-theme="dark"] .planner-card,
 :root[data-theme="dark"] .appointment-card,
 :root[data-theme="dark"] .todo-card,

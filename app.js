@@ -31,6 +31,10 @@ const ICONS = {
     '<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><circle cx="12" cy="17" r="3"/><path d="M10.4 10.5 11.3 14"/><path d="m13.6 10.5-.9 3.5"/><path d="M9.3 16.2H7a4 4 0 0 0-4 4"/><path d="M14.7 16.2H17a4 4 0 0 1 4 4"/>',
   mail:
     '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
+  megaphone:
+    '<path d="m3 11 18-5v12L3 13v-2Z"/><path d="M11.6 16.4a3 3 0 0 1-5.8-1.6"/><path d="M21 9v6"/><path d="M7 12h.01"/>',
+  external:
+    '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
   menu:
     '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
   moon:
@@ -379,7 +383,7 @@ const DEFAULT_PEOPLE = [
     availability: "Block 1 confirmed",
     status: "Confirmed",
     lastContact: "2026-05-12",
-    nextFollowUp: "2026-08-17",
+    nextFollowUp: "2026-09-14",
     workload: 1,
     notes: "Send final teaching template before onboarding.",
   },
@@ -424,7 +428,7 @@ const DEFAULT_PEOPLE = [
     availability: "Confirmed",
     status: "Confirmed",
     lastContact: "2026-05-11",
-    nextFollowUp: "2026-08-31",
+    nextFollowUp: "2026-09-28",
     workload: 1,
     notes: "Prefers morning sessions.",
   },
@@ -439,7 +443,7 @@ const DEFAULT_PEOPLE = [
     availability: "Confirmed",
     status: "Confirmed",
     lastContact: "2026-05-14",
-    nextFollowUp: "2026-08-20",
+    nextFollowUp: "2026-09-17",
     workload: 1,
     notes: "Share software setup checklist with students.",
   },
@@ -649,7 +653,7 @@ const DEFAULT_PEOPLE = [
     availability: "Blocks 1-2",
     status: "Confirmed",
     lastContact: "2026-05-15",
-    nextFollowUp: "2026-08-24",
+    nextFollowUp: "2026-09-21",
     workload: 2,
     notes: "Can run evening clinic.",
   },
@@ -664,7 +668,7 @@ const DEFAULT_PEOPLE = [
     availability: "Blocks 2-3",
     status: "Confirmed",
     lastContact: "2026-05-16",
-    nextFollowUp: "2026-09-07",
+    nextFollowUp: "2026-10-05",
     workload: 2,
     notes: "Useful for coding clinics.",
   },
@@ -694,7 +698,7 @@ const DEFAULT_PEOPLE = [
     availability: "Blocks 2 and 9",
     status: "Confirmed",
     lastContact: "2026-05-18",
-    nextFollowUp: "2026-09-01",
+    nextFollowUp: "2026-09-29",
     workload: 2,
     notes: "Good fit for applied tutorials.",
   },
@@ -764,8 +768,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "onboarding",
     title: "Introduction and Onboarding Week",
-    start: "2026-08-31",
-    end: "2026-09-04",
+    start: "2026-09-28",
+    end: "2026-10-02",
     kind: "onboarding",
     note: "Orientation, software setup, student onboarding, programme briefing",
     courses: [],
@@ -773,8 +777,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "block-1",
     title: "Block 1",
-    start: "2026-09-07",
-    end: "2026-09-25",
+    start: "2026-10-05",
+    end: "2026-10-23",
     kind: "teaching",
     note: "Core skills launch",
     courses: ["MES01", "MES05"],
@@ -782,8 +786,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "block-2",
     title: "Block 2",
-    start: "2026-09-28",
-    end: "2026-10-16",
+    start: "2026-10-26",
+    end: "2026-11-13",
     kind: "teaching",
     note: "Quantitative foundations",
     courses: ["MES02", "MES04"],
@@ -791,8 +795,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "reading-1",
     title: "Reading Week and AHC Convening",
-    start: "2026-10-19",
-    end: "2026-10-23",
+    start: "2026-11-16",
+    end: "2026-11-20",
     kind: "reading",
     note: "AHC Convening Week in Nairobi",
     courses: [],
@@ -800,17 +804,26 @@ const DEFAULT_BLOCKS = [
   {
     id: "block-3",
     title: "Block 3",
-    start: "2026-10-26",
-    end: "2026-11-13",
+    start: "2026-11-23",
+    end: "2026-12-11",
     kind: "teaching",
     note: "Scientific and physical computation",
     courses: ["MES03", "MES06"],
   },
   {
+    id: "vacation",
+    title: "Vacation and December Holiday",
+    start: "2026-12-14",
+    end: "2027-01-03",
+    kind: "holiday",
+    note: "December holiday break",
+    courses: [],
+  },
+  {
     id: "block-4",
     title: "Block 4",
-    start: "2026-11-16",
-    end: "2026-12-04",
+    start: "2027-01-04",
+    end: "2027-01-22",
     kind: "teaching",
     note: "Epidemiology and modelling begin",
     courses: ["MEC01", "MEC03"],
@@ -818,26 +831,17 @@ const DEFAULT_BLOCKS = [
   {
     id: "block-5",
     title: "Block 5",
-    start: "2026-12-07",
-    end: "2026-12-24",
+    start: "2027-01-25",
+    end: "2027-02-12",
     kind: "teaching",
     note: "Public health model development",
     courses: ["MEC02", "MEC04"],
   },
   {
-    id: "vacation",
-    title: "Vacation and December Holiday",
-    start: "2026-12-25",
-    end: "2027-01-03",
-    kind: "holiday",
-    note: "Break",
-    courses: [],
-  },
-  {
     id: "block-6",
     title: "Block 6",
-    start: "2027-01-04",
-    end: "2027-01-22",
+    start: "2027-02-15",
+    end: "2027-03-05",
     kind: "teaching",
     note: "Fitting, validation, and numerical methods",
     courses: ["MEC05", "MEC06"],
@@ -845,8 +849,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "block-7",
     title: "Block 7",
-    start: "2027-01-25",
-    end: "2027-02-12",
+    start: "2027-03-08",
+    end: "2027-03-26",
     kind: "teaching",
     note: "Data analysis sequence",
     courses: ["MEC07", "MEC08"],
@@ -854,8 +858,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "reading-2",
     title: "Reading Week",
-    start: "2027-02-15",
-    end: "2027-02-19",
+    start: "2027-03-29",
+    end: "2027-04-02",
     kind: "reading",
     note: "Reflection, catch-up, elective selection",
     courses: [],
@@ -863,8 +867,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "block-8",
     title: "Block 8",
-    start: "2027-02-22",
-    end: "2027-03-12",
+    start: "2027-04-05",
+    end: "2027-04-23",
     kind: "teaching",
     note: "Professional development and digital surveillance",
     courses: ["MEC09", "MEC10"],
@@ -872,8 +876,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "block-9",
     title: "Block 9",
-    start: "2027-03-15",
-    end: "2027-04-02",
+    start: "2027-04-26",
+    end: "2027-05-14",
     kind: "teaching",
     note: "Elective pathways",
     courses: ["MEE01", "MEE02", "MEE03", "MEE04"],
@@ -881,8 +885,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "internship",
     title: "Internship",
-    start: "2027-04-05",
-    end: "2027-10-04",
+    start: "2027-05-17",
+    end: "2027-11-15",
     kind: "practical",
     note: "Six-month mandatory placement with research or industry partners",
     courses: ["MEI01"],
@@ -890,8 +894,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "thesis",
     title: "Thesis Writing, Review, and Vivas",
-    start: "2027-10-05",
-    end: "2027-11-05",
+    start: "2027-11-16",
+    end: "2027-12-17",
     kind: "thesis",
     note: "Thesis/project write-up and examination cycle",
     courses: ["MEI01"],
@@ -899,8 +903,8 @@ const DEFAULT_BLOCKS = [
   {
     id: "graduation",
     title: "Graduation",
-    start: "2027-11-23",
-    end: "2027-11-24",
+    start: "2027-12-21",
+    end: "2027-12-22",
     kind: "graduation",
     note: "Graduation window",
     courses: [],
@@ -1122,7 +1126,7 @@ const DEFAULT_TIMESHEETS = [
     id: "ts-001",
     tutorId: "tut-01",
     courseCode: "MES05",
-    date: "2026-09-08",
+    date: "2026-10-06",
     category: "Coding clinic",
     hours: 2.5,
     activity: "Prepared R/Python setup clinic and supported reproducible reporting exercises.",
@@ -1176,7 +1180,7 @@ const DEFAULT_TASKS = [
     title: "Confirm flight tickets and arrival schedule",
     area: "Travel logistics",
     owner: "Academic & Research Manager",
-    due: "2026-08-07",
+    due: "2026-09-04",
     status: "Planned",
     priority: "High",
     details: "Track booking status, airport pickups, arrival windows, and exceptional travel needs.",
@@ -1186,7 +1190,7 @@ const DEFAULT_TASKS = [
     title: "Secure accommodation allocation",
     area: "Accommodation",
     owner: "Centre Coordinators",
-    due: "2026-08-14",
+    due: "2026-09-11",
     status: "Planned",
     priority: "High",
     details: "Room list, check-in instructions, gender-sensitive allocation, accessibility needs, and welcome packs.",
@@ -1196,7 +1200,7 @@ const DEFAULT_TASKS = [
     title: "Prepare classroom and lecture hall",
     area: "Facilities",
     owner: "Centre Operations",
-    due: "2026-08-21",
+    due: "2026-09-18",
     status: "Planned",
     priority: "Medium",
     details: "Projector, internet, whiteboards, power, seating, hybrid-teaching backup, signage, and safety check.",
@@ -1206,7 +1210,7 @@ const DEFAULT_TASKS = [
     title: "Arrange meals and daily logistics",
     area: "Student welfare",
     owner: "Centre Coordinators",
-    due: "2026-08-24",
+    due: "2026-09-21",
     status: "Planned",
     priority: "Medium",
     details: "Meal plans, dietary restrictions, campus access, transport shuttles, orientation day logistics.",
@@ -1216,7 +1220,7 @@ const DEFAULT_TASKS = [
     title: "Hire and onboard tutors",
     area: "Teaching support",
     owner: "Head Tutor",
-    due: "2026-08-10",
+    due: "2026-09-28",
     status: "In progress",
     priority: "High",
     details: "Tutor contracts, availability, workload expectations, timesheet protocol, and course assignments.",
@@ -1226,7 +1230,7 @@ const DEFAULT_TASKS = [
     title: "Appoint and confirm lecturers",
     area: "Teaching appointments",
     owner: "Academic & Research Manager",
-    due: "2026-08-15",
+    due: "2026-09-28",
     status: "In progress",
     priority: "High",
     details: "Lecturer invitation, availability confirmation, appointment letter, course outline, and Drive folder access.",
@@ -1249,7 +1253,7 @@ const DEFAULT_PLANNER_TASKS = [
     title: "Set up R and Python workflow",
     type: "Study",
     courseCode: "MES05",
-    date: "2026-09-07",
+    date: "2026-10-05",
     time: "16:00",
     duration: 90,
     priority: "High",
@@ -1262,7 +1266,7 @@ const DEFAULT_PLANNER_TASKS = [
     title: "Mathematical problem-solving clinic prep",
     type: "Revision",
     courseCode: "MES01",
-    date: "2026-09-08",
+    date: "2026-10-06",
     time: "07:30",
     duration: 60,
     priority: "Medium",
@@ -1275,7 +1279,7 @@ const DEFAULT_PLANNER_TASKS = [
     title: "Probability flash review",
     type: "Reading",
     courseCode: "MES04",
-    date: "2026-09-10",
+    date: "2026-10-08",
     time: "19:00",
     duration: 45,
     priority: "Medium",
@@ -1288,7 +1292,7 @@ const DEFAULT_PLANNER_TASKS = [
     title: "Weekly recovery window",
     type: "Wellness",
     courseCode: "MES01",
-    date: "2026-09-12",
+    date: "2026-10-10",
     time: "10:00",
     duration: 120,
     priority: "High",
@@ -1329,7 +1333,7 @@ const DEFAULT_STUDENT_TODOS = [
     title: "Complete R/Python setup checklist",
     courseCode: "MES05",
     category: "Study",
-    due: "2026-09-06",
+    due: "2026-10-04",
     priority: "High",
     status: "Open",
     notes: "Install R, Python, Quarto, and test the reproducible report template.",
@@ -1340,7 +1344,7 @@ const DEFAULT_STUDENT_TODOS = [
     title: "Prepare questions for MES01 clinic",
     courseCode: "MES01",
     category: "Revision",
-    due: "2026-09-08",
+    due: "2026-10-06",
     priority: "Medium",
     status: "In progress",
     notes: "List two proof techniques and one problem that needs tutor support.",
@@ -1351,7 +1355,7 @@ const DEFAULT_STUDENT_TODOS = [
     title: "Submit accommodation confirmation",
     courseCode: "MEI01",
     category: "Logistics",
-    due: "2026-08-26",
+    due: "2026-09-23",
     priority: "High",
     status: "Open",
     notes: "Confirm arrival time, room allocation, and emergency contact details.",
@@ -1362,7 +1366,7 @@ const DEFAULT_STUDENT_TODOS = [
     title: "Block protected rest time",
     courseCode: "MES01",
     category: "Wellness",
-    due: "2026-09-12",
+    due: "2026-10-10",
     priority: "Medium",
     status: "Open",
     notes: "Keep one recovery block in the planner before the next teaching week.",
@@ -1446,7 +1450,7 @@ const DEFAULT_STUDY_GROUPS = [
     organizerId: "student-01",
     courseCode: "MES05",
     purpose: "Coding practice",
-    meetingDate: "2026-09-09",
+    meetingDate: "2026-10-07",
     meetingTime: "17:00",
     mode: "Hybrid",
     location: "KEMRI Computer Lab / Google Meet",
@@ -1480,8 +1484,8 @@ const DEFAULT_STUDY_GROUP_INVITATIONS = [
     invitedBy: "student-01",
     status: "Accepted",
     responseNote: "Can join after the coding clinic.",
-    createdAt: "2026-09-03",
-    respondedAt: "2026-09-04",
+    createdAt: "2026-10-01",
+    respondedAt: "2026-10-02",
   },
   {
     id: "sgi-002",
@@ -1490,7 +1494,7 @@ const DEFAULT_STUDY_GROUP_INVITATIONS = [
     invitedBy: "student-01",
     status: "Invited",
     responseNote: "",
-    createdAt: "2026-09-03",
+    createdAt: "2026-10-01",
     respondedAt: "",
   },
   {
@@ -1522,7 +1526,7 @@ const DEFAULT_STUDY_GROUP_ACTIVITIES = [
     title: "Each member runs the R/Python install check",
     type: "To-do",
     assignedTo: "student-02",
-    due: "2026-09-08",
+    due: "2026-10-06",
     status: "Open",
     notes: "Bring screenshots of setup errors and package versions.",
   },
@@ -1532,7 +1536,7 @@ const DEFAULT_STUDY_GROUP_ACTIVITIES = [
     title: "Build one shared Quarto template",
     type: "Coding task",
     assignedTo: "student-01",
-    due: "2026-09-09",
+    due: "2026-10-07",
     status: "In progress",
     notes: "Use a simple epidemic curve example for the template.",
   },
@@ -1642,7 +1646,7 @@ const DEFAULT_APPOINTMENTS = [
     targetId: "tut-01",
     courseCode: "MES05",
     category: "Tutorial support",
-    preferredDate: "2026-09-09",
+    preferredDate: "2026-10-07",
     time: "15:30",
     duration: 30,
     mode: "Hybrid",
@@ -1670,7 +1674,7 @@ const DEFAULT_APPOINTMENTS = [
     targetId: "head-tutor-01",
     courseCode: "MES05",
     category: "Tutor workload",
-    preferredDate: "2026-09-12",
+    preferredDate: "2026-10-10",
     time: "13:30",
     duration: 45,
     mode: "In person",
@@ -1736,7 +1740,7 @@ const DEFAULT_SUPPORT_REQUESTS = [
     status: "Submitted",
     visibility: "confidential",
     assignedTo: "support-01",
-    date: "2026-09-09",
+    date: "2026-10-07",
     summary: "Student requested a private check-in without sharing details in the app.",
     privateNote: "Student prefers a confidential appointment after class; no clinical notes stored here.",
   },
@@ -1749,7 +1753,7 @@ const DEFAULT_SUPPORT_REQUESTS = [
     status: "Triage",
     visibility: "academic",
     assignedTo: "head-tutor-01",
-    date: "2026-09-10",
+    date: "2026-10-08",
     summary: "Tutor needs load review before more student support sessions are added.",
     privateNote: "Head Tutor can rebalance clinic coverage with a second tutor.",
   },
@@ -1775,7 +1779,7 @@ const DEFAULT_SUPPORT_REQUESTS = [
     status: "In progress",
     visibility: "technical",
     assignedTo: "it-01",
-    date: "2026-08-28",
+    date: "2026-09-25",
     summary: "Several students need access to shared folders before orientation.",
     privateNote: "Check invite domain and sharing policy.",
   },
@@ -1794,6 +1798,7 @@ const ROLES = {
       "groups",
       "courses",
       "people",
+      "cfa",
       "appointments",
       "support",
       "contact",
@@ -1808,21 +1813,21 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "cfa", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
     hint: "Manager-level visibility for coordination, without write access",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "cfa", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
   },
   "head-tutor": {
     label: "Head Tutor",
     hint: "Tutor workload, tutor profiles, assigned work, and lecturer-course tracking",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "groups", "support", "contact", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "people", "cfa", "appointments", "groups", "support", "contact", "timesheets", "tasks"],
   },
   lecturer: {
     label: "Lecturer",
@@ -1875,6 +1880,7 @@ const NAV = [
   { id: "groups", label: "Study Groups", short: "Groups", icon: "group" },
   { id: "courses", label: "Courses", icon: "book" },
   { id: "people", label: "Lecturers & Tutors", short: "People", icon: "users" },
+  { id: "cfa", label: "CFA", short: "CFA", icon: "megaphone" },
   { id: "appointments", label: "Appointments", icon: "appointment" },
   { id: "support", label: "Support & Wellness", short: "Support", icon: "support" },
   { id: "contact", label: "Contact Hub", icon: "mail" },
@@ -1892,6 +1898,28 @@ const STATUS_COLOR = {
   "Not contacted": "gray",
   Declined: "danger",
   "Replacement needed": "danger",
+};
+
+const PERSON_STATUS_OPTIONS = [
+  "Not contacted",
+  "Contacted",
+  "Awaiting response",
+  "Confirmed",
+  "Needs follow-up",
+  "Declined",
+  "Replacement needed",
+];
+
+const CFA_STATUS_KEY = "mathepi-cfa-status-v1";
+const DEFAULT_CFA_STATUS = {
+  lecturers: "Open",
+  tutors: "Open",
+  "head-tutor": "Closed",
+};
+
+const CFA_STATUS_COLOR = {
+  Open: "green",
+  Closed: "danger",
 };
 
 const PLANNER_STATUS_COLOR = {
@@ -1912,6 +1940,237 @@ const APPOINTMENT_STATUS_COLOR = {
   "No-show": "danger",
 };
 
+const CFA_CALLS = [
+  {
+    id: "lecturers",
+    title: "Lecturers",
+    code: "CFA-LEC",
+    status: "Form ready",
+    color: "green",
+    audience: "Course lecturers for the Mathematical Epidemiology programme.",
+    deadline: "To be confirmed",
+    owner: "Academic and Research Manager",
+    formUrl: "cfa/lecturer-application.html",
+    summary:
+      "Incorporates the attached full lecturer application portal as the canonical CFA form, opening in a separate tab for completion.",
+    requirements: [
+      "Applicant details: title, full name, gender, affiliation, designation, address, country of residence, nationality, phone, WhatsApp consent, and collaborator/contact details.",
+      "Academic profile: qualifications, current role, teaching/research experience, expertise, and relevant public-health modelling background.",
+      "Host pathway preference limited to AIMS Cameroon and AIMS Rwanda/KEMRI.",
+      "Course selection linked to the MathEpi calendar so applicants confirm availability only for the selected teaching block.",
+      "Teaching plan and short course contribution narrative.",
+      "Passport biodata page upload only at this stage.",
+      "Review, declaration, terms of use, and submission confirmation.",
+    ],
+    workflow: [
+      "Publish lecturer CFA",
+      "Receive structured applications",
+      "Screen eligibility and preferred course fit",
+      "Shortlist for academic review",
+      "Confirm appointments and sync to Lecturers & Tutors",
+    ],
+    prompt:
+      "Use the attached HTML application portal at cfa/lecturer-application.html as the canonical MathEpi Lecturer CFA form and open it in a separate tab from the CFA workspace. Preserve the full standalone applicant journey: opportunity overview, start application, dashboard, step progress, autosave, validation, final review, and submission confirmation. The form must remain limited to AIMS Cameroon and AIMS Rwanda/KEMRI pathways and capture applicant identity and contact details, affiliation, designation, nationality, residence, phone and WhatsApp consent, academic qualifications, teaching and research experience, public-health modelling expertise, preferred host pathway, selected MathEpi course, calendar-linked availability, teaching plan, collaborator or institutional contact, passport biodata page upload, declarations, terms of use, and review before submission. Keep the surrounding CFA dashboard calm, professional, responsive, and ready to sync later with Google Sheets, Drive, and the Lecturers & Tutors module.",
+  },
+  {
+    id: "tutors",
+    title: "Tutorial Fellows",
+    code: "CFA-TF",
+    status: "Form ready",
+    color: "green",
+    audience: "Early-career Tutorial Fellows for AIMS RW/KEMRI, combining intensive academic support with research growth.",
+    deadline: "To be confirmed",
+    owner: "Academic and Research Manager",
+    formUrl: "cfa/tutorial-fellow-application.html",
+    summary:
+      "A dedicated Tutorial Fellows call for AIMS RW/KEMRI, adapted from the lecturer CFA flow with role-specific tutoring, research, readiness, and document requirements.",
+    requirements: [
+      "Applicant identity, title, gender, nationality, country of residence, current address, phone, WhatsApp availability, WhatsApp contact consent, current affiliation, designation, and AIMS alumni status.",
+      "PhD details, including institution, field, completion date, thesis title with a three-sentence explainer, separate research area, and eligibility based on completion between 1 Oct 2024 and the 1 Oct 2026 position start date.",
+      "PhD in mathematics, applied mathematics, statistics, biostatistics, mathematical epidemiology, computational biology, public health modelling, AI, machine learning, data science, or a closely related quantitative field.",
+      "Strong mathematical foundations and a track record of applying quantitative methods to biology, epidemiology, public health, health systems, infectious diseases, or related scientific domains.",
+      "Separate narrative questions for relevant teaching, tutoring, mentoring, research experience, hands-on session support, and the proposed 30% research and career-development idea.",
+      "70% tutoring and academic support commitment, readiness to be in residence, and readiness to fill teaching-support gaps if a lecturer is unavailable.",
+      "Passport biodata page, legible PDF PhD certificate showing graduation date/month, structured references, declarations, and final review.",
+    ],
+    workflow: ["Publish Tutorial Fellows CFA", "Receive applications", "Screen eligibility and research fit", "Review tutoring readiness", "Shortlist for AIMS RW/KEMRI"],
+    prompt:
+      "Build a responsive MathEpi Tutorial Fellows Call for Applications form for AIMS RW/KEMRI. Use the lecturer CFA visual pattern but remove lecturer-specific course ownership fields and avoid CV/statement uploads. Capture applicant title, name, gender, nationality, residence, address, phone, WhatsApp availability and contact consent, current affiliation, designation, AIMS alumni status, PhD details, completion date limited to 1 Oct 2024 through 1 Oct 2026, thesis title with a three-sentence explainer, research area, quantitative background, applied track record, teaching/tutoring/mentoring/research experience, hands-on session support, proposed 30% research idea and plan, readiness to be in residence, readiness to fill teaching-support gaps, passport biodata page upload, legible PDF PhD certificate upload, structured references, declarations, and final review.",
+  },
+  {
+    id: "head-tutor",
+    title: "Head Tutor",
+    code: "CFA-HT",
+    status: "Draft",
+    color: "blue",
+    audience: "Senior tutor coordination and tutor workload oversight.",
+    deadline: "To be confirmed",
+    owner: "Academic and Research Manager",
+    summary:
+      "Prepared for a head tutor application covering coordination, escalation, reporting, timesheets, and tutor-student support operations.",
+    requirements: [
+      "Leadership and academic-support coordination experience.",
+      "Availability for tutor scheduling, workload review, and escalation.",
+      "Experience mentoring tutors or teaching assistants.",
+      "Reporting, timesheet review, and communication readiness.",
+      "Preferred centre or remote coordination availability.",
+    ],
+    workflow: ["Draft head tutor CFA", "Receive applications", "Interview coordination candidates", "Select lead", "Activate head tutor access"],
+    prompt:
+      "Build a MathEpi Head Tutor Call for Applications form for senior tutor coordination. Capture leadership experience, academic-support coordination history, availability, escalation readiness, reporting skills, timesheet review capacity, communication style, centre or remote coordination preference, and ability to keep tutor workload sustainable.",
+  },
+];
+
+const GOOGLE_BACKEND_URL_KEY = "mathepi-apps-script-url";
+const GOOGLE_AUTOSYNC_KEY = "mathepi-google-autosync";
+const GOOGLE_DATASETS = [
+  ["courses", "Courses"],
+  ["people", "People"],
+  ["blocks", "CalendarBlocks"],
+  ["sessions", "Sessions"],
+  ["timesheets", "Timesheets"],
+  ["tasks", "Tasks"],
+  ["plannerTasks", "PlannerTasks"],
+  ["studentTodos", "StudentTodos"],
+  ["students", "Students"],
+  ["studyGroups", "StudyGroups"],
+  ["studyGroupInvitations", "StudyGroupInvitations"],
+  ["studyGroupActivities", "StudyGroupActivities"],
+  ["appointments", "Appointments"],
+  ["availability", "Availability"],
+  ["supportRequests", "SupportRequests"],
+];
+
+let googleSyncTimer = null;
+let googleSyncSuspended = false;
+
+function appsScriptUrl() {
+  return (window.MATHEPI_APPS_SCRIPT_URL || localStorage.getItem(GOOGLE_BACKEND_URL_KEY) || "").trim();
+}
+
+function hasAppsScriptBridge() {
+  return !!(window.google && google.script && google.script.run);
+}
+
+function googleBackendAvailable() {
+  return hasAppsScriptBridge() || !!appsScriptUrl();
+}
+
+function googleApi(action, payload = {}) {
+  if (hasAppsScriptBridge()) {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler((error) => reject(new Error(error?.message || String(error))))
+        .apiPost({ action, payload });
+    });
+  }
+  const endpoint = appsScriptUrl();
+  if (!endpoint) return Promise.reject(new Error("Apps Script Web App URL is not configured."));
+  return fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action, payload }),
+  }).then((response) => {
+    if (!response.ok) throw new Error(`Apps Script request failed: ${response.status}`);
+    return response.json();
+  });
+}
+
+function googleSnapshot() {
+  const datasets = {};
+  GOOGLE_DATASETS.forEach(([key, tab]) => {
+    datasets[tab] = state[key] || [];
+  });
+  return {
+    datasets,
+    cfaStatuses: state.cfaStatuses,
+    studentCalendarConnected: state.studentCalendarConnected,
+    savedAt: new Date().toISOString(),
+  };
+}
+
+function setAppsScriptUrl() {
+  const input = document.getElementById("appsScriptUrl");
+  const value = (input?.value || "").trim();
+  if (value) localStorage.setItem(GOOGLE_BACKEND_URL_KEY, value);
+  else localStorage.removeItem(GOOGLE_BACKEND_URL_KEY);
+  state.googleConnected = googleBackendAvailable();
+  toast(value ? "Apps Script Web App URL saved." : "Apps Script Web App URL cleared.");
+  render();
+}
+
+function setGoogleAutoSync(checked) {
+  state.googleAutoSync = checked;
+  localStorage.setItem(GOOGLE_AUTOSYNC_KEY, String(checked));
+  toast(checked ? "Google autosync enabled." : "Google autosync disabled.");
+  render();
+}
+
+function scheduleGoogleSync(reason = "autosave") {
+  if (googleSyncSuspended || !state?.googleAutoSync || !googleBackendAvailable()) return;
+  if (googleSyncTimer) clearTimeout(googleSyncTimer);
+  googleSyncTimer = setTimeout(() => {
+    googleSyncTimer = null;
+    pushGoogleSnapshot(reason, { quiet: true });
+  }, 1500);
+}
+
+async function initializeGoogleWorkspace() {
+  if (!googleBackendAvailable()) {
+    toast("Set the Apps Script Web App URL first, or run this as an Apps Script Web App.");
+    return;
+  }
+  try {
+    const result = await googleApi("setupWorkspace", googleSnapshot());
+    state.googleConnected = true;
+    toast(`Google workspace ready: ${result?.spreadsheetName || "MathEpi Operations"}.`);
+    render();
+  } catch (error) {
+    toast(error.message || "Google workspace setup failed.");
+  }
+}
+
+async function pushGoogleSnapshot(reason = "manual", options = {}) {
+  if (!googleBackendAvailable()) {
+    if (!options.quiet) toast("Set the Apps Script Web App URL first, or run this as an Apps Script Web App.");
+    return;
+  }
+  try {
+    const result = await googleApi("saveSnapshot", { ...googleSnapshot(), reason });
+    state.googleConnected = true;
+    if (!options.quiet) toast(`Synced ${result?.tabsUpdated || 0} tabs to Google Sheets.`);
+    render();
+  } catch (error) {
+    if (!options.quiet) toast(error.message || "Google sync failed.");
+  }
+}
+
+async function pullGoogleBootstrap() {
+  if (!googleBackendAvailable()) {
+    toast("Set the Apps Script Web App URL first, or run this as an Apps Script Web App.");
+    return;
+  }
+  try {
+    const result = await googleApi("getBootstrap");
+    const datasets = result?.datasets || {};
+    googleSyncSuspended = true;
+    GOOGLE_DATASETS.forEach(([key, tab]) => {
+      if (Array.isArray(datasets[tab])) state[key] = datasets[tab];
+    });
+    if (result?.cfaStatuses) state.cfaStatuses = result.cfaStatuses;
+    state.googleConnected = true;
+    migrateProgrammeData();
+    save();
+    googleSyncSuspended = false;
+    toast("Pulled current data from Google Sheets.");
+    render();
+  } catch (error) {
+    googleSyncSuspended = false;
+    toast(error.message || "Google pull failed.");
+  }
+}
+
 const state = {
   view: "dashboard",
   role: "manager",
@@ -1924,7 +2183,8 @@ const state = {
   drawer: null,
   toast: null,
   theme: localStorage.getItem("mathepi-theme") || "light",
-  googleConnected: false,
+  googleConnected: googleBackendAvailable(),
+  googleAutoSync: localStorage.getItem(GOOGLE_AUTOSYNC_KEY) === "true",
   studentCalendarConnected: localStorage.getItem("mathepi-student-calendar") === "true",
   courses: load("mathepi-courses", DEFAULT_COURSES),
   people: load("mathepi-people", DEFAULT_PEOPLE),
@@ -1941,15 +2201,56 @@ const state = {
   appointments: load("mathepi-appointments", DEFAULT_APPOINTMENTS),
   availability: load("mathepi-availability", DEFAULT_AVAILABILITY),
   supportRequests: load("mathepi-support-requests", DEFAULT_SUPPORT_REQUESTS),
+  cfaStatuses: load(CFA_STATUS_KEY, DEFAULT_CFA_STATUS),
 };
 
 function migrateProgrammeData() {
+  if (!localStorage.getItem("mathepi-tutorial-fellows-cfa-v1")) {
+    state.cfaStatuses = Object.assign({}, DEFAULT_CFA_STATUS, state.cfaStatuses, { tutors: "Open" });
+    localStorage.setItem("mathepi-tutorial-fellows-cfa-v1", "1");
+  }
+
+  const schedule = {
+    onboarding: ["2026-09-28", "2026-10-02"],
+    "block-1": ["2026-10-05", "2026-10-23"],
+    "block-2": ["2026-10-26", "2026-11-13"],
+    "reading-1": ["2026-11-16", "2026-11-20"],
+    "block-3": ["2026-11-23", "2026-12-11"],
+    vacation: ["2026-12-14", "2027-01-03"],
+    "block-4": ["2027-01-04", "2027-01-22"],
+    "block-5": ["2027-01-25", "2027-02-12"],
+    "block-6": ["2027-02-15", "2027-03-05"],
+    "block-7": ["2027-03-08", "2027-03-26"],
+    "reading-2": ["2027-03-29", "2027-04-02"],
+    "block-8": ["2027-04-05", "2027-04-23"],
+    "block-9": ["2027-04-26", "2027-05-14"],
+    internship: ["2027-05-17", "2027-11-15"],
+    thesis: ["2027-11-16", "2027-12-17"],
+    graduation: ["2027-12-21", "2027-12-22"],
+  };
+
+  state.blocks.forEach((block) => {
+    const dates = schedule[block.id];
+    if (dates) {
+      block.start = dates[0];
+      block.end = dates[1];
+    }
+  });
+
+  const vacation = state.blocks.find((item) => item.id === "vacation");
+  if (vacation) {
+    Object.assign(vacation, {
+      title: "Vacation and December Holiday",
+      kind: "holiday",
+      note: "December holiday break",
+      courses: [],
+    });
+  }
+
   const internship = state.blocks.find((item) => item.id === "internship");
   if (internship) {
     Object.assign(internship, {
       title: "Internship",
-      start: "2027-04-05",
-      end: "2027-10-04",
       kind: "practical",
       note: "Six-month mandatory placement with research or industry partners",
       courses: ["MEI01"],
@@ -1960,8 +2261,6 @@ function migrateProgrammeData() {
   if (thesis) {
     Object.assign(thesis, {
       title: "Thesis Writing, Review, and Vivas",
-      start: "2027-10-05",
-      end: "2027-11-05",
       kind: "thesis",
       note: "Thesis/project write-up and examination cycle",
       courses: ["MEI01"],
@@ -1972,8 +2271,6 @@ function migrateProgrammeData() {
   if (graduation) {
     Object.assign(graduation, {
       title: "Graduation",
-      start: "2027-11-23",
-      end: "2027-11-24",
       kind: "graduation",
       note: "Graduation window",
       courses: [],
@@ -1985,6 +2282,8 @@ function migrateProgrammeData() {
     practical.outcomes =
       "Complete a six-month research or industry internship and translate the work into thesis/project output.";
   }
+
+  state.blocks.sort((a, b) => a.start.localeCompare(b.start));
 }
 
 function load(key, fallback) {
@@ -2013,6 +2312,8 @@ function save() {
   localStorage.setItem("mathepi-availability", JSON.stringify(state.availability));
   localStorage.setItem("mathepi-support-requests", JSON.stringify(state.supportRequests));
   localStorage.setItem("mathepi-student-calendar", String(state.studentCalendarConnected));
+  localStorage.setItem(CFA_STATUS_KEY, JSON.stringify(state.cfaStatuses));
+  scheduleGoogleSync();
 }
 
 function icon(name, size = 20) {
@@ -2045,6 +2346,24 @@ function daysUntil(iso) {
 
 function roleDef() {
   return ROLES[state.role];
+}
+
+function authState() {
+  return window.mathepiAuth || { status: "unconfigured", user: null, error: null };
+}
+
+function authConfigured() {
+  const auth = authState();
+  return window.MATHEPI_REQUIRE_AUTH !== false && auth.status !== "unconfigured";
+}
+
+function authGateRequired() {
+  const auth = authState();
+  return authConfigured() && (auth.status === "loading" || auth.status === "error" || !auth.user);
+}
+
+function roleSimulationAllowed() {
+  return !authConfigured();
 }
 
 function applyTheme() {
@@ -2189,7 +2508,7 @@ function plannerAnchorDate(tasks = visiblePlannerTasks()) {
   const first = tasks
     .slice()
     .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))[0];
-  return new Date(`${first?.date || "2026-09-07"}T10:00:00`);
+  return new Date(`${first?.date || "2026-10-05"}T10:00:00`);
 }
 
 function weekStart(date) {
@@ -2551,6 +2870,17 @@ function statusBadge(status) {
   return `<span class="badge ${STATUS_COLOR[status] || "gray"}">${status}</span>`;
 }
 
+function personStatusText(item) {
+  if (!item) return "Unassigned";
+  const role = item.kind === "Lecturer" ? "Lecturer" : item.kind === "Tutor" ? "Tutor" : item.kind;
+  return `${role} ${String(item.status || "not contacted").toLowerCase()}`;
+}
+
+function personStatusBadge(item) {
+  if (!item) return `<span class="badge danger">Unassigned</span>`;
+  return `<span class="badge ${STATUS_COLOR[item.status] || "gray"}">${personStatusText(item)}</span>`;
+}
+
 function typeBadge(type) {
   const meta = COURSE_TYPES[type] || COURSE_TYPES.skills;
   return `<span class="badge ${meta.color}">${meta.label}</span>`;
@@ -2638,8 +2968,8 @@ function conflicts() {
     .slice(0, 3)
     .forEach((item) =>
       issues.push({
-        title: "Lecturer not confirmed",
-        detail: `${item.code} ${item.title} needs lecturer confirmation.`,
+        title: "Lecturer assignment not confirmed",
+        detail: `${item.code} ${item.title} needs a lecturer assigned and confirmed.`,
         icon: "mail",
         color: "gold",
       }),
@@ -2678,13 +3008,100 @@ function closeDrawer() {
   render();
 }
 
-function setRole(role) {
+function setRole(role, options = {}) {
+  if (!ROLES[role]) return;
+  if (authConfigured() && options.source !== "auth") {
+    toast("Roles are controlled by signed-in account claims.");
+    return;
+  }
   state.role = role;
   if (!canView(state.view)) state.view = "dashboard";
   render();
 }
 
+function setAuthenticatedRole(role) {
+  setRole(role, { source: "auth" });
+}
+
+function authStatusLabel() {
+  const auth = authState();
+  if (auth.status === "ready" && auth.user) return `Signed in as ${auth.user.email}`;
+  if (auth.status === "ready") return "Firebase login ready";
+  if (auth.status === "loading") return "Starting Firebase login";
+  if (auth.status === "error") return auth.error || "Firebase login needs attention";
+  return "Firebase config required";
+}
+
+function authStatusBadge() {
+  const status = authState().status || "unconfigured";
+  if (status === "ready" && window.mathepiAuth?.user) return "green";
+  if (status === "ready") return "blue";
+  if (status === "loading") return "gold";
+  if (status === "error") return "danger";
+  return "gray";
+}
+
+async function authCreateAccount() {
+  const auth = authState();
+  const email = (document.querySelector("#authEmail")?.value || document.querySelector("#authGateEmail")?.value || "").trim();
+  const password = document.querySelector("#authPassword")?.value || document.querySelector("#authGatePassword")?.value || "";
+  if (window.MATHEPI_ALLOW_SELF_SIGNUP === false) {
+    toast("Self sign-up is disabled for this portal.");
+    return;
+  }
+  if (!auth || auth.status === "unconfigured") {
+    toast("Add Firebase config first, then refresh the app.");
+    return;
+  }
+  if (!email || !password) {
+    toast("Enter an email and password.");
+    return;
+  }
+  if (password.length < 6) {
+    toast("Firebase requires at least 6 password characters.");
+    return;
+  }
+  try {
+    await auth.createAccount(email, password);
+    toast("Account created. Assign the production role in Firebase custom claims.");
+  } catch (error) {
+    toast(error.message || "Account could not be created.");
+  }
+}
+
+async function authSignIn() {
+  const auth = authState();
+  const email = (document.querySelector("#authEmail")?.value || document.querySelector("#authGateEmail")?.value || "").trim();
+  const password = document.querySelector("#authPassword")?.value || document.querySelector("#authGatePassword")?.value || "";
+  if (!auth || auth.status === "unconfigured") {
+    toast("Add Firebase config first, then refresh the app.");
+    return;
+  }
+  if (!email || !password) {
+    toast("Enter an email and password.");
+    return;
+  }
+  try {
+    await auth.signIn(email, password);
+    toast("Signed in.");
+  } catch (error) {
+    toast(error.message || "Sign in failed.");
+  }
+}
+
+async function authSignOut() {
+  try {
+    await window.mathepiAuth?.signOut();
+    toast("Signed out.");
+  } catch (error) {
+    toast(error.message || "Sign out failed.");
+  }
+}
+
 function topbarAction() {
+  if (state.view === "cfa" && canEdit()) {
+    return `<button class="button primary" onclick="toast('CFA publishing scaffold is ready for backend wiring.')">${icon("megaphone", 18)}Publish CFA</button>`;
+  }
   if (canEdit()) {
     return `<button class="button primary" onclick="openDrawer('quickAdd')">${icon("plus", 18)}Add</button>`;
   }
@@ -2706,7 +3123,79 @@ function topbarAction() {
   return `<button class="button ghost" disabled>${icon("shield", 18)}Read only</button>`;
 }
 
+function renderRoleControl() {
+  const auth = authState();
+  if (!roleSimulationAllowed()) {
+    const account = auth.user?.email || "Signed-in account";
+    return `
+      <div class="role-card account-card">
+        <label>Signed-in role</label>
+        <strong>${escapeHtml(roleDef().label)}</strong>
+        <small>${escapeHtml(account)}</small>
+        <button class="button ghost" onclick="authSignOut()">${icon("x", 15)}Sign out</button>
+      </div>
+    `;
+  }
+  return `
+    <div class="role-card">
+      <label for="roleSwitch">Prototype role simulation</label>
+      <select id="roleSwitch" onchange="setRole(this.value)">
+        ${Object.entries(ROLES)
+          .map(([id, role]) => `<option value="${id}" ${state.role === id ? "selected" : ""}>${role.label}</option>`)
+          .join("")}
+      </select>
+    </div>
+  `;
+}
+
+function authGateLayout() {
+  const auth = authState();
+  const canSubmit = auth.status === "ready";
+  const selfSignup = window.MATHEPI_ALLOW_SELF_SIGNUP !== false;
+  const message =
+    auth.status === "loading"
+      ? "Starting secure sign-in."
+      : auth.status === "error"
+        ? auth.error || "Firebase sign-in needs attention."
+        : "Use your approved MathEpi account email and password.";
+  return `
+    <div class="auth-page">
+      <section class="auth-panel">
+        <div class="auth-brand">
+          <img src="assets/aims-ric-logo.png" alt="AIMS Research & Innovation Centre logo" />
+          <div>
+            <p>AIMS RIC x KEMRI</p>
+            <h1>MathEpi Assistant</h1>
+          </div>
+        </div>
+        <div class="auth-copy">
+          <span class="badge ${authStatusBadge()}">${escapeHtml(authStatusLabel())}</span>
+          <h2>Sign in to continue</h2>
+          <p>${escapeHtml(message)} Your role is loaded from Firebase and controls which modules you can open.</p>
+        </div>
+        <div class="form-grid auth-form">
+          <div class="field full">
+            <label>Email</label>
+            <input id="authGateEmail" type="email" autocomplete="email" placeholder="user@example.org" ${canSubmit ? "" : "disabled"} />
+          </div>
+          <div class="field full">
+            <label>Password</label>
+            <input id="authGatePassword" type="password" autocomplete="current-password" placeholder="At least 6 characters" ${canSubmit ? "" : "disabled"} />
+          </div>
+        </div>
+        <div class="hero-actions compact-actions">
+          <button class="button primary" ${canSubmit ? "" : "disabled"} onclick="authSignIn()">${icon("shield", 17)}Sign in</button>
+          <button class="button ghost" ${canSubmit && selfSignup ? "" : "disabled"} onclick="authCreateAccount()">${icon("users", 17)}Create account</button>
+        </div>
+        <p class="muted-note">New accounts start with Viewer access until an authorized admin assigns a production role claim.</p>
+      </section>
+      ${state.toast ? `<div class="toast">${icon("check", 18)}${escapeHtml(state.toast)}</div>` : ""}
+    </div>
+  `;
+}
+
 function appLayout() {
+  if (authGateRequired()) return authGateLayout();
   const nav = NAV.filter((item) => canView(item.id));
   const viewMeta = NAV.find((item) => item.id === state.view) || NAV[0];
   return `
@@ -2738,17 +3227,7 @@ function appLayout() {
             )
             .join("")}
         </nav>
-        <div class="role-card">
-          <label for="roleSwitch">Role simulation</label>
-          <select id="roleSwitch" onchange="setRole(this.value)">
-            ${Object.entries(ROLES)
-              .map(
-                ([id, role]) =>
-                  `<option value="${id}" ${state.role === id ? "selected" : ""}>${role.label}</option>`,
-              )
-              .join("")}
-          </select>
-        </div>
+        ${renderRoleControl()}
       </aside>
       <section class="content">
         <header class="topbar">
@@ -2813,6 +3292,8 @@ function renderView() {
       return renderCourses();
     case "people":
       return renderPeople();
+    case "cfa":
+      return renderCfa();
     case "appointments":
       return renderAppointments();
     case "support":
@@ -2885,9 +3366,7 @@ function renderDashboard() {
                       <div class="row-tags">
                         ${typeBadge(item.type)}
                         <span class="chip gray">${item.hours} hours</span>
-                        <span class="chip ${person(item.lecturerId)?.status === "Confirmed" ? "green" : "gold"}">
-                          ${person(item.lecturerId)?.name || "Lecturer missing"}
-                        </span>
+                        ${person(item.lecturerId) ? personStatusBadge(person(item.lecturerId)) : `<span class="badge danger">Lecturer not assigned</span>`}
                       </div>
                     </div>
                     <button class="button ghost icon-only" onclick="openDrawer('course', '${item.code}')" aria-label="Open ${item.code}">${icon("edit", 18)}</button>
@@ -2967,6 +3446,17 @@ function dashboardQuickActions() {
       color: "maroon",
       action: canView("contact") ? "setView('contact')" : "setView('courses')",
     },
+    ...(canView("cfa")
+      ? [
+          {
+            title: "CFA",
+            text: "Open lecturer, tutor, and head tutor calls for applications.",
+            icon: "megaphone",
+            color: "blue",
+            action: "setView('cfa')",
+          },
+        ]
+      : []),
     {
       title: canEdit() ? "Schedule session" : "My timetable",
       text: canEdit()
@@ -3269,14 +3759,25 @@ function studentCourseTeamChips(lead, tutors) {
   `;
 }
 
+function courseStaffingChips(item, lead, tutors) {
+  const tutorCount = item.tutorIds.length;
+  return `
+    ${lead ? `<span class="chip green">Lecturer assigned</span>${personStatusBadge(lead)}` : `<span class="badge danger">Lecturer not assigned</span>`}
+    ${
+      tutorCount
+        ? `<span class="chip green">${tutorCount} tutor${tutorCount === 1 ? "" : "s"} assigned</span>${tutors.map(personStatusBadge).join("")}`
+        : `<span class="badge danger">No tutor assigned</span>`
+    }
+  `;
+}
+
 function renderCourseRow(item) {
   const lead = person(item.lecturerId);
   const tutors = item.tutorIds.map(person).filter(Boolean);
   const staffing =
     state.role === "student"
       ? studentCourseTeamChips(lead, tutors)
-      : `${lead ? statusBadge(lead.status) : `<span class="badge danger">Lecturer missing</span>`}
-         <span class="chip ${item.tutorIds.length ? "green" : "danger"}">${item.tutorIds.length} tutor${item.tutorIds.length === 1 ? "" : "s"}</span>`;
+      : courseStaffingChips(item, lead, tutors);
   return `
     <article class="course-row">
       <div>
@@ -3324,6 +3825,163 @@ function renderPeople() {
   `;
 }
 
+function cfaCall(id) {
+  return CFA_CALLS.find((item) => item.id === id);
+}
+
+function cfaStatus(id) {
+  return state.cfaStatuses?.[id] || DEFAULT_CFA_STATUS[id] || "Closed";
+}
+
+function cfaStatusBadge(id) {
+  const status = cfaStatus(id);
+  return `<span class="badge ${CFA_STATUS_COLOR[status] || "gray"}">${status}</span>`;
+}
+
+function updateCfaStatus(id, status) {
+  if (!state.cfaStatuses) state.cfaStatuses = structuredClone(DEFAULT_CFA_STATUS);
+  state.cfaStatuses[id] = status;
+  if (googleBackendAvailable()) {
+    googleApi("updateCfaStatus", { id, status }).catch((error) => toast(error.message || "CFA status Google sync failed."));
+  }
+  saveAndRender(`${cfaCall(id)?.title || "CFA"} call set to ${status}.`);
+}
+
+function renderCfa() {
+  const ready = CFA_CALLS.filter((item) => item.status === "Form ready").length;
+  const draft = CFA_CALLS.length - ready;
+  const openCalls = CFA_CALLS.filter((item) => cfaStatus(item.id) === "Open").length;
+  const lecturerCall = cfaCall("lecturers");
+  const fellowCall = cfaCall("tutors");
+  return `
+    <div class="view">
+      <section class="cfa-hero">
+        <div>
+          <span class="mission-eyebrow">${icon("megaphone", 16)} Call for Applications</span>
+          <h2>CFA workspace for MathEpi teaching roles.</h2>
+          <p>Manage application calls for lecturers, Tutorial Fellows, and head tutor roles. Lecturer and Tutorial Fellows calls now open as full standalone forms with Google Sheets and Drive capture.</p>
+          <div class="hero-actions">
+            ${cfaFormLink(lecturerCall, "Open lecturer form", "primary")}
+            ${cfaFormLink(fellowCall, "Open Tutorial Fellows form", "ghost")}
+            <button class="button ghost" onclick="openDrawer('cfaCall', 'lecturers')">${icon("edit", 17)}Lecturer brief</button>
+            <button class="button ghost" onclick="openDrawer('cfaCall', 'tutors')">${icon("users", 17)}Tutorial Fellows brief</button>
+          </div>
+        </div>
+        <div class="cfa-metrics">
+          ${kpi("Calls", CFA_CALLS.length, "Lecturers, Tutorial Fellows, head tutor", "megaphone", "maroon")}
+          ${kpi("Open", openCalls, "Currently accepting applications", "check", "green")}
+          ${kpi("Ready", ready, "Standalone forms available", "planner", "gold")}
+          ${kpi("Documents", "2", "Passport and PhD certificate", "sheet", "blue")}
+        </div>
+      </section>
+
+      <section class="call-grid">
+        ${CFA_CALLS.map(renderCfaCard).join("")}
+      </section>
+
+      <section class="section-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Lecturer CFA Application Flow</h2>
+              <p>Standalone lecturer application form.</p>
+            </div>
+            <span class="badge green">Ready</span>
+          </div>
+          <div class="card-body cfa-flow">
+            ${lecturerCall.requirements
+              .map(
+                (item, index) => `
+                <div class="flow-step">
+                  <span>${index + 1}</span>
+                  <p>${item}</p>
+                </div>
+              `,
+              )
+              .join("")}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Tutorial Fellows CFA Application Flow</h2>
+              <p>Standalone AIMS RW/KEMRI Tutorial Fellows application form.</p>
+            </div>
+            <span class="badge green">Ready</span>
+          </div>
+          <div class="card-body cfa-flow">
+            ${fellowCall.requirements
+              .map(
+                (item, index) => `
+                <div class="flow-step">
+                  <span>${index + 1}</span>
+                  <p>${item}</p>
+                </div>
+              `,
+              )
+              .join("")}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>CFA Publishing Notes</h2>
+              <p>Current source briefs for the application forms.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="prompt-box">${fellowCall.prompt}</div>
+            <div class="timeline-list" style="margin-top:12px">
+              ${fellowCall.workflow
+                .map((item) => `<div class="timeline-item"><h4>${item}</h4><p>Tracked inside the CFA workspace before final appointment and people sync.</p></div>`)
+                .join("")}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderCfaCard(item) {
+  const featured = item.id === "lecturers";
+  return `
+    <article class="call-card ${featured ? "featured" : ""}">
+      <div class="call-card-top">
+        <span class="icon-box ${item.color}">${icon(item.id === "head-tutor" ? "shield" : item.id === "tutors" ? "users" : "graduation", 18)}</span>
+        <span class="call-status-stack"><span class="badge ${item.color}">${item.status}</span>${cfaStatusBadge(item.id)}</span>
+      </div>
+      <div>
+        <p class="call-code">${item.code}</p>
+        <h3>${item.title}</h3>
+        <p>${item.summary}</p>
+      </div>
+      <div class="row-tags">
+        <span class="chip gray">Deadline: ${item.deadline}</span>
+        <span class="chip blue">Owner: ${item.owner}</span>
+      </div>
+      <div class="call-card-actions">
+        <button class="button ${featured ? "primary" : "ghost"}" onclick="openDrawer('cfaCall', '${item.id}')">
+          ${icon(featured ? "edit" : "planner", 17)}
+          ${featured ? "Open brief" : "Open draft"}
+        </button>
+        ${
+          item.formUrl
+            ? cfaFormLink(item, "Full form", "ghost")
+            : ""
+        }
+      </div>
+    </article>
+  `;
+}
+
+function cfaFormLink(item, label, variant = "ghost") {
+  if (!item?.formUrl) return "";
+  return `<a class="button ${variant}" href="${item.formUrl}" target="_blank" rel="noopener noreferrer">${icon("external", 17)}${label}</a>`;
+}
+
 function renderPersonRow(item) {
   const assigned = assignedCourses(item.id);
   const sensitive = canSeeSensitive();
@@ -3335,7 +3993,7 @@ function renderPersonRow(item) {
           <h4>${item.name}</h4>
           <p>${item.affiliation} · ${item.expertise}</p>
           <div class="row-tags">
-            ${statusBadge(item.status)}
+            ${personStatusBadge(item)}
             <span class="chip gray">${assigned.length} course${assigned.length === 1 ? "" : "s"}</span>
             ${sensitive ? `<span class="chip blue">${item.email}</span>` : `<span class="chip gray">contact hidden</span>`}
           </div>
@@ -3370,7 +4028,7 @@ function renderContact() {
                   <h4>${item.name}</h4>
                   <p>${item.expertise} · ${assignedCourses(item.id).map((c) => c.code).join(", ") || "No course assigned"}</p>
                   <div class="row-tags">
-                    ${statusBadge(item.status)}
+                    ${personStatusBadge(item)}
                     <span class="chip gray">Last: ${dateLabel(item.lastContact)}</span>
                     <span class="chip ${new Date(`${item.nextFollowUp}T10:00:00`) <= today() ? "danger" : "blue"}">Next: ${dateLabel(item.nextFollowUp)}</span>
                   </div>
@@ -4247,6 +4905,11 @@ function renderGroupAggregateInsights() {
 }
 
 function renderGoogle() {
+  const backendStatus = hasAppsScriptBridge()
+    ? "Apps Script Web App"
+    : appsScriptUrl()
+      ? "External Apps Script URL"
+      : "Local prototype";
   const tabs = [
     "CalendarBlocks",
     "Courses",
@@ -4286,32 +4949,54 @@ function renderGoogle() {
         <div class="card-header">
           <div>
             <h2>Google Sheets and Drive Integration</h2>
-            <p>Prepared for the programme database to live in Google Sheets and documents in Drive.</p>
+            <p>Apps Script is the backend, Google Sheets stores structured records, and Drive stores uploaded files and programme documents.</p>
           </div>
-          <span class="badge ${state.googleConnected ? "green" : "gold"}">${state.googleConnected ? "Connected" : "Prototype mode"}</span>
+          <span class="badge ${googleBackendAvailable() ? "green" : "gold"}">${backendStatus}</span>
         </div>
         <div class="card-body">
           <div class="form-grid">
-            <div class="field">
-              <label>Google Sheet ID</label>
-              <input value="1-mathepi-academic-operations-sheet-id" />
+            <div class="field full">
+              <label>Apps Script Web App URL</label>
+              <input id="appsScriptUrl" value="${appsScriptUrl()}" placeholder="https://script.google.com/macros/s/.../exec" />
+              <small>Leave blank when this UI is served inside Apps Script and can use google.script.run directly.</small>
             </div>
             <div class="field">
-              <label>Drive Root Folder ID</label>
-              <input value="drive-folder-mathepi-programme" />
+              <label>Google Sheet</label>
+              <input value="Created by setupWorkspace()" readonly />
+            </div>
+            <div class="field">
+              <label>Drive Root Folder</label>
+              <input value="Created by setupWorkspace()" readonly />
             </div>
             <div class="field full">
-              <label>OAuth Client Status</label>
-              <input value="Use environment variables in GitHub-connected deployment" />
+              <label class="check-card">
+                <input type="checkbox" ${state.googleAutoSync ? "checked" : ""} onchange="setGoogleAutoSync(this.checked)" />
+                <span><strong>Autosync app edits to Google Sheets</strong><small>Debounced after local edits. Keep off until the Apps Script deployment is ready.</small></span>
+              </label>
             </div>
           </div>
           <div style="height: 14px"></div>
           <div class="quick-grid">
-            ${quick("Connect OAuth", "Swap prototype state to connected mode.", "shield", "green", "state.googleConnected=!state.googleConnected; toast(state.googleConnected?'Google workspace connected in prototype mode.':'Google workspace disconnected.'); render()")}
-            ${quick("Sync courses", "Courses tab receives seeded curriculum fields.", "sheet", "blue", "toast('Courses sync simulated. Wire this to Google Sheets API.')")}
-            ${quick("Open Drive map", "Course folders, CVs, outlines, and notes.", "drive", "gold", "openDrawer('driveMap')")}
+            ${quick("Save endpoint", "Store the deployed Apps Script Web App URL.", "shield", "green", "setAppsScriptUrl()")}
+            ${quick("Initialize Google", "Create the Sheet, tabs, and Drive folders.", "cloud", "blue", "initializeGoogleWorkspace()")}
+            ${quick("Push app data", "Write current local data to Google Sheets.", "sheet", "teal", "pushGoogleSnapshot('manual')")}
+            ${quick("Pull from Sheets", "Load current records from Google Sheets.", "database", "gold", "pullGoogleBootstrap()")}
+            ${quick("Open Drive map", "Course folders, CFA uploads, outlines, and notes.", "drive", "gold", "openDrawer('driveMap')")}
             ${quick("Export JSON", "Download-ready structure for backend handoff.", "database", "teal", "openDrawer('export')")}
           </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Apps Script Backend Contract</h2>
+            <p>Deploy the files in <code>apps-script/</code> as a Web App, then paste the deployment URL above.</p>
+          </div>
+        </div>
+        <div class="card-body timeline-list">
+          <div class="timeline-item"><h4>Structured data</h4><p>Courses, people, calendar blocks, sessions, tasks, support requests, appointments, and CFA status are written to Google Sheets tabs.</p></div>
+          <div class="timeline-item"><h4>Files</h4><p>Lecturer application passport uploads and future documents are stored in Drive under the MathEpi root folder.</p></div>
+          <div class="timeline-item"><h4>Application submissions</h4><p>Standalone lecturer and Tutorial Fellows applications call Apps Script, write rows to their application tabs, and save uploaded files in Drive.</p></div>
         </div>
       </div>
       <div class="card">
@@ -4376,15 +5061,83 @@ function sheetDescription(tab) {
 }
 
 function renderAccess() {
+  const auth = window.mathepiAuth || { status: "unconfigured", user: null };
+  const authReady = auth.status === "ready";
+  const currentRole = auth.user?.role || state.role;
   return `
     <div class="view section-grid">
       <div class="card">
         <div class="card-header">
           <div>
-            <h2>Role-Based Access</h2>
-            <p>Designed for a private GitHub repo and invited users.</p>
+            <h2>Installable App</h2>
+            <p>Prepared as a PWA for Android and iPhone home-screen installs.</p>
           </div>
-          <span class="badge maroon">Private repo ready</span>
+          <span class="badge green">PWA ready</span>
+        </div>
+        <div class="card-body assistant-stack">
+          ${[
+            ["cloud", "Host on HTTPS", "Use GitHub Pages, Vercel, Netlify, Firebase Hosting, or Apps Script web app hosting."],
+            ["shield", "Install files are included", "manifest.webmanifest, service worker, and mobile icons are wired into the portal."],
+            ["calendar", "Works like an app", "Android users can install from Chrome; iPhone users can use Safari's Add to Home Screen."],
+          ]
+            .map(
+              ([iconName, title, detail]) => `
+              <div class="priority">
+                <span class="icon-box maroon">${icon(iconName, 18)}</span>
+                <div><strong>${title}</strong><span>${detail}</span></div>
+              </div>
+            `,
+            )
+            .join("")}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Email Accounts</h2>
+            <p>Firebase email/password sign-in bridge for production users.</p>
+          </div>
+          <span class="badge ${authStatusBadge()}">${escapeHtml(authStatusLabel())}</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field">
+              <label>Email</label>
+              <input id="authEmail" type="email" autocomplete="email" placeholder="user@example.org" />
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 6 characters" />
+            </div>
+            <div class="field">
+              <label>Role preview</label>
+              <select onchange="setRole(this.value)">
+                ${Object.entries(ROLES)
+                  .map(([id, role]) => `<option value="${id}" ${currentRole === id ? "selected" : ""}>${role.label}</option>`)
+                  .join("")}
+              </select>
+              <small>Production roles must be assigned server-side as a Firebase custom claim named <strong>role</strong>.</small>
+            </div>
+            <div class="field">
+              <label>Current account</label>
+              <input readonly value="${auth.user ? escapeHtml(auth.user.email) : "Not signed in"}" />
+            </div>
+          </div>
+          <div class="hero-actions compact-actions">
+            <button class="button primary" ${authReady ? "" : "disabled"} onclick="authCreateAccount()">${icon("users", 17)}Create account</button>
+            <button class="button ghost" ${authReady ? "" : "disabled"} onclick="authSignIn()">${icon("shield", 17)}Sign in</button>
+            <button class="button ghost" ${auth.user ? "" : "disabled"} onclick="authSignOut()">${icon("x", 17)}Sign out</button>
+          </div>
+          <p class="muted-note">Passwords are handled by Firebase Auth, not by Google Sheets, Drive, local storage, or Apps Script.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Role-Based Access</h2>
+            <p>These are the same role IDs the login bridge reads from Firebase claims.</p>
+          </div>
+          <span class="badge maroon">Claims ready</span>
         </div>
         <div class="card-body">
           <table class="mini-table">
@@ -4409,15 +5162,15 @@ function renderAccess() {
         <div class="card-header">
           <div>
             <h2>Deployment Notes</h2>
-            <p>Security rules to keep when moving from prototype to production.</p>
+            <p>Security rules to keep for installable production use.</p>
           </div>
         </div>
         <div class="card-body assistant-stack">
           ${[
-            ["shield", "Do not store Google secrets in GitHub", "Use environment variables on Vercel/Netlify or a secure backend."],
-            ["users", "Invite selected users", "Private repository access and app access should be managed separately."],
-            ["database", "Enforce permissions server-side", "UI role gates are helpful for UX but not sufficient for sensitive production data."],
-            ["cloud", "Audit Drive visibility", "Lecturer contacts, internal notes, and CVs should only be exposed to authorized roles."],
+            ["shield", "Do not store passwords yourself", "Use Firebase Auth for password handling and password resets."],
+            ["users", "Assign roles as claims", "New accounts can default to Viewer until an admin assigns manager, tutor, lecturer, or student access."],
+            ["database", "Enforce permissions server-side", "Apps Script and any database rules must verify the signed-in user's role before writes."],
+            ["cloud", "Audit Drive visibility", "Applications, passports, certificates, and internal notes should only be exposed to authorized roles."],
           ]
             .map(
               ([iconName, title, detail]) => `
@@ -4460,6 +5213,7 @@ function renderDrawer() {
   if (type === "appointment") content = appointmentDrawer(payload);
   if (type === "supportForm") content = supportFormDrawer(payload);
   if (type === "supportRequest") content = supportRequestDrawer(payload);
+  if (type === "cfaCall") content = cfaCallDrawer(payload);
   return `<div class="drawer-backdrop" onclick="if(event.target.classList.contains('drawer-backdrop')) closeDrawer()">${content}</div>`;
 }
 
@@ -4476,11 +5230,57 @@ function drawerShell(title, subtitle, body, footer = "") {
   `;
 }
 
+function cfaCallDrawer(id) {
+  const item = cfaCall(id);
+  if (!item) return drawerShell("CFA not found", "The selected call is no longer available.", "");
+  const body = `
+    <div class="meta-grid">
+      <div class="meta-box"><span>Call code</span><strong>${item.code}</strong></div>
+      <div class="meta-box"><span>Build status</span><strong>${item.status}</strong></div>
+      <div class="meta-box"><span>Call status</span><strong>${cfaStatus(item.id)}</strong></div>
+      <div class="meta-box"><span>Owner</span><strong>${item.owner}</strong></div>
+      <div class="meta-box"><span>Deadline</span><strong>${item.deadline}</strong></div>
+    </div>
+    ${
+      canEdit()
+        ? `<div class="field">
+            <label>Accepting applications</label>
+            <select onchange="updateCfaStatus('${item.id}', this.value)">
+              ${["Open", "Closed"].map((status) => `<option value="${status}" ${cfaStatus(item.id) === status ? "selected" : ""}>${status}</option>`).join("")}
+            </select>
+            <small>Closed calls remain visible for review, but the public form will block new applications.</small>
+          </div>`
+        : ""
+    }
+    <div class="timeline-item"><h4>Audience</h4><p>${item.audience}</p></div>
+    <div class="timeline-item"><h4>Application brief</h4><p>${item.summary}</p></div>
+    <div class="timeline-item"><h4>Optimized prompt</h4><p>${item.prompt}</p></div>
+    <div class="timeline-list">
+      ${item.requirements
+        .map((requirement) => `<div class="timeline-item"><h4>Requirement</h4><p>${requirement}</p></div>`)
+        .join("")}
+    </div>
+    <div class="timeline-list">
+      ${item.workflow
+        .map((step, index) => `<div class="timeline-item"><h4>${index + 1}. ${step}</h4><p>Prepared for future Google Sheets and Drive workflow wiring.</p></div>`)
+        .join("")}
+    </div>
+  `;
+  const footer = canEdit()
+    ? `${cfaFormLink(item, "Open full form", "ghost")}
+       <button class="button ghost" onclick="toast('${item.title} CFA copied into the publishing queue.')">${icon("sheet", 17)}Queue</button>
+       <button class="button primary" onclick="toast('${item.title} CFA publishing scaffold is ready.')">${icon("megaphone", 17)}Publish</button>`
+    : `<button class="button ghost" onclick="closeDrawer()">Close</button>`;
+  return drawerShell(`${item.title} CFA`, `${item.status} call configuration`, body, footer);
+}
+
 function courseDrawer(code) {
   const item = course(code);
   if (!item) return drawerShell("Course not found", "The selected course is no longer available.", "");
   const lead = person(item.lecturerId);
   const tutors = item.tutorIds.map(person).filter(Boolean);
+  const lecturerOptions = state.people.filter((entry) => entry.kind === "Lecturer");
+  const tutorOptions = state.people.filter((entry) => entry.kind === "Tutor");
   const detail = COURSE_DETAILS[item.code];
   const lecturerText = lead
     ? state.role === "student"
@@ -4496,6 +5296,38 @@ function courseDrawer(code) {
     </div>
     <div class="timeline-item"><h4>Lecturer</h4><p>${lecturerText}</p></div>
     <div class="timeline-item"><h4>Tutors</h4><p>${tutors.length ? tutors.map((t) => t.name).join(", ") : "No tutor assigned yet"}</p></div>
+    ${
+      canEdit()
+        ? `<div class="timeline-item">
+            <h4>Course staffing controls</h4>
+            <p>Assignments update the Course Management list, contact profiles, course drawer, and tutor counts from the same course record.</p>
+            <div class="form-grid assignment-controls">
+              <div class="field full">
+                <label>Assigned lecturer</label>
+                <select onchange="updateCourseLecturer('${item.code}', this.value)">
+                  <option value="">No lecturer assigned</option>
+                  ${lecturerOptions.map((entry) => `<option value="${entry.id}" ${item.lecturerId === entry.id ? "selected" : ""}>${entry.name} - ${entry.status}</option>`).join("")}
+                </select>
+              </div>
+              <div class="field full">
+                <label>Assigned tutors</label>
+                <div class="checkbox-grid">
+                  ${tutorOptions
+                    .map(
+                      (entry) => `
+                        <label class="check-card">
+                          <input type="checkbox" ${item.tutorIds.includes(entry.id) ? "checked" : ""} onchange="updateCourseTutor('${item.code}', '${entry.id}', this.checked)" />
+                          <span><strong>${entry.name}</strong><small>${personStatusText(entry)} - ${entry.expertise}</small></span>
+                        </label>
+                      `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+            </div>
+          </div>`
+        : ""
+    }
     <div class="timeline-item"><h4>Prerequisites</h4><p>${item.prerequisites}</p></div>
     <div class="timeline-item"><h4>Software and tools</h4><p>${item.software}</p></div>
     <div class="timeline-item"><h4>Learning outcomes</h4><p>${item.outcomes}</p></div>
@@ -4543,7 +5375,7 @@ function personDrawer(id) {
         ? `<div class="field">
             <label>Update contact status</label>
             <select onchange="updatePersonStatus('${item.id}', this.value)">
-              ${["Not contacted", "Contacted", "Awaiting response", "Confirmed", "Needs follow-up", "Declined", "Replacement needed"]
+              ${PERSON_STATUS_OPTIONS
                 .map((status) => `<option ${item.status === status ? "selected" : ""}>${status}</option>`)
                 .join("")}
             </select>
@@ -4563,7 +5395,7 @@ function updatePersonStatus(id, status) {
   if (!item) return;
   item.status = status;
   item.lastContact = "2026-05-21";
-  if (status === "Confirmed") item.nextFollowUp = "2026-08-15";
+  if (status === "Confirmed") item.nextFollowUp = "2026-09-28";
   if (status === "Needs follow-up") item.nextFollowUp = "2026-05-22";
   saveAndRender(`${item.name} status updated to ${status}.`);
 }
@@ -4637,12 +5469,29 @@ function addCourse() {
   saveAndRender(`${data.code.toUpperCase()} added.`);
 }
 
+function updateCourseLecturer(code, lecturerId) {
+  const item = course(code);
+  if (!item) return;
+  item.lecturerId = lecturerId || null;
+  saveAndRender(`${code} lecturer assignment updated.`);
+}
+
+function updateCourseTutor(code, tutorId, checked) {
+  const item = course(code);
+  if (!item) return;
+  const current = new Set(item.tutorIds || []);
+  if (checked) current.add(tutorId);
+  else current.delete(tutorId);
+  item.tutorIds = [...current];
+  saveAndRender(`${code} tutor assignments updated.`);
+}
+
 function personFormDrawer(payload = {}) {
   const kind = payload?.kind || "Lecturer";
   const body = `
     <form id="personForm" class="form-grid">
       <div class="field"><label>Role</label><select name="kind"><option ${kind === "Lecturer" ? "selected" : ""}>Lecturer</option><option ${kind === "Tutor" ? "selected" : ""}>Tutor</option></select></div>
-      <div class="field"><label>Status</label><select name="status"><option>Not contacted</option><option>Contacted</option><option>Awaiting response</option><option>Confirmed</option><option>Needs follow-up</option></select></div>
+      <div class="field"><label>Status</label><select name="status">${PERSON_STATUS_OPTIONS.map((status) => `<option>${status}</option>`).join("")}</select></div>
       <div class="field full"><label>Name</label><input name="name" placeholder="Full name" required /></div>
       <div class="field"><label>Affiliation</label><input name="affiliation" placeholder="Institution" /></div>
       <div class="field"><label>Expertise</label><input name="expertise" placeholder="Epidemiology, modelling..." /></div>
@@ -4840,7 +5689,7 @@ function taskFormDrawer() {
       <div class="field full"><label>Task title</label><input name="title" placeholder="Prepare arrival packs" required /></div>
       <div class="field"><label>Area</label><input name="area" placeholder="Student reporting" /></div>
       <div class="field"><label>Owner</label><input name="owner" placeholder="Centre Coordinators" /></div>
-      <div class="field"><label>Due date</label><input name="due" type="date" value="2026-08-15" /></div>
+      <div class="field"><label>Due date</label><input name="due" type="date" value="2026-09-28" /></div>
       <div class="field"><label>Priority</label><select name="priority"><option>High</option><option>Medium</option><option>Low</option></select></div>
       <div class="field"><label>Status</label><select name="status"><option>Planned</option><option>In progress</option><option>Blocked</option><option>Done</option></select></div>
       <div class="field full"><label>Details</label><textarea name="details" placeholder="Documents, stakeholders, dependencies, and what done means."></textarea></div>
@@ -4859,7 +5708,7 @@ function addTask() {
     title: data.title,
     area: data.area || "Operations",
     owner: data.owner || "Academic & Research Manager",
-    due: data.due || "2026-08-15",
+    due: data.due || "2026-09-28",
     status: data.status || "Planned",
     priority: data.priority || "Medium",
     details: data.details || "Details to be added.",
@@ -4903,7 +5752,7 @@ function plannerFormDrawer(payload = {}) {
       <div class="field full"><label>Planner item</label><input name="title" placeholder="Prepare model notes" required /></div>
       <div class="field"><label>Type</label><select name="type">${Object.keys(PLANNER_TYPES).map((type) => `<option>${type}</option>`).join("")}</select></div>
       <div class="field"><label>Course</label><select name="courseCode">${state.courses.map((c) => `<option value="${c.code}" ${c.code === selectedCourse ? "selected" : ""}>${c.code} ${c.title}</option>`).join("")}</select></div>
-      <div class="field"><label>Date</label><input name="date" type="date" value="2026-09-08" /></div>
+      <div class="field"><label>Date</label><input name="date" type="date" value="2026-10-06" /></div>
       <div class="field"><label>Start time</label><input name="time" type="time" value="16:00" /></div>
       <div class="field"><label>Duration</label><select name="duration"><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90" selected>90 min</option><option value="120">120 min</option></select></div>
       <div class="field"><label>Priority</label><select name="priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
@@ -4976,7 +5825,7 @@ function updatePlannerTaskStatus(id, status) {
   saveAndRender(`${item.title} marked ${status}.`);
 }
 
-function appointmentAvailabilityPanel(personId, preferredDate = "2026-09-09", time = "15:00") {
+function appointmentAvailabilityPanel(personId, preferredDate = "2026-10-07", time = "15:00") {
   if (!personId) return `<div class="timeline-item"><h4>Availability</h4><p>Select a person to see availability.</p></div>`;
   const slots = availabilityFor(personId);
   const load = appointmentLoadFor(personId);
@@ -5051,13 +5900,13 @@ function appointmentFormDrawer(payload = {}) {
             .join("")}
         </select>
       </div>
-      <div class="field"><label>Preferred date</label><input name="preferredDate" type="date" value="2026-09-09" onchange="refreshAppointmentAvailability()" /></div>
+      <div class="field"><label>Preferred date</label><input name="preferredDate" type="date" value="2026-10-07" onchange="refreshAppointmentAvailability()" /></div>
       <div class="field"><label>Time</label><input name="time" type="time" value="15:00" onchange="refreshAppointmentAvailability()" /></div>
       <div class="field"><label>Duration</label><select name="duration"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="45">45 min</option><option value="60">60 min</option></select></div>
       <div class="field"><label>Mode</label><select name="mode"><option>In person</option><option>Online</option><option>Hybrid</option></select></div>
       <div class="field full"><label>Reason / agenda</label><textarea name="summary" placeholder="What should the meeting solve?">${payload?.summary || ""}</textarea></div>
     </form>
-    <div id="appointmentAvailability">${appointmentAvailabilityPanel(selectedTarget, "2026-09-09", "15:00")}</div>
+    <div id="appointmentAvailability">${appointmentAvailabilityPanel(selectedTarget, "2026-10-07", "15:00")}</div>
     <div class="timeline-item">
       <h4>Booking workflow</h4>
       <p>Requests begin as Requested and can move through Awaiting confirmation, Confirmed, Reschedule proposed, Completed, Cancelled, or No-show.</p>
@@ -5141,7 +5990,7 @@ function todoFormDrawer(payload = {}) {
       <div class="field full"><label>To-do title</label><input name="title" placeholder="Finish reading notes" required /></div>
       <div class="field"><label>Category</label><select name="category">${Object.keys(TODO_CATEGORIES).map((category) => `<option>${category}</option>`).join("")}</select></div>
       <div class="field"><label>Course</label><select name="courseCode">${state.courses.map((c) => `<option value="${c.code}" ${c.code === selectedCourse ? "selected" : ""}>${c.code} ${c.title}</option>`).join("")}</select></div>
-      <div class="field"><label>Due date</label><input name="due" type="date" value="2026-09-08" /></div>
+      <div class="field"><label>Due date</label><input name="due" type="date" value="2026-10-06" /></div>
       <div class="field"><label>Priority</label><select name="priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
       <div class="field full"><label>Notes</label><textarea name="notes" placeholder="What needs to be done?"></textarea></div>
     </form>
@@ -5337,7 +6186,7 @@ function studyGroupFormDrawer() {
         <label>Purpose</label>
         <select name="purpose">${STUDY_GROUP_PURPOSES.map((purpose) => `<option>${purpose}</option>`).join("")}</select>
       </div>
-      <div class="field"><label>Meeting date</label><input name="meetingDate" type="date" value="2026-09-09" /></div>
+      <div class="field"><label>Meeting date</label><input name="meetingDate" type="date" value="2026-10-07" /></div>
       <div class="field"><label>Meeting time</label><input name="meetingTime" type="time" value="17:00" /></div>
       <div class="field"><label>Mode</label><select name="mode"><option>In person</option><option>Online</option><option selected>Hybrid</option></select></div>
       <div class="field"><label>Capacity</label><input name="capacity" type="number" min="2" max="12" value="6" /></div>
@@ -5510,13 +6359,25 @@ function render() {
 
 window.setView = setView;
 window.setRole = setRole;
+window.setAuthenticatedRole = setAuthenticatedRole;
 window.toggleTheme = toggleTheme;
 window.openDrawer = openDrawer;
 window.closeDrawer = closeDrawer;
+window.updateCfaStatus = updateCfaStatus;
+window.setAppsScriptUrl = setAppsScriptUrl;
+window.setGoogleAutoSync = setGoogleAutoSync;
+window.initializeGoogleWorkspace = initializeGoogleWorkspace;
+window.pushGoogleSnapshot = pushGoogleSnapshot;
+window.pullGoogleBootstrap = pullGoogleBootstrap;
 window.render = render;
 window.toast = toast;
+window.authCreateAccount = authCreateAccount;
+window.authSignIn = authSignIn;
+window.authSignOut = authSignOut;
 window.updatePersonStatus = updatePersonStatus;
 window.addCourse = addCourse;
+window.updateCourseLecturer = updateCourseLecturer;
+window.updateCourseTutor = updateCourseTutor;
 window.addPerson = addPerson;
 window.addSession = addSession;
 window.addTimesheet = addTimesheet;
