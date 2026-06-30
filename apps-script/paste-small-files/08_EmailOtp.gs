@@ -1,3 +1,7 @@
+function authorizeEmailOtp() {
+  return MailApp.getRemainingDailyQuota();
+}
+
 function requestEmailOtp(payload) {
   payload = payload || {};
   const email = normalizeEmailAddress(payload.email);

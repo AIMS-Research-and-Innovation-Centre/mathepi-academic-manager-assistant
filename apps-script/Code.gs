@@ -224,6 +224,10 @@ function getCfaStatus(payload) {
   return { ok: true, id, status: statuses[id] || MATHEPI.defaultCfaStatuses[id] || "Closed" };
 }
 
+function authorizeEmailOtp() {
+  return MailApp.getRemainingDailyQuota();
+}
+
 function requestEmailOtp(payload) {
   payload = payload || {};
   const email = normalizeEmailAddress(payload.email);
