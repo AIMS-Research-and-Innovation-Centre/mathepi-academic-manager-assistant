@@ -299,6 +299,15 @@ function googleBackendAvailable() {
   return hasAppsScriptBridge() || !!appsScriptUrl();
 }
 
+function appsScriptErrorMessage(text) {
+  return String(text || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function googleApi(action, payload) {
   if (hasAppsScriptBridge()) {
     return new Promise((resolve, reject) => {
@@ -311,9 +320,19 @@ function googleApi(action, payload) {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({ action, payload }),
-  }).then((response) => {
-    if (!response.ok) throw new Error("Apps Script request failed: " + response.status);
-    return response.json();
+  }).then(async (response) => {
+    const text = await response.text();
+    let data = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch (error) {
+        throw new Error(appsScriptErrorMessage(text) || "Apps Script returned a response the form could not read.");
+      }
+    }
+    if (!response.ok) throw new Error(data.error || "Apps Script request failed: " + response.status);
+    if (data && data.ok === false) throw new Error(data.error || "Apps Script reported a problem.");
+    return data;
   });
 }
 
@@ -420,7 +439,7 @@ function emailVerificationStep() {
       : `<div class="field" data-field="emailOtpCode">
           <label>Verification code</label>
           <input class="input" id="emailOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" />
-          <p class="field-help">Check the inbox for the email address above. Codes expire after 10 minutes.</p>
+          <p class="field-help">Check the inbox and spam/junk folder for the email address above. Codes expire after 10 minutes.</p>
           <p class="field-err">Enter the verification code sent to your email.</p>
         </div>
         <div class="otp-actions">
@@ -696,7 +715,7 @@ async function requestEmailOtp() {
     if (!result || result.ok === false) throw new Error((result && result.error) || "The verification code could not be sent.");
     state.emailOtpRequestedAt = new Date().toISOString();
     save();
-    if (status) status.textContent = "Code sent. Check your email and enter the 6-digit code here.";
+    if (status) status.textContent = "Code sent. Check your inbox or spam/junk folder and enter the 6-digit code here.";
   } catch (error) {
     if (status) status.textContent = error.message || "The verification code could not be sent.";
   } finally {

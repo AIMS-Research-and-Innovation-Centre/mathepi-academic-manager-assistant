@@ -102,19 +102,39 @@ DATASET_TABS.forEach((tab) => {
 });
 
 function doGet(e) {
-  const action = e && e.parameter && e.parameter.action;
-  if (action) {
-    const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : e.parameter;
-    return jsonResponse(apiPost({ action, payload }));
+  try {
+    const action = e && e.parameter && e.parameter.action;
+    if (action) {
+      const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : e.parameter;
+      return jsonResponse(apiPost({ action, payload }));
+    }
+    return HtmlService.createHtmlOutput(
+      "<h1>MathEpi Apps Script Backend</h1><p>Deploy this Web App URL into the MathEpi portal Sheets & Drive settings.</p>",
+    );
+  } catch (error) {
+    return jsonResponse(routeErrorResponse(error));
   }
-  return HtmlService.createHtmlOutput(
-    "<h1>MathEpi Apps Script Backend</h1><p>Deploy this Web App URL into the MathEpi portal Sheets & Drive settings.</p>",
-  );
 }
 
 function doPost(e) {
-  const body = e && e.postData && e.postData.contents ? e.postData.contents : "{}";
-  return jsonResponse(apiPost(JSON.parse(body)));
+  try {
+    const body = e && e.postData && e.postData.contents ? e.postData.contents : "{}";
+    return jsonResponse(apiPost(parseRouteRequestBody(body)));
+  } catch (error) {
+    return jsonResponse(routeErrorResponse(error));
+  }
+}
+
+function parseRouteRequestBody(body) {
+  try {
+    return JSON.parse(body || "{}");
+  } catch (error) {
+    throw new Error("The Apps Script backend could not read this request. Refresh the application page and try again.");
+  }
+}
+
+function routeErrorResponse(error) {
+  return { ok: false, error: error && error.message ? error.message : String(error || "Unknown Apps Script error.") };
 }
 
 function apiPost(request) {
