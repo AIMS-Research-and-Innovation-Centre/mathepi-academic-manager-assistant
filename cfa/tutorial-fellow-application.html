@@ -59,11 +59,11 @@
   .slot{border:1.5px dashed var(--field-border);border-radius:13px;padding:16px 18px;margin:6px 0 20px;background:var(--surface)}.slot.filled{border-style:solid;border-color:var(--line)}.slot-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:3px}.slot-label{font-size:15px;font-weight:700}.slot-req{font-size:11px;letter-spacing:.05em;color:var(--grey);font-weight:700;text-transform:uppercase}.slot-note{font-size:13.5px;color:var(--ink-soft);margin:0 0 12px}.btn-upload{display:inline-flex;align-items:center;gap:9px;background:var(--surface);border:1.5px solid var(--navy);color:var(--navy);font-family:var(--font);font-weight:700;font-size:14.5px;border-radius:10px;padding:11px 17px;cursor:pointer}.file-name{font-size:14.5px;font-weight:700}.file-sub{font-size:12.5px;color:var(--ink-soft);font-weight:600}.file-x{background:none;border:none;color:var(--maroon);cursor:pointer;font-weight:700;margin-left:12px}
   .reference-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:0 0 16px}.reference-card h3{margin:0 0 14px;color:var(--navy);font-size:18px}
   .declaration{background:var(--surface);border:1.5px solid var(--field-border);border-radius:14px;padding:8px 20px;margin-top:8px}.check-line{display:flex;align-items:flex-start;gap:12px;padding:11px 0;font-weight:600}.check-line input{width:22px;height:22px;accent-color:var(--maroon);margin-top:2px}
-  .otp-panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin:0 0 22px}.otp-panel h3{margin:0 0 8px;color:var(--navy);font-size:20px}.otp-panel p{color:var(--ink-soft);margin:0 0 16px}.otp-actions{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 0}.secure-note{border:1.5px solid var(--line);border-left:5px solid var(--navy-bright);border-radius:13px;background:#fff;padding:13px 15px;margin:14px 0;color:var(--ink-soft);font-size:14.5px;font-weight:600}.secure-note.success{border-left-color:var(--green);background:rgba(30,122,77,.08);color:var(--green)}.secure-note.warning{border-left-color:var(--orange);background:rgba(255,140,0,.1);color:var(--ink)}
+  .otp-panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin:0 0 22px}.otp-panel h3{margin:0 0 8px;color:var(--navy);font-size:20px}.otp-panel p{color:var(--ink-soft);margin:0 0 16px}.otp-email-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}.otp-email-row .field{margin-bottom:0}.otp-email-row #sendOtpBtn{margin-top:31px;min-height:50px}.otp-code-panel{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}.otp-actions{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 0}.secure-note{border:1.5px solid var(--line);border-left:5px solid var(--navy-bright);border-radius:13px;background:#fff;padding:13px 15px;margin:14px 0;color:var(--ink-soft);font-size:14.5px;font-weight:600}.secure-note.success{border-left-color:var(--green);background:rgba(30,122,77,.08);color:var(--green)}.secure-note.warning{border-left-color:var(--orange);background:rgba(255,140,0,.1);color:var(--ink)}
   .actions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:34px;padding-top:24px;border-top:1px solid var(--line)}.revgroup{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:16px;background:var(--surface)}.revgroup h3{margin:0 0 12px;font-size:17px}.rev-item{display:grid;grid-template-columns:220px 1fr;gap:14px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}.rev-item:last-child{border-bottom:none}.rev-key{color:var(--ink-soft);font-weight:600}.rev-val.empty{color:var(--maroon);font-weight:700}
   .done-wrap{text-align:center;padding:26px 0 10px;max-width:620px;margin:0 auto}.done-badge{width:84px;height:84px;border-radius:50%;background:rgba(45,104,178,.12);color:var(--navy-bright);display:grid;place-items:center;margin:0 auto 22px;font-size:42px}.done-wrap h2{font-size:28px;margin:0 0 12px}.done-wrap p{font-size:16.5px;color:var(--ink-soft);margin:0 auto 22px;max-width:52ch}
   @media(max-width:960px){.shell{grid-template-columns:1fr}.side{position:static;height:auto}.grid,.detail-meta{grid-template-columns:1fr}.main{padding:26px 20px 52px}}
-  @media(max-width:680px){.grid2{grid-template-columns:1fr}.rev-item{grid-template-columns:1fr;gap:2px}.detail-title{font-size:30px}.form-top-inner,.form-body,.detail-wrap{padding-left:20px;padding-right:20px}.actions{align-items:stretch;flex-direction:column-reverse}.actions button{width:100%;justify-content:center}}
+  @media(max-width:680px){.grid2,.otp-email-row{grid-template-columns:1fr}.otp-email-row #sendOtpBtn{margin-top:0}.rev-item{grid-template-columns:1fr;gap:2px}.detail-title{font-size:30px}.form-top-inner,.form-body,.detail-wrap{padding-left:20px;padding-right:20px}.actions{align-items:stretch;flex-direction:column-reverse}.actions button{width:100%;justify-content:center}}
 </style>
 </head>
 <body>
@@ -187,6 +187,7 @@ const POSITION_START_DATE = "2026-10-01";
 const POSITION_START_LABEL = "1 Oct 2026";
 const APPLICATION_DEADLINE_LABEL = "19 July 2026";
 const MIN_PHD_COMPLETION_DATE = "2024-10-01";
+const OTP_RESEND_SECONDS = 60;
 const COUNTRY_OPTIONS = [
   "Rwanda", "Kenya", "Cameroon", "Ghana", "Senegal", "South Africa", "Tanzania", "Uganda",
   "Ethiopia", "Nigeria", "Benin", "Burundi", "Côte d'Ivoire", "Democratic Republic of the Congo",
@@ -209,6 +210,7 @@ const defaults = {
   emailVerificationToken: "",
   emailVerifiedAt: "",
   emailOtpRequestedAt: "",
+  emailOtpRequestedFor: "",
   title: "",
   applicant: "",
   gender: "",
@@ -275,6 +277,7 @@ let state = load(STORAGE_KEY, defaults);
 let passportPayload = null;
 let phdCertificatePayload = null;
 let saveTimer = null;
+let otpCooldownTimer = null;
 
 function load(key, fallback) {
   try { return Object.assign({}, fallback, JSON.parse(localStorage.getItem(key) || "{}")); }
@@ -345,7 +348,25 @@ function emailIsVerified() {
   return !!(email && state.emailVerified && state.emailVerificationToken && normalizeEmail(state.verifiedEmail) === email);
 }
 
+function emailCodeWasRequested() {
+  const email = normalizeEmail(state.email);
+  return !!(email && state.emailOtpRequestedAt && normalizeEmail(state.emailOtpRequestedFor) === email);
+}
+
+function otpCooldownRemaining() {
+  if (!state.emailOtpRequestedAt) return 0;
+  const requestedAt = new Date(state.emailOtpRequestedAt).getTime();
+  if (!Number.isFinite(requestedAt)) return 0;
+  const elapsed = Math.floor((Date.now() - requestedAt) / 1000);
+  return Math.max(0, OTP_RESEND_SECONDS - elapsed);
+}
+
 function clearEmailVerificationIfChanged() {
+  const email = normalizeEmail(state.email);
+  if (state.emailOtpRequestedFor && email !== normalizeEmail(state.emailOtpRequestedFor)) {
+    state.emailOtpRequestedAt = "";
+    state.emailOtpRequestedFor = "";
+  }
   if (!state.verifiedEmail || normalizeEmail(state.email) === normalizeEmail(state.verifiedEmail)) return;
   state.emailVerified = false;
   state.verifiedEmail = "";
@@ -430,23 +451,35 @@ function selectField(name, label, options, required = true) {
 function emailVerificationStep() {
   const verified = emailIsVerified();
   const backendReady = googleBackendAvailable();
+  const requested = emailCodeWasRequested();
+  const cooldown = otpCooldownRemaining();
+  const sendLabel = requested ? (cooldown ? `Resend code in ${cooldown}s` : "Resend code") : "Send verification code";
+  const statusText = backendReady
+    ? (requested ? `Code sent to ${escapeHtml(state.email)}. Check your inbox or spam/junk folder.` : "No password is required. Enter your email, then request a one-time code.")
+    : "Apps Script backend URL is not configured yet, so secure email verification cannot start.";
   return `<div class="otp-panel">
     <h3>Email OTP login</h3>
     <p>Use the same email whenever you return to this application. A six-digit one-time code will be sent by the MathEpi Apps Script backend.</p>
-    ${field("email", "Email address", "email", true, "This verified email becomes your application account identity.", verified ? "readonly" : "")}
     ${verified
       ? `<div class="secure-note success">Verified as ${escapeHtml(state.verifiedEmail)}. You can continue the application.</div>`
-      : `<div class="field" data-field="emailOtpCode">
-          <label>Verification code</label>
-          <input class="input" id="emailOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" />
-          <p class="field-help">Check the inbox and spam/junk folder for the email address above. Codes expire after 10 minutes.</p>
-          <p class="field-err">Enter the verification code sent to your email.</p>
+      : `<div class="otp-email-row">
+          ${field("email", "Email address", "email", true, "This verified email becomes your application account identity.")}
+          <button class="btn-ghost" type="button" id="sendOtpBtn" ${backendReady && !cooldown ? "" : "disabled"}>${sendLabel}</button>
         </div>
-        <div class="otp-actions">
-          <button class="btn-ghost" type="button" id="sendOtpBtn" ${backendReady ? "" : "disabled"}>Send code</button>
-          <button class="btn-primary" type="button" id="verifyOtpBtn" ${backendReady ? "" : "disabled"}>Verify email</button>
-        </div>
-        <div class="secure-note ${backendReady ? "" : "warning"}" id="emailOtpStatus">${backendReady ? "No password is required. Your code will be sent by email." : "Apps Script backend URL is not configured yet, so secure email verification cannot start."}</div>`}
+        <div class="secure-note ${backendReady ? "" : "warning"}" id="emailOtpStatus">${statusText}</div>
+        ${requested
+          ? `<div class="otp-code-panel">
+              <div class="field" data-field="emailOtpCode">
+                <label>Verification code</label>
+                <input class="input" id="emailOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" />
+                <p class="field-help">Codes expire after 10 minutes.</p>
+                <p class="field-err">Enter the 6-digit verification code sent to your email.</p>
+              </div>
+              <div class="otp-actions">
+                <button class="btn-primary" type="button" id="verifyOtpBtn" disabled>Verify email</button>
+              </div>
+            </div>`
+          : ""}`}
   </div>`;
 }
 
@@ -597,6 +630,10 @@ function renderStep() {
 }
 
 function bindForm() {
+  if (otpCooldownTimer) {
+    clearInterval(otpCooldownTimer);
+    otpCooldownTimer = null;
+  }
   document.querySelectorAll("[data-step]").forEach((node) => node.addEventListener("click", () => {
     collect();
     const targetStep = Number(node.dataset.step);
@@ -609,8 +646,43 @@ function bindForm() {
   document.querySelectorAll("[data-clear-file]").forEach((node) => node.addEventListener("click", clearFile));
   document.querySelector("#sendOtpBtn")?.addEventListener("click", requestEmailOtp);
   document.querySelector("#verifyOtpBtn")?.addEventListener("click", verifyEmailOtp);
+  bindOtpControls();
   document.querySelector("#prevBtn").addEventListener("click", () => { collect(); state.step = Math.max(0, state.step - 1); save(); renderStep(); });
   document.querySelector("#stepForm").addEventListener("submit", onSubmitStep);
+}
+
+function bindOtpControls() {
+  const codeInput = document.querySelector("#emailOtpCode");
+  if (codeInput) {
+    codeInput.addEventListener("input", () => {
+      codeInput.value = codeInput.value.replace(/\D/g, "").slice(0, 6);
+      updateOtpControls();
+    });
+  }
+  updateOtpControls();
+  if (otpCooldownRemaining() > 0) {
+    otpCooldownTimer = setInterval(updateOtpControls, 1000);
+  }
+}
+
+function updateOtpControls() {
+  const sendButton = document.querySelector("#sendOtpBtn");
+  const verifyButton = document.querySelector("#verifyOtpBtn");
+  const codeInput = document.querySelector("#emailOtpCode");
+  const cooldown = otpCooldownRemaining();
+  if (sendButton) {
+    sendButton.disabled = !googleBackendAvailable() || cooldown > 0;
+    sendButton.textContent = emailCodeWasRequested()
+      ? (cooldown ? `Resend code in ${cooldown}s` : "Resend code")
+      : "Send verification code";
+  }
+  if (verifyButton && codeInput) {
+    verifyButton.disabled = codeInput.value.trim().length !== 6;
+  }
+  if (otpCooldownTimer && cooldown <= 0) {
+    clearInterval(otpCooldownTimer);
+    otpCooldownTimer = null;
+  }
 }
 
 function collect() {
@@ -646,10 +718,10 @@ function validateCurrentStep() {
   if (stepId === "email" && !emailIsVerified()) {
     valid = false;
     document.querySelector('[data-field="email"]')?.classList.add("has-error");
-    document.querySelector('[data-field="emailOtpCode"]')?.classList.add("has-error");
+    if (emailCodeWasRequested()) document.querySelector('[data-field="emailOtpCode"]')?.classList.add("has-error");
     const status = document.querySelector("#emailOtpStatus");
     if (status) status.textContent = googleBackendAvailable()
-      ? "Verify this email with the one-time code before continuing."
+      ? (emailCodeWasRequested() ? "Verify this email with the one-time code before continuing." : "Send a verification code to this email before continuing.")
       : "Apps Script backend URL is required before secure email verification can work.";
   }
   if (stepId === "phd" && state.phdCompletion) {
@@ -697,7 +769,6 @@ async function requestEmailOtp() {
   collect();
   const status = document.querySelector("#emailOtpStatus");
   const sendButton = document.querySelector("#sendOtpBtn");
-  const verifyButton = document.querySelector("#verifyOtpBtn");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email || "")) {
     document.querySelector('[data-field="email"]')?.classList.add("has-error");
     if (status) status.textContent = "Enter a valid email address first.";
@@ -709,18 +780,17 @@ async function requestEmailOtp() {
   }
   try {
     if (sendButton) sendButton.disabled = true;
-    if (verifyButton) verifyButton.disabled = true;
     if (status) status.textContent = "Sending verification code...";
     const result = await googleApi("requestEmailOtp", { email: state.email, purpose: "tutorial-fellow", callId: CALL_ID });
     if (!result || result.ok === false) throw new Error((result && result.error) || "The verification code could not be sent.");
     state.emailOtpRequestedAt = new Date().toISOString();
+    state.emailOtpRequestedFor = normalizeEmail(result.email || state.email);
     save();
-    if (status) status.textContent = "Code sent. Check your inbox or spam/junk folder and enter the 6-digit code here.";
+    renderStep();
   } catch (error) {
     if (status) status.textContent = error.message || "The verification code could not be sent.";
   } finally {
-    if (sendButton) sendButton.disabled = false;
-    if (verifyButton) verifyButton.disabled = false;
+    updateOtpControls();
   }
 }
 
