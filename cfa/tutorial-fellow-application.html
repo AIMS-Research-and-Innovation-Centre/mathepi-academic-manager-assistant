@@ -59,6 +59,7 @@
   .slot{border:1.5px dashed var(--field-border);border-radius:13px;padding:16px 18px;margin:6px 0 20px;background:var(--surface)}.slot.filled{border-style:solid;border-color:var(--line)}.slot-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:3px}.slot-label{font-size:15px;font-weight:700}.slot-req{font-size:11px;letter-spacing:.05em;color:var(--grey);font-weight:700;text-transform:uppercase}.slot-note{font-size:13.5px;color:var(--ink-soft);margin:0 0 12px}.btn-upload{display:inline-flex;align-items:center;gap:9px;background:var(--surface);border:1.5px solid var(--navy);color:var(--navy);font-family:var(--font);font-weight:700;font-size:14.5px;border-radius:10px;padding:11px 17px;cursor:pointer}.file-name{font-size:14.5px;font-weight:700}.file-sub{font-size:12.5px;color:var(--ink-soft);font-weight:600}.file-x{background:none;border:none;color:var(--maroon);cursor:pointer;font-weight:700;margin-left:12px}
   .reference-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:0 0 16px}.reference-card h3{margin:0 0 14px;color:var(--navy);font-size:18px}
   .declaration{background:var(--surface);border:1.5px solid var(--field-border);border-radius:14px;padding:8px 20px;margin-top:8px}.check-line{display:flex;align-items:flex-start;gap:12px;padding:11px 0;font-weight:600}.check-line input{width:22px;height:22px;accent-color:var(--maroon);margin-top:2px}
+  .otp-panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin:0 0 22px}.otp-panel h3{margin:0 0 8px;color:var(--navy);font-size:20px}.otp-panel p{color:var(--ink-soft);margin:0 0 16px}.otp-actions{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 0}.secure-note{border:1.5px solid var(--line);border-left:5px solid var(--navy-bright);border-radius:13px;background:#fff;padding:13px 15px;margin:14px 0;color:var(--ink-soft);font-size:14.5px;font-weight:600}.secure-note.success{border-left-color:var(--green);background:rgba(30,122,77,.08);color:var(--green)}.secure-note.warning{border-left-color:var(--orange);background:rgba(255,140,0,.1);color:var(--ink)}
   .actions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:34px;padding-top:24px;border-top:1px solid var(--line)}.revgroup{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:16px;background:var(--surface)}.revgroup h3{margin:0 0 12px;font-size:17px}.rev-item{display:grid;grid-template-columns:220px 1fr;gap:14px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}.rev-item:last-child{border-bottom:none}.rev-key{color:var(--ink-soft);font-weight:600}.rev-val.empty{color:var(--maroon);font-weight:700}
   .done-wrap{text-align:center;padding:26px 0 10px;max-width:620px;margin:0 auto}.done-badge{width:84px;height:84px;border-radius:50%;background:rgba(45,104,178,.12);color:var(--navy-bright);display:grid;place-items:center;margin:0 auto 22px;font-size:42px}.done-wrap h2{font-size:28px;margin:0 0 12px}.done-wrap p{font-size:16.5px;color:var(--ink-soft);margin:0 auto 22px;max-width:52ch}
   @media(max-width:960px){.shell{grid-template-columns:1fr}.side{position:static;height:auto}.grid,.detail-meta{grid-template-columns:1fr}.main{padding:26px 20px 52px}}
@@ -169,6 +170,7 @@ const STORAGE_KEY = "mathepi-tutorial-fellow-application-v1";
 const SUBMISSIONS_KEY = "mathepi-tutorial-fellow-submissions-v1";
 const CFA_STATUS_KEY = "mathepi-cfa-status-v1";
 const GOOGLE_BACKEND_URL_KEY = "mathepi-apps-script-url";
+const PUBLIC_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrBseE_6REWP5D4zySf-Z6j_x9nUofWvT426M_HG5FoPllMDOZEcEa-f_Of4zryTQ9/exec";
 const CALL_ID = "tutors";
 const POSITION_START_DATE = "2026-10-01";
 const POSITION_START_LABEL = "1 Oct 2026";
@@ -190,6 +192,11 @@ const REF_DESIGNATION_OPTIONS = [
 const defaults = {
   status: "Open",
   step: 0,
+  emailVerified: false,
+  verifiedEmail: "",
+  emailVerificationToken: "",
+  emailVerifiedAt: "",
+  emailOtpRequestedAt: "",
   title: "",
   applicant: "",
   gender: "",
@@ -269,7 +276,7 @@ function save() {
 }
 
 function appsScriptUrl() {
-  return (window.MATHEPI_APPS_SCRIPT_URL || localStorage.getItem(GOOGLE_BACKEND_URL_KEY) || "").trim();
+  return (window.MATHEPI_APPS_SCRIPT_URL || PUBLIC_APPS_SCRIPT_URL || localStorage.getItem(GOOGLE_BACKEND_URL_KEY) || "").trim();
 }
 
 function hasAppsScriptBridge() {
@@ -296,6 +303,23 @@ function googleApi(action, payload) {
     if (!response.ok) throw new Error("Apps Script request failed: " + response.status);
     return response.json();
   });
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function emailIsVerified() {
+  const email = normalizeEmail(state.email);
+  return !!(email && state.emailVerified && state.emailVerificationToken && normalizeEmail(state.verifiedEmail) === email);
+}
+
+function clearEmailVerificationIfChanged() {
+  if (!state.verifiedEmail || normalizeEmail(state.email) === normalizeEmail(state.verifiedEmail)) return;
+  state.emailVerified = false;
+  state.verifiedEmail = "";
+  state.emailVerificationToken = "";
+  state.emailVerifiedAt = "";
 }
 
 async function refreshCallStatusFromGoogle() {
@@ -334,12 +358,13 @@ function syncCallStatusUi() {
 }
 
 const steps = [
-  { title: "Applicant details", intro: "Tell us who you are and how the programme team can reach you.", render: identityStep },
-  { title: "PhD and quantitative background", intro: "Confirm the recent PhD requirement and your quantitative/applied scientific fit.", render: phdStep },
-  { title: "Tutoring and research fit", intro: "Describe your teaching-support experience and your 70/30 fellowship plan.", render: fitStep },
-  { title: "Availability and readiness", intro: "Confirm AIMS RW/KEMRI residence readiness and teaching-support continuity.", render: readinessStep },
-  { title: "Documents and references", intro: "Attach the required files and provide at least two references.", render: documentsStep },
-  { title: "Review and submit", intro: "Check your application before sending it to the programme team.", render: reviewStep },
+  { id: "email", title: "Secure email verification", intro: "Verify your email before continuing. No password is stored; Apps Script sends a one-time code to this address.", render: emailVerificationStep },
+  { id: "identity", title: "Applicant details", intro: "Tell us who you are and how the programme team can reach you.", render: identityStep },
+  { id: "phd", title: "PhD and quantitative background", intro: "Confirm the recent PhD requirement and your quantitative/applied scientific fit.", render: phdStep },
+  { id: "fit", title: "Tutoring and research fit", intro: "Describe your teaching-support experience and your 70/30 fellowship plan.", render: fitStep },
+  { id: "readiness", title: "Availability and readiness", intro: "Confirm AIMS RW/KEMRI residence readiness and teaching-support continuity.", render: readinessStep },
+  { id: "documents", title: "Documents and references", intro: "Attach the required files and provide at least two references.", render: documentsStep },
+  { id: "review", title: "Review and submit", intro: "Check your application before sending it to the programme team.", render: reviewStep },
 ];
 
 function field(name, label, type = "text", required = true, help = "", attrs = "") {
@@ -371,12 +396,44 @@ function selectField(name, label, options, required = true) {
   </div>`;
 }
 
+function emailVerificationStep() {
+  const verified = emailIsVerified();
+  const backendReady = googleBackendAvailable();
+  return `<div class="otp-panel">
+    <h3>Email OTP login</h3>
+    <p>Use the same email whenever you return to this application. A six-digit one-time code will be sent by the MathEpi Apps Script backend.</p>
+    ${field("email", "Email address", "email", true, "This verified email becomes your application account identity.", verified ? "readonly" : "")}
+    ${verified
+      ? `<div class="secure-note success">Verified as ${escapeHtml(state.verifiedEmail)}. You can continue the application.</div>`
+      : `<div class="field" data-field="emailOtpCode">
+          <label>Verification code</label>
+          <input class="input" id="emailOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" />
+          <p class="field-help">Check the inbox for the email address above. Codes expire after 10 minutes.</p>
+          <p class="field-err">Enter the verification code sent to your email.</p>
+        </div>
+        <div class="otp-actions">
+          <button class="btn-ghost" type="button" id="sendOtpBtn" ${backendReady ? "" : "disabled"}>Send code</button>
+          <button class="btn-primary" type="button" id="verifyOtpBtn" ${backendReady ? "" : "disabled"}>Verify email</button>
+        </div>
+        <div class="secure-note ${backendReady ? "" : "warning"}" id="emailOtpStatus">${backendReady ? "No password is required. Your code will be sent by email." : "Apps Script backend URL is not configured yet, so secure email verification cannot start."}</div>`}
+  </div>`;
+}
+
+function verifiedEmailField() {
+  return `<div class="field" data-field="email">
+    <label>Verified email address</label>
+    <input class="input" type="email" name="email" value="${escapeHtml(state.email || "")}" readonly />
+    <p class="field-help">To change this email, go back to the secure email verification step.</p>
+    <p class="field-err">Verify your email before continuing.</p>
+  </div>`;
+}
+
 function identityStep() {
   return `<div class="grid2">
     ${selectField("title", "Title", ["Dr", "Prof", "Mr", "Ms", "Mrs", "Mx", "Other"])}
     ${field("applicant", "Full name")}
     ${selectField("gender", "Gender", ["Female", "Male", "Non-binary", "Prefer not to say"])}
-    ${field("email", "Email address", "email")}
+    ${verifiedEmailField()}
     ${field("phone", "Phone number")}
     ${selectField("hasWhatsApp", "Does this number have WhatsApp?", ["Yes", "No"])}
     ${selectField("contactWhatsApp", "May we contact you using WhatsApp?", ["Yes", "No"])}
@@ -509,10 +566,18 @@ function renderStep() {
 }
 
 function bindForm() {
-  document.querySelectorAll("[data-step]").forEach((node) => node.addEventListener("click", () => { collect(); state.step = Number(node.dataset.step); save(); renderStep(); }));
+  document.querySelectorAll("[data-step]").forEach((node) => node.addEventListener("click", () => {
+    collect();
+    const targetStep = Number(node.dataset.step);
+    state.step = targetStep > 0 && !emailIsVerified() ? 0 : targetStep;
+    save();
+    renderStep();
+  }));
   document.querySelectorAll("input, textarea, select").forEach((node) => node.addEventListener("input", scheduleSave));
   document.querySelectorAll("[data-file]").forEach((node) => node.addEventListener("change", onFile));
   document.querySelectorAll("[data-clear-file]").forEach((node) => node.addEventListener("click", clearFile));
+  document.querySelector("#sendOtpBtn")?.addEventListener("click", requestEmailOtp);
+  document.querySelector("#verifyOtpBtn")?.addEventListener("click", verifyEmailOtp);
   document.querySelector("#prevBtn").addEventListener("click", () => { collect(); state.step = Math.max(0, state.step - 1); save(); renderStep(); });
   document.querySelector("#stepForm").addEventListener("submit", onSubmitStep);
 }
@@ -521,6 +586,8 @@ function collect() {
   document.querySelectorAll("input[name], textarea[name], select[name]").forEach((node) => {
     state[node.name] = node.type === "checkbox" ? node.checked : node.value.trim();
   });
+  state.email = normalizeEmail(state.email);
+  clearEmailVerificationIfChanged();
 }
 
 function scheduleSave() {
@@ -533,6 +600,7 @@ function scheduleSave() {
 
 function validateCurrentStep() {
   collect();
+  const stepId = steps[state.step].id;
   let valid = true;
   document.querySelectorAll(".field").forEach((wrap) => wrap.classList.remove("has-error"));
   document.querySelectorAll(".slot").forEach((wrap) => wrap.classList.remove("has-error"));
@@ -544,7 +612,16 @@ function validateCurrentStep() {
       if (wrap) wrap.classList.add("has-error");
     }
   });
-  if (state.step === 1 && state.phdCompletion) {
+  if (stepId === "email" && !emailIsVerified()) {
+    valid = false;
+    document.querySelector('[data-field="email"]')?.classList.add("has-error");
+    document.querySelector('[data-field="emailOtpCode"]')?.classList.add("has-error");
+    const status = document.querySelector("#emailOtpStatus");
+    if (status) status.textContent = googleBackendAvailable()
+      ? "Verify this email with the one-time code before continuing."
+      : "Apps Script backend URL is required before secure email verification can work.";
+  }
+  if (stepId === "phd" && state.phdCompletion) {
     const inWindow = state.phdCompletion >= MIN_PHD_COMPLETION_DATE && state.phdCompletion <= POSITION_START_DATE;
     if (!inWindow) {
       valid = false;
@@ -556,7 +633,7 @@ function validateCurrentStep() {
       }
     }
   }
-  if (state.step === 4) {
+  if (stepId === "documents") {
     ["passport", "phdCertificate"].forEach((key) => {
       if (!state[key]) {
         valid = false;
@@ -570,6 +647,12 @@ function validateCurrentStep() {
 async function onSubmitStep(event) {
   event.preventDefault();
   if (!validateCurrentStep()) return;
+  if (state.step > 0 && !emailIsVerified()) {
+    state.step = 0;
+    save();
+    renderStep();
+    return;
+  }
   if (state.step < steps.length - 1) {
     state.step += 1;
     save();
@@ -577,6 +660,62 @@ async function onSubmitStep(event) {
     return;
   }
   await submitApplication();
+}
+
+async function requestEmailOtp() {
+  collect();
+  const status = document.querySelector("#emailOtpStatus");
+  const sendButton = document.querySelector("#sendOtpBtn");
+  const verifyButton = document.querySelector("#verifyOtpBtn");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email || "")) {
+    document.querySelector('[data-field="email"]')?.classList.add("has-error");
+    if (status) status.textContent = "Enter a valid email address first.";
+    return;
+  }
+  if (!googleBackendAvailable()) {
+    if (status) status.textContent = "Apps Script backend URL is required before secure email verification can work.";
+    return;
+  }
+  try {
+    if (sendButton) sendButton.disabled = true;
+    if (verifyButton) verifyButton.disabled = true;
+    if (status) status.textContent = "Sending verification code...";
+    const result = await googleApi("requestEmailOtp", { email: state.email, purpose: "tutorial-fellow", callId: CALL_ID });
+    if (!result || result.ok === false) throw new Error((result && result.error) || "The verification code could not be sent.");
+    state.emailOtpRequestedAt = new Date().toISOString();
+    save();
+    if (status) status.textContent = "Code sent. Check your email and enter the 6-digit code here.";
+  } catch (error) {
+    if (status) status.textContent = error.message || "The verification code could not be sent.";
+  } finally {
+    if (sendButton) sendButton.disabled = false;
+    if (verifyButton) verifyButton.disabled = false;
+  }
+}
+
+async function verifyEmailOtp() {
+  collect();
+  const code = (document.querySelector("#emailOtpCode")?.value || "").trim();
+  const status = document.querySelector("#emailOtpStatus");
+  if (!code) {
+    document.querySelector('[data-field="emailOtpCode"]')?.classList.add("has-error");
+    if (status) status.textContent = "Enter the 6-digit code sent to your email.";
+    return;
+  }
+  try {
+    if (status) status.textContent = "Verifying email...";
+    const result = await googleApi("verifyEmailOtp", { email: state.email, code, purpose: "tutorial-fellow", callId: CALL_ID });
+    if (!result || result.ok === false || !result.verificationToken) throw new Error((result && result.error) || "The verification code was not accepted.");
+    state.emailVerified = true;
+    state.verifiedEmail = normalizeEmail(result.email || state.email);
+    state.emailVerificationToken = result.verificationToken;
+    state.emailVerifiedAt = new Date().toISOString();
+    save();
+    renderStep();
+  } catch (error) {
+    document.querySelector('[data-field="emailOtpCode"]')?.classList.add("has-error");
+    if (status) status.textContent = error.message || "The verification code was not accepted.";
+  }
 }
 
 function onFile(event) {
@@ -610,12 +749,21 @@ function clearFile(event) {
 }
 
 function snapshot() {
-  return Object.assign({}, state, { submittedAt: new Date().toISOString(), callType: "Tutorial Fellows", host: "AIMS RW/KEMRI" });
+  const clean = Object.assign({}, state, { submittedAt: new Date().toISOString(), callType: "Tutorial Fellows", host: "AIMS RW/KEMRI" });
+  delete clean.emailVerificationToken;
+  return clean;
 }
 
 async function submitApplication() {
   if (state.status !== "Open") {
     alert("This call is closed. New applications cannot be submitted.");
+    return;
+  }
+  if (!emailIsVerified()) {
+    alert("Please verify your email before submitting.");
+    state.step = 0;
+    save();
+    renderStep();
     return;
   }
   const application = snapshot();
@@ -624,7 +772,12 @@ async function submitApplication() {
     if (googleBackendAvailable()) {
       const result = await googleApi("submitTutorialFellowApplication", {
         application,
-        state,
+        state: application,
+        emailVerification: {
+          email: state.email,
+          token: state.emailVerificationToken,
+          purpose: "tutorial-fellow",
+        },
         passportFile: passportPayload,
         phdCertificateFile: phdCertificatePayload,
       });

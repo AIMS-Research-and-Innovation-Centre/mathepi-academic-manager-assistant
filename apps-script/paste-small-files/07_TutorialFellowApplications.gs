@@ -5,6 +5,7 @@ function submitTutorialFellowApplication(payload) {
   ensureDriveFolders(rootFolder);
 
   const application = payload.application || {};
+  requireEmailVerification(payload.emailVerification, application.email, "tutorial-fellow");
   const applicationId = Utilities.getUuid();
   const submittedAt = application.submittedAt || new Date().toISOString();
   const folder = getOrCreateNestedFolder(rootFolder, ["CFA", "Tutorial Fellow Applications", applicationId]);

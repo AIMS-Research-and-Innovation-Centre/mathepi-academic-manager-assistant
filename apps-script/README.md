@@ -32,6 +32,7 @@ If the Apps Script editor or browser only lets you paste a small number of lines
 - CFA open/closed status writes to the `CfaStatuses` tab.
 - Lecturer application submissions write to `LecturerApplications`.
 - Tutorial Fellow application submissions write to `TutorialFellowApplications`.
+- Tutorial Fellow public submissions require email OTP verification. Apps Script sends the code with `MailApp`, so the manifest includes the `script.send_mail` scope.
 - Passport biodata page uploads are saved in Drive under:
   `MathEpi Academic Operations / CFA / Lecturer Applications / {application_id}`.
 - Tutorial Fellow passport biodata pages and PhD certificates are saved in Drive under:

@@ -125,6 +125,8 @@ function apiPost(request) {
   if (action === "getBootstrap") return getBootstrap();
   if (action === "updateCfaStatus") return updateCfaStatus(payload);
   if (action === "getCfaStatus") return getCfaStatus(payload);
+  if (action === "requestEmailOtp") return requestEmailOtp(payload);
+  if (action === "verifyEmailOtp") return verifyEmailOtp(payload);
   if (action === "submitLecturerApplication") return submitLecturerApplication(payload);
   if (action === "submitTutorialFellowApplication") return submitTutorialFellowApplication(payload);
   throw new Error("Unknown action: " + action);
@@ -202,6 +204,119 @@ function getCfaStatus(payload) {
   return { ok: true, id, status: statuses[id] || MATHEPI.defaultCfaStatuses[id] || "Closed" };
 }
 
+function requestEmailOtp(payload) {
+  payload = payload || {};
+  const email = normalizeEmailAddress(payload.email);
+  const purpose = otpPurpose(payload);
+  const cache = CacheService.getScriptCache();
+  const rateKey = emailOtpCacheKey("rate", purpose, email);
+  if (cache.get(rateKey)) {
+    return { ok: false, error: "Please wait about one minute before requesting another code." };
+  }
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expiresInSeconds = 10 * 60;
+  const challenge = {
+    email,
+    purpose,
+    codeHash: emailOtpHash(email, purpose, code),
+    attempts: 0,
+    expiresAt: Date.now() + expiresInSeconds * 1000,
+  };
+
+  cache.put(emailOtpCacheKey("challenge", purpose, email), JSON.stringify(challenge), expiresInSeconds);
+  cache.put(rateKey, "1", 60);
+  MailApp.sendEmail({
+    to: email,
+    subject: "Your MathEpi application verification code",
+    body:
+      "Your MathEpi application verification code is: " +
+      code +
+      "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email.",
+  });
+  return { ok: true, email, expiresInSeconds };
+}
+
+function verifyEmailOtp(payload) {
+  payload = payload || {};
+  const email = normalizeEmailAddress(payload.email);
+  const purpose = otpPurpose(payload);
+  const code = String(payload.code || "").trim();
+  if (!/^\d{6}$/.test(code)) throw new Error("Enter the 6-digit verification code.");
+
+  const cache = CacheService.getScriptCache();
+  const challengeKey = emailOtpCacheKey("challenge", purpose, email);
+  const rawChallenge = cache.get(challengeKey);
+  if (!rawChallenge) throw new Error("This verification code has expired. Request a new code.");
+
+  const challenge = JSON.parse(rawChallenge);
+  const remainingSeconds = Math.max(1, Math.ceil((challenge.expiresAt - Date.now()) / 1000));
+  if (remainingSeconds <= 1) {
+    cache.remove(challengeKey);
+    throw new Error("This verification code has expired. Request a new code.");
+  }
+  if (challenge.attempts >= 5) {
+    cache.remove(challengeKey);
+    throw new Error("Too many verification attempts. Request a new code.");
+  }
+  if (challenge.codeHash !== emailOtpHash(email, purpose, code)) {
+    challenge.attempts += 1;
+    cache.put(challengeKey, JSON.stringify(challenge), remainingSeconds);
+    throw new Error("The verification code is incorrect.");
+  }
+
+  const token = Utilities.getUuid() + "-" + Utilities.getUuid();
+  const verified = { email, purpose, verifiedAt: new Date().toISOString() };
+  cache.remove(challengeKey);
+  cache.put(emailOtpCacheKey("verified", purpose, token), JSON.stringify(verified), 6 * 60 * 60);
+  return { ok: true, email, verificationToken: token, expiresInSeconds: 6 * 60 * 60 };
+}
+
+function requireEmailVerification(verification, email, purpose) {
+  const verifiedEmail = normalizeEmailAddress(email);
+  const token = verification && verification.token;
+  if (!token) throw new Error("Email verification is required before this application can be submitted.");
+  const raw = CacheService.getScriptCache().get(emailOtpCacheKey("verified", purpose, token));
+  if (!raw) throw new Error("Email verification has expired. Please verify your email again.");
+  const record = JSON.parse(raw);
+  if (record.email !== verifiedEmail || record.purpose !== purpose) {
+    throw new Error("Email verification does not match this application.");
+  }
+  return record;
+}
+
+function normalizeEmailAddress(email) {
+  const value = String(email || "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) throw new Error("A valid email address is required.");
+  return value;
+}
+
+function otpPurpose(payload) {
+  const value = String((payload && payload.purpose) || "tutorial-fellow").toLowerCase().replace(/[^a-z0-9_-]/g, "");
+  return value || "tutorial-fellow";
+}
+
+function emailOtpCacheKey(prefix, purpose, value) {
+  return ["mathepi", "otp", prefix, purpose, Utilities.base64EncodeWebSafe(String(value)).replace(/=+$/g, "")].join(":").slice(0, 240);
+}
+
+function emailOtpHash(email, purpose, code) {
+  const secret = emailOtpSecret();
+  const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, [email, purpose, code, secret].join("|"));
+  return Utilities.base64EncodeWebSafe(bytes);
+}
+
+function emailOtpSecret() {
+  const props = PropertiesService.getScriptProperties();
+  const key = "MATHEPI_EMAIL_OTP_SECRET";
+  let secret = props.getProperty(key);
+  if (!secret) {
+    secret = Utilities.getUuid() + Utilities.getUuid() + Utilities.getUuid();
+    props.setProperty(key, secret);
+  }
+  return secret;
+}
+
 function submitLecturerApplication(payload) {
   const spreadsheet = getOrCreateSpreadsheet();
   const rootFolder = getOrCreateRootFolder();
@@ -265,6 +380,7 @@ function submitTutorialFellowApplication(payload) {
   ensureDriveFolders(rootFolder);
 
   const application = payload.application || {};
+  requireEmailVerification(payload.emailVerification, application.email, "tutorial-fellow");
   const applicationId = Utilities.getUuid();
   const submittedAt = application.submittedAt || new Date().toISOString();
   const folder = getOrCreateNestedFolder(rootFolder, ["CFA", "Tutorial Fellow Applications", applicationId]);

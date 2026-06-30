@@ -76,1093 +76,1202 @@ const COURSE_TYPES = {
 
 const DEFAULT_COURSES = [
   {
-    code: "MES01",
-    title: "Mathematical Problem Solving",
-    type: "skills",
-    units: 6,
-    hours: 60,
-    block: "Block 1",
-    lecturerId: "lec-01",
-    tutorIds: ["tut-01"],
-    software: "Mathematical computing software",
-    prerequisites: "Bachelor's degree with a mathematics component",
-    outcomes:
-      "Apply mathematical principles, build proof strategies, and conduct advanced problem solving.",
+    "code": "MES01",
+    "title": "Mathematical Problem Solving",
+    "type": "skills",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 1",
+    "software": "Mathematical computing software",
+    "prerequisites": "Bachelor's degree with a mathematics component",
+    "outcomes": "Apply mathematical principles, develop problem-solving strategies, read and write advanced mathematical concepts, and conduct mathematical research and teaching effectively.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MES02",
-    title: "Differential Equations and Modelling",
-    type: "skills",
-    units: 6,
-    hours: 60,
-    block: "Block 2",
-    lecturerId: "lec-02",
-    tutorIds: ["tut-02"],
-    software: "Python, R",
-    prerequisites: "MES01",
-    outcomes:
-      "Solve ODEs/PDEs and connect analytical methods to epidemic modelling.",
+    "code": "MES02",
+    "title": "Differential Equations and Modelling",
+    "type": "skills",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 2",
+    "software": "Python/R for numerical solutions",
+    "prerequisites": "MES01 - Mathematical Problem Solving",
+    "outcomes": "Solve first-order and second-order ordinary differential equations, analyze differential-equation systems, apply numerical methods, and solve boundary-value problems.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MES03",
-    title: "Physical Problem Solving",
-    type: "skills",
-    units: 6,
-    hours: 60,
-    block: "Block 3",
-    lecturerId: "lec-03",
-    tutorIds: ["tut-03"],
-    software: "Computational physics tools",
-    prerequisites: "MES01",
-    outcomes:
-      "Translate physical systems into mathematical and computational formulations.",
+    "code": "MES03",
+    "title": "Physical Problem Solving",
+    "type": "skills",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 3",
+    "software": "Computational tools for physics applications",
+    "prerequisites": "MES01 - Mathematical Problem Solving",
+    "outcomes": "Connect problem descriptions with physics knowledge, translate physical situations into mathematical equations, apply physics laws, and critically evaluate solutions.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MES04",
-    title: "Introduction to Probability and Statistics",
-    type: "skills",
-    units: 6,
-    hours: 60,
-    block: "Block 2",
-    lecturerId: "lec-04",
-    tutorIds: ["tut-04"],
-    software: "R, Python",
-    prerequisites: "Probability, statistics, and algebra foundation",
-    outcomes:
-      "Use probability laws, estimation, testing, regression, and epidemiological measures.",
+    "code": "MES04",
+    "title": "Introduction to Probability and Statistics",
+    "type": "skills",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 2",
+    "software": "R/Python for statistical analysis",
+    "prerequisites": "Bachelor's degree with probability, statistics, and algebra",
+    "outcomes": "Apply descriptive statistics and probability laws, use probability distributions, conduct hypothesis testing, construct confidence intervals, and interpret regression and epidemiological measures.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MES05",
-    title: "Introduction to R and Python",
-    type: "skills",
-    units: 6,
-    hours: 60,
-    block: "Block 1",
-    lecturerId: "lec-05",
-    tutorIds: ["tut-01", "tut-05"],
-    software: "R, Python, Quarto",
-    prerequisites: "Basic programming recommended",
-    outcomes:
-      "Manage data, visualize results, run basic analyses, and create reproducible reports.",
+    "code": "MES05",
+    "title": "Introduction to R and Python",
+    "type": "skills",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 1",
+    "software": "R, Python",
+    "prerequisites": "Basic programming knowledge recommended",
+    "outcomes": "Manage and wrangle datasets in R and Python, implement descriptive statistics and visualization, create reproducible reports, and perform basic statistical tests and regression analysis.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MES06",
-    title: "Scientific Computing and LaTeX",
-    type: "skills",
-    units: 6,
-    hours: 60,
-    block: "Block 3",
-    lecturerId: "lec-06",
-    tutorIds: ["tut-02"],
-    software: "SageMath, LaTeX, R, Python",
-    prerequisites: "MES05",
-    outcomes:
-      "Implement numerical algorithms and prepare scientific work with LaTeX.",
+    "code": "MES06",
+    "title": "Scientific Computing and LaTeX",
+    "type": "skills",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 3",
+    "software": "SageMath, LaTeX, R/Python",
+    "prerequisites": "MES05 - Introduction to R and Python",
+    "outcomes": "Implement numerical algorithms, solve linear and nonlinear systems, apply numerical methods for ODEs and integration, and develop reliable computational programs.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEC01",
-    title: "Introduction to Epidemiology",
-    type: "specialization",
-    units: 6,
-    hours: 60,
-    block: "Block 4",
-    lecturerId: "lec-07",
-    tutorIds: ["tut-06"],
-    software: "N/A",
-    prerequisites: "MES04",
-    outcomes:
-      "Explain epidemiological concepts, calculate measures, and appraise study designs.",
+    "code": "MEC01",
+    "title": "Introduction to Epidemiology (Epidemiology I)",
+    "type": "specialization",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 4",
+    "software": "N/A",
+    "prerequisites": "MES04 - Introduction to Probability and Statistics",
+    "outcomes": "Explain core epidemiological concepts, calculate and interpret epidemiological measures, describe study-design strengths and limitations, and critically appraise epidemiological findings.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 10,
+    "independentStudyHours": 10,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEC02",
-    title: "Epidemiology for Disease Modelling",
-    type: "specialization",
-    units: 6,
-    hours: 60,
-    block: "Block 5",
-    lecturerId: "lec-08",
-    tutorIds: ["tut-06"],
-    software: "R, Python",
-    prerequisites: "MEC01",
-    outcomes:
-      "Use disease parameters and research designs to support infectious disease modelling.",
+    "code": "MEC02",
+    "title": "Epidemiology for Disease Modelling (Epidemiology II)",
+    "type": "specialization",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 5",
+    "software": "R/Python for parameter calculation",
+    "prerequisites": "MEC01 - Introduction to Epidemiology",
+    "outcomes": "Analyze epidemiological patterns, calculate and interpret key parameters for disease modelling, design infectious disease studies, and apply disease ecology concepts to mathematical modelling.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 10,
+    "independentStudyHours": 10,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEC03",
-    title: "Introduction to Mathematical Modelling",
-    type: "specialization",
-    units: 6,
-    hours: 60,
-    block: "Block 4",
-    lecturerId: "lec-09",
-    tutorIds: ["tut-07"],
-    software: "R, Python",
-    prerequisites: "MES02, MES04",
-    outcomes:
-      "Build and interpret foundational models for population health systems.",
+    "code": "MEC03",
+    "title": "Introduction to Mathematical Modelling (Mathematical Modelling I)",
+    "type": "specialization",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 4",
+    "software": "Python for model implementation",
+    "prerequisites": "MES02 - Differential Equations; MEC01 - Epidemiology I",
+    "outcomes": "Justify model selection, construct and analyze dynamic systems using ODEs, perform stability analysis, calculate epidemiological metrics, and develop model checking approaches.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEC04",
-    title: "Developing Mathematical Models in Public Health",
-    type: "specialization",
-    units: 6,
-    hours: 60,
-    block: "Block 5",
-    lecturerId: "lec-10",
-    tutorIds: ["tut-07"],
-    software: "R, Python",
-    prerequisites: "MEC03",
-    outcomes:
-      "Translate public health questions into model structures and scenarios.",
+    "code": "MEC04",
+    "title": "Developing Mathematical Models in Public Health (Mathematical Modelling II)",
+    "type": "specialization",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 5",
+    "software": "Python for advanced model implementation",
+    "prerequisites": "MEC03 - Introduction to Mathematical Modelling",
+    "outcomes": "Construct and analyze advanced compartmental models, apply within-host disease dynamics, evaluate intervention impacts, and implement optimal control theory in disease models.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEC05",
-    title: "Model Fitting and Validation",
-    type: "specialization",
-    units: 6,
-    hours: 60,
-    block: "Block 6",
-    lecturerId: "lec-11",
-    tutorIds: ["tut-08"],
-    software: "R, Python",
-    prerequisites: "MEC03, MES04",
-    outcomes:
-      "Fit, validate, and communicate mathematical epidemiology models.",
+    "code": "MEC05",
+    "title": "Model Fitting and Validation (Mathematical Modelling III)",
+    "type": "specialization",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 6",
+    "software": "R/Python for parameter estimation and validation",
+    "prerequisites": "MEC04 - Developing Mathematical Models; MEC07/MEC08 - Data Analysis courses",
+    "outcomes": "Apply least squares and maximum likelihood, implement Bayesian parameter estimation, validate models statistically, conduct sensitivity analysis, and interpret parameter importance.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEC06",
-    title: "Numerical Methods",
-    type: "specialization",
-    units: 6,
-    hours: 60,
-    block: "Block 6",
-    lecturerId: "lec-12",
-    tutorIds: [],
-    software: "Python, R",
-    prerequisites: "MES02, MES06",
-    outcomes:
-      "Use numerical methods for differential equations, integration, and simulation.",
+    "code": "MEC06",
+    "title": "Numerical Methods",
+    "type": "specialization",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 6",
+    "software": "Python/R for numerical implementations",
+    "prerequisites": "MES02 - Differential Equations; MES06 - Scientific Computing",
+    "outcomes": "Solve differential equations numerically, assess stability and convergence, implement computational simulations of epidemiological models, and critically evaluate numerical results.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEC07",
-    title: "Introduction to Data Analysis",
-    type: "specialization",
-    units: 6,
-    hours: 60,
-    block: "Block 7",
-    lecturerId: "lec-13",
-    tutorIds: ["tut-05"],
-    software: "R, Python",
-    prerequisites: "MES05, MES04",
-    outcomes:
-      "Clean, analyse, visualize, and interpret epidemiological datasets.",
+    "code": "MEC07",
+    "title": "Introduction to Data Analysis (Data Analysis I)",
+    "type": "specialization",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 7",
+    "software": "R/Python for data management and analysis",
+    "prerequisites": "MEC04; MES04 - Probability & Statistics; MES05 - R and Python",
+    "outcomes": "Manage and clean epidemiological datasets, perform exploratory data analysis and visualization, implement linear regression, and conduct systematic reviews and meta-analysis.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEC08",
-    title: "Advanced Data Analysis",
-    type: "specialization",
-    units: 6,
-    hours: 60,
-    block: "Block 7",
-    lecturerId: "lec-14",
-    tutorIds: ["tut-08"],
-    software: "R, Python",
-    prerequisites: "MEC07",
-    outcomes:
-      "Apply advanced statistical and computational analysis in epidemiology.",
+    "code": "MEC08",
+    "title": "Advanced Data Analysis (Data Analysis II)",
+    "type": "specialization",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 7",
+    "software": "R/Python for advanced statistical modelling",
+    "prerequisites": "MEC07 - Introduction to Data Analysis",
+    "outcomes": "Formulate generalized linear models, apply methods to complex survey and hierarchical data, perform spatial data analysis and disease mapping, and implement machine learning for health prediction.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEC09",
-    title: "Professional, Project, and Entrepreneurship Development",
-    type: "professional",
-    units: 6,
-    hours: 60,
-    block: "Block 8",
-    lecturerId: "lec-15",
-    tutorIds: [],
-    software: "Portfolio and project tools",
-    prerequisites: "None",
-    outcomes:
-      "Prepare students for internships, projects, entrepreneurship, and career readiness.",
+    "code": "MEC09",
+    "title": "Professional, Project, and Entrepreneurship Development",
+    "type": "professional",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 8",
+    "software": "Various productivity and project management tools",
+    "prerequisites": "None; runs concurrently with other courses",
+    "outcomes": "Develop professional application materials, write grant proposals and project plans, manage projects, collaborate in diverse teams, and understand innovation ecosystems.",
+    "lectureHours": 60,
+    "tutorialPracticalHours": 0,
+    "assignmentHours": 0,
+    "independentStudyHours": 0,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEC10",
-    title: "AI-Driven Epidemiology and Digital Health Surveillance",
-    type: "specialization",
-    units: 6,
-    hours: 60,
-    block: "Block 8",
-    lecturerId: null,
-    tutorIds: [],
-    software: "Python, digital health tooling",
-    prerequisites: "MEC07, MEC08",
-    outcomes:
-      "Use AI-enabled workflows and digital surveillance tools for public health intelligence.",
+    "code": "MEC10",
+    "title": "Advanced Data Science for Epidemiology",
+    "type": "specialization",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 8",
+    "software": "Python (TensorFlow/PyTorch), R, Digital Health Platforms",
+    "prerequisites": "MEC07 - Introduction to Data Analysis; MEC08 - Advanced Data Analysis",
+    "outcomes": "Develop AI models for early outbreak detection, implement NLP for epidemic intelligence, design predictive analytics for health resources, evaluate ethical AI, and integrate surveillance systems.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEE01",
-    title: "Survival Analysis",
-    type: "elective",
-    units: 6,
-    hours: 60,
-    block: "Block 9",
-    lecturerId: "lec-16",
-    tutorIds: ["tut-04"],
-    software: "R",
-    prerequisites: "MES04",
-    outcomes:
-      "Model time-to-event data and interpret hazard, survival, and censoring patterns.",
+    "code": "MEE01",
+    "title": "Survival Analysis",
+    "type": "elective",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 9",
+    "software": "R/Python for survival analysis",
+    "prerequisites": "MEC07 - Introduction to Data Analysis",
+    "outcomes": "Describe survival data, fit and interpret Cox proportional hazards models, analyze competing risks and accelerated failure time models, and present survival-analysis results for policy.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEE02",
-    title: "Time Series Analysis",
-    type: "elective",
-    units: 6,
-    hours: 60,
-    block: "Block 9",
-    lecturerId: null,
-    tutorIds: [],
-    software: "R, Python",
-    prerequisites: "MEC07",
-    outcomes:
-      "Analyse temporal epidemiological data and forecasting signals.",
+    "code": "MEE02",
+    "title": "Time Series Analysis",
+    "type": "elective",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 9",
+    "software": "R/Python for time series modelling",
+    "prerequisites": "MEC07 - Introduction to Data Analysis",
+    "outcomes": "Classify time series data, apply ARIMA/SARIMA and Box-Jenkins methods, model volatility, forecast disease trends, and interpret results.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEE03",
-    title: "Bayesian Statistics",
-    type: "elective",
-    units: 6,
-    hours: 60,
-    block: "Block 9",
-    lecturerId: "lec-17",
-    tutorIds: ["tut-08"],
-    software: "Stan, R, Python",
-    prerequisites: "MES04",
-    outcomes:
-      "Use Bayesian reasoning for uncertainty, inference, and epidemiological decisions.",
+    "code": "MEE03",
+    "title": "Bayesian Statistics",
+    "type": "elective",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 9",
+    "software": "R/WinBUGS for Bayesian analysis",
+    "prerequisites": "MES04 - Probability & Statistics",
+    "outcomes": "Understand Bayesian principles, design Bayesian models, implement Markov Chain Monte Carlo methods, and summarize and interpret Bayesian analysis outputs.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEE04",
-    title: "Stochastic Models",
-    type: "elective",
-    units: 6,
-    hours: 60,
-    block: "Block 9",
-    lecturerId: null,
-    tutorIds: [],
-    software: "R, Python",
-    prerequisites: "MEC03",
-    outcomes:
-      "Model random processes and stochastic epidemic systems.",
+    "code": "MEE04",
+    "title": "Stochastic Models",
+    "type": "elective",
+    "units": 6,
+    "hours": 60,
+    "block": "Block 9",
+    "software": "Python for stochastic simulations",
+    "prerequisites": "MEC03 - Mathematical Modelling I; MEC04 - Mathematical Modelling II",
+    "outcomes": "Explain stochasticity in modelling, develop stochastic differential equation models, design simple agent-based simulations, and implement and interpret stochastic simulations.",
+    "lectureHours": 30,
+    "tutorialPracticalHours": 10,
+    "assignmentHours": 5,
+    "independentStudyHours": 15,
+    "lecturerId": null,
+    "tutorIds": []
   },
   {
-    code: "MEI01",
-    title: "Internship and Thesis",
-    type: "practical",
-    units: 36,
-    hours: 720,
-    block: "Internship + Thesis",
-    lecturerId: "lec-18",
-    tutorIds: [],
-    software: "Research/project tools",
-    prerequisites: "Academic phase completion",
-    outcomes:
-      "Complete a six-month research or industry internship and translate the work into thesis/project output.",
-  },
+    "code": "MEI01",
+    "title": "Internship and Thesis",
+    "type": "practical",
+    "units": 36,
+    "hours": 720,
+    "block": "Internship + Thesis",
+    "software": "Dependent on the research project",
+    "prerequisites": "Completion of all MES and MEC courses",
+    "outcomes": "Apply mathematical epidemiology skills to real-world problems, conduct independent research or industry projects, produce scientific reports or theses, and demonstrate professional competence.",
+    "supervisedWorkHours": 360,
+    "independentWorkHours": 360,
+    "lecturerId": null,
+    "tutorIds": []
+  }
 ];
 
-const DEFAULT_PEOPLE = [
-  {
-    id: "lec-01",
-    kind: "Lecturer",
-    name: "Dr. Amina Njoroge",
-    affiliation: "AIMS RIC",
-    email: "amina.njoroge@example.org",
-    phone: "+250 780 000 101",
-    expertise: "Problem solving, proof strategies",
-    availability: "Block 1 confirmed",
-    status: "Confirmed",
-    lastContact: "2026-05-12",
-    nextFollowUp: "2026-09-14",
-    workload: 1,
-    notes: "Send final teaching template before onboarding.",
-  },
-  {
-    id: "lec-02",
-    kind: "Lecturer",
-    name: "Prof. Daniel Mwangi",
-    affiliation: "University partner",
-    email: "daniel.mwangi@example.org",
-    phone: "+254 700 000 202",
-    expertise: "Differential equations, epidemic dynamics",
-    availability: "Awaiting travel confirmation",
-    status: "Awaiting response",
-    lastContact: "2026-05-16",
-    nextFollowUp: "2026-05-24",
-    workload: 1,
-    notes: "Needs block dates and honorarium confirmation.",
-  },
-  {
-    id: "lec-03",
-    kind: "Lecturer",
-    name: "Dr. Salma Bekele",
-    affiliation: "Regional collaborator",
-    email: "salma.bekele@example.org",
-    phone: "+251 900 000 303",
-    expertise: "Physical systems and modelling",
-    availability: "Needs follow-up",
-    status: "Needs follow-up",
-    lastContact: "2026-05-08",
-    nextFollowUp: "2026-05-22",
-    workload: 1,
-    notes: "Check whether practical lab format is possible.",
-  },
-  {
-    id: "lec-04",
-    kind: "Lecturer",
-    name: "Dr. Yves Mugisha",
-    affiliation: "AIMS Rwanda",
-    email: "yves.mugisha@example.org",
-    phone: "+250 780 000 404",
-    expertise: "Probability and statistics",
-    availability: "Confirmed",
-    status: "Confirmed",
-    lastContact: "2026-05-11",
-    nextFollowUp: "2026-09-28",
-    workload: 1,
-    notes: "Prefers morning sessions.",
-  },
-  {
-    id: "lec-05",
-    kind: "Lecturer",
-    name: "Dr. Grace Wanjiru",
-    affiliation: "KEMRI",
-    email: "grace.wanjiru@example.org",
-    phone: "+254 700 000 505",
-    expertise: "R, Python, reproducible research",
-    availability: "Confirmed",
-    status: "Confirmed",
-    lastContact: "2026-05-14",
-    nextFollowUp: "2026-09-17",
-    workload: 1,
-    notes: "Share software setup checklist with students.",
-  },
-  {
-    id: "lec-06",
-    kind: "Lecturer",
-    name: "Dr. Jean Hakizimana",
-    affiliation: "AIMS RIC",
-    email: "jean.hakizimana@example.org",
-    phone: "+250 780 000 606",
-    expertise: "Scientific computing, LaTeX",
-    availability: "Contacted",
-    status: "Contacted",
-    lastContact: "2026-05-18",
-    nextFollowUp: "2026-05-27",
-    workload: 1,
-    notes: "Waiting for preferred software stack.",
-  },
-  {
-    id: "lec-07",
-    kind: "Lecturer",
-    name: "Dr. Miriam Otieno",
-    affiliation: "KEMRI",
-    email: "miriam.otieno@example.org",
-    phone: "+254 700 000 707",
-    expertise: "Epidemiology, study design",
-    availability: "Confirmed",
-    status: "Confirmed",
-    lastContact: "2026-05-10",
-    nextFollowUp: "2026-10-30",
-    workload: 1,
-    notes: "Coordinate reading list with library access.",
-  },
-  {
-    id: "lec-08",
-    kind: "Lecturer",
-    name: "Dr. Pascaline Umuhoza",
-    affiliation: "Public health partner",
-    email: "pascaline.umuhoza@example.org",
-    phone: "+250 780 000 808",
-    expertise: "Disease modelling epidemiology",
-    availability: "Awaiting response",
-    status: "Awaiting response",
-    lastContact: "2026-05-13",
-    nextFollowUp: "2026-05-23",
-    workload: 1,
-    notes: "Needs confirmation for Block 5 travel dates.",
-  },
-  {
-    id: "lec-09",
-    kind: "Lecturer",
-    name: "Prof. Samuel Okello",
-    affiliation: "AIMS collaborator",
-    email: "samuel.okello@example.org",
-    phone: "+256 700 000 909",
-    expertise: "Mathematical modelling",
-    availability: "Confirmed",
-    status: "Confirmed",
-    lastContact: "2026-05-15",
-    nextFollowUp: "2026-10-26",
-    workload: 1,
-    notes: "Requested sample outbreak datasets.",
-  },
-  {
-    id: "lec-10",
-    kind: "Lecturer",
-    name: "Dr. Lydia Kamau",
-    affiliation: "KEMRI",
-    email: "lydia.kamau@example.org",
-    phone: "+254 700 001 010",
-    expertise: "Public health modelling",
-    availability: "Confirmed",
-    status: "Confirmed",
-    lastContact: "2026-05-09",
-    nextFollowUp: "2026-11-16",
-    workload: 1,
-    notes: "Can support project briefs.",
-  },
-  {
-    id: "lec-11",
-    kind: "Lecturer",
-    name: "Dr. Nadia El-Sayed",
-    affiliation: "External expert",
-    email: "nadia.elsayed@example.org",
-    phone: "+20 100 000 111",
-    expertise: "Model fitting and validation",
-    availability: "Needs follow-up",
-    status: "Needs follow-up",
-    lastContact: "2026-05-03",
-    nextFollowUp: "2026-05-21",
-    workload: 1,
-    notes: "Overdue response on remote teaching option.",
-  },
-  {
-    id: "lec-12",
-    kind: "Lecturer",
-    name: "Dr. Kwame Mensah",
-    affiliation: "AIMS network",
-    email: "kwame.mensah@example.org",
-    phone: "+233 500 000 121",
-    expertise: "Numerical methods",
-    availability: "Contacted",
-    status: "Contacted",
-    lastContact: "2026-05-17",
-    nextFollowUp: "2026-05-29",
-    workload: 1,
-    notes: "Tutor is still missing.",
-  },
-  {
-    id: "lec-13",
-    kind: "Lecturer",
-    name: "Dr. Irene Habimana",
-    affiliation: "AIMS Rwanda",
-    email: "irene.habimana@example.org",
-    phone: "+250 780 001 313",
-    expertise: "Data analysis",
-    availability: "Confirmed",
-    status: "Confirmed",
-    lastContact: "2026-05-14",
-    nextFollowUp: "2027-01-04",
-    workload: 1,
-    notes: "Drive folder should include dataset governance note.",
-  },
-  {
-    id: "lec-14",
-    kind: "Lecturer",
-    name: "Dr. Kojo Boateng",
-    affiliation: "AIMS RIC",
-    email: "kojo.boateng@example.org",
-    phone: "+233 500 000 141",
-    expertise: "Advanced data analysis",
-    availability: "Confirmed",
-    status: "Confirmed",
-    lastContact: "2026-05-12",
-    nextFollowUp: "2027-01-11",
-    workload: 1,
-    notes: "Can co-supervise capstone datasets.",
-  },
-  {
-    id: "lec-15",
-    kind: "Lecturer",
-    name: "Ms. Nelly Mutesi",
-    affiliation: "Innovation partner",
-    email: "nelly.mutesi@example.org",
-    phone: "+250 780 001 515",
-    expertise: "Entrepreneurship and project readiness",
-    availability: "Confirmed",
-    status: "Confirmed",
-    lastContact: "2026-05-07",
-    nextFollowUp: "2027-02-01",
-    workload: 1,
-    notes: "Prepare internship pitch clinic.",
-  },
-  {
-    id: "lec-16",
-    kind: "Lecturer",
-    name: "Dr. Peter Onyango",
-    affiliation: "KEMRI",
-    email: "peter.onyango@example.org",
-    phone: "+254 700 001 616",
-    expertise: "Survival analysis",
-    availability: "Confirmed",
-    status: "Confirmed",
-    lastContact: "2026-05-19",
-    nextFollowUp: "2027-02-22",
-    workload: 1,
-    notes: "Elective enrollment cap should be confirmed.",
-  },
-  {
-    id: "lec-17",
-    kind: "Lecturer",
-    name: "Dr. Fatima Hassan",
-    affiliation: "External expert",
-    email: "fatima.hassan@example.org",
-    phone: "+255 700 001 717",
-    expertise: "Bayesian statistics",
-    availability: "Awaiting response",
-    status: "Awaiting response",
-    lastContact: "2026-05-20",
-    nextFollowUp: "2026-05-25",
-    workload: 1,
-    notes: "Ask if remote guest lectures are acceptable.",
-  },
-  {
-    id: "lec-18",
-    kind: "Lecturer",
-    name: "Programme Supervision Panel",
-    affiliation: "AIMS RIC and KEMRI",
-    email: "mathepi.supervision@example.org",
-    phone: "+250 780 001 818",
-    expertise: "Internship, thesis supervision",
-    availability: "Standing panel",
-    status: "Confirmed",
-    lastContact: "2026-05-18",
-    nextFollowUp: "2027-03-15",
-    workload: 1,
-    notes: "Coordinate partner placements and thesis review workflow.",
-  },
-  {
-    id: "tut-01",
-    kind: "Tutor",
-    name: "Alice Ishimwe",
-    affiliation: "AIMS RIC",
-    email: "alice.ishimwe@example.org",
-    phone: "+250 780 002 001",
-    expertise: "R/Python and problem solving",
-    availability: "Blocks 1-2",
-    status: "Confirmed",
-    lastContact: "2026-05-15",
-    nextFollowUp: "2026-09-21",
-    workload: 2,
-    notes: "Can run evening clinic.",
-  },
-  {
-    id: "tut-02",
-    kind: "Tutor",
-    name: "Eric Ndayisaba",
-    affiliation: "AIMS Rwanda",
-    email: "eric.ndayisaba@example.org",
-    phone: "+250 780 002 002",
-    expertise: "Numerical methods and LaTeX",
-    availability: "Blocks 2-3",
-    status: "Confirmed",
-    lastContact: "2026-05-16",
-    nextFollowUp: "2026-10-05",
-    workload: 2,
-    notes: "Useful for coding clinics.",
-  },
-  {
-    id: "tut-03",
-    kind: "Tutor",
-    name: "Brian Kato",
-    affiliation: "AIMS RIC",
-    email: "brian.kato@example.org",
-    phone: "+256 700 002 003",
-    expertise: "Physics and modelling",
-    availability: "Block 3",
-    status: "Contacted",
-    lastContact: "2026-05-14",
-    nextFollowUp: "2026-05-26",
-    workload: 1,
-    notes: "Needs travel check.",
-  },
-  {
-    id: "tut-04",
-    kind: "Tutor",
-    name: "Chantal Uwase",
-    affiliation: "KEMRI partner",
-    email: "chantal.uwase@example.org",
-    phone: "+250 780 002 004",
-    expertise: "Statistics and survival analysis",
-    availability: "Blocks 2 and 9",
-    status: "Confirmed",
-    lastContact: "2026-05-18",
-    nextFollowUp: "2026-09-29",
-    workload: 2,
-    notes: "Good fit for applied tutorials.",
-  },
-  {
-    id: "tut-05",
-    kind: "Tutor",
-    name: "David Mutua",
-    affiliation: "AIMS RIC",
-    email: "david.mutua@example.org",
-    phone: "+254 700 002 005",
-    expertise: "Data analysis",
-    availability: "Blocks 1 and 7",
-    status: "Confirmed",
-    lastContact: "2026-05-18",
-    nextFollowUp: "2027-01-01",
-    workload: 2,
-    notes: "Can help with data governance labs.",
-  },
-  {
-    id: "tut-06",
-    kind: "Tutor",
-    name: "Esther Akello",
-    affiliation: "KEMRI",
-    email: "esther.akello@example.org",
-    phone: "+254 700 002 006",
-    expertise: "Epidemiology",
-    availability: "Blocks 4-5",
-    status: "Awaiting response",
-    lastContact: "2026-05-12",
-    nextFollowUp: "2026-05-22",
-    workload: 2,
-    notes: "Follow up on availability letter.",
-  },
-  {
-    id: "tut-07",
-    kind: "Tutor",
-    name: "Jean Paul Sibomana",
-    affiliation: "AIMS Rwanda",
-    email: "jeanpaul.sibomana@example.org",
-    phone: "+250 780 002 007",
-    expertise: "Mathematical modelling",
-    availability: "Blocks 4-5",
-    status: "Confirmed",
-    lastContact: "2026-05-19",
-    nextFollowUp: "2026-10-05",
-    workload: 2,
-    notes: "Can lead model-building labs.",
-  },
-  {
-    id: "tut-08",
-    kind: "Tutor",
-    name: "Martha Namugisha",
-    affiliation: "AIMS network",
-    email: "martha.namugisha@example.org",
-    phone: "+256 700 002 008",
-    expertise: "Model fitting, Bayesian statistics",
-    availability: "Blocks 6-9",
-    status: "Confirmed",
-    lastContact: "2026-05-20",
-    nextFollowUp: "2026-12-08",
-    workload: 3,
-    notes: "Watch workload; assigned across several advanced courses.",
-  },
-];
+const DEFAULT_PEOPLE = [];
 
 const DEFAULT_BLOCKS = [
   {
-    id: "onboarding",
-    title: "Introduction and Onboarding Week",
-    start: "2026-09-28",
-    end: "2026-10-02",
-    kind: "onboarding",
-    note: "Orientation, software setup, student onboarding, programme briefing",
-    courses: [],
+    "id": "onboarding",
+    "title": "Introduction and Onboarding Week",
+    "start": "2026-09-28",
+    "end": "2026-10-02",
+    "kind": "onboarding",
+    "note": "Orientation, software setup, student onboarding, programme briefing",
+    "courses": []
   },
   {
-    id: "block-1",
-    title: "Block 1",
-    start: "2026-10-05",
-    end: "2026-10-23",
-    kind: "teaching",
-    note: "Core skills launch",
-    courses: ["MES01", "MES05"],
+    "id": "block-1",
+    "title": "Block 1",
+    "start": "2026-10-05",
+    "end": "2026-10-23",
+    "kind": "teaching",
+    "note": "Core Skills: MES01 Mathematical Problem Solving; MES05 Introduction to R and Python",
+    "courses": [
+      "MES01",
+      "MES05"
+    ]
   },
   {
-    id: "block-2",
-    title: "Block 2",
-    start: "2026-10-26",
-    end: "2026-11-13",
-    kind: "teaching",
-    note: "Quantitative foundations",
-    courses: ["MES02", "MES04"],
+    "id": "block-2",
+    "title": "Block 2",
+    "start": "2026-10-26",
+    "end": "2026-11-13",
+    "kind": "teaching",
+    "note": "Core Skills: MES02 Differential Equations and Modelling; MES04 Introduction to Probability and Statistics",
+    "courses": [
+      "MES02",
+      "MES04"
+    ]
   },
   {
-    id: "reading-1",
-    title: "Reading Week and AHC Convening",
-    start: "2026-11-16",
-    end: "2026-11-20",
-    kind: "reading",
-    note: "AHC Convening Week in Nairobi",
-    courses: [],
+    "id": "reading-1",
+    "title": "Reading Week and AHC Convening",
+    "start": "2026-11-16",
+    "end": "2026-11-20",
+    "kind": "reading",
+    "note": "AHC Convening Week in Nairobi",
+    "courses": []
   },
   {
-    id: "block-3",
-    title: "Block 3",
-    start: "2026-11-23",
-    end: "2026-12-11",
-    kind: "teaching",
-    note: "Scientific and physical computation",
-    courses: ["MES03", "MES06"],
+    "id": "block-3",
+    "title": "Block 3",
+    "start": "2026-11-23",
+    "end": "2026-12-11",
+    "kind": "teaching",
+    "note": "Core Skills: MES03 Physical Problem Solving; MES06 Scientific Computing and LaTeX",
+    "courses": [
+      "MES03",
+      "MES06"
+    ]
   },
   {
-    id: "vacation",
-    title: "Vacation and December Holiday",
-    start: "2026-12-14",
-    end: "2027-01-03",
-    kind: "holiday",
-    note: "December holiday break",
-    courses: [],
+    "id": "vacation",
+    "title": "Vacation and December Holiday",
+    "start": "2026-12-14",
+    "end": "2027-01-03",
+    "kind": "holiday",
+    "note": "December holiday break",
+    "courses": []
   },
   {
-    id: "block-4",
-    title: "Block 4",
-    start: "2027-01-04",
-    end: "2027-01-22",
-    kind: "teaching",
-    note: "Epidemiology and modelling begin",
-    courses: ["MEC01", "MEC03"],
+    "id": "block-4",
+    "title": "Block 4",
+    "start": "2027-01-04",
+    "end": "2027-01-22",
+    "kind": "teaching",
+    "note": "Specialization: MEC01 Introduction to Epidemiology; MEC03 Introduction to Mathematical Modelling",
+    "courses": [
+      "MEC01",
+      "MEC03"
+    ]
   },
   {
-    id: "block-5",
-    title: "Block 5",
-    start: "2027-01-25",
-    end: "2027-02-12",
-    kind: "teaching",
-    note: "Public health model development",
-    courses: ["MEC02", "MEC04"],
+    "id": "block-5",
+    "title": "Block 5",
+    "start": "2027-01-25",
+    "end": "2027-02-12",
+    "kind": "teaching",
+    "note": "Specialization: MEC02 Epidemiology for Disease Modelling; MEC04 Developing Mathematical Models in Public Health",
+    "courses": [
+      "MEC02",
+      "MEC04"
+    ]
   },
   {
-    id: "block-6",
-    title: "Block 6",
-    start: "2027-02-15",
-    end: "2027-03-05",
-    kind: "teaching",
-    note: "Fitting, validation, and numerical methods",
-    courses: ["MEC05", "MEC06"],
+    "id": "block-6",
+    "title": "Block 6",
+    "start": "2027-02-15",
+    "end": "2027-03-05",
+    "kind": "teaching",
+    "note": "Specialization: MEC05 Model Fitting and Validation; MEC06 Numerical Methods",
+    "courses": [
+      "MEC05",
+      "MEC06"
+    ]
   },
   {
-    id: "block-7",
-    title: "Block 7",
-    start: "2027-03-08",
-    end: "2027-03-26",
-    kind: "teaching",
-    note: "Data analysis sequence",
-    courses: ["MEC07", "MEC08"],
+    "id": "block-7",
+    "title": "Block 7",
+    "start": "2027-03-08",
+    "end": "2027-03-26",
+    "kind": "teaching",
+    "note": "Specialization: MEC07 Introduction to Data Analysis; MEC08 Advanced Data Analysis",
+    "courses": [
+      "MEC07",
+      "MEC08"
+    ]
   },
   {
-    id: "reading-2",
-    title: "Reading Week",
-    start: "2027-03-29",
-    end: "2027-04-02",
-    kind: "reading",
-    note: "Reflection, catch-up, elective selection",
-    courses: [],
+    "id": "reading-2",
+    "title": "Reading Week",
+    "start": "2027-03-29",
+    "end": "2027-04-02",
+    "kind": "reading",
+    "note": "Reflection, catch-up, elective selection",
+    "courses": []
   },
   {
-    id: "block-8",
-    title: "Block 8",
-    start: "2027-04-05",
-    end: "2027-04-23",
-    kind: "teaching",
-    note: "Professional development and digital surveillance",
-    courses: ["MEC09", "MEC10"],
+    "id": "block-8",
+    "title": "Block 8",
+    "start": "2027-04-05",
+    "end": "2027-04-23",
+    "kind": "teaching",
+    "note": "Professional development and advanced data science: MEC09; MEC10",
+    "courses": [
+      "MEC09",
+      "MEC10"
+    ]
   },
   {
-    id: "block-9",
-    title: "Block 9",
-    start: "2027-04-26",
-    end: "2027-05-14",
-    kind: "teaching",
-    note: "Elective pathways",
-    courses: ["MEE01", "MEE02", "MEE03", "MEE04"],
+    "id": "block-9",
+    "title": "Block 9",
+    "start": "2027-04-26",
+    "end": "2027-05-14",
+    "kind": "teaching",
+    "note": "Elective Courses: MEE01 Survival Analysis; MEE02 Time Series Analysis; MEE03 Bayesian Statistics; MEE04 Stochastic Models",
+    "courses": [
+      "MEE01",
+      "MEE02",
+      "MEE03",
+      "MEE04"
+    ]
   },
   {
-    id: "internship",
-    title: "Internship",
-    start: "2027-05-17",
-    end: "2027-11-15",
-    kind: "practical",
-    note: "Six-month mandatory placement with research or industry partners",
-    courses: ["MEI01"],
+    "id": "internship",
+    "title": "Mandatory Internship",
+    "start": "2027-05-17",
+    "end": "2027-08-13",
+    "kind": "practical",
+    "note": "MEI01 supervised research or industry placement",
+    "courses": [
+      "MEI01"
+    ]
   },
   {
-    id: "thesis",
-    title: "Thesis Writing, Review, and Vivas",
-    start: "2027-11-16",
-    end: "2027-12-17",
-    kind: "thesis",
-    note: "Thesis/project write-up and examination cycle",
-    courses: ["MEI01"],
+    "id": "thesis",
+    "title": "Thesis/Project Write-up",
+    "start": "2027-08-16",
+    "end": "2027-11-12",
+    "kind": "thesis",
+    "note": "MEI01 thesis/project write-up and review",
+    "courses": [
+      "MEI01"
+    ]
   },
   {
-    id: "graduation",
-    title: "Graduation",
-    start: "2027-12-21",
-    end: "2027-12-22",
-    kind: "graduation",
-    note: "Graduation window",
-    courses: [],
-  },
+    "id": "graduation",
+    "title": "Graduation",
+    "start": "2027-12-21",
+    "end": "2027-12-22",
+    "kind": "graduation",
+    "note": "Graduation window",
+    "courses": []
+  }
 ];
+
+
 
 const DEFAULT_SESSIONS = [
   {
-    id: "s-001",
-    courseCode: "MES01",
-    day: "Monday",
-    time: "09:00",
-    duration: 2,
-    type: "Lecture",
-    room: "KEMRI Seminar Room",
-    blockId: "block-1",
-    personId: "lec-01",
+    "id": "s-001",
+    "courseCode": "MES01",
+    "day": "Monday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-1",
+    "personId": null
   },
   {
-    id: "s-002",
-    courseCode: "MES05",
-    day: "Monday",
-    time: "14:00",
-    duration: 2,
-    type: "Practical",
-    room: "Computing Lab",
-    blockId: "block-1",
-    personId: "lec-05",
+    "id": "s-002",
+    "courseCode": "MES05",
+    "day": "Tuesday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-1",
+    "personId": null
   },
   {
-    id: "s-003",
-    courseCode: "MES01",
-    day: "Wednesday",
-    time: "11:00",
-    duration: 2,
-    type: "Tutorial",
-    room: "Tutorial Studio A",
-    blockId: "block-1",
-    personId: "tut-01",
+    "id": "s-003",
+    "courseCode": "MES01",
+    "day": "Wednesday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-1",
+    "personId": null
   },
   {
-    id: "s-004",
-    courseCode: "MES05",
-    day: "Thursday",
-    time: "14:00",
-    duration: 2,
-    type: "Coding Clinic",
-    room: "Computing Lab",
-    blockId: "block-1",
-    personId: "tut-05",
+    "id": "s-004",
+    "courseCode": "MES05",
+    "day": "Thursday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-1",
+    "personId": null
   },
   {
-    id: "s-005",
-    courseCode: "MEC03",
-    day: "Tuesday",
-    time: "09:00",
-    duration: 2,
-    type: "Lecture",
-    room: "KEMRI Seminar Room",
-    blockId: "block-4",
-    personId: "lec-09",
+    "id": "s-005",
+    "courseCode": "MES02",
+    "day": "Monday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-2",
+    "personId": null
   },
   {
-    id: "s-006",
-    courseCode: "MEC01",
-    day: "Tuesday",
-    time: "14:00",
-    duration: 2,
-    type: "Lecture",
-    room: "Public Health Lab",
-    blockId: "block-4",
-    personId: "lec-07",
+    "id": "s-006",
+    "courseCode": "MES04",
+    "day": "Tuesday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-2",
+    "personId": null
   },
   {
-    id: "s-007",
-    courseCode: "MEC03",
-    day: "Thursday",
-    time: "11:00",
-    duration: 2,
-    type: "Model Lab",
-    room: "Computing Lab",
-    blockId: "block-4",
-    personId: "tut-07",
+    "id": "s-007",
+    "courseCode": "MES02",
+    "day": "Wednesday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-2",
+    "personId": null
   },
   {
-    id: "s-008",
-    courseCode: "MEC10",
-    day: "Wednesday",
-    time: "09:00",
-    duration: 2,
-    type: "Seminar",
-    room: "Digital Surveillance Studio",
-    blockId: "block-8",
-    personId: null,
+    "id": "s-008",
+    "courseCode": "MES04",
+    "day": "Thursday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-2",
+    "personId": null
   },
   {
-    id: "s-009",
-    courseCode: "MEE03",
-    day: "Friday",
-    time: "11:00",
-    duration: 2,
-    type: "Elective Lab",
-    room: "Computing Lab",
-    blockId: "block-9",
-    personId: "tut-08",
+    "id": "s-009",
+    "courseCode": "MES03",
+    "day": "Monday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-3",
+    "personId": null
   },
+  {
+    "id": "s-010",
+    "courseCode": "MES06",
+    "day": "Tuesday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-3",
+    "personId": null
+  },
+  {
+    "id": "s-011",
+    "courseCode": "MES03",
+    "day": "Wednesday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-3",
+    "personId": null
+  },
+  {
+    "id": "s-012",
+    "courseCode": "MES06",
+    "day": "Thursday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-3",
+    "personId": null
+  },
+  {
+    "id": "s-013",
+    "courseCode": "MEC01",
+    "day": "Monday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-4",
+    "personId": null
+  },
+  {
+    "id": "s-014",
+    "courseCode": "MEC03",
+    "day": "Tuesday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-4",
+    "personId": null
+  },
+  {
+    "id": "s-015",
+    "courseCode": "MEC01",
+    "day": "Wednesday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-4",
+    "personId": null
+  },
+  {
+    "id": "s-016",
+    "courseCode": "MEC03",
+    "day": "Thursday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-4",
+    "personId": null
+  },
+  {
+    "id": "s-017",
+    "courseCode": "MEC02",
+    "day": "Monday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-5",
+    "personId": null
+  },
+  {
+    "id": "s-018",
+    "courseCode": "MEC04",
+    "day": "Tuesday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-5",
+    "personId": null
+  },
+  {
+    "id": "s-019",
+    "courseCode": "MEC02",
+    "day": "Wednesday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-5",
+    "personId": null
+  },
+  {
+    "id": "s-020",
+    "courseCode": "MEC04",
+    "day": "Thursday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-5",
+    "personId": null
+  },
+  {
+    "id": "s-021",
+    "courseCode": "MEC05",
+    "day": "Monday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-6",
+    "personId": null
+  },
+  {
+    "id": "s-022",
+    "courseCode": "MEC06",
+    "day": "Tuesday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-6",
+    "personId": null
+  },
+  {
+    "id": "s-023",
+    "courseCode": "MEC05",
+    "day": "Wednesday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-6",
+    "personId": null
+  },
+  {
+    "id": "s-024",
+    "courseCode": "MEC06",
+    "day": "Thursday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-6",
+    "personId": null
+  },
+  {
+    "id": "s-025",
+    "courseCode": "MEC07",
+    "day": "Monday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-7",
+    "personId": null
+  },
+  {
+    "id": "s-026",
+    "courseCode": "MEC08",
+    "day": "Tuesday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-7",
+    "personId": null
+  },
+  {
+    "id": "s-027",
+    "courseCode": "MEC07",
+    "day": "Wednesday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-7",
+    "personId": null
+  },
+  {
+    "id": "s-028",
+    "courseCode": "MEC08",
+    "day": "Thursday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-7",
+    "personId": null
+  },
+  {
+    "id": "s-029",
+    "courseCode": "MEC09",
+    "day": "Monday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Professional workshop",
+    "room": "Lecture Room",
+    "blockId": "block-8",
+    "personId": null
+  },
+  {
+    "id": "s-030",
+    "courseCode": "MEC10",
+    "day": "Tuesday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Lecture",
+    "room": "Lecture Room",
+    "blockId": "block-8",
+    "personId": null
+  },
+  {
+    "id": "s-031",
+    "courseCode": "MEC09",
+    "day": "Wednesday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Project clinic",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-8",
+    "personId": null
+  },
+  {
+    "id": "s-032",
+    "courseCode": "MEC10",
+    "day": "Thursday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Tutorial / practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-8",
+    "personId": null
+  },
+  {
+    "id": "s-033",
+    "courseCode": "MEE01",
+    "day": "Monday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Elective lecture",
+    "room": "Lecture Room",
+    "blockId": "block-9",
+    "personId": null
+  },
+  {
+    "id": "s-034",
+    "courseCode": "MEE02",
+    "day": "Tuesday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Elective lecture",
+    "room": "Lecture Room",
+    "blockId": "block-9",
+    "personId": null
+  },
+  {
+    "id": "s-035",
+    "courseCode": "MEE03",
+    "day": "Wednesday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Elective lecture",
+    "room": "Lecture Room",
+    "blockId": "block-9",
+    "personId": null
+  },
+  {
+    "id": "s-036",
+    "courseCode": "MEE04",
+    "day": "Thursday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Elective lecture",
+    "room": "Lecture Room",
+    "blockId": "block-9",
+    "personId": null
+  },
+  {
+    "id": "s-037",
+    "courseCode": "MEE01",
+    "day": "Friday",
+    "time": "09:00",
+    "duration": 2,
+    "type": "Elective practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-9",
+    "personId": null
+  },
+  {
+    "id": "s-038",
+    "courseCode": "MEE02",
+    "day": "Friday",
+    "time": "11:00",
+    "duration": 2,
+    "type": "Elective practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-9",
+    "personId": null
+  },
+  {
+    "id": "s-039",
+    "courseCode": "MEE03",
+    "day": "Friday",
+    "time": "14:00",
+    "duration": 2,
+    "type": "Elective practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-9",
+    "personId": null
+  },
+  {
+    "id": "s-040",
+    "courseCode": "MEE04",
+    "day": "Friday",
+    "time": "16:00",
+    "duration": 2,
+    "type": "Elective practical",
+    "room": "Computing / Tutorial Room",
+    "blockId": "block-9",
+    "personId": null
+  },
+  {
+    "id": "s-041",
+    "courseCode": "MEI01",
+    "day": "Monday",
+    "time": "10:00",
+    "duration": 2,
+    "type": "Internship supervision",
+    "room": "Lecture Room",
+    "blockId": "internship",
+    "personId": null
+  },
+  {
+    "id": "s-042",
+    "courseCode": "MEI01",
+    "day": "Tuesday",
+    "time": "10:00",
+    "duration": 2,
+    "type": "Thesis/project supervision",
+    "room": "Lecture Room",
+    "blockId": "thesis",
+    "personId": null
+  }
 ];
+
+
 
 const COURSE_DETAILS = {
-  MES01: {
-    aim: "To provide students with comprehensive problem-solving strategies using analytical and computational tools, fostering mathematical thinking and creativity across diverse mathematical fields.",
-    content:
-      "Logical reasoning and proof techniques; combinatorics and graph theory applications; number theory and abstract algebra problems; calculus, differential equations, real analysis, matrix theory, and linear algebra problem-solving.",
+  "MES01": {
+    "aim": "To provide students with comprehensive problem-solving strategies using analytical and computational tools, fostering mathematical thinking and creativity across diverse mathematical fields.",
+    "content": "Logical reasoning and proof techniques; combinatorics and graph theory applications; number theory and abstract algebra problems; calculus, differential equations, and real analysis applications; matrix theory and linear algebra problem-solving.",
+    "readingList": [
+      "Beardon, A. F. (2009). Creative Mathematics: A Gateway to Research",
+      "Engel, A. (1998). Problem-solving Strategies",
+      "Krantz, S. G. Techniques of Problem Solving"
+    ]
   },
-  MES02: {
-    aim: "To teach students how to solve and analyze ordinary and partial differential equations using rigorous analytical methods and numerical computations, with applications in epidemic modelling.",
-    content:
-      "First-order and second-order ODEs; systems of linear equations and stability analysis; PDEs; finite difference methods; error analysis; applications to epidemiological models.",
+  "MES02": {
+    "aim": "To teach students how to solve and analyze ordinary and partial differential equations using both rigorous analytical methods and numerical computations, with applications in epidemic modelling.",
+    "content": "First-order and second-order ODEs with applications; systems of linear equations and stability analysis; partial differential equations and well-posed problems; finite difference methods and error analysis; applications to epidemiological models.",
+    "readingList": [
+      "Somasundaram, D. (2001). Ordinary Differential Equations: A First Course",
+      "Borthwick, D. (2016). Introduction to Partial Differential Equations",
+      "Morton, K. W. & Mayers, D. F. Numerical Solution of Partial Differential Equations"
+    ]
   },
-  MES03: {
-    aim: "To provide students with basic physics knowledge and problem-solving strategies that exploit physical laws, mathematical methods, and computational tools for analyzing physical systems.",
-    content:
-      "Fundamental physics concepts; group problem-solving with measurements; analytical techniques; computer-aided physics calculations; interdisciplinary applications in biological systems.",
+  "MES03": {
+    "aim": "To provide students with basic physics knowledge and problem-solving strategies that exploit physical laws, mathematical methods, and computational tools for analyzing physical systems.",
+    "content": "Fundamental physics concepts with demonstrations; group problem-solving activities with measurements; analytical problem-solving techniques; computer-aided physics calculations; interdisciplinary applications in biological systems.",
+    "readingList": [
+      "OpenStax (2020). College Physics (2nd ed.)",
+      "Heller, K. & Heller, P. (2010). Cooperative Problem Solving in Physics",
+      "Baylis, W. E. Theoretical Methods in the Physical Sciences"
+    ]
   },
-  MES04: {
-    aim: "To provide fundamental knowledge in probability and statistical theory essential for epidemiological applications, focusing on data collection, parameter estimation, and statistical modelling.",
-    content:
-      "Descriptive statistics; probability laws; Bayes theorem; random variables; discrete and continuous distributions; parameter estimation; hypothesis testing; regression and epidemiological applications.",
+  "MES04": {
+    "aim": "To provide fundamental knowledge in probability and statistical theory essential for epidemiological applications, focusing on data collection, parameter estimation, and statistical modelling.",
+    "content": "Descriptive statistics and data visualization; probability laws, Bayes theorem, and random variables; discrete and continuous probability distributions; parameter estimation and hypothesis testing; linear regression and epidemiological applications.",
+    "readingList": [
+      "Williams, D. (2001). Weighing the Odds: A Course in Probability and Statistics",
+      "Mendenhall, W. et al. (2012). Introduction to Probability and Statistics",
+      "Ross, S. M. (2014). Introduction to Probability and Statistics for Engineers and Scientists"
+    ]
   },
-  MES05: {
-    aim: "To equip students with foundational programming skills in both R and Python for data management, analysis, and visualization, with applications in epidemiological research.",
-    content:
-      "Data types, structures, and functions in R and Python; data-frame manipulation; descriptive statistics; visualization; measures of association; linear regression; reproducible reporting.",
+  "MES05": {
+    "aim": "To equip students with foundational programming skills in both R and Python for data management, analysis, and visualization, with specific applications in epidemiological research.",
+    "content": "Data types, structures, and functions in R and Python; data frames management and manipulation; descriptive statistics and data visualization techniques; measures of association and linear regression; reproducible research and report generation.",
+    "readingList": [
+      "Wickham, H. et al. (2023). R for Data Science (2nd edition)",
+      "Keyes, D. R for the Rest of Us: A Statistics-Free Introduction",
+      "Aragon, T. J. Population Health Data Science Using R"
+    ]
   },
-  MES06: {
-    aim: "To equip students with computational mathematics skills, enabling them to bridge mathematical theory and computational practice through programming and algorithm implementation.",
-    content:
-      "Scientific computing fundamentals; SageMath; matrix operations; linear systems; nonlinear equation solving; numerical ODE solutions; numerical integration and optimization.",
+  "MES06": {
+    "aim": "To equip students with computational mathematics skills, enabling them to bridge mathematical theory and computational practice through programming and algorithm implementation.",
+    "content": "Scientific computing fundamentals and SageMath; matrix operations and linear systems; nonlinear equation solving methods; numerical solutions of ODEs; numerical integration and optimization techniques.",
+    "readingList": [
+      "Linge, S. & Langtangen, H. P. (2016). Programming for Computations-Python",
+      "Langtangen, H. P. (2009). A Primer on Scientific Programming with Python",
+      "Heath, M. T. (1997). Scientific Computing: An Introductory Survey"
+    ]
   },
-  MEC01: {
-    aim: "To equip learners with fundamental epidemiological knowledge, concepts, and skills for describing disease patterns, calculating key measures, and critiquing epidemiological studies.",
-    content:
-      "Definition, history, and scope of epidemiology; disease frequency and association measures; ecological, case-control, cohort, and randomized study designs; causal inference and critical appraisal.",
+  "MEC01": {
+    "aim": "To equip learners with fundamental epidemiological knowledge, concepts, and skills for describing disease patterns, calculating key measures, and critiquing epidemiological studies.",
+    "content": "Definition, history, and scope of epidemiology; measures of disease frequency and association; epidemiological study designs; causal inference and confounding; critical appraisal of scientific literature.",
+    "readingList": [
+      "Bonita, R., Beaglehole, R., & Kjellstrom, T. (2006). Basic Epidemiology",
+      "Celentano, D. (2018). Gordis Epidemiology",
+      "Szklo, M. & Nieto, F. J. (2019). Epidemiology: Beyond the Basics"
+    ]
   },
-  MEC02: {
-    aim: "To provide advanced knowledge of disease epidemiology and equip students with skills to calculate disease parameters, apply epidemiological concepts to modelling, and design infectious disease studies.",
-    content:
-      "Communicable and non-communicable disease epidemiology; transmission mechanisms; parameter estimation; DHS, DHIS2, and surveillance data; disease ecology, One Health, vaccines, resistance, and behavior.",
+  "MEC02": {
+    "aim": "To provide advanced knowledge of disease epidemiology and equip students with skills to calculate disease parameters, apply epidemiological concepts to modelling, and design research studies for infectious diseases.",
+    "content": "Communicable and non-communicable disease epidemiology; disease transmission mechanisms and parameter estimation; real-world data applications; disease ecology, immunity, and One Health approaches; intervention impacts.",
+    "readingList": [
+      "Dicker, R. C. et al. (2006). Principles of Epidemiology in Public Health Practice",
+      "Daley, D. J. & Gani, J. (1999). Epidemic Modelling: An Introduction",
+      "Lash, T. L. et al. (2021). Modern Epidemiology"
+    ]
   },
-  MEC03: {
-    aim: "To equip students with mathematical concepts for modelling biological systems using ODEs, enabling translation of complex biological phenomena into predictive mathematical frameworks.",
-    content:
-      "Research question development; population growth; logistic equations; SIR and SEIR models; equilibrium and stability analysis; R0 calculations; age-structured population models.",
+  "MEC03": {
+    "aim": "To equip students with mathematical concepts for modelling biological systems using ODEs, enabling translation of complex biological phenomena into predictive mathematical frameworks.",
+    "content": "Research question development for modelling studies; population growth dynamics and logistic equations; basic compartmental models; equilibrium analysis and stability; basic reproduction number calculations; age-structured population models.",
+    "readingList": [
+      "Murray, J. D. Mathematical Biology",
+      "Daley, D. J. & Gani. Epidemic Modelling: An Introduction",
+      "Brauer, F. & Castillo-Chavez, C. (2001). Mathematical Models in Population Biology and Epidemiology"
+    ]
   },
-  MEC04: {
-    aim: "To advance students' modelling skills through specialized compartmental models, within-host dynamics, intervention modelling, and optimal control theory applications in public health.",
-    content:
-      "Advanced SIS and SEIR models; vector-borne disease modelling; within-host dynamics of HIV, TB, and other diseases; intervention scenario modelling; optimal control and Pontryagin's Maximum Principle.",
+  "MEC04": {
+    "aim": "To advance students' modelling skills through specialized compartmental models, within-host dynamics, intervention modelling, and optimal control theory applications in public health.",
+    "content": "Advanced SIS and SEIR model analysis; vector-borne disease modelling; within-host dynamics of HIV, TB, and other diseases; intervention strategy modelling and impact prediction; optimal control theory and Pontryagin's Maximum Principle.",
+    "readingList": [
+      "Lenhart, S. & Workman, J. T. (2007). Optimal Control Applied to Biological Models",
+      "Evans, L. C. An Introduction to Mathematical Optimal Control Theory",
+      "Diekmann, O. & Heesterbeek, J. A. P. (2000). Mathematical Epidemiology of Infectious Diseases"
+    ]
   },
-  MEC05: {
-    aim: "To connect mechanistic models with real data through parameter estimation, model validation, calibration, and statistical inference techniques, ensuring model reliability and practical usefulness.",
-    content:
-      "Least squares and maximum likelihood estimation; Bayesian parameter estimation; model validation and goodness-of-fit; sensitivity analysis; uncertainty quantification; bootstrapping and out-of-sample validation.",
+  "MEC05": {
+    "aim": "To connect mechanistic models with real data through parameter estimation, model validation, calibration, and statistical inference techniques, ensuring model reliability and practical usefulness.",
+    "content": "Least squares and maximum likelihood estimation; Bayesian parameter estimation methods; model validation techniques and goodness-of-fit measures; sensitivity analysis and uncertainty quantification; bootstrapping and out-of-sample validation approaches.",
+    "readingList": [
+      "Lewis, F. L. et al. Optimal and Robust Estimation",
+      "Ghosh, J. K. et al. An Introduction to Bayesian Analysis",
+      "Tsamardinos, I. et al. (2018). Bootstrapping the out-of-sample predictions"
+    ]
   },
-  MEC06: {
-    aim: "To provide computational methods required to solve mathematical models used in epidemiology, enabling effective simulation, analysis, and interpretation of complex disease dynamics.",
-    content:
-      "Numerical solutions of ODEs, PDEs, and delay differential equations; stability and error propagation; Runge-Kutta and finite element methods; SIR/SEIR simulation and health intervention scenarios.",
+  "MEC06": {
+    "aim": "To provide students with computational methods required to solve mathematical models used in epidemiology, enabling effective simulation, analysis, and interpretation of complex disease dynamics.",
+    "content": "Numerical solutions of ODEs, PDEs, and delay differential equations; stability analysis and error propagation; Runge-Kutta and finite element methods; computational simulation of SIR and SEIR models; scenario analysis for health interventions.",
+    "readingList": [
+      "Linge, S. & Langtangen, H. P. (2016). Programming for Computations-Python",
+      "Mazumder, S. (2016). Numerical Methods for Partial Differential Equations",
+      "Epperson, J. F. (2013). An Introduction to Numerical Methods and Analysis"
+    ]
   },
-  MEC07: {
-    aim: "To equip students with comprehensive skills in data collation, cleaning, exploratory analysis, and statistical methods to answer health-related questions using epidemiological data.",
-    content:
-      "Data collection and sampling; data wrangling and error checking; univariate and bivariate descriptive statistics; linear regression and diagnostics; systematic reviews and meta-analysis interpretation.",
+  "MEC07": {
+    "aim": "To equip students with comprehensive skills in data collation, cleaning, exploratory analysis, and statistical methods to answer health-related questions using epidemiological data.",
+    "content": "Data collection methods and sampling techniques; data wrangling and error checking; univariate and bivariate descriptive statistics; linear regression models and diagnostics; systematic reviews and meta-analysis interpretation.",
+    "readingList": [
+      "Faraway, J. (2005). Linear Models with R",
+      "Draper, N. & Smith, H. (1998). Applied Regression Analysis",
+      "Agresti, A. An Introduction to Categorical Data Analysis"
+    ]
   },
-  MEC08: {
-    aim: "To introduce advanced data analysis methods for complex epidemiological data, including generalized linear models, spatial analysis, and machine learning applications in public health.",
-    content:
-      "Generalized linear models; complex survey and hierarchical data; spatial data analysis and disease mapping; machine learning techniques for prediction and public health decision support.",
+  "MEC08": {
+    "aim": "To introduce advanced data analysis methods for complex epidemiological data, including generalized linear models, spatial analysis, and machine learning applications in public health.",
+    "content": "Generalized linear models; complex survey and hierarchical data; spatial data analysis and disease mapping; machine learning techniques for health prediction.",
+    "readingList": [
+      "Linge, S. & Langtangen, H. P. (2016). Programming for Computations-Python",
+      "Mazumder, S. (2016). Numerical Methods for Partial Differential Equations",
+      "Epperson, J. F. (2013). An Introduction to Numerical Methods and Analysis"
+    ]
   },
-  MEC09: {
-    aim: "To prepare students for successful transitions to employment, entrepreneurship, or further studies through professional development, project management, and career readiness skills.",
-    content:
-      "Resume and cover-letter writing; interview preparation; grant and proposal development; time and stress management; team collaboration; workplace diversity; innovation and entrepreneurial thinking.",
+  "MEC09": {
+    "aim": "To prepare students for successful transitions to employment, entrepreneurship, or further studies through professional development, project management, and career readiness skills.",
+    "content": "Resume writing, cover letters, and interview preparation; grant writing and proposal development; time management and stress management techniques; team collaboration and workplace diversity; innovation challenges and entrepreneurial thinking.",
+    "readingList": [
+      "Kessler, S. (2018). Gigged: The gig economy, the end of the job and the future of work",
+      "Isenberg, D. (2011). The entrepreneurship ecosystem strategy",
+      "Spigel, B. (2020). Entrepreneurial Ecosystems: Theory, Practice and Futures"
+    ]
   },
-  MEC10: {
-    aim: "To equip students with AI and machine learning techniques for modern epidemiological surveillance, outbreak prediction, and digital health innovation, with attention to African contexts and data challenges.",
-    content:
-      "AI for syndromic surveillance; social media, search, and news signals; deep learning for disease diagnostics; federated learning; chatbots and mobile health; bias detection in African health AI systems.",
+  "MEC10": {
+    "aim": "To equip students with cutting-edge artificial intelligence and machine learning techniques for modern epidemiological surveillance, outbreak prediction, and digital health innovation, with a focus on African contexts and data challenges.",
+    "content": "AI for syndromic surveillance using social media, search trends, and news data; deep learning for medical image analysis in disease diagnostics; federated learning for privacy-preserving health data analysis; AI-powered chatbots and mobile health applications; bias detection and mitigation in African health AI systems.",
+    "readingList": [
+      "Topol, E. (2019). Deep Medicine: How Artificial Intelligence Can Make Healthcare Human Again",
+      "WHO (2023). Ethics and Governance of Artificial Intelligence for Health",
+      "Africa CDC (2024). AI Readiness Framework for African Public Health Institutions"
+    ]
   },
-  MEE01: {
-    aim: "To equip students with skills to analyze time-to-event data using non-parametric and regression methods, with applications in public health decision-making and policy.",
-    content:
-      "Censoring mechanisms and survival functions; Kaplan-Meier and Nelson-Aalen estimators; Cox regression; proportional hazards assumptions; competing risks; graphical interpretation.",
+  "MEE01": {
+    "aim": "To equip students with skills to analyze time-to-event data using non-parametric and regression methods, with applications in public health decision-making and policy.",
+    "content": "Censoring mechanisms and survival functions; Kaplan-Meier and Nelson-Aalen estimators; Cox regression and proportional hazards assumption; competing risks analysis; graphical representation and result interpretation.",
+    "readingList": [
+      "Cox, D. R. (2018). Analysis of survival data",
+      "Collett, D. (2023). Modelling survival data in medical research",
+      "Hosmer, D. W. & Lemeshow, S. Applied Survival Analysis"
+    ]
   },
-  MEE02: {
-    aim: "To provide students with skills to analyze, model, and forecast time series data for public health surveillance and research applications.",
-    content:
-      "Time series decomposition and smoothing; stationarity testing; autocorrelation functions; ARIMA and seasonal ARIMA modelling; volatility modelling; machine learning approaches for time series.",
+  "MEE02": {
+    "aim": "To provide students with skills to analyze, model, and forecast time series data for public health surveillance and research applications.",
+    "content": "Time series decomposition and smoothing; stationarity testing and autocorrelation functions; ARIMA and seasonal ARIMA modelling; volatility modelling in epidemiology; machine learning approaches for time series.",
+    "readingList": [
+      "Shumway, R. H. & Stoffer, D. S. (2000). Time series analysis and its applications",
+      "Brockwell, P. J. & Davis, R. A. (1991). Time series: theory and methods",
+      "Cowpertwait, P. S. P. & Metcalfe, A. V. Introductory time series with R"
+    ]
   },
-  MEE03: {
-    aim: "To introduce a Bayesian statistical framework for data analysis and inference, allowing incorporation of prior knowledge and uncertainty in epidemiological applications.",
-    content:
-      "Bayesian versus frequentist inference; prior and posterior distributions; conjugate and non-informative priors; Markov Chain Monte Carlo; Bayesian modelling for health science problems.",
+  "MEE03": {
+    "aim": "To introduce a Bayesian statistical framework for data analysis and inference, allowing incorporation of prior knowledge and uncertainty in epidemiological applications.",
+    "content": "Bayesian vs frequentist inference; prior and posterior distributions; conjugate and non-informative priors; Markov Chain Monte Carlo methods; Bayesian modelling for health science problems.",
+    "readingList": [
+      "Gelman, A. et al. (2013). Bayesian Data Analysis",
+      "Hoff, P. D. (2009). A First Course in Bayesian Statistical Methods",
+      "Broemeling, L. D. Bayesian Methods in Epidemiology"
+    ]
   },
-  MEE04: {
-    aim: "To introduce stochastic modelling concepts, including stochastic differential equations and agent-based simulations, for more realistic representation of biological systems.",
-    content:
-      "Stochasticity in biological systems; stochastic differential equations; agent-based model design; simulation coding; interpretation of stochastic simulations in disease dynamics and public health.",
+  "MEE04": {
+    "aim": "To introduce stochastic modelling concepts, including stochastic differential equations and agent-based simulations, for more realistic representation of biological systems.",
+    "content": "Concepts of stochasticity in biological systems; stochastic differential equations and analysis; agent-based model design and implementation; simulation coding and result interpretation; applications in disease dynamics and public health.",
+    "readingList": [
+      "Oksendal, B. (2003). Stochastic Differential Equations",
+      "Klebaner, F. C. (2012). Introduction to stochastic calculus with applications",
+      "Railsback, S. F. & Grimm, V. (2019). Agent-based and individual-based modeling"
+    ]
   },
-  MEI01: {
-    aim: "To provide students with six months of practical experience in mathematical epidemiology through research or industry placement, culminating in a substantial thesis or project report.",
-    content:
-      "Six-month internship planning and implementation; data collection, analysis, and interpretation; scientific writing and presentation; professional collaboration; project management; reflection on methods and findings.",
-  },
+  "MEI01": {
+    "aim": "To provide students with practical experience in mathematical epidemiology through research or industry placement, culminating in a substantial thesis or project report.",
+    "content": "Research project design and implementation; data collection, analysis, and interpretation; scientific writing and presentation; professional collaboration and project management; critical reflection on methods and findings.",
+    "readingList": []
+  }
 };
 
-const DEFAULT_TIMESHEETS = [
-  {
-    id: "ts-001",
-    tutorId: "tut-01",
-    courseCode: "MES05",
-    date: "2026-10-06",
-    category: "Coding clinic",
-    hours: 2.5,
-    activity: "Prepared R/Python setup clinic and supported reproducible reporting exercises.",
-    status: "Approved",
-  },
-  {
-    id: "ts-002",
-    tutorId: "tut-07",
-    courseCode: "MEC03",
-    date: "2026-11-19",
-    category: "Model lab",
-    hours: 3,
-    activity: "Guided students through SIR model implementation and interpretation.",
-    status: "Submitted",
-  },
-  {
-    id: "ts-003",
-    tutorId: "tut-08",
-    courseCode: "MEC05",
-    date: "2027-01-08",
-    category: "Assignment support",
-    hours: 4,
-    activity: "Held model-fitting office hours and reviewed validation questions.",
-    status: "Review",
-  },
-  {
-    id: "ts-004",
-    tutorId: "tut-04",
-    courseCode: "MEE01",
-    date: "2027-03-18",
-    category: "Elective tutorial",
-    hours: 2,
-    activity: "Kaplan-Meier tutorial preparation and student support.",
-    status: "Draft",
-  },
-];
+const DEFAULT_TIMESHEETS = [];
 
 const DEFAULT_TASKS = [
   {
@@ -1457,7 +1566,7 @@ const DEFAULT_STUDY_GROUPS = [
     capacity: 6,
     status: "Forming",
     notes: "Work through setup issues, Quarto structure, and one reproducible mini-report.",
-    advisorIds: ["tut-01"],
+    advisorIds: [],
   },
   {
     id: "grp-002",
@@ -1593,110 +1702,54 @@ const INTERNAL_RECIPIENTS = [
 
 const DEFAULT_AVAILABILITY = [
   {
-    id: "av-001",
-    personId: "tut-01",
-    day: "Tuesday",
-    time: "15:00-17:00",
-    mode: "Hybrid",
-    location: "KEMRI tutorial room / Meet",
-    focus: "Coding clinics and reproducible workflows",
+    "id": "av-001",
+    "personId": "manager-01",
+    "day": "Monday",
+    "time": "14:00-16:00",
+    "mode": "In person",
+    "location": "Academic office",
+    "focus": "Academic planning, internship guidance, and wellbeing escalation"
   },
   {
-    id: "av-002",
-    personId: "lec-07",
-    day: "Thursday",
-    time: "11:00-12:30",
-    mode: "Online",
-    location: "Google Meet",
-    focus: "Epidemiology concepts and reading guidance",
+    "id": "av-002",
+    "personId": "coord-01",
+    "day": "Wednesday",
+    "time": "10:00-12:00",
+    "mode": "In person",
+    "location": "Student services desk",
+    "focus": "Travel, accommodation, and logistics support"
   },
   {
-    id: "av-003",
-    personId: "manager-01",
-    day: "Monday",
-    time: "14:00-16:00",
-    mode: "In person",
-    location: "Academic office",
-    focus: "Academic planning, internship guidance, and wellbeing escalation",
-  },
-  {
-    id: "av-004",
-    personId: "coord-01",
-    day: "Wednesday",
-    time: "10:00-12:00",
-    mode: "In person",
-    location: "Student services desk",
-    focus: "Travel, accommodation, and logistics support",
-  },
-  {
-    id: "av-005",
-    personId: "head-tutor-01",
-    day: "Friday",
-    time: "13:00-15:00",
-    mode: "Hybrid",
-    location: "Tutorial coordination room",
-    focus: "Tutor load, student support routing, and course clinics",
-  },
+    "id": "av-003",
+    "personId": "head-tutor-01",
+    "day": "Friday",
+    "time": "13:00-15:00",
+    "mode": "Hybrid",
+    "location": "Tutorial coordination room",
+    "focus": "Tutor load, student support routing, and course clinics"
+  }
 ];
+
+
 
 const DEFAULT_APPOINTMENTS = [
   {
-    id: "apt-001",
-    requesterId: "student-01",
-    targetId: "tut-01",
-    courseCode: "MES05",
-    category: "Tutorial support",
-    preferredDate: "2026-10-07",
-    time: "15:30",
-    duration: 30,
-    mode: "Hybrid",
-    status: "Confirmed",
-    summary: "Clarify package installation and reproducible report structure.",
-    privateNote: "Tutor should check whether the student has access to the lab machines.",
-  },
-  {
-    id: "apt-002",
-    requesterId: "student-01",
-    targetId: "lec-07",
-    courseCode: "MEC01",
-    category: "Course clarification",
-    preferredDate: "2026-11-05",
-    time: "11:00",
-    duration: 30,
-    mode: "Online",
-    status: "Requested",
-    summary: "Ask how surveillance data examples connect to study designs.",
-    privateNote: "No private note yet.",
-  },
-  {
-    id: "apt-003",
-    requesterId: "tut-01",
-    targetId: "head-tutor-01",
-    courseCode: "MES05",
-    category: "Tutor workload",
-    preferredDate: "2026-10-10",
-    time: "13:30",
-    duration: 45,
-    mode: "In person",
-    status: "Awaiting confirmation",
-    summary: "Review student support demand and rebalance coding clinic coverage.",
-    privateNote: "Watch tutor workload before the statistics block starts.",
-  },
-  {
-    id: "apt-004",
-    requesterId: "student-01",
-    targetId: "manager-01",
-    courseCode: "MEI01",
-    category: "Internship guidance",
-    preferredDate: "2026-10-01",
-    time: "14:30",
-    duration: 30,
-    mode: "In person",
-    status: "Draft",
-    summary: "Discuss early internship interests and expected preparation path.",
-    privateNote: "Good candidate for early project scoping.",
-  },
+    "id": "apt-001",
+    "requesterId": "student-01",
+    "targetId": "manager-01",
+    "courseCode": "MEI01",
+    "category": "Internship guidance",
+    "preferredDate": "2026-10-01",
+    "time": "14:30",
+    "duration": 30,
+    "mode": "In person",
+    "status": "Draft",
+    "summary": "Discuss early internship interests and expected preparation path.",
+    "privateNote": "Good candidate for early project scoping."
+  }
 ];
+
+
 
 const SUPPORT_CATEGORIES = [
   "Academic support",
@@ -1732,58 +1785,34 @@ const URGENCY_COLOR = {
 
 const DEFAULT_SUPPORT_REQUESTS = [
   {
-    id: "sup-001",
-    requesterId: "student-01",
-    title: "Confidential wellbeing check-in",
-    category: "Counselling referral",
-    urgency: "Soon",
-    status: "Submitted",
-    visibility: "confidential",
-    assignedTo: "support-01",
-    date: "2026-10-07",
-    summary: "Student requested a private check-in without sharing details in the app.",
-    privateNote: "Student prefers a confidential appointment after class; no clinical notes stored here.",
+    "id": "sup-001",
+    "requesterId": "student-01",
+    "title": "Confidential wellbeing check-in",
+    "category": "Counselling referral",
+    "urgency": "Soon",
+    "status": "Submitted",
+    "visibility": "confidential",
+    "assignedTo": "support-01",
+    "date": "2026-10-07",
+    "summary": "Student requested a private check-in without sharing details in the app.",
+    "privateNote": "Student prefers a confidential appointment after class; no clinical notes stored here."
   },
   {
-    id: "sup-002",
-    requesterId: "tut-01",
-    title: "Coding clinic workload is rising",
-    category: "Tutor workload",
-    urgency: "Soon",
-    status: "Triage",
-    visibility: "academic",
-    assignedTo: "head-tutor-01",
-    date: "2026-10-08",
-    summary: "Tutor needs load review before more student support sessions are added.",
-    privateNote: "Head Tutor can rebalance clinic coverage with a second tutor.",
-  },
-  {
-    id: "sup-003",
-    requesterId: "lec-07",
-    title: "Projector and hybrid teaching setup",
-    category: "Facilities/classroom support",
-    urgency: "Normal",
-    status: "Assigned",
-    visibility: "coordination",
-    assignedTo: "coord-02",
-    date: "2026-11-02",
-    summary: "Lecturer needs room AV and Google Meet backup confirmed before MEC01 starts.",
-    privateNote: "Facilities check requested.",
-  },
-  {
-    id: "sup-004",
-    requesterId: "coord-01",
-    title: "Student Drive access issue",
-    category: "IT/technical support",
-    urgency: "Urgent",
-    status: "In progress",
-    visibility: "technical",
-    assignedTo: "it-01",
-    date: "2026-09-25",
-    summary: "Several students need access to shared folders before orientation.",
-    privateNote: "Check invite domain and sharing policy.",
-  },
+    "id": "sup-002",
+    "requesterId": "coord-01",
+    "title": "Student Drive access issue",
+    "category": "IT/technical support",
+    "urgency": "Urgent",
+    "status": "In progress",
+    "visibility": "technical",
+    "assignedTo": "it-01",
+    "date": "2026-09-25",
+    "summary": "Several students need access to shared folders before orientation.",
+    "privateNote": "Check invite domain and sharing policy."
+  }
 ];
+
+
 
 const ROLES = {
   "super-admin": {
@@ -2210,6 +2239,18 @@ function migrateProgrammeData() {
     localStorage.setItem("mathepi-tutorial-fellows-cfa-v1", "1");
   }
 
+  if (!localStorage.getItem("mathepi-production-curriculum-v2")) {
+    state.courses = structuredClone(DEFAULT_COURSES);
+    state.people = structuredClone(DEFAULT_PEOPLE);
+    state.sessions = structuredClone(DEFAULT_SESSIONS);
+    state.timesheets = structuredClone(DEFAULT_TIMESHEETS);
+    state.availability = structuredClone(DEFAULT_AVAILABILITY);
+    state.appointments = structuredClone(DEFAULT_APPOINTMENTS);
+    state.supportRequests = structuredClone(DEFAULT_SUPPORT_REQUESTS);
+    state.studyGroups = structuredClone(DEFAULT_STUDY_GROUPS);
+    localStorage.setItem("mathepi-production-curriculum-v2", "1");
+  }
+
   const schedule = {
     onboarding: ["2026-09-28", "2026-10-02"],
     "block-1": ["2026-10-05", "2026-10-23"],
@@ -2224,8 +2265,8 @@ function migrateProgrammeData() {
     "reading-2": ["2027-03-29", "2027-04-02"],
     "block-8": ["2027-04-05", "2027-04-23"],
     "block-9": ["2027-04-26", "2027-05-14"],
-    internship: ["2027-05-17", "2027-11-15"],
-    thesis: ["2027-11-16", "2027-12-17"],
+    internship: ["2027-05-17", "2027-08-13"],
+    thesis: ["2027-08-16", "2027-11-12"],
     graduation: ["2027-12-21", "2027-12-22"],
   };
 
@@ -2250,9 +2291,9 @@ function migrateProgrammeData() {
   const internship = state.blocks.find((item) => item.id === "internship");
   if (internship) {
     Object.assign(internship, {
-      title: "Internship",
+      title: "Mandatory Internship",
       kind: "practical",
-      note: "Six-month mandatory placement with research or industry partners",
+      note: "MEI01 supervised research or industry placement",
       courses: ["MEI01"],
     });
   }
@@ -2260,9 +2301,9 @@ function migrateProgrammeData() {
   const thesis = state.blocks.find((item) => item.id === "thesis");
   if (thesis) {
     Object.assign(thesis, {
-      title: "Thesis Writing, Review, and Vivas",
+      title: "Thesis/Project Write-up",
       kind: "thesis",
-      note: "Thesis/project write-up and examination cycle",
+      note: "MEI01 thesis/project write-up and review",
       courses: ["MEI01"],
     });
   }
@@ -2280,7 +2321,7 @@ function migrateProgrammeData() {
   const practical = state.courses.find((item) => item.code === "MEI01");
   if (practical) {
     practical.outcomes =
-      "Complete a six-month research or industry internship and translate the work into thesis/project output.";
+      "Complete a supervised internship and translate the work into a substantial thesis or project report.";
   }
 
   state.blocks.sort((a, b) => a.start.localeCompare(b.start));
@@ -2433,7 +2474,7 @@ function filteredPeople(kind = null) {
 }
 
 function currentTutorId() {
-  return "tut-01";
+  return "current-tutor";
 }
 
 function currentStudentId() {
@@ -2449,7 +2490,7 @@ function studentName(id) {
 }
 
 function currentLecturerId() {
-  return "lec-07";
+  return "current-lecturer";
 }
 
 function currentActorId() {
@@ -3836,6 +3877,17 @@ function cfaStatus(id) {
 function cfaStatusBadge(id) {
   const status = cfaStatus(id);
   return `<span class="badge ${CFA_STATUS_COLOR[status] || "gray"}">${status}</span>`;
+}
+
+function courseHourSplit(item) {
+  const parts = [];
+  if (item.lectureHours) parts.push(`${item.lectureHours} lecture`);
+  if (item.tutorialPracticalHours) parts.push(`${item.tutorialPracticalHours} tutorial/practical`);
+  if (item.assignmentHours) parts.push(`${item.assignmentHours} assignment`);
+  if (item.independentStudyHours) parts.push(`${item.independentStudyHours} independent study`);
+  if (item.supervisedWorkHours) parts.push(`${item.supervisedWorkHours} supervised work`);
+  if (item.independentWorkHours) parts.push(`${item.independentWorkHours} independent work`);
+  return parts.join(" / ") || "To be confirmed";
 }
 
 function updateCfaStatus(id, status) {
@@ -5293,6 +5345,7 @@ function courseDrawer(code) {
       <div class="meta-box"><span>Type</span><strong>${COURSE_TYPES[item.type]?.label || item.type}</strong></div>
       <div class="meta-box"><span>Block</span><strong>${item.block}</strong></div>
       <div class="meta-box"><span>Hours / units</span><strong>${item.hours} hrs · ${item.units} units</strong></div>
+      <div class="meta-box"><span>Hour split</span><strong>${courseHourSplit(item)}</strong></div>
     </div>
     <div class="timeline-item"><h4>Lecturer</h4><p>${lecturerText}</p></div>
     <div class="timeline-item"><h4>Tutors</h4><p>${tutors.length ? tutors.map((t) => t.name).join(", ") : "No tutor assigned yet"}</p></div>
@@ -5339,6 +5392,10 @@ function courseDrawer(code) {
     <div class="timeline-item">
       <h4>Course Content</h4>
       <p>${detail?.content || "Content outline to be added."}</p>
+    </div>
+    <div class="timeline-item">
+      <h4>Reading List</h4>
+      <p>${detail?.readingList?.length ? detail.readingList.join("; ") : "Reading list to be confirmed."}</p>
     </div>
   `;
   const footer = canEdit()

@@ -25,5 +25,7 @@ Paste these in order:
 6. `05_Storage.gs`
 7. `06_Records.gs`
 8. `07_TutorialFellowApplications.gs`
+9. `08_EmailOtp.gs`
+10. `09_EmailOtpHelpers.gs`
 
 Apps Script can run functions across multiple `.gs` files in the same project, so this is equivalent to the single `Code.gs` file.
