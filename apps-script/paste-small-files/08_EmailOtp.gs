@@ -18,6 +18,27 @@ function diagnoseEmailOtp(payload) {
   }
 }
 
+function sendEmailOtpMessage(email, code) {
+  const message = {
+    to: email,
+    name: "MathEpi Academic Operations",
+    subject: "Your MathEpi application verification code",
+    body: "Your MathEpi application verification code is: " + code +
+      "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email.",
+    htmlBody:
+      "<p>Your MathEpi application verification code is:</p>" +
+      "<p style=\"font-size:24px;font-weight:700;letter-spacing:3px;\">" + code + "</p>" +
+      "<p>This code expires in 10 minutes. If you did not request it, you can ignore this email.</p>",
+  };
+  try {
+    MailApp.sendEmail(Object.assign({}, message, { noReply: true }));
+    return "no-reply";
+  } catch (noReplyError) {
+    MailApp.sendEmail(message);
+    return "account";
+  }
+}
+
 function requestEmailOtp(payload) {
   try {
     payload = payload || {};
@@ -43,26 +64,18 @@ function requestEmailOtp(payload) {
       expiresAt: Date.now() + expiresInSeconds * 1000,
     };
 
+    const senderMode = sendEmailOtpMessage(email, code);
     cache.put(emailOtpCacheKey("challenge", purpose, email), JSON.stringify(challenge), expiresInSeconds);
     cache.put(rateKey, "1", 60);
-    MailApp.sendEmail({
-      to: email,
-      name: "MathEpi Academic Operations",
-      noReply: true,
-      subject: "Your MathEpi application verification code",
-      body: "Your MathEpi application verification code is: " + code +
-        "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email.",
-      htmlBody:
-        "<p>Your MathEpi application verification code is:</p>" +
-        "<p style=\"font-size:24px;font-weight:700;letter-spacing:3px;\">" + code + "</p>" +
-        "<p>This code expires in 10 minutes. If you did not request it, you can ignore this email.</p>",
-    });
     return {
       ok: true,
       email,
       expiresInSeconds,
       remainingDailyQuota: Math.max(0, remainingDailyQuota - 1),
-      deliveryHint: "The code was accepted by Google MailApp. Check inbox, spam/junk, Promotions, and Updates. The sender should appear as MathEpi Academic Operations or a Google Workspace no-reply sender.",
+      senderMode,
+      deliveryHint: senderMode === "no-reply"
+        ? "The code was accepted by Google MailApp. Check inbox, spam/junk, Promotions, and Updates. The sender should appear as MathEpi Academic Operations or a Google Workspace no-reply sender."
+        : "The code was accepted by Google MailApp. Check inbox, spam/junk, Promotions, and Updates. The sender may show the deploying Google account with the display name MathEpi Academic Operations.",
     };
   } catch (error) {
     return emailOtpErrorResponse(error);
