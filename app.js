@@ -2007,12 +2007,12 @@ const CFA_CALLS = [
     code: "CFA-TF",
     status: "Form ready",
     color: "green",
-    audience: "Early-career Tutorial Fellows for AIMS RW/KEMRI, combining intensive academic support with research growth.",
+    audience: "Early-career MathEpi Tutorial Fellows, combining intensive academic support with research growth.",
     deadline: "To be confirmed",
     owner: "Academic and Research Manager",
     formUrl: "cfa/tutorial-fellow-application.html",
     summary:
-      "A dedicated Tutorial Fellows call for AIMS RW/KEMRI, adapted from the lecturer CFA flow with role-specific tutoring, research, readiness, and document requirements.",
+      "A dedicated MathEpi Tutorial Fellows call, adapted from the lecturer CFA flow with role-specific tutoring, research, residency readiness, and document requirements.",
     requirements: [
       "Applicant identity, title, gender, nationality, country of residence, current address, phone, WhatsApp availability, WhatsApp contact consent, current affiliation, designation, and AIMS alumni status.",
       "PhD details, including institution, field, completion date, thesis title with a three-sentence explainer, separate research area, and eligibility based on completion between 1 Oct 2024 and the 1 Oct 2026 position start date.",
@@ -2022,9 +2022,9 @@ const CFA_CALLS = [
       "70% tutoring and academic support commitment, readiness to be in residence, and readiness to fill teaching-support gaps if a lecturer is unavailable.",
       "Passport biodata page, legible PDF PhD certificate showing graduation date/month, structured references, declarations, and final review.",
     ],
-    workflow: ["Publish Tutorial Fellows CFA", "Receive applications", "Screen eligibility and research fit", "Review tutoring readiness", "Shortlist for AIMS RW/KEMRI"],
+    workflow: ["Publish MathEpi Tutorial Fellows CFA", "Receive applications", "Screen eligibility and research fit", "Review tutoring readiness", "Shortlist for MathEpi fellowship"],
     prompt:
-      "Build a responsive MathEpi Tutorial Fellows Call for Applications form for AIMS RW/KEMRI. Use the lecturer CFA visual pattern but remove lecturer-specific course ownership fields and avoid CV/statement uploads. Capture applicant title, name, gender, nationality, residence, address, phone, WhatsApp availability and contact consent, current affiliation, designation, AIMS alumni status, PhD details, completion date limited to 1 Oct 2024 through 1 Oct 2026, thesis title with a three-sentence explainer, research area, quantitative background, applied track record, teaching/tutoring/mentoring/research experience, hands-on session support, proposed 30% research idea and plan, readiness to be in residence, readiness to fill teaching-support gaps, passport biodata page upload, legible PDF PhD certificate upload, structured references, declarations, and final review.",
+      "Build a responsive MathEpi Tutorial Fellows Call for Applications form. Use the lecturer CFA visual pattern but remove lecturer-specific course ownership fields and avoid CV/statement uploads. Capture applicant title, name, gender, nationality, residence, address, phone, WhatsApp availability and contact consent, current affiliation, designation, AIMS alumni status, PhD details, completion date limited to 1 Oct 2024 through 1 Oct 2026, thesis title with a three-sentence explainer, research area, quantitative background, applied track record, teaching/tutoring/mentoring/research experience, hands-on session support, proposed 30% research idea and plan, readiness to be in residence at the KEMRI location in Nairobi, readiness to fill teaching-support gaps, passport biodata page upload, legible PDF PhD certificate upload, structured references, declarations, and final review.",
   },
   {
     id: "head-tutor",
@@ -3205,7 +3205,7 @@ function authGateLayout() {
         <div class="auth-brand">
           <img src="assets/aims-ric-logo.png" alt="AIMS Research & Innovation Centre logo" />
           <div>
-            <p>AIMS RIC x KEMRI</p>
+            <p>MathEpi Operations</p>
             <h1>MathEpi Assistant</h1>
           </div>
         </div>
@@ -3246,7 +3246,7 @@ function appLayout() {
           <div class="logo-lockup">
             <img src="assets/aims-ric-logo.png" alt="AIMS Research & Innovation Centre logo" />
             <div>
-              <p class="brand-kicker">AIMS RIC x KEMRI</p>
+              <p class="brand-kicker">MathEpi Operations</p>
               <h1 class="brand-title">MathEpi Assistant</h1>
             </div>
           </div>
@@ -3958,7 +3958,7 @@ function renderCfa() {
           <div class="card-header">
             <div>
               <h2>Tutorial Fellows CFA Application Flow</h2>
-              <p>Standalone AIMS RW/KEMRI Tutorial Fellows application form.</p>
+              <p>Standalone MathEpi Tutorial Fellows application form.</p>
             </div>
             <span class="badge green">Ready</span>
           </div>

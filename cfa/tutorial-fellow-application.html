@@ -81,15 +81,15 @@
       </aside>
       <main class="main">
         <p class="eyebrow">Mathematical Epidemiology Programme</p>
-        <h1 class="greeting">Tutorial Fellows at AIMS RW/KEMRI</h1>
-        <p class="lead">Apply for a Tutorial Fellow - Early Career Academic Fellowship with the AIMS Research and Innovation Centre's Mathematical Epidemiology Programme.</p>
+        <h1 class="greeting">MathEpi Tutorial Fellows</h1>
+        <p class="lead">Apply for a Tutorial Fellow - Early Career Academic Fellowship in the Mathematical Epidemiology Programme.</p>
         <div class="grid">
           <article class="opp">
-            <div class="opp-top"><span class="opp-cat">CFA tutorial fellows</span><span class="funded">AIMS RW/KEMRI</span><span class="call-status open" data-call-status>Open</span></div>
+            <div class="opp-top"><span class="opp-cat">CFA tutorial fellows</span><span class="funded">MathEpi Fellowship</span><span class="call-status open" data-call-status>Open</span></div>
             <h3>Mathematical Epidemiology - Tutorial Fellows Application</h3>
-            <p class="opp-desc">Join AIMS RIC as a full-time member of the MathEpi academic community, supporting a pan-African cohort while advancing your own research through a protected 70:30 tutoring and research model.</p>
+            <p class="opp-desc">Join the MathEpi academic community as a full-time Tutorial Fellow, supporting a pan-African cohort while advancing your own research through a protected 70:30 tutoring and research model.</p>
             <div class="call-notice" data-call-notice>Applications are open. Submit your application by 19 July 2026.</div>
-            <div class="opp-facts"><span class="fct">Ref: AIMS-RIC/ARO/2026/MEPI-TF-001</span><span class="fct">Deadline: 19 July 2026</span><span class="fct">KEMRI, Nairobi</span><span class="fct">Within 2 years of graduation</span></div>
+            <div class="opp-facts"><span class="fct">Ref: MathEpi-TF-2026-001</span><span class="fct">Deadline: 19 July 2026</span><span class="fct">Nairobi research residency</span><span class="fct">Within 2 years of graduation</span></div>
             <button class="btn-ghost" data-nav="details">View opportunity -></button>
           </article>
         </div>
@@ -100,22 +100,22 @@
   <div class="view" id="view-details" hidden>
     <div class="topbar"><div class="detail-wrap"><button class="back-link" data-nav="home"><- All opportunities</button></div></div>
     <div class="detail-wrap">
-      <div class="badges"><span class="badge prog">TUTORIAL FELLOWS CFA</span><span class="badge kind">AIMS RW/KEMRI</span><span class="call-status open" data-call-status>Open</span></div>
-      <h1 class="detail-title">Tutorial Fellows at AIMS RW/KEMRI</h1>
+      <div class="badges"><span class="badge prog">TUTORIAL FELLOWS CFA</span><span class="badge kind">MathEpi Fellowship</span><span class="call-status open" data-call-status>Open</span></div>
+      <h1 class="detail-title">MathEpi Tutorial Fellows</h1>
       <div class="call-notice" data-call-notice>Applications are open. Submit your application by 19 July 2026.</div>
       <div class="detail-meta">
         <div class="dm"><span>Role mix</span><b>70% tutoring / 30% research</b></div>
-        <div class="dm"><span>Host</span><b>KEMRI, Nairobi</b></div>
+        <div class="dm"><span>Residency</span><b>KEMRI location, Nairobi</b></div>
         <div class="dm"><span>Eligibility</span><b>Recent PhD</b></div>
         <div class="dm"><span>Documents</span><b>Passport and PhD certificate</b></div>
         <div class="dm"><span>Deadline</span><b>19 July 2026</b></div>
         <div class="dm"><span>Start date</span><b>1 Oct 2026</b></div>
-        <div class="dm"><span>Call ref</span><b>AIMS-RIC/ARO/2026/MEPI-TF-001</b></div>
+        <div class="dm"><span>Call ref</span><b>MathEpi-TF-2026-001</b></div>
         <div class="dm"><span>Call date</span><b>25 June 2026</b></div>
       </div>
       <div class="card">
         <h2>The opportunity</h2>
-        <p>The AIMS Research and Innovation Centre invites outstanding recent PhD graduates to join the Mathematical Epidemiology Programme as Tutorial Fellows, an Early Career Academic Fellowship for full-time members of the academic community.</p>
+        <p>The Mathematical Epidemiology Programme invites outstanding recent PhD graduates to join MathEpi as Tutorial Fellows, an Early Career Academic Fellowship for full-time members of the academic community.</p>
         <p>The fellowship is designed as an early-career pathway towards careers in academia, research institutes, public health agencies, government, and international organisations. Fellows support a pan-African cohort of excellent students while developing their own research profile through a protected 70:30 model.</p>
         <p>Fellows work alongside international lecturers, supervisors, fellow tutors, and the Academic and Research Manager in a residential academic community, with occasional evening and weekend commitments during intensive teaching periods.</p>
         <div class="programme-tiles">
@@ -540,7 +540,7 @@ function fitStep() {
 
 function readinessStep() {
   return `<div class="grid2">
-    ${selectField("availability", "Availability for AIMS RW/KEMRI", ["Available for the full fellowship period", "Tentatively available", "Need to discuss dates"])}
+    ${selectField("availability", "Availability for the MathEpi Tutorial Fellowship", ["Available for the full fellowship period", "Tentatively available", "Need to discuss dates"])}
     ${selectField("residenceReady", "Ready to be in residence at our KEMRI location in Nairobi, Kenya?", ["Yes", "Tentative", "No"])}
     ${selectField("teachingGapReady", "Ready to fill teaching-support gaps if a lecturer is unavailable?", ["Yes", "With notice", "No"])}
     ${selectField("englishCommunication", "Strong English communication and interpersonal skills?", ["Yes", "Developing", "No"])}
@@ -873,7 +873,7 @@ function clearFile(event) {
 }
 
 function snapshot() {
-  const clean = Object.assign({}, state, { submittedAt: new Date().toISOString(), callType: "Tutorial Fellows", host: "AIMS RW/KEMRI" });
+  const clean = Object.assign({}, state, { submittedAt: new Date().toISOString(), callType: "Tutorial Fellows", host: "MathEpi" });
   delete clean.emailVerificationToken;
   return clean;
 }
