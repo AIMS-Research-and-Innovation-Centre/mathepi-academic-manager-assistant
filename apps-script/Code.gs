@@ -270,7 +270,7 @@ function requestEmailOtp(payload) {
     const cache = CacheService.getScriptCache();
     const rateKey = emailOtpCacheKey("rate", purpose, email);
     if (cache.get(rateKey)) {
-      return { ok: false, error: "Please wait about one minute before requesting another code." };
+      return { ok: false, error: "Please wait about 30 seconds before requesting another code." };
     }
     const remainingDailyQuota = MailApp.getRemainingDailyQuota();
     if (remainingDailyQuota < 1) {
@@ -289,7 +289,7 @@ function requestEmailOtp(payload) {
 
     const senderMode = sendEmailOtpMessage(email, code);
     cache.put(emailOtpCacheKey("challenge", purpose, email), JSON.stringify(challenge), expiresInSeconds);
-    cache.put(rateKey, "1", 60);
+    cache.put(rateKey, "1", 30);
     return {
       ok: true,
       email,
