@@ -48,6 +48,7 @@ function requestEmailOtp(payload) {
     MailApp.sendEmail({
       to: email,
       name: "MathEpi Academic Operations",
+      noReply: true,
       subject: "Your MathEpi application verification code",
       body: "Your MathEpi application verification code is: " + code +
         "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email.",
@@ -61,7 +62,7 @@ function requestEmailOtp(payload) {
       email,
       expiresInSeconds,
       remainingDailyQuota: Math.max(0, remainingDailyQuota - 1),
-      deliveryHint: "The code was accepted by Google MailApp. Check inbox, spam/junk, Promotions, and Updates. The sender is the Google account that deployed this Apps Script, shown as MathEpi Academic Operations.",
+      deliveryHint: "The code was accepted by Google MailApp. Check inbox, spam/junk, Promotions, and Updates. The sender should appear as MathEpi Academic Operations or a Google Workspace no-reply sender.",
     };
   } catch (error) {
     return emailOtpErrorResponse(error);

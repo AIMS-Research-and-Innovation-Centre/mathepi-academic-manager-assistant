@@ -39,7 +39,7 @@
   .btn-ghost,.btn-primary,.btn-back,.btn-draft{font-family:var(--font);font-weight:700;cursor:pointer}
   .btn-ghost{display:inline-flex;align-items:center;gap:9px;background:transparent;color:var(--maroon);font-size:15px;border:1.5px solid var(--maroon);border-radius:10px;padding:12px 20px;min-height:46px;align-self:flex-start}
   .btn-ghost:hover{background:var(--maroon);color:#fff}.btn-primary{display:inline-flex;align-items:center;gap:11px;background:var(--maroon);color:#fff;font-size:16.5px;border:none;border-radius:11px;padding:15px 28px;min-height:54px}
-  .btn-primary:hover{background:var(--maroon-deep)}.btn-primary[disabled],.btn-ghost[disabled],.nav-link[disabled]{cursor:not-allowed;opacity:.58}
+  .btn-primary:hover{background:var(--maroon-deep)}.btn-primary[disabled],.btn-ghost[disabled],.nav-link[disabled]{cursor:not-allowed;opacity:.58}.btn-primary.loading{position:relative;opacity:.86}.btn-primary.loading::before{content:"";width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.42);border-top-color:#fff;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
   .topbar,.form-top{position:sticky;top:0;z-index:20;background:var(--paper);padding:18px 0;border-bottom:1px solid var(--line)}
   .detail-wrap,.form-body,.form-top-inner{max-width:940px;margin:0 auto;padding:0 32px}.back-link{display:inline-flex;align-items:center;gap:8px;color:var(--maroon);text-decoration:none;font-size:14.5px;font-weight:700;background:none;border:none;cursor:pointer;font-family:var(--font)}
   .detail-title{font-weight:700;font-size:40px;line-height:1.08;letter-spacing:-.02em;margin:22px 0 24px;color:var(--navy)}
@@ -49,7 +49,7 @@
   .detail-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 24px;padding:22px 0;border-top:1px solid var(--line)}.dm span{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey);font-weight:700;display:block;margin-bottom:6px}.dm b{font-size:16.5px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;margin-bottom:18px}.card h2{font-size:21px;margin:0 0 16px;color:var(--navy)}.card p,.card li{color:var(--ink-soft)}.detail-actions{display:flex;gap:14px;margin:18px 0 60px}
   .programme-tiles{display:grid;gap:12px;margin:18px 0 4px}.programme-tile{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start;background:linear-gradient(135deg,#fff,#F8F8F5);border:1px solid var(--line);border-radius:16px;padding:16px 18px}.programme-tile span{width:34px;height:34px;border-radius:999px;display:grid;place-items:center;background:rgba(128,0,0,.1);color:var(--maroon);font-weight:800}.programme-tile b{display:block;color:var(--navy);font-size:16px;margin-bottom:4px}.programme-tile p{margin:0;color:var(--ink-soft);font-size:14.5px;line-height:1.5}
-  .form-top{padding:0}.form-top-inner{padding-top:18px;padding-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:16px}.form-prg{font-size:13px;color:var(--ink-soft);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.top-right{display:flex;align-items:center;gap:18px}.autosave{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink-soft);font-weight:600}.autosave .as-dot{width:9px;height:9px;border-radius:50%;background:var(--navy-bright);flex:none}.btn-draft{background:var(--surface);border:1.5px solid var(--field-border);color:var(--ink);font-size:14px;border-radius:9px;padding:9px 15px;min-height:42px}
+  .form-top{padding:0}.form-top-inner{padding-top:18px;padding-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:16px}.form-prg{font-size:13px;color:var(--ink-soft);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.top-right{display:flex;align-items:center;gap:18px}.autosave{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink-soft);font-weight:600}.autosave .as-dot{width:9px;height:9px;border-radius:50%;background:var(--navy-bright);flex:none}.btn-draft{background:var(--surface);border:1.5px solid var(--field-border);color:var(--ink);font-size:14px;border-radius:9px;padding:9px 15px;min-height:42px}.draft-note{font-size:12.5px;color:var(--ink-soft);font-weight:600;margin:0;text-align:right;max-width:310px}
   .form-body{padding-top:22px;padding-bottom:64px}.segbar{display:flex;gap:9px;margin:0 0 18px}.seg{flex:1;height:9px;border-radius:99px;background:#E2DFD7;border:none;padding:0;cursor:pointer}.seg.done{background:var(--navy-bright)}.seg.cur{background:var(--orange)}
   .step-num{font-size:14px;color:var(--ink-soft);margin:8px 0 12px;font-weight:600}.step-title{font-weight:700;font-size:31px;line-height:1.12;margin:0}.step-intro{font-size:17px;color:var(--ink-soft);margin:11px 0 28px;max-width:62ch}
   .subhead{font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--maroon);margin:26px 0 14px;padding-bottom:7px;border-bottom:1px solid var(--line)}
@@ -63,7 +63,7 @@
   .actions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:34px;padding-top:24px;border-top:1px solid var(--line)}.revgroup{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:16px;background:var(--surface)}.revgroup h3{margin:0 0 12px;font-size:17px}.rev-item{display:grid;grid-template-columns:220px 1fr;gap:14px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}.rev-item:last-child{border-bottom:none}.rev-key{color:var(--ink-soft);font-weight:600}.rev-val.empty{color:var(--maroon);font-weight:700}
   .done-wrap{text-align:center;padding:26px 0 10px;max-width:620px;margin:0 auto}.done-badge{width:84px;height:84px;border-radius:50%;background:rgba(45,104,178,.12);color:var(--navy-bright);display:grid;place-items:center;margin:0 auto 22px;font-size:42px}.done-wrap h2{font-size:28px;margin:0 0 12px}.done-wrap p{font-size:16.5px;color:var(--ink-soft);margin:0 auto 22px;max-width:52ch}
   @media(max-width:960px){.shell{grid-template-columns:1fr}.side{position:static;height:auto}.grid,.detail-meta{grid-template-columns:1fr}.main{padding:26px 20px 52px}}
-  @media(max-width:680px){.grid2,.otp-email-row{grid-template-columns:1fr}.otp-email-row #sendOtpBtn{margin-top:0}.rev-item{grid-template-columns:1fr;gap:2px}.detail-title{font-size:30px}.form-top-inner,.form-body,.detail-wrap{padding-left:20px;padding-right:20px}.actions{align-items:stretch;flex-direction:column-reverse}.actions button{width:100%;justify-content:center}}
+  @media(max-width:680px){.grid2,.otp-email-row{grid-template-columns:1fr}.otp-email-row #sendOtpBtn{margin-top:0}.rev-item{grid-template-columns:1fr;gap:2px}.detail-title{font-size:30px}.form-top-inner,.form-body,.detail-wrap{padding-left:20px;padding-right:20px}.form-top-inner{align-items:flex-start;flex-direction:column}.top-right{width:100%;justify-content:space-between;gap:12px}.draft-note{text-align:left;max-width:none}.actions{align-items:stretch;flex-direction:column-reverse}.actions button{width:100%;justify-content:center}}
 </style>
 </head>
 <body>
@@ -75,7 +75,7 @@
         <nav class="nav" aria-label="Main">
           <button class="nav-link active" data-nav="home">Home</button>
           <button class="nav-link" data-nav="form">Start application</button>
-          <button class="nav-link" data-nav="dashboard">Your Applications</button>
+          <button class="nav-link" data-nav="dashboard">Saved applications</button>
         </nav>
         <div class="side-foot"><div class="who"><div class="avatar">TF</div><div><b>Tutorial Fellow</b><span>Applicant</span></div></div></div>
       </aside>
@@ -153,6 +153,7 @@
         </div>
         <div class="top-right"><span class="autosave"><span class="as-dot"></span><span id="autosaveText">All changes saved</span></span><button class="btn-draft" id="draftBtn" type="button">Save draft</button></div>
       </div>
+      <div class="form-top-inner" style="padding-top:0"><p class="draft-note">Drafts are saved on this device and browser. Submitted applications are sent to the programme Google Sheet.</p></div>
     </div>
     <div class="form-body"><div id="stepArea"></div></div>
   </div>
@@ -164,12 +165,13 @@
         <nav class="nav" aria-label="Main">
           <button class="nav-link" data-nav="home">Home</button>
           <button class="nav-link" data-nav="form">Start application</button>
-          <button class="nav-link active" data-nav="dashboard">Your Applications</button>
+          <button class="nav-link active" data-nav="dashboard">Saved applications</button>
         </nav>
       </aside>
       <main class="main">
         <p class="eyebrow">Applicant dashboard</p>
-        <h1 class="greeting">Saved Tutorial Fellow applications</h1>
+        <h1 class="greeting">Saved on this device</h1>
+        <p class="lead">Drafts and submitted copies shown here are stored in this browser. Official submissions are recorded in the programme Google Sheet after the final submit step.</p>
         <div id="applicationList"></div>
       </main>
     </div>
@@ -279,6 +281,7 @@ let passportPayload = null;
 let phdCertificatePayload = null;
 let saveTimer = null;
 let otpCooldownTimer = null;
+let isSubmitting = false;
 
 function load(key, fallback) {
   try { return Object.assign({}, fallback, JSON.parse(localStorage.getItem(key) || "{}")); }
@@ -416,7 +419,7 @@ const steps = [
   { id: "identity", title: "Applicant details", intro: "Tell us who you are and how the programme team can reach you.", render: identityStep },
   { id: "phd", title: "PhD and quantitative background", intro: "Confirm the recent PhD requirement and your quantitative/applied scientific fit.", render: phdStep },
   { id: "fit", title: "Tutoring and research fit", intro: "Describe your teaching-support experience and your 70/30 fellowship plan.", render: fitStep },
-  { id: "readiness", title: "Availability and readiness", intro: "Confirm AIMS RW/KEMRI residence readiness and teaching-support continuity.", render: readinessStep },
+  { id: "readiness", title: "Availability and readiness", intro: "Confirm readiness to be in residence at our KEMRI location in Nairobi, Kenya, and to support teaching continuity.", render: readinessStep },
   { id: "documents", title: "Documents and references", intro: "Attach the required files and provide at least two references.", render: documentsStep },
   { id: "review", title: "Review and submit", intro: "Check your application before sending it to the programme team.", render: reviewStep },
 ];
@@ -457,7 +460,7 @@ function emailVerificationStep() {
   const cooldown = otpCooldownRemaining();
   const sendLabel = requested ? (cooldown ? `Resend code in ${cooldown}s` : "Resend code") : "Send verification code";
   const statusText = backendReady
-    ? (requested ? `Code sent to ${escapeHtml(state.email)}. ${escapeHtml(state.emailOtpDeliveryHint || "Check your inbox, spam/junk, Promotions, and Updates. The sender is the Google account that deployed this Apps Script.")}` : "No password is required. Enter your email, then request a one-time code.")
+    ? (requested ? `Code sent to ${escapeHtml(state.email)}. ${escapeHtml(state.emailOtpDeliveryHint || "Check your inbox, spam/junk, Promotions, and Updates. The sender should appear as MathEpi Academic Operations or a Google Workspace no-reply sender.")}` : "No password is required. Enter your email, then request a one-time code.")
     : "Apps Script backend URL is not configured yet, so secure email verification cannot start.";
   return `<div class="otp-panel">
     <h3>Email OTP login</h3>
@@ -500,7 +503,7 @@ function identityStep() {
     ${field("applicant", "Full name")}
     ${selectField("gender", "Gender", ["Female", "Male", "Non-binary", "Prefer not to say"])}
     ${verifiedEmailField()}
-    ${field("phone", "Phone number")}
+    ${field("phone", "Phone number", "tel", true, "Include the country code, for example +254, +250, +237, or your current country code.", 'inputmode="tel" autocomplete="tel" placeholder="+254 700 000000"')}
     ${selectField("hasWhatsApp", "Does this number have WhatsApp?", ["Yes", "No"])}
     ${selectField("contactWhatsApp", "May we contact you using WhatsApp?", ["Yes", "No"])}
     ${selectField("nationality", "Nationality", COUNTRY_OPTIONS)}
@@ -538,7 +541,7 @@ function fitStep() {
 function readinessStep() {
   return `<div class="grid2">
     ${selectField("availability", "Availability for AIMS RW/KEMRI", ["Available for the full fellowship period", "Tentatively available", "Need to discuss dates"])}
-    ${selectField("residenceReady", "Ready to be in residence at AIMS RW/KEMRI?", ["Yes", "Tentative", "No"])}
+    ${selectField("residenceReady", "Ready to be in residence at our KEMRI location in Nairobi, Kenya?", ["Yes", "Tentative", "No"])}
     ${selectField("teachingGapReady", "Ready to fill teaching-support gaps if a lecturer is unavailable?", ["Yes", "With notice", "No"])}
     ${selectField("englishCommunication", "Strong English communication and interpersonal skills?", ["Yes", "Developing", "No"])}
     ${selectField("aimsAlumni", "Are you an AIMS alumnus/alumna?", ["Yes", "No"])}
@@ -580,7 +583,7 @@ function referenceBlock(index, required) {
       ${selectField(`ref${index}Designation`, "Designation", REF_DESIGNATION_OPTIONS, required)}
       ${field(`ref${index}Role`, "Role / relationship to applicant", "text", required)}
       ${field(`ref${index}Email`, "Email", "email", required)}
-      ${field(`ref${index}Phone`, "Phone number", "tel", required)}
+      ${field(`ref${index}Phone`, "Phone number", "tel", required, "Include country code where possible.", 'inputmode="tel" autocomplete="tel" placeholder="+254 700 000000"')}
     </div>
   </div>`;
 }
@@ -598,7 +601,7 @@ function reviewStep() {
   return `${groups.map(([title, keys]) => `<div class="revgroup"><h3>${title}</h3>${keys.map(reviewItem).join("")}</div>`).join("")}
     <div class="declaration">
       ${checkLine("declarationAccuracy", "I confirm that the information provided is accurate.")}
-      ${checkLine("declarationResidence", "I understand the Tutorial Fellowship requires AIMS RW/KEMRI residence and readiness to support teaching continuity.")}
+      ${checkLine("declarationResidence", "I understand the Tutorial Fellowship requires residence at our KEMRI location in Nairobi, Kenya, and readiness to support teaching continuity.")}
       ${checkLine("declarationDocuments", "I confirm that my passport biodata page, PhD certificate, and references are included.")}
     </div>`;
 }
@@ -625,7 +628,7 @@ function renderStep() {
       ${step.render()}
       <div class="actions">
         <button class="btn-ghost" type="button" id="prevBtn" ${state.step === 0 ? "disabled" : ""}>Back</button>
-        <button class="btn-primary" type="submit">${done ? "Submit application" : "Save and continue"}</button>
+        <button class="btn-primary" type="submit" id="primaryStepBtn" data-default-label="${done ? "Submit application" : "Save and continue"}">${done ? "Submit application" : "Save and continue"}</button>
       </div>
     </form>`;
   bindForm();
@@ -751,6 +754,7 @@ function validateCurrentStep() {
 
 async function onSubmitStep(event) {
   event.preventDefault();
+  if (isSubmitting) return;
   if (!validateCurrentStep()) return;
   if (state.step > 0 && !emailIsVerified()) {
     state.step = 0;
@@ -764,7 +768,23 @@ async function onSubmitStep(event) {
     renderStep();
     return;
   }
-  await submitApplication();
+  const button = document.querySelector("#primaryStepBtn");
+  setButtonLoading(button, "Submitting...");
+  try {
+    await submitApplication();
+  } finally {
+    isSubmitting = false;
+    setButtonLoading(button, "");
+  }
+}
+
+function setButtonLoading(button, label) {
+  if (!button) return;
+  const loading = !!label;
+  button.disabled = loading;
+  button.classList.toggle("loading", loading);
+  button.textContent = loading ? label : button.dataset.defaultLabel || button.textContent;
+  isSubmitting = loading;
 }
 
 async function requestEmailOtp() {
@@ -787,7 +807,7 @@ async function requestEmailOtp() {
     if (!result || result.ok === false) throw new Error((result && result.error) || "The verification code could not be sent.");
     state.emailOtpRequestedAt = new Date().toISOString();
     state.emailOtpRequestedFor = normalizeEmail(result.email || state.email);
-    state.emailOtpDeliveryHint = result.deliveryHint || "Check your inbox, spam/junk, Promotions, and Updates. The sender is the Google account that deployed this Apps Script.";
+    state.emailOtpDeliveryHint = result.deliveryHint || "Check your inbox, spam/junk, Promotions, and Updates. The sender should appear as MathEpi Academic Operations or a Google Workspace no-reply sender.";
     save();
     renderStep();
   } catch (error) {
@@ -908,7 +928,7 @@ function renderDashboard() {
   const submissions = load(SUBMISSIONS_KEY, { items: [] }).items || [];
   document.querySelector("#applicationList").innerHTML = submissions.length
     ? submissions.map((item) => `<article class="card"><h2>${escapeHtml(item.applicant || "Tutorial Fellow applicant")}</h2><p>${escapeHtml(item.email || "")}</p><p>${escapeHtml(item.phdField || "")} - ${escapeHtml(item.submittedAt || "")}</p></article>`).join("")
-    : `<article class="card"><h2>No applications yet</h2><p class="lead">Start a Tutorial Fellows application when ready.</p></article>`;
+    : `<article class="card"><h2>No applications saved here yet</h2><p class="lead">Start a Tutorial Fellows application when ready. Drafts will be available again on this same device and browser.</p></article>`;
 }
 
 function show(view) {
@@ -929,7 +949,18 @@ function escapeHtml(value) {
   return String(value || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
 }
 
-document.querySelector("#draftBtn")?.addEventListener("click", () => { collect(); save(); });
+document.querySelector("#draftBtn")?.addEventListener("click", () => {
+  collect();
+  save();
+  const draftButton = document.querySelector("#draftBtn");
+  if (!draftButton) return;
+  draftButton.textContent = "Draft saved";
+  draftButton.disabled = true;
+  setTimeout(() => {
+    draftButton.textContent = "Save draft";
+    draftButton.disabled = false;
+  }, 1400);
+});
 bindNav();
 syncCallStatusUi();
 refreshCallStatusFromGoogle();
