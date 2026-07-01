@@ -19,7 +19,7 @@ function diagnoseEmailOtp(payload) {
 }
 
 function sendEmailOtpMessage(email, code) {
-  const message = {
+  MailApp.sendEmail({
     to: email,
     name: "MathEpi Academic Operations",
     subject: "Your MathEpi application verification code",
@@ -29,14 +29,8 @@ function sendEmailOtpMessage(email, code) {
       "<p>Your MathEpi application verification code is:</p>" +
       "<p style=\"font-size:24px;font-weight:700;letter-spacing:3px;\">" + code + "</p>" +
       "<p>This code expires in 10 minutes. If you did not request it, you can ignore this email.</p>",
-  };
-  try {
-    MailApp.sendEmail(Object.assign({}, message, { noReply: true }));
-    return "no-reply";
-  } catch (noReplyError) {
-    MailApp.sendEmail(message);
-    return "account";
-  }
+  });
+  return "account";
 }
 
 function requestEmailOtp(payload) {
@@ -73,9 +67,7 @@ function requestEmailOtp(payload) {
       expiresInSeconds,
       remainingDailyQuota: Math.max(0, remainingDailyQuota - 1),
       senderMode,
-      deliveryHint: senderMode === "no-reply"
-        ? "The code was accepted by Google MailApp. Check inbox, spam/junk, Promotions, and Updates. The sender should appear as MathEpi Academic Operations or a Google Workspace no-reply sender."
-        : "The code was accepted by Google MailApp. Check inbox, spam/junk, Promotions, and Updates. The sender may show the deploying Google account with the display name MathEpi Academic Operations.",
+      deliveryHint: "The code was accepted by Google MailApp. Check inbox, spam/junk, Promotions, and Updates. The sender may show the deploying Google account with the display name MathEpi Academic Operations.",
     };
   } catch (error) {
     return emailOtpErrorResponse(error);
