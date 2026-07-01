@@ -211,6 +211,7 @@ const defaults = {
   emailVerifiedAt: "",
   emailOtpRequestedAt: "",
   emailOtpRequestedFor: "",
+  emailOtpDeliveryHint: "",
   title: "",
   applicant: "",
   gender: "",
@@ -366,6 +367,7 @@ function clearEmailVerificationIfChanged() {
   if (state.emailOtpRequestedFor && email !== normalizeEmail(state.emailOtpRequestedFor)) {
     state.emailOtpRequestedAt = "";
     state.emailOtpRequestedFor = "";
+    state.emailOtpDeliveryHint = "";
   }
   if (!state.verifiedEmail || normalizeEmail(state.email) === normalizeEmail(state.verifiedEmail)) return;
   state.emailVerified = false;
@@ -455,7 +457,7 @@ function emailVerificationStep() {
   const cooldown = otpCooldownRemaining();
   const sendLabel = requested ? (cooldown ? `Resend code in ${cooldown}s` : "Resend code") : "Send verification code";
   const statusText = backendReady
-    ? (requested ? `Code sent to ${escapeHtml(state.email)}. Check your inbox or spam/junk folder.` : "No password is required. Enter your email, then request a one-time code.")
+    ? (requested ? `Code sent to ${escapeHtml(state.email)}. ${escapeHtml(state.emailOtpDeliveryHint || "Check your inbox, spam/junk, Promotions, and Updates. The sender is the Google account that deployed this Apps Script.")}` : "No password is required. Enter your email, then request a one-time code.")
     : "Apps Script backend URL is not configured yet, so secure email verification cannot start.";
   return `<div class="otp-panel">
     <h3>Email OTP login</h3>
@@ -785,6 +787,7 @@ async function requestEmailOtp() {
     if (!result || result.ok === false) throw new Error((result && result.error) || "The verification code could not be sent.");
     state.emailOtpRequestedAt = new Date().toISOString();
     state.emailOtpRequestedFor = normalizeEmail(result.email || state.email);
+    state.emailOtpDeliveryHint = result.deliveryHint || "Check your inbox, spam/junk, Promotions, and Updates. The sender is the Google account that deployed this Apps Script.";
     save();
     renderStep();
   } catch (error) {

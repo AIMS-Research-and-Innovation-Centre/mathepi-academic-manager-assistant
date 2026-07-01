@@ -145,6 +145,7 @@ function apiPost(request) {
   if (action === "getBootstrap") return getBootstrap();
   if (action === "updateCfaStatus") return updateCfaStatus(payload);
   if (action === "getCfaStatus") return getCfaStatus(payload);
+  if (action === "diagnoseEmailOtp") return diagnoseEmailOtp(payload);
   if (action === "requestEmailOtp") return requestEmailOtp(payload);
   if (action === "verifyEmailOtp") return verifyEmailOtp(payload);
   if (action === "submitLecturerApplication") return submitLecturerApplication(payload);
@@ -228,6 +229,22 @@ function authorizeEmailOtp() {
   return MailApp.getRemainingDailyQuota();
 }
 
+function diagnoseEmailOtp(payload) {
+  try {
+    const remainingDailyQuota = MailApp.getRemainingDailyQuota();
+    return {
+      ok: true,
+      emailService: "MailApp",
+      remainingDailyQuota,
+      message: remainingDailyQuota > 0
+        ? "MailApp is authorized and has remaining email quota."
+        : "MailApp is authorized, but the daily email quota is exhausted.",
+    };
+  } catch (error) {
+    return emailOtpErrorResponse(error);
+  }
+}
+
 function requestEmailOtp(payload) {
   try {
     payload = payload || {};
@@ -237,6 +254,10 @@ function requestEmailOtp(payload) {
     const rateKey = emailOtpCacheKey("rate", purpose, email);
     if (cache.get(rateKey)) {
       return { ok: false, error: "Please wait about one minute before requesting another code." };
+    }
+    const remainingDailyQuota = MailApp.getRemainingDailyQuota();
+    if (remainingDailyQuota < 1) {
+      return { ok: false, error: "The Apps Script email quota is exhausted for today. Please try again tomorrow." };
     }
 
     const code = String(Math.floor(100000 + Math.random() * 900000));
@@ -253,13 +274,24 @@ function requestEmailOtp(payload) {
     cache.put(rateKey, "1", 60);
     MailApp.sendEmail({
       to: email,
+      name: "MathEpi Academic Operations",
       subject: "Your MathEpi application verification code",
       body:
         "Your MathEpi application verification code is: " +
         code +
         "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email.",
+      htmlBody:
+        "<p>Your MathEpi application verification code is:</p>" +
+        "<p style=\"font-size:24px;font-weight:700;letter-spacing:3px;\">" + code + "</p>" +
+        "<p>This code expires in 10 minutes. If you did not request it, you can ignore this email.</p>",
     });
-    return { ok: true, email, expiresInSeconds };
+    return {
+      ok: true,
+      email,
+      expiresInSeconds,
+      remainingDailyQuota: Math.max(0, remainingDailyQuota - 1),
+      deliveryHint: "The code was accepted by Google MailApp. Check inbox, spam/junk, Promotions, and Updates. The sender is the Google account that deployed this Apps Script, shown as MathEpi Academic Operations.",
+    };
   } catch (error) {
     return emailOtpErrorResponse(error);
   }

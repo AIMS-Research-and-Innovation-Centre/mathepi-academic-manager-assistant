@@ -38,6 +38,7 @@ function apiPost(request) {
   if (action === "getBootstrap") return getBootstrap();
   if (action === "updateCfaStatus") return updateCfaStatus(payload);
   if (action === "getCfaStatus") return getCfaStatus(payload);
+  if (action === "diagnoseEmailOtp") return diagnoseEmailOtp(payload);
   if (action === "requestEmailOtp") return requestEmailOtp(payload);
   if (action === "verifyEmailOtp") return verifyEmailOtp(payload);
   if (action === "submitLecturerApplication") return submitLecturerApplication(payload);
