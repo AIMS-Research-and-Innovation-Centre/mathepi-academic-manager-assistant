@@ -1698,8 +1698,17 @@ function uploadPassport() {
     '<p class="field-err">Please upload the passport biodata page.</p></div>'
   );
 }
+function courseFromSelectionValue(value) {
+  const raw = String(value || "").trim();
+  return (
+    courses.find((c) => c.id === raw) ||
+    courses.find((c) => raw === c.id + " - " + c.title) ||
+    courses.find((c) => raw.startsWith(c.id + " - ")) ||
+    null
+  );
+}
 function selectedCourse() {
-  return courses.find((c) => c.id === state.selection.courseId) || null;
+  return courseFromSelectionValue(state.selection.courseId);
 }
 function selectedBlock() {
   const c = selectedCourse();
@@ -1716,6 +1725,17 @@ function availabilityKey() {
   const c = selectedCourse();
   const b = selectedBlock();
   return b ? b.id : c ? c.id : "";
+}
+function syncSelectionStepFromDom() {
+  const select = document.querySelector('select[data-scope="selection"][data-key="courseId"]');
+  if (select && select.value) {
+    const c = courseFromSelectionValue(select.value);
+    if (c) state.selection.courseId = c.id;
+  }
+  const checked = document.querySelector("input[data-avail]:checked");
+  if (checked) {
+    state.selection.availability[checked.dataset.avail] = checked.value;
+  }
 }
 function coursePanel() {
   const c = selectedCourse();
@@ -2465,12 +2485,12 @@ function updateValue(el) {
 
   // Course selection drives the calendar + the proposed plan.
   if (el.dataset.scope === "selection" && el.dataset.key === "courseId") {
-    const c = courses.find((x) => x.id + " - " + x.title === el.value);
+    const c = courseFromSelectionValue(el.value);
     state.selection.courseId = c ? c.id : "";
     state.selection.availability = {};
     loadStandardPlan();
     persistDraft();
-    renderForm();
+    renderFormKeepScroll();
     return;
   }
   scheduleSave();
@@ -2536,7 +2556,7 @@ $("stepArea").addEventListener("change", (e) => {
     state.selection.availability[t.dataset.avail] = t.value;
     const w = document.querySelector('[data-wrap="selection-availability"]');
     if (w) w.classList.remove("has-error");
-    scheduleSave();
+    persistDraft();
   }
   if (t.dataset.hear) {
     const h = t.dataset.hear;
@@ -2592,7 +2612,6 @@ $("stepArea").addEventListener("click", (e) => {
       const w = document.querySelector('[data-wrap="selection-availability"]');
       if (w) w.classList.remove("has-error");
       persistDraft();
-      renderFormKeepScroll();
     }
     return;
   }
@@ -2760,7 +2779,7 @@ function mark(sel) {
   const el = document.querySelector(sel);
   if (el) {
     el.classList.add("has-error");
-    const field = el.querySelector(".input, [data-upload]");
+    const field = el.querySelector(".input, input[data-avail], [data-upload]");
     if (field && field.classList.contains("input")) field.setAttribute("aria-invalid", "true");
   }
   return sel;
@@ -2844,6 +2863,7 @@ function stepErrors(id) {
 
 // Validate the step currently on screen, mark + focus the first error.
 function validate() {
+  if (steps[current].id === "selection") syncSelectionStepFromDom();
   document.querySelectorAll(".has-error").forEach((x) => x.classList.remove("has-error"));
   const errors = stepErrors(steps[current].id);
   errors.forEach(mark);
@@ -2861,6 +2881,7 @@ function validate() {
 
 // On final submit, validate every step. If any earlier step fails, jump there.
 function validateAll() {
+  syncSelectionStepFromDom();
   for (let i = 0; i < steps.length; i++) {
     const errs = stepErrors(steps[i].id);
     if (errs.length) {
@@ -2954,6 +2975,7 @@ function resetAll() {
 
 /* --------------------------------- Submit ----------------------------------- */
 function applicationSnapshot() {
+  syncSelectionStepFromDom();
   const c = selectedCourse();
   const b = selectedBlock();
   return {
