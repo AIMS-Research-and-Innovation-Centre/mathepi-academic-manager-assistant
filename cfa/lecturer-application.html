@@ -199,7 +199,7 @@
             <h3>Mathematical Epidemiology Lecturer Call</h3>
             <p class="opp-desc">Choose a MathEpi course, confirm your block-linked availability, and submit a concise lecturer profile with only the passport biodata page attached.</p>
             <div class="call-notice" data-call-notice>Applications are open. Complete and submit the form before the call closes.</div>
-            <div class="opp-facts"><span class="fct">Host pathways: AIMS Cameroon, AIMS RW/KEMRI</span><span class="fct">3-week in-residence course blocks</span><span class="fct">Passport biodata page only</span></div>
+            <div class="opp-facts"><span class="fct">Host pathway: AIMS RW/KEMRI Graduate School, Nairobi</span><span class="fct">3-week in-residence course blocks</span><span class="fct">Passport biodata page only</span></div>
             <button class="btn-ghost" data-nav="details">View opportunity -></button>
           </article>
         </div>
@@ -215,7 +215,7 @@
       <div class="call-notice" data-call-notice>Applications are open. Complete and submit the form before the call closes.</div>
       <div class="detail-meta">
         <div class="dm"><span>Language</span><b>English</b></div>
-        <div class="dm"><span>Host pathways</span><b>AIMS Cameroon / AIMS RW/KEMRI</b></div>
+        <div class="dm"><span>Host pathway</span><b>AIMS RW/KEMRI Graduate School, Nairobi</b></div>
         <div class="dm"><span>Programme</span><b>Mathematical Epidemiology</b></div>
         <div class="dm"><span>Documents</span><b>Passport biodata page only</b></div>
       </div>
@@ -533,7 +533,9 @@ const countries = [
   "Zimbabwe",
   "\u00c5land Islands",
 ];
-const hostPathways = ["AIMS Cameroon", "AIMS RW/KEMRI"];
+const ACTIVE_HOST_PATHWAY = "AIMS RW/KEMRI Graduate School, Nairobi";
+const legacyHostPathways = ["AIMS Cameroon", "AIMS RW/KEMRI", "AIMS Cameroon / AIMS RW/KEMRI"];
+const hostPathways = [ACTIVE_HOST_PATHWAY];
 const courses = [
   {
     "id": "MES01",
@@ -1258,7 +1260,7 @@ const calendarBlocks = [
     "id": "onboarding",
     "label": "Introduction and Onboarding Week",
     "dates": "2026-09-28 - 2026-10-02",
-    "host": "AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Onboarding",
     "note": "Orientation, software setup, student onboarding, programme briefing",
     "courseIds": []
@@ -1267,7 +1269,7 @@ const calendarBlocks = [
     "id": "block-1",
     "label": "Block 1",
     "dates": "2026-10-05 - 2026-10-23",
-    "host": "AIMS Cameroon / AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
     "note": "Core Skills: MES01 Mathematical Problem Solving; MES05 Introduction to R and Python",
     "courseIds": [
@@ -1279,7 +1281,7 @@ const calendarBlocks = [
     "id": "block-2",
     "label": "Block 2",
     "dates": "2026-10-26 - 2026-11-13",
-    "host": "AIMS Cameroon / AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
     "note": "Core Skills: MES02 Differential Equations and Modelling; MES04 Introduction to Probability and Statistics",
     "courseIds": [
@@ -1291,7 +1293,7 @@ const calendarBlocks = [
     "id": "reading-1",
     "label": "Reading Week and AHC Convening",
     "dates": "2026-11-16 - 2026-11-20",
-    "host": "AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Reading",
     "note": "AHC Convening Week in Nairobi",
     "courseIds": []
@@ -1300,7 +1302,7 @@ const calendarBlocks = [
     "id": "block-3",
     "label": "Block 3",
     "dates": "2026-11-23 - 2026-12-11",
-    "host": "AIMS Cameroon / AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
     "note": "Core Skills: MES03 Physical Problem Solving; MES06 Scientific Computing and LaTeX",
     "courseIds": [
@@ -1312,7 +1314,7 @@ const calendarBlocks = [
     "id": "vacation",
     "label": "Vacation and December Holiday",
     "dates": "2026-12-14 - 2027-01-03",
-    "host": "AIMS Cameroon / AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Holiday",
     "note": "December holiday break",
     "courseIds": []
@@ -1321,7 +1323,7 @@ const calendarBlocks = [
     "id": "block-4",
     "label": "Block 4",
     "dates": "2027-01-04 - 2027-01-22",
-    "host": "AIMS Cameroon / AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
     "note": "Specialization: MEC01 Introduction to Epidemiology; MEC03 Introduction to Mathematical Modelling",
     "courseIds": [
@@ -1333,7 +1335,7 @@ const calendarBlocks = [
     "id": "block-5",
     "label": "Block 5",
     "dates": "2027-01-25 - 2027-02-12",
-    "host": "AIMS Cameroon / AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
     "note": "Specialization: MEC02 Epidemiology for Disease Modelling; MEC04 Developing Mathematical Models in Public Health",
     "courseIds": [
@@ -1345,7 +1347,7 @@ const calendarBlocks = [
     "id": "block-6",
     "label": "Block 6",
     "dates": "2027-02-15 - 2027-03-05",
-    "host": "AIMS Cameroon / AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
     "note": "Specialization: MEC05 Model Fitting and Validation; MEC06 Numerical Methods",
     "courseIds": [
@@ -1357,7 +1359,7 @@ const calendarBlocks = [
     "id": "block-7",
     "label": "Block 7",
     "dates": "2027-03-08 - 2027-03-26",
-    "host": "AIMS Cameroon / AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
     "note": "Specialization: MEC07 Introduction to Data Analysis; MEC08 Advanced Data Analysis",
     "courseIds": [
@@ -1369,7 +1371,7 @@ const calendarBlocks = [
     "id": "reading-2",
     "label": "Reading Week",
     "dates": "2027-03-29 - 2027-04-02",
-    "host": "AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Reading",
     "note": "Reflection, catch-up, elective selection",
     "courseIds": []
@@ -1378,7 +1380,7 @@ const calendarBlocks = [
     "id": "block-8",
     "label": "Block 8",
     "dates": "2027-04-05 - 2027-04-23",
-    "host": "AIMS Cameroon / AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
     "note": "Professional development and advanced data science: MEC09; MEC10",
     "courseIds": [
@@ -1390,7 +1392,7 @@ const calendarBlocks = [
     "id": "block-9",
     "label": "Block 9",
     "dates": "2027-04-26 - 2027-05-14",
-    "host": "AIMS Cameroon / AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
     "note": "Elective Courses: MEE01 Survival Analysis; MEE02 Time Series Analysis; MEE03 Bayesian Statistics; MEE04 Stochastic Models",
     "courseIds": [
@@ -1404,7 +1406,7 @@ const calendarBlocks = [
     "id": "internship-plus-thesis",
     "label": "Mandatory Internship",
     "dates": "2027-05-17 - 2027-08-13",
-    "host": "AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Practical",
     "note": "MEI01 supervised research or industry placement",
     "courseIds": [
@@ -1415,7 +1417,7 @@ const calendarBlocks = [
     "id": "thesis",
     "label": "Thesis/Project Write-up",
     "dates": "2027-08-16 - 2027-11-12",
-    "host": "AIMS RW/KEMRI",
+    "host": ACTIVE_HOST_PATHWAY,
     "kind": "Thesis",
     "note": "MEI01 thesis/project write-up and review",
     "courseIds": [
@@ -1818,23 +1820,17 @@ function hostCards() {
       .map(
         (h) =>
           '<div class="host-card ' +
-          (state.host.firstHost === h || state.host.secondHost === h ? "selected" : "") +
+          (state.host.firstHost === h ? "selected" : "") +
           '"><h3>' +
           esc(h) +
-          '</h3><p>Mathepi host pathway for lecturer deployment, scheduling, and course coordination.</p><div class="host-actions"><button type="button" class="choice-btn ' +
+          '</h3><p>Active MathEpi host pathway for lecturer deployment, scheduling, residence, and course coordination.</p><div class="host-actions"><button type="button" class="choice-btn ' +
           (state.host.firstHost === h ? "active" : "") +
           '" data-host-first="' +
           esc(h) +
-          '">First choice</button><button type="button" class="choice-btn ' +
-          (state.host.secondHost === h ? "active" : "") +
-          '" data-host-second="' +
-          esc(h) +
-          '">Second choice</button></div></div>',
+          '">Select pathway</button></div></div>',
       )
       .join("") +
-    '</div><div class="field" data-wrap="host-firstHost"><p class="field-err">Select a first choice host pathway.</p></div><div class="field" data-wrap="host-secondHost"><button type="button" class="btn-soft" data-no-second>No second choice</button><p class="field-help">Second choice is optional and cannot duplicate the first choice. Current second choice: <b>' +
-    (state.host.secondHost ? esc(state.host.secondHost) : "Not selected") +
-    '</b></p><p class="field-err">Second choice cannot duplicate first choice.</p></div>'
+    '</div><div class="field" data-wrap="host-firstHost"><p class="field-err">Select the active host pathway.</p><p class="field-help">AIMS Cameroon is not active for this call. Applications are being received for the Nairobi graduate-school pathway only.</p></div>'
   );
 }
 function planRows() {
@@ -2071,7 +2067,7 @@ function renderForm() {
       "</div></div>";
   if (step.id === "host")
     body =
-      '<p class="field-help">This application is limited to AIMS Cameroon and AIMS RW/KEMRI.</p>' +
+      '<p class="field-help">This application is limited to AIMS RW/KEMRI Graduate School, Nairobi. AIMS Cameroon is disabled for this call.</p>' +
       hostCards();
   if (step.id === "selection")
     body =
@@ -2447,12 +2443,24 @@ function persistDraft() {
     ok ? "All changes saved  -  " + nowLabel() : "Working in this session (storage unavailable)",
   );
 }
+function normalizeHostState() {
+  const first = state.host.firstHost;
+  const second = state.host.secondHost;
+  if (legacyHostPathways.includes(first)) state.host.firstHost = ACTIVE_HOST_PATHWAY;
+  if (!state.host.firstHost && (legacyHostPathways.includes(second) || second === ACTIVE_HOST_PATHWAY)) {
+    state.host.firstHost = ACTIVE_HOST_PATHWAY;
+  }
+  if (legacyHostPathways.includes(second) || second === ACTIVE_HOST_PATHWAY) {
+    state.host.secondHost = "No second choice";
+  }
+}
 function loadDraft() {
   const raw = safeGet(DRAFT_KEY);
   if (!raw) return false;
   try {
     const data = JSON.parse(raw);
     mergeKnown(state, data.state || {});
+    normalizeHostState();
     if (typeof data.current === "number")
       current = Math.max(0, Math.min(steps.length - 1, data.current));
     if (data.submitted) submitted = true;
@@ -2641,7 +2649,7 @@ $("stepArea").addEventListener("click", (e) => {
   const hf = e.target.closest("[data-host-first]");
   if (hf) {
     state.host.firstHost = hf.dataset.hostFirst;
-    if (state.host.secondHost === state.host.firstHost) state.host.secondHost = "";
+    state.host.secondHost = "No second choice";
     persistDraft();
     renderForm();
     return;
@@ -2819,6 +2827,7 @@ function stepErrors(id) {
     );
   }
   if (id === "host") {
+    normalizeHostState();
     push('[data-wrap="host-firstHost"]', !state.host.firstHost);
     push(
       '[data-wrap="host-secondHost"]',
@@ -2976,6 +2985,7 @@ function resetAll() {
 /* --------------------------------- Submit ----------------------------------- */
 function applicationSnapshot() {
   syncSelectionStepFromDom();
+  normalizeHostState();
   const c = selectedCourse();
   const b = selectedBlock();
   return {
@@ -3026,7 +3036,7 @@ async function submit() {
   safeSet(APPS_KEY, JSON.stringify(apps));
   safeSet(DRAFT_KEY, JSON.stringify({ state, current, submitted }));
   $("stepArea").innerHTML =
-    '<div class="done-wrap"><div class="done-badge">OK</div><h2>Application submitted</h2><p>Your Mathematical Epidemiology lecturer application for the AIMS Cameroon / AIMS RW/KEMRI pathways has been recorded' +
+    '<div class="done-wrap"><div class="done-badge">OK</div><h2>Application submitted</h2><p>Your Mathematical Epidemiology lecturer application for AIMS RW/KEMRI Graduate School, Nairobi has been recorded' +
     (googleMessage || (storageOK ? " and saved to this browser" : " for this session")) +
     '.</p><button class="btn-primary" data-nav="dashboard">View application status -></button></div>';
   window.scrollTo({ top: 0 });

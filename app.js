@@ -1985,7 +1985,7 @@ const CFA_CALLS = [
     requirements: [
       "Applicant details: title, full name, gender, affiliation, designation, address, country of residence, nationality, phone, WhatsApp consent, and collaborator/contact details.",
       "Academic profile: qualifications, current role, teaching/research experience, expertise, and relevant public-health modelling background.",
-      "Host pathway preference limited to AIMS Cameroon and AIMS Rwanda/KEMRI.",
+      "Host pathway limited to AIMS RW/KEMRI Graduate School, Nairobi; AIMS Cameroon is disabled for this call.",
       "Course selection linked to the MathEpi calendar so applicants confirm availability only for the selected teaching block.",
       "Teaching plan and short course contribution narrative.",
       "Passport biodata page upload only at this stage.",
@@ -1999,7 +1999,7 @@ const CFA_CALLS = [
       "Confirm appointments and sync to Lecturers & Tutors",
     ],
     prompt:
-      "Use the attached HTML application portal at cfa/lecturer-application.html as the canonical MathEpi Lecturer CFA form and open it in a separate tab from the CFA workspace. Preserve the full standalone applicant journey: opportunity overview, start application, dashboard, step progress, autosave, validation, final review, and submission confirmation. The form must remain limited to AIMS Cameroon and AIMS Rwanda/KEMRI pathways and capture applicant identity and contact details, affiliation, designation, nationality, residence, phone and WhatsApp consent, academic qualifications, teaching and research experience, public-health modelling expertise, preferred host pathway, selected MathEpi course, calendar-linked availability, teaching plan, collaborator or institutional contact, passport biodata page upload, declarations, terms of use, and review before submission. Keep the surrounding CFA dashboard calm, professional, responsive, and ready to sync later with Google Sheets, Drive, and the Lecturers & Tutors module.",
+      "Use the attached HTML application portal at cfa/lecturer-application.html as the canonical MathEpi Lecturer CFA form and open it in a separate tab from the CFA workspace. Preserve the full standalone applicant journey: opportunity overview, start application, dashboard, step progress, autosave, validation, final review, and submission confirmation. The form must remain limited to AIMS RW/KEMRI Graduate School, Nairobi, with AIMS Cameroon disabled for this call, and capture applicant identity and contact details, affiliation, designation, nationality, residence, phone and WhatsApp consent, academic qualifications, teaching and research experience, public-health modelling expertise, preferred host pathway, selected MathEpi course, calendar-linked availability, teaching plan, collaborator or institutional contact, passport biodata page upload, declarations, terms of use, and review before submission. Keep the surrounding CFA dashboard calm, professional, responsive, and ready to sync later with Google Sheets, Drive, and the Lecturers & Tutors module.",
   },
   {
     id: "tutors",
