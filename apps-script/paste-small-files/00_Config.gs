@@ -64,6 +64,27 @@ const TAB_HEADERS = {
     "passport_file_name", "passport_drive_url", "phd_certificate_file_name", "phd_certificate_drive_url",
     "reference_1_json", "reference_2_json", "reference_3_json", "full_application_json",
   ],
+  Reviewers: [
+    "reviewer_email", "name", "role", "status", "assigned_call", "created_at", "updated_at",
+  ],
+  ReviewAssignments: [
+    "assignment_id", "application_id", "reviewer_email", "call_id", "status", "created_at", "updated_at",
+  ],
+  ReviewScores: [
+    "score_id", "application_id", "reviewer_email", "reviewer_name", "teaching_score",
+    "research_score", "weighted_score", "eligibility_decision", "recommendation",
+    "course_verdicts_json", "machine_score_json", "reason", "updated_at",
+  ],
+  ReviewNotes: [
+    "note_id", "application_id", "author_email", "author_name", "stage", "note",
+    "status", "created_at", "edited_at", "edited_by", "withdrawn_at",
+  ],
+  ReviewStages: ["application_id", "stage", "decision", "updated_by", "updated_at"],
+  ReviewConfig: ["key", "json", "updated_at"],
+  ReviewAudit: [
+    "audit_id", "timestamp", "reviewer_email", "reviewer_name", "action",
+    "application_id", "old_value_json", "new_value_json", "reason",
+  ],
   DriveDocuments: ["document_id", "type", "related_id", "file_name", "drive_file_id", "url", "created_at"],
 };
 

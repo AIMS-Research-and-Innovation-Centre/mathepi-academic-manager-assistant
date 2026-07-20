@@ -41,6 +41,16 @@ function apiPost(request) {
   if (action === "diagnoseEmailOtp") return diagnoseEmailOtp(payload);
   if (action === "requestEmailOtp") return requestEmailOtp(payload);
   if (action === "verifyEmailOtp") return verifyEmailOtp(payload);
+  if (action === "requestReviewerOtp") return requestReviewerOtp(payload);
+  if (action === "verifyReviewerOtp") return verifyReviewerOtp(payload);
+  if (action === "getReviewerSession") return getReviewerSession(payload);
+  if (action === "listReviewApplicants") return listReviewApplicants(payload);
+  if (action === "saveReviewScore") return saveReviewScore(payload);
+  if (action === "saveReviewNote") return saveReviewNote(payload);
+  if (action === "withdrawReviewNote") return withdrawReviewNote(payload);
+  if (action === "updateReviewStage") return updateReviewStage(payload);
+  if (action === "saveEligibilityDecision") return saveEligibilityDecision(payload);
+  if (action === "exportReviewAudit") return exportReviewAudit(payload);
   if (action === "submitLecturerApplication") return submitLecturerApplication(payload);
   if (action === "submitTutorialFellowApplication") return submitTutorialFellowApplication(payload);
   throw new Error("Unknown action: " + action);

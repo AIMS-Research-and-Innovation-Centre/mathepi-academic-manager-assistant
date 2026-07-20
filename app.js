@@ -1833,6 +1833,7 @@ const ROLES = {
       "contact",
       "timesheets",
       "tasks",
+      "tf-reviews",
       "google",
       "access",
     ],
@@ -1842,14 +1843,21 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "cfa", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "cfa", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
     hint: "Manager-level visibility for coordination, without write access",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "cfa", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "cfa", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+  },
+  reviewer: {
+    label: "TF Reviewer",
+    hint: "Tutorial Fellow review panel, notes, scores, and staged decisions",
+    canEdit: false,
+    canSensitive: true,
+    views: ["dashboard", "tf-reviews"],
   },
   "head-tutor": {
     label: "Head Tutor",
@@ -1910,6 +1918,7 @@ const NAV = [
   { id: "courses", label: "Courses", icon: "book" },
   { id: "people", label: "Lecturers & Tutors", short: "People", icon: "users" },
   { id: "cfa", label: "CFA", short: "CFA", icon: "megaphone" },
+  { id: "tf-reviews", label: "TF Reviews", short: "Reviews", icon: "shield" },
   { id: "appointments", label: "Appointments", icon: "appointment" },
   { id: "support", label: "Support & Wellness", short: "Support", icon: "support" },
   { id: "contact", label: "Contact Hub", icon: "mail" },
@@ -2052,6 +2061,15 @@ const CFA_CALLS = [
 
 const GOOGLE_BACKEND_URL_KEY = "mathepi-apps-script-url";
 const GOOGLE_AUTOSYNC_KEY = "mathepi-google-autosync";
+const TF_REVIEW_SESSION_KEY = "mathepi-tf-review-session-v1";
+const TF_REVIEW_STAGES = [
+  { id: "all", label: "All applicants", target: 100 },
+  { id: "screened", label: "Screened", target: 85 },
+  { id: "shortlist", label: "Shortlist", target: 70 },
+  { id: "finalists", label: "Finalists", target: 30 },
+  { id: "decision", label: "Decision", target: 10 },
+];
+const TF_REVIEW_TABS = ["Evaluation", "Application", "Notes and revision"];
 const GOOGLE_DATASETS = [
   ["courses", "Courses"],
   ["people", "People"],
@@ -2214,6 +2232,23 @@ const state = {
   theme: localStorage.getItem("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
   googleAutoSync: localStorage.getItem(GOOGLE_AUTOSYNC_KEY) === "true",
+  tfReview: {
+    session: load(TF_REVIEW_SESSION_KEY, null),
+    email: "",
+    code: "",
+    applications: [],
+    scores: [],
+    notes: [],
+    stages: [],
+    reviewers: [],
+    config: {},
+    selectedId: "",
+    stageFilter: "all",
+    tab: "Evaluation",
+    loading: false,
+    lastSync: "",
+    error: "",
+  },
   studentCalendarConnected: localStorage.getItem("mathepi-student-calendar") === "true",
   courses: load("mathepi-courses", DEFAULT_COURSES),
   people: load("mathepi-people", DEFAULT_PEOPLE),
@@ -3140,6 +3175,9 @@ async function authSignOut() {
 }
 
 function topbarAction() {
+  if (state.view === "tf-reviews") {
+    return `<button class="button primary" onclick="refreshTfReviews()">${icon("database", 18)}Refresh reviews</button>`;
+  }
   if (state.view === "cfa" && canEdit()) {
     return `<button class="button primary" onclick="toast('CFA publishing scaffold is ready for backend wiring.')">${icon("megaphone", 18)}Publish CFA</button>`;
   }
@@ -3335,6 +3373,8 @@ function renderView() {
       return renderPeople();
     case "cfa":
       return renderCfa();
+    case "tf-reviews":
+      return renderTfReviews();
     case "appointments":
       return renderAppointments();
     case "support":
@@ -4032,6 +4072,938 @@ function renderCfaCard(item) {
 function cfaFormLink(item, label, variant = "ghost") {
   if (!item?.formUrl) return "";
   return `<a class="button ${variant}" href="${item.formUrl}" target="_blank" rel="noopener noreferrer">${icon("external", 17)}${label}</a>`;
+}
+
+function jsString(value) {
+  return JSON.stringify(String(value ?? ""));
+}
+
+function tfSafeDomId(value) {
+  return String(value ?? "").replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+
+function tfReviewSession() {
+  const session = state.tfReview.session || null;
+  if (session?.expiresAt && Date.now() > Number(session.expiresAt)) {
+    state.tfReview.session = null;
+    saveTfReviewSession();
+    return null;
+  }
+  return session;
+}
+
+function tfReviewPayload(extra = {}) {
+  const session = tfReviewSession() || {};
+  return {
+    ...extra,
+    reviewerEmail: session.email || "",
+    sessionToken: session.sessionToken || session.token || "",
+  };
+}
+
+function saveTfReviewSession() {
+  if (state.tfReview.session) localStorage.setItem(TF_REVIEW_SESSION_KEY, JSON.stringify(state.tfReview.session));
+  else localStorage.removeItem(TF_REVIEW_SESSION_KEY);
+}
+
+function tfReviewStageRank(stage) {
+  const label = String(stage || "All applicants").toLowerCase();
+  const index = TF_REVIEW_STAGES.findIndex((item) => item.label.toLowerCase() === label || item.id === label);
+  return Math.max(0, index);
+}
+
+function tfReviewStageLabel(idOrLabel) {
+  const value = String(idOrLabel || "all").toLowerCase();
+  return TF_REVIEW_STAGES.find((item) => item.id === value || item.label.toLowerCase() === value)?.label || "All applicants";
+}
+
+function tfReviewReviewerName() {
+  const session = tfReviewSession();
+  return session?.reviewer?.name || session?.name || session?.email || "Reviewer";
+}
+
+async function requestTfReviewerOtp() {
+  if (!googleBackendAvailable()) {
+    toast("Set the Apps Script Web App URL in Sheets & Drive first.");
+    return;
+  }
+  const email = (document.querySelector("#tfReviewEmail")?.value || "").trim();
+  if (!email) {
+    toast("Enter reviewer email first.");
+    return;
+  }
+  state.tfReview.loading = true;
+  state.tfReview.error = "";
+  render();
+  try {
+    const result = await googleApi("requestReviewerOtp", { email });
+    if (result?.ok === false) throw new Error(result.error || "Reviewer code could not be sent.");
+    state.tfReview.email = email;
+    toast("Reviewer verification code sent.");
+  } catch (error) {
+    state.tfReview.error = error.message || "Reviewer verification failed.";
+    toast(state.tfReview.error);
+  } finally {
+    state.tfReview.loading = false;
+    render();
+  }
+}
+
+async function verifyTfReviewerOtp() {
+  const email = (document.querySelector("#tfReviewEmail")?.value || state.tfReview.email || "").trim();
+  const code = (document.querySelector("#tfReviewCode")?.value || "").trim();
+  if (!email || !code) {
+    toast("Enter reviewer email and verification code.");
+    return;
+  }
+  state.tfReview.loading = true;
+  state.tfReview.error = "";
+  render();
+  try {
+    const result = await googleApi("verifyReviewerOtp", { email, code });
+    if (result?.ok === false) throw new Error(result.error || "Reviewer verification failed.");
+    state.tfReview.session = {
+      email: result.email || email,
+      sessionToken: result.sessionToken,
+      reviewer: result.reviewer || { email },
+      expiresAt: Date.now() + Number(result.expiresInSeconds || 21600) * 1000,
+    };
+    saveTfReviewSession();
+    toast("Reviewer access verified.");
+    await refreshTfReviews({ quiet: true });
+  } catch (error) {
+    state.tfReview.error = error.message || "Reviewer verification failed.";
+    toast(state.tfReview.error);
+  } finally {
+    state.tfReview.loading = false;
+    render();
+  }
+}
+
+function signOutTfReviewer() {
+  state.tfReview.session = null;
+  state.tfReview.applications = [];
+  state.tfReview.scores = [];
+  state.tfReview.notes = [];
+  state.tfReview.stages = [];
+  state.tfReview.reviewers = [];
+  state.tfReview.selectedId = "";
+  saveTfReviewSession();
+  toast("Reviewer session cleared.");
+  render();
+}
+
+async function refreshTfReviews(options = {}) {
+  if (!googleBackendAvailable()) {
+    if (!options.quiet) toast("Set the Apps Script Web App URL in Sheets & Drive first.");
+    return;
+  }
+  if (!tfReviewSession()) {
+    if (!options.quiet) toast("Verify reviewer email first.");
+    return;
+  }
+  state.tfReview.loading = true;
+  state.tfReview.error = "";
+  render();
+  try {
+    const result = await googleApi("listReviewApplicants", tfReviewPayload());
+    if (result?.ok === false) throw new Error(result.error || "Could not load review data.");
+    state.tfReview.applications = result.applications || [];
+    state.tfReview.scores = result.scores || [];
+    state.tfReview.notes = result.notes || [];
+    state.tfReview.stages = result.stages || [];
+    state.tfReview.reviewers = result.reviewers || [];
+    state.tfReview.config = result.config || {};
+    state.tfReview.lastSync = result.syncedAt || new Date().toISOString();
+    if (!state.tfReview.selectedId && state.tfReview.applications[0]) state.tfReview.selectedId = state.tfReview.applications[0].applicationId;
+    if (!options.quiet) toast(`Loaded ${state.tfReview.applications.length} Tutorial Fellow applications.`);
+  } catch (error) {
+    state.tfReview.error = error.message || "Could not load review data.";
+    toast(state.tfReview.error);
+  } finally {
+    state.tfReview.loading = false;
+    render();
+  }
+}
+
+async function updateTfReviewStage(applicationId, stage) {
+  try {
+    const result = await googleApi("updateReviewStage", tfReviewPayload({ applicationId, stage }));
+    if (result?.ok === false) throw new Error(result.error || "Stage update failed.");
+    const index = state.tfReview.stages.findIndex((item) => item.application_id === applicationId);
+    if (index >= 0) state.tfReview.stages[index] = result.stage;
+    else state.tfReview.stages.push(result.stage);
+    toast("Review stage updated.");
+    render();
+  } catch (error) {
+    toast(error.message || "Stage update failed.");
+  }
+}
+
+async function saveTfReviewScore(applicationId) {
+  const teaching = Number(document.querySelector("#tfReviewTeaching")?.value || 0);
+  const research = Number(document.querySelector("#tfReviewResearch")?.value || 0);
+  const eligibilityDecision = document.querySelector("#tfReviewEligibility")?.value || "";
+  const recommendation = document.querySelector("#tfReviewRecommendation")?.value || "";
+  const reason = (document.querySelector("#tfReviewReason")?.value || "").trim();
+  if (!reason) {
+    toast("Enter a reason before saving score revisions.");
+    return;
+  }
+  const app = state.tfReview.applications.find((item) => item.applicationId === applicationId);
+  const assessment = tfAssessApplicant(app, tfReviewTermStats(state.tfReview.applications));
+  const courseVerdicts = {};
+  document.querySelectorAll("[data-course-verdict]").forEach((select) => {
+    courseVerdicts[select.dataset.courseVerdict] = select.value;
+  });
+  try {
+    const result = await googleApi(
+      "saveReviewScore",
+      tfReviewPayload({
+        applicationId,
+        teachingScore: teaching,
+        researchScore: research,
+        eligibilityDecision,
+        recommendation,
+        courseVerdicts,
+        machineScore: {
+          teaching: assessment.teachingScore,
+          research: assessment.researchScore,
+          weighted: assessment.weightedScore,
+          bestFit: assessment.bestFit?.code || "",
+        },
+        reason,
+      }),
+    );
+    if (result?.ok === false) throw new Error(result.error || "Score save failed.");
+    const index = state.tfReview.scores.findIndex((item) => item.score_id === result.score.score_id);
+    if (index >= 0) state.tfReview.scores[index] = result.score;
+    else state.tfReview.scores.push(result.score);
+    toast("Review score saved.");
+    render();
+  } catch (error) {
+    toast(error.message || "Score save failed.");
+  }
+}
+
+async function saveTfReviewNote(applicationId, noteId = "") {
+  const selector = noteId ? `#tfNote-${tfSafeDomId(noteId)}` : "#tfNewNote";
+  const note = (document.querySelector(selector)?.value || "").trim();
+  if (!note) {
+    toast("Write a note before saving.");
+    return;
+  }
+  try {
+    const result = await googleApi(
+      "saveReviewNote",
+      tfReviewPayload({
+        applicationId,
+        noteId,
+        note,
+        stage: tfReviewStageFor(applicationId),
+      }),
+    );
+    if (result?.ok === false) throw new Error(result.error || "Note save failed.");
+    const index = state.tfReview.notes.findIndex((item) => item.note_id === result.note.note_id);
+    if (index >= 0) state.tfReview.notes[index] = result.note;
+    else state.tfReview.notes.push(result.note);
+    toast("Review note saved.");
+    render();
+  } catch (error) {
+    toast(error.message || "Note save failed.");
+  }
+}
+
+async function withdrawTfReviewNote(noteId) {
+  try {
+    const result = await googleApi("withdrawReviewNote", tfReviewPayload({ noteId }));
+    if (result?.ok === false) throw new Error(result.error || "Note withdrawal failed.");
+    const index = state.tfReview.notes.findIndex((item) => item.note_id === result.note.note_id);
+    if (index >= 0) state.tfReview.notes[index] = result.note;
+    toast("Review note withdrawn.");
+    render();
+  } catch (error) {
+    toast(error.message || "Note withdrawal failed.");
+  }
+}
+
+async function exportTfReviewAudit() {
+  try {
+    const result = await googleApi("exportReviewAudit", tfReviewPayload());
+    if (result?.ok === false) throw new Error(result.error || "Audit export failed.");
+    const text = JSON.stringify(result, null, 2);
+    await navigator.clipboard?.writeText(text);
+    openDrawer("tfReviewAudit", result);
+    toast("Review audit copied to clipboard.");
+  } catch (error) {
+    toast(error.message || "Audit export failed.");
+  }
+}
+
+function selectTfReviewApplicant(applicationId) {
+  state.tfReview.selectedId = applicationId;
+  state.tfReview.tab = "Evaluation";
+  render();
+}
+
+function setTfReviewFilter(filter) {
+  state.tfReview.stageFilter = filter;
+  render();
+}
+
+function setTfReviewTab(tab) {
+  state.tfReview.tab = tab;
+  render();
+}
+
+function insertTfDraftNote(applicationId) {
+  const app = state.tfReview.applications.find((item) => item.applicationId === applicationId);
+  if (!app) return;
+  const assessment = tfAssessApplicant(app, tfReviewTermStats(state.tfReview.applications));
+  const text = tfDraftPanelNote(app, assessment);
+  const target = document.querySelector("#tfNewNote");
+  if (target) target.value = text;
+}
+
+function updateTfReviewWeightedPreview() {
+  const teaching = Number(document.querySelector("#tfReviewTeaching")?.value || 0);
+  const research = Number(document.querySelector("#tfReviewResearch")?.value || 0);
+  const target = document.querySelector("#tfReviewWeighted");
+  if (target) target.textContent = String(Math.round(teaching * 0.7 + research * 0.3));
+}
+
+function renderTfReviews() {
+  const session = tfReviewSession();
+  if (!googleBackendAvailable()) {
+    return `
+      <div class="view">
+        <section class="card">
+          <div class="card-header"><div><h2>TF Reviews need Google Sheets connection</h2><p>Set the Apps Script Web App URL in Sheets & Drive before loading reviewer data.</p></div></div>
+          <div class="card-body">
+            <button class="button primary" onclick="setView('google')">${icon("cloud", 17)}Open Sheets & Drive</button>
+          </div>
+        </section>
+      </div>
+    `;
+  }
+  if (!session) return renderTfReviewLogin();
+  const assessed = tfReviewAssessedApplicants();
+  const visible = tfReviewFilteredApplicants(assessed);
+  const selected = assessed.find((item) => item.applicationId === state.tfReview.selectedId) || visible[0] || assessed[0];
+  return `
+    <div class="view tf-review-view">
+      <section class="review-hero">
+        <div>
+          <span class="mission-eyebrow">${icon("shield", 16)} Reviewer-only window</span>
+          <h2>Tutorial Fellow staged review.</h2>
+          <p>Read submitted applications from Google Sheets, revise scores with reasons, keep reviewer notes owned, and use the cohort heatmap to avoid uncovered curriculum components.</p>
+          <div class="hero-actions">
+            <button class="button primary" onclick="refreshTfReviews()">${icon("database", 17)}Refresh from Sheets</button>
+            <button class="button ghost" onclick="exportTfReviewAudit()">${icon("sheet", 17)}Export audit</button>
+            <button class="button ghost" onclick="signOutTfReviewer()">${icon("x", 17)}Clear session</button>
+          </div>
+          ${state.tfReview.error ? `<p class="review-error">${escapeHtml(state.tfReview.error)}</p>` : ""}
+        </div>
+        <div class="review-session-card">
+          <span class="badge green">Verified reviewer</span>
+          <h3>${escapeHtml(tfReviewReviewerName())}</h3>
+          <p>${escapeHtml(session.email || "")}</p>
+          <p>Last sync: ${state.tfReview.lastSync ? escapeHtml(new Date(state.tfReview.lastSync).toLocaleString()) : "Not loaded yet"}</p>
+        </div>
+      </section>
+
+      <section class="kpi-grid review-kpis">
+        ${kpi("Applicants", assessed.length, "Rows loaded from TutorialFellowApplications", "users", "blue")}
+        ${kpi("Visible", visible.length, "Current funnel filter", "filter", "gold")}
+        ${kpi("Shortlist+", tfReviewShortlisted(assessed).length, "Applicants at shortlist or beyond", "check", "green")}
+        ${kpi("Length bias", tfLengthBias(assessed), "Correlation between words and machine score", "activity", "maroon")}
+      </section>
+
+      ${renderTfReviewFunnel(assessed)}
+      ${renderTfReviewGenderAndHeatmap(assessed)}
+
+      <section class="section-grid tf-review-grid">
+        <div class="card">
+          <div class="card-header">
+            <div><h2>Applicants</h2><p>Filtered to ${escapeHtml(tfReviewStageLabel(state.tfReview.stageFilter))} or beyond.</p></div>
+            <span class="badge ${state.tfReview.loading ? "gold" : "blue"}">${state.tfReview.loading ? "Loading" : "Sheets linked"}</span>
+          </div>
+          <div class="card-body applicant-review-list">
+            ${visible.length ? visible.map(renderTfApplicantRow).join("") : `<p class="muted-note">No applications match this review filter yet.</p>`}
+          </div>
+        </div>
+        ${selected ? renderTfReviewDetail(selected) : renderTfReviewEmptyDetail()}
+      </section>
+    </div>
+  `;
+}
+
+function renderTfReviewLogin() {
+  return `
+    <div class="view">
+      <section class="card review-login-card">
+        <div class="card-header">
+          <div><h2>Reviewer verification</h2><p>Only active reviewers listed in the Reviewers Google Sheet can access Tutorial Fellow reviews.</p></div>
+          <span class="badge gray">Restricted</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field">
+              <label>Reviewer email</label>
+              <input id="tfReviewEmail" type="email" value="${escapeHtml(state.tfReview.email || "")}" placeholder="reviewer@example.org" />
+            </div>
+            <div class="field">
+              <label>Verification code</label>
+              <input id="tfReviewCode" inputmode="numeric" maxlength="6" placeholder="6-digit code" />
+            </div>
+          </div>
+          <div class="hero-actions compact-actions">
+            <button class="button ghost" onclick="requestTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("mail", 17)}Send code</button>
+            <button class="button primary" onclick="verifyTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("shield", 17)}Verify and open reviews</button>
+          </div>
+          <p class="muted-note">Security is enforced in Apps Script. The frontend tab only opens after the backend confirms the reviewer session.</p>
+          ${state.tfReview.error ? `<p class="review-error">${escapeHtml(state.tfReview.error)}</p>` : ""}
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function tfReviewAssessedApplicants() {
+  const stats = tfReviewTermStats(state.tfReview.applications);
+  return state.tfReview.applications.map((app) => ({ ...app, assessment: tfAssessApplicant(app, stats) }));
+}
+
+function tfReviewFilteredApplicants(apps) {
+  const minRank = tfReviewStageRank(tfReviewStageLabel(state.tfReview.stageFilter));
+  return apps
+    .filter((app) => tfReviewStageRank(tfReviewStageFor(app.applicationId)) >= minRank)
+    .sort((a, b) => tfEffectiveWeighted(b).score - tfEffectiveWeighted(a).score);
+}
+
+function tfReviewShortlisted(apps) {
+  return apps.filter((app) => tfReviewStageRank(tfReviewStageFor(app.applicationId)) >= tfReviewStageRank("Shortlist"));
+}
+
+function tfReviewStageFor(applicationId) {
+  return state.tfReview.stages.find((item) => item.application_id === applicationId)?.stage || "All applicants";
+}
+
+function tfLatestScore(applicationId) {
+  const email = tfReviewSession()?.email || "";
+  return state.tfReview.scores
+    .filter((item) => item.application_id === applicationId && (!email || item.reviewer_email === email))
+    .sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")))[0];
+}
+
+function tfEffectiveWeighted(app) {
+  const score = tfLatestScore(app.applicationId);
+  if (score) {
+    return {
+      teaching: Number(score.teaching_score || 0),
+      research: Number(score.research_score || 0),
+      score: Number(score.weighted_score || 0),
+      revised: true,
+    };
+  }
+  return {
+    teaching: app.assessment.teachingScore,
+    research: app.assessment.researchScore,
+    score: app.assessment.weightedScore,
+    revised: false,
+  };
+}
+
+function renderTfReviewFunnel(apps) {
+  const total = Math.max(1, apps.length);
+  return `
+    <section class="review-funnel">
+      ${TF_REVIEW_STAGES.map((stage) => {
+        const count = stage.id === "all" ? apps.length : apps.filter((app) => tfReviewStageRank(tfReviewStageFor(app.applicationId)) >= tfReviewStageRank(stage.label)).length;
+        const share = Math.round((count / total) * 100);
+        return `
+          <button class="funnel-step ${state.tfReview.stageFilter === stage.id ? "active" : ""}" onclick="setTfReviewFilter('${stage.id}')">
+            <strong>${stage.label}</strong>
+            <span>${count} applicants</span>
+            <small>${share}% of intake, target ${stage.target}%</small>
+          </button>
+        `;
+      }).join("")}
+    </section>
+  `;
+}
+
+function renderTfReviewGenderAndHeatmap(apps) {
+  const shortlist = tfReviewShortlisted(apps);
+  const pool = shortlist.length ? shortlist : apps;
+  const women = pool.filter((app) => /^f|woman|female/i.test(String(app.gender || ""))).length;
+  const targetLabel = shortlist.length ? "shortlist and beyond" : "full pool";
+  return `
+    <section class="section-grid review-coverage-grid">
+      <div class="card">
+        <div class="card-header"><div><h2>Cohort coverage heatmap</h2><p>Coverage among applicants at shortlist or beyond.</p></div></div>
+        <div class="card-body">
+          <div class="coverage-grid">${renderTfCoverageHeatmap(apps)}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div><h2>Gender counter</h2><p>Target is 50 percent for the active review pool.</p></div></div>
+        <div class="card-body gender-counter">
+          <strong>${pool.length ? Math.round((women / pool.length) * 100) : 0}%</strong>
+          <p>${women} of ${pool.length} in ${targetLabel}. The display switches from full pool to shortlist once shortlisting begins.</p>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderTfCoverageHeatmap(apps) {
+  const shortlist = tfReviewShortlisted(apps);
+  const pool = shortlist.length ? shortlist : apps;
+  const components = tfReviewComponents();
+  return components
+    .map((component) => {
+      const verdicts = pool.map((app) => app.assessment.components.find((item) => item.code === component.code)?.verdict || "Gap");
+      const level = verdicts.includes("Can lecture") ? "lecture" : verdicts.includes("Can tutor") ? "tutor" : "gap";
+      const label = level === "lecture" ? "Lecture cover" : level === "tutor" ? "Tutor only" : "No cover";
+      return `<span class="coverage-cell ${level}" title="${escapeHtml(component.title)}">${component.code}<small>${label}</small></span>`;
+    })
+    .join("");
+}
+
+function renderTfApplicantRow(app) {
+  const assessment = app.assessment;
+  const score = tfEffectiveWeighted(app);
+  const stage = tfReviewStageFor(app.applicationId);
+  const refs = tfReferenceCount(app);
+  const lecture = assessment.components.filter((item) => item.verdict === "Can lecture");
+  const tutor = assessment.components.filter((item) => item.verdict === "Can tutor");
+  return `
+    <article class="tf-applicant-row ${state.tfReview.selectedId === app.applicationId ? "active" : ""}">
+      <button class="tf-applicant-main" onclick="selectTfReviewApplicant(${jsString(app.applicationId)})">
+        <span class="avatar">${initials(app.applicant || "TF")}</span>
+        <span>
+          <strong>${escapeHtml(app.applicant || "Unnamed applicant")}</strong>
+          <small>${escapeHtml([app.gender, app.phone, app.phdField].filter(Boolean).join(" | "))}</small>
+          <span class="row-tags">
+            <span class="chip ${assessment.eligibility.color}">${assessment.eligibility.label}</span>
+            <span class="chip blue">Best fit ${assessment.bestFit?.code || "TBC"}</span>
+            <span class="chip gray">${refs} referees</span>
+            <span class="chip ${score.revised ? "gold" : "gray"}">${score.revised ? "Revised" : "Machine"} ${score.score}</span>
+            ${lecture.slice(0, 2).map((item) => `<span class="chip green">${item.code} lecture</span>`).join("")}
+            ${tutor.length ? `<span class="chip gold">plus ${tutor.length} tutor level</span>` : ""}
+          </span>
+        </span>
+      </button>
+      <div class="tf-score-strip">
+        <span><b>${score.teaching}</b><small>Teaching</small></span>
+        <span><b>${score.research}</b><small>Research</small></span>
+        <span><b>${score.score}</b><small>70:30</small></span>
+      </div>
+      <select class="stage-select" onchange="updateTfReviewStage(${jsString(app.applicationId)}, this.value)">
+        ${TF_REVIEW_STAGES.map((item) => `<option ${stage === item.label ? "selected" : ""}>${item.label}</option>`).join("")}
+      </select>
+    </article>
+  `;
+}
+
+function renderTfReviewEmptyDetail() {
+  return `
+    <div class="card">
+      <div class="card-header"><div><h2>No applicant selected</h2><p>Refresh from Google Sheets or select an applicant row.</p></div></div>
+      <div class="card-body"><p class="muted-note">The review panel reads from TutorialFellowApplications after reviewer verification.</p></div>
+    </div>
+  `;
+}
+
+function renderTfReviewDetail(app) {
+  const tab = state.tfReview.tab || "Evaluation";
+  return `
+    <div class="card tf-review-detail">
+      <div class="card-header">
+        <div><h2>${escapeHtml(app.applicant)}</h2><p>${escapeHtml([app.email, app.affiliation, app.designation].filter(Boolean).join(" | "))}</p></div>
+        <span class="badge ${app.assessment.eligibility.color}">${app.assessment.eligibility.label}</span>
+      </div>
+      <div class="card-body">
+        <div class="tabs review-tabs">
+          ${TF_REVIEW_TABS.map((item) => `<button class="tab ${tab === item ? "active" : ""}" onclick="setTfReviewTab(${jsString(item)})">${item}</button>`).join("")}
+        </div>
+        ${tab === "Application" ? renderTfApplicationTab(app) : tab === "Notes and revision" ? renderTfNotesTab(app) : renderTfEvaluationTab(app)}
+      </div>
+    </div>
+  `;
+}
+
+function renderTfEvaluationTab(app) {
+  const assessment = app.assessment;
+  const latest = tfLatestScore(app.applicationId);
+  const effective = tfEffectiveWeighted(app);
+  const verdicts = parseJson(latest?.course_verdicts_json, {});
+  return `
+    <div class="review-detail-stack">
+      <div class="review-score-editor">
+        <div class="field"><label>Teaching score</label><input id="tfReviewTeaching" type="number" min="0" max="100" value="${effective.teaching}" oninput="updateTfReviewWeightedPreview()" /><small>Machine: ${assessment.teachingScore}</small></div>
+        <div class="field"><label>Research score</label><input id="tfReviewResearch" type="number" min="0" max="100" value="${effective.research}" oninput="updateTfReviewWeightedPreview()" /><small>Machine: ${assessment.researchScore}</small></div>
+        <div class="weighted-preview"><span id="tfReviewWeighted">${effective.score}</span><small>Weighted 70:30</small></div>
+        <div class="field"><label>Eligibility decision</label><select id="tfReviewEligibility">${["Progress strong", "Progress", "Review", "Do not progress"].map((item) => `<option ${((latest?.eligibility_decision || assessment.eligibility.label) === item) ? "selected" : ""}>${item}</option>`).join("")}</select></div>
+        <div class="field"><label>Recommendation</label><select id="tfReviewRecommendation">${["Review", "Shortlist", "Interview", "Reserve", "Do not progress"].map((item) => `<option ${latest?.recommendation === item ? "selected" : ""}>${item}</option>`).join("")}</select></div>
+        <div class="field full"><label>Reason for revision</label><textarea id="tfReviewReason" placeholder="Required before saving any revised score or verdict">${escapeHtml(latest?.reason || "")}</textarea></div>
+        <button class="button primary" onclick="saveTfReviewScore(${jsString(app.applicationId)})">${icon("check", 17)}Save score revision</button>
+      </div>
+
+      <div class="review-summary-grid">
+        ${kpi("Machine teaching", assessment.teachingScore, assessment.delivery.label, "users", "blue")}
+        ${kpi("Machine research", assessment.researchScore, assessment.institutionalFit.label, "database", "green")}
+        ${kpi("Best fit", assessment.bestFit?.code || "TBC", assessment.bestFit?.title || "Ranked from all components", "book", "gold")}
+        ${kpi("Stability", assessment.stability, "Threshold perturbation estimate", "activity", "maroon")}
+      </div>
+
+      <div class="timeline-list">
+        <div class="timeline-item"><h4>Eligibility gate</h4><p>${assessment.eligibility.reasons.map(escapeHtml).join("; ")}</p></div>
+        <div class="timeline-item"><h4>Delivery evidence</h4><p>${escapeHtml(assessment.delivery.explanation)}</p></div>
+        <div class="timeline-item"><h4>KEMRI and AIMS RIC fit</h4><p>${escapeHtml(assessment.institutionalFit.explanation)}</p></div>
+      </div>
+
+      <div>
+        <h3 class="review-section-title">Ranked top five</h3>
+        <div class="ranked-fit-list">
+          ${assessment.components.slice(0, 5).map((item, index) => `
+            <div class="ranked-fit">
+              <b>${index + 1}. ${item.code} ${escapeHtml(item.title)}</b>
+              <span class="badge ${item.verdict === "Can lecture" ? "green" : item.verdict === "Can tutor" ? "gold" : "gray"}">${item.verdict}</span>
+              <p>Confidence: ${item.confidence}. Matched terms: ${item.terms.length ? item.terms.map(escapeHtml).join(", ") : "limited direct evidence"}.</p>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div>
+        <h3 class="review-section-title">Editable 20-component matrix</h3>
+        <div class="component-matrix">
+          ${assessment.components.map((item) => {
+            const value = verdicts[item.code] || item.verdict;
+            return `
+              <div class="component-row">
+                <span><b>${item.code}</b><small>${escapeHtml(item.title)}</small></span>
+                <select data-course-verdict="${item.code}">
+                  ${["Can lecture", "Can tutor", "Gap", "Would need preparation"].map((option) => `<option ${value === option ? "selected" : ""}>${option}</option>`).join("")}
+                </select>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+
+      <div>
+        <h3 class="review-section-title">Research dimensions</h3>
+        <div class="research-bars">
+          ${assessment.researchDimensions.map((item) => `
+            <div class="research-bar"><span>${escapeHtml(item.label)}</span><b style="width:${item.score}%"></b><small>${item.score}</small></div>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTfApplicationTab(app) {
+  const rows = [
+    ["Submitted", app.submittedAt],
+    ["Email", app.email],
+    ["Phone", app.phone],
+    ["Nationality", app.nationality],
+    ["Country of residence", app.country],
+    ["Affiliation", app.affiliation],
+    ["Designation", app.designation],
+    ["PhD field", app.phdField],
+    ["PhD completion", app.phdCompletion],
+    ["Thesis title and explainer", app.thesisTitleExplainer],
+    ["Research area", app.researchArea],
+    ["Quantitative background", app.quantitativeBackground],
+    ["Applied track record", app.appliedTrackRecord],
+    ["Teaching experience", app.teachingExperience],
+    ["Tutoring experience", app.tutoringExperience],
+    ["Mentoring experience", app.mentoringExperience],
+    ["Research experience", app.researchExperience],
+    ["Hands-on session support", app.teachingSupport],
+    ["Research plan", app.researchPlan],
+    ["Career growth", app.careerGrowth],
+    ["Residence ready", app.residenceReady],
+    ["Teaching gap ready", app.teachingGapReady],
+    ["English communication", app.englishCommunication],
+    ["AIMS alumni", [app.aimsAlumni, app.aimsCentre].filter(Boolean).join(", ")],
+    ["Passport", app.passport],
+    ["PhD certificate", app.phdCertificate],
+  ];
+  return `
+    <div class="application-answer-list">
+      ${rows.map(([label, value]) => `<div><b>${escapeHtml(label)}</b><p>${escapeHtml(value || "Not provided")}</p></div>`).join("")}
+      <div><b>Referees</b><p>${app.references.map((ref) => [ref.title, ref.name, ref.affiliation, ref.role, ref.email].filter(Boolean).join(" - ")).filter(Boolean).map(escapeHtml).join("<br>") || "Not provided"}</p></div>
+    </div>
+  `;
+}
+
+function renderTfNotesTab(app) {
+  const notes = state.tfReview.notes
+    .filter((item) => item.application_id === app.applicationId)
+    .sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+  return `
+    <div class="review-detail-stack">
+      <div class="field full">
+        <label>New reviewer note</label>
+        <textarea id="tfNewNote" placeholder="Write a reviewer-owned note. Notes enter the record only when saved."></textarea>
+      </div>
+      <div class="hero-actions compact-actions">
+        <button class="button ghost" onclick="insertTfDraftNote(${jsString(app.applicationId)})">${icon("edit", 17)}Insert drafted panel note</button>
+        <button class="button primary" onclick="saveTfReviewNote(${jsString(app.applicationId)})">${icon("check", 17)}Save note</button>
+      </div>
+      <div class="timeline-list">
+        ${notes.length ? notes.map((note) => `
+          <div class="timeline-item review-note ${note.status === "Withdrawn" ? "withdrawn" : ""}">
+            <h4>${escapeHtml(note.author_name || note.author_email)} <span>${escapeHtml(note.stage || "")}</span></h4>
+            <textarea id="tfNote-${tfSafeDomId(note.note_id)}">${escapeHtml(note.note || "")}</textarea>
+            <p>Created ${escapeHtml(note.created_at || "")}${note.edited_at ? `, edited ${escapeHtml(note.edited_at)} by ${escapeHtml(note.edited_by || "")}` : ""}${note.withdrawn_at ? `, withdrawn ${escapeHtml(note.withdrawn_at)}` : ""}</p>
+            <div class="hero-actions compact-actions">
+              <button class="button ghost" onclick="saveTfReviewNote(${jsString(app.applicationId)}, ${jsString(note.note_id)})">${icon("check", 15)}Save edit</button>
+              <button class="button ghost" onclick="withdrawTfReviewNote(${jsString(note.note_id)})">${icon("x", 15)}Withdraw</button>
+            </div>
+          </div>
+        `).join("") : `<p class="muted-note">No reviewer notes yet.</p>`}
+      </div>
+    </div>
+  `;
+}
+
+function tfDraftPanelNote(app, assessment) {
+  const firstSentence = String(app.researchPlan || app.researchArea || "The applicant proposes work connected to quantitative public health.").split(/[.!?]/)[0];
+  const gaps = assessment.components.filter((item) => item.verdict === "Gap").slice(0, 3).map((item) => item.code).join(", ") || "no major matrix gap";
+  return [
+    `${firstSentence}.`,
+    `Potential fit: ${app.applicant} shows strongest evidence around ${assessment.bestFit?.code || "the closest matching component"}, with teaching score ${assessment.teachingScore} and research score ${assessment.researchScore}.`,
+    `Research assessment: ${assessment.institutionalFit.explanation}`,
+    `Gaps: check ${gaps}, delivery evidence, and whether the applicant can support hands-on sessions at pace.`,
+    `Interview questions: Ask for one concrete tutorial plan, one marking or feedback example, and how the proposed 30 percent research plan would fit within a week and a half per week.`,
+  ].join("\n\n");
+}
+
+function tfReviewComponents() {
+  return state.courses
+    .filter((course) => course.code && course.code !== "MEI01")
+    .slice(0, 20)
+    .map((course) => ({
+      code: course.code,
+      title: course.title,
+      text: [course.code, course.title, course.aim, course.content, course.outcomes, course.type].filter(Boolean).join(" "),
+    }));
+}
+
+function tfAssessApplicant(app, idf) {
+  const teachingText = tfCandourText([app.teachingExperience, app.tutoringExperience, app.mentoringExperience, app.teachingSupport].join(" "));
+  const researchText = tfCandourText([app.phdField, app.thesisTitleExplainer, app.researchArea, app.quantitativeBackground, app.appliedTrackRecord, app.researchExperience, app.researchPlan, app.careerGrowth].join(" "));
+  const allText = `${teachingText} ${researchText}`;
+  const delivery = tfDeliveryEvidence(teachingText);
+  const components = tfReviewComponents()
+    .map((component) => tfComponentFit(component, teachingText, researchText, app, delivery, idf))
+    .sort((a, b) => b.score - a.score);
+  const depth = components[0]?.normalized || 0;
+  const breadthCount = components.filter((item) => item.normalized >= 35).length;
+  const breadth = Math.min(100, Math.round((breadthCount / 8) * 100));
+  const teachingScore = Math.round(depth * 0.45 + delivery.score * 30 + breadth * 0.25);
+  const research = tfResearchScore(app, researchText);
+  const weightedScore = Math.round(teachingScore * 0.7 + research.score * 0.3);
+  return {
+    teachingScore: Math.max(0, Math.min(100, teachingScore)),
+    researchScore: research.score,
+    weightedScore,
+    components,
+    bestFit: components[0],
+    delivery,
+    researchDimensions: research.dimensions,
+    institutionalFit: research.institutionalFit,
+    eligibility: tfEligibilityGate(app),
+    stability: weightedScore >= 78 ? "stable high" : weightedScore >= 58 ? "watch middle band" : "stable low",
+    wordCount: tfTokenize(allText).length,
+  };
+}
+
+function tfComponentFit(component, teachingText, researchText, app, delivery, idf) {
+  const courseTerms = [...new Set(tfTokenize(component.text))].filter((term) => !tfStopWords().has(term));
+  const teachingSet = new Set(tfTokenize(teachingText));
+  const researchSet = new Set(tfTokenize(researchText));
+  const matches = courseTerms
+    .filter((term) => teachingSet.has(term) || researchSet.has(term))
+    .map((term) => ({
+      term,
+      weight: (idf(term) || 1) * (teachingSet.has(term) ? 1.8 : 1),
+    }))
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, 5);
+  const phdBonus = tfTokenize(app.phdField || "").some((term) => courseTerms.includes(term)) ? 1.4 : 0;
+  const raw = matches.reduce((sum, item) => sum + item.weight, 0) + phdBonus;
+  const normalized = Math.min(100, Math.round(raw * 11));
+  const verdict =
+    normalized >= 62 && matches.length && delivery.score >= 55
+      ? "Can lecture"
+      : normalized >= 34
+        ? "Can tutor"
+        : "Gap";
+  const confidence = normalized >= 72 && delivery.score >= 70 ? "high" : normalized >= 42 ? "medium" : "low";
+  return {
+    code: component.code,
+    title: component.title,
+    score: raw,
+    normalized,
+    verdict,
+    confidence,
+    terms: matches.map((item) => item.term),
+  };
+}
+
+function tfReviewTermStats(apps) {
+  const docs = apps.map((app) => new Set(tfTokenize(tfReviewAllText(app))));
+  const df = {};
+  docs.forEach((doc) => doc.forEach((term) => (df[term] = (df[term] || 0) + 1)));
+  const n = Math.max(1, docs.length);
+  return (term) => Math.log((n + 1) / ((df[term] || 0) + 1)) + 1;
+}
+
+function tfReviewAllText(app) {
+  return [
+    app.phdField,
+    app.thesisTitleExplainer,
+    app.researchArea,
+    app.quantitativeBackground,
+    app.appliedTrackRecord,
+    app.teachingExperience,
+    app.tutoringExperience,
+    app.mentoringExperience,
+    app.researchExperience,
+    app.teachingSupport,
+    app.researchPlan,
+    app.careerGrowth,
+    tfFlattenText(app.fullApplication),
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function tfFlattenText(value) {
+  if (!value) return "";
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (Array.isArray(value)) return value.map(tfFlattenText).join(" ");
+  if (typeof value === "object") return Object.values(value).map(tfFlattenText).join(" ");
+  return "";
+}
+
+function tfCandourText(text) {
+  return String(text || "")
+    .replace(/although[^,.]{0,140}[,.]/gi, " ")
+    .replace(/while[^,.]{0,140}[,.]/gi, " ")
+    .replace(/however[^,.]{0,140}[,.]/gi, " ");
+}
+
+function tfTokenize(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((term) => term.length >= 4 && !tfStopWords().has(term));
+}
+
+function tfStopWords() {
+  return new Set(["with", "that", "this", "from", "have", "will", "been", "their", "there", "they", "them", "into", "using", "used", "also", "such", "more", "than", "course", "students", "research", "teaching", "public", "health", "mathematical", "mathematics"]);
+}
+
+function tfDeliveryEvidence(text) {
+  const value = String(text || "");
+  const role = /(teach|tutor|mentor|supervis|train|facilitat|session|mark|assess|workshop|practical|hands-on)/i.test(value);
+  if (!role) return { score: 0, label: "No role described", explanation: "No direct teaching, tutoring, mentoring, training, marking, or hands-on session role was described." };
+  const evidence = [
+    /\d+/.test(value),
+    /(student|cohort|participant|intern|researcher|class|group)/i.test(value),
+    /(week|month|year|semester|hour|daily|weekly)/i.test(value),
+    /(university|institute|centre|college|school|kemri|aims)/i.test(value),
+    /(R|Python|Sage|Matlab|Stata|SPSS|LaTeX|Quarto)/.test(value),
+    /(MSc|PhD|undergraduate|postgraduate|junior|senior)/i.test(value),
+  ].filter(Boolean).length;
+  const score = evidence >= 5 ? 100 : evidence >= 3 ? 85 : evidence >= 1 ? 65 : 30;
+  const label = evidence >= 5 ? "Richly evidenced" : evidence >= 3 ? "Several concrete details" : evidence >= 1 ? "Limited concrete detail" : "Role claimed, little detail";
+  return { score, label, explanation: `${label}. Concrete markers found: ${evidence}. Training, supervising interns, marking, and running hands-on sessions count as delivery evidence for this role.` };
+}
+
+function tfResearchScore(app, text) {
+  const dimensions = [
+    tfResearchDimension("Substance", text, ["question", "method", "data", "model", "output", "analysis"]),
+    tfResearchDimension("Feasible at 30 percent", text, ["existing", "secondary", "retrospective", "reanalysis", "available", "dataset"]),
+    tfResearchDimension("Track record", text, ["publication", "paper", "conference", "grant", "first", "author", "preprint"]),
+    tfResearchDimension("Programme and place fit", text, ["africa", "kenya", "nairobi", "infectious", "disease", "surveillance", "health"]),
+    tfResearchDimension("Independence", text, ["propose", "plan", "lead", "develop", "agenda", "independent"]),
+    tfResearchDimension("Institutional fit", text, ["kemri", "epidemiology", "statistics", "informatics", "malaria", "hiv", "tb", "one", "health", "ncd"]),
+  ];
+  const score = Math.round(dimensions.reduce((sum, item) => sum + item.score, 0) / dimensions.length);
+  return { score, dimensions, institutionalFit: tfInstitutionalFit(app, text) };
+}
+
+function tfResearchDimension(label, text, terms) {
+  const tokens = new Set(tfTokenize(text));
+  const matched = terms.filter((term) => tokens.has(term.toLowerCase()));
+  return { label, score: Math.min(100, matched.length * 22), matched };
+}
+
+function tfInstitutionalFit(app, text) {
+  const value = String(text || "").toLowerCase();
+  const disease = /(malaria|hiv|tuberculosis|tb|infectious|vector|maternal|child|ncd|one health|vaccine|clinical|surveillance)/i.test(value);
+  const method = /(model|statistics|informatics|machine learning|data science|bayesian|spatial|epidemiology)/i.test(value);
+  if (disease && method) return { label: "clear home", explanation: "The plan combines a disease or public health domain with quantitative methods, so DESI can be a methodological co-host and a KEMRI disease or domain centre can be named during review." };
+  if (disease || method) return { label: "plausible home", explanation: "There is a plausible Nairobi home, but the panel should identify the concrete KEMRI centre or programme during interview." };
+  return { label: "would need brokering", explanation: "The plan needs brokering because the current text does not name a clear disease, health-system, or scientific domain home." };
+}
+
+function tfEligibilityGate(app) {
+  const reasons = [];
+  const passport = !!app.passport;
+  const certificate = !!app.phdCertificate;
+  const refs = tfReferenceCount(app);
+  const completion = Date.parse(app.phdCompletion || "");
+  const start = Date.parse("2026-10-01");
+  const earliest = Date.parse("2024-10-01");
+  const phdWindow = completion && completion >= earliest && completion <= start;
+  const residence = /yes|ready|accept|available|commit/i.test(String(app.residenceReady || ""));
+  const gap = /yes|ready|accept|available|commit/i.test(String(app.teachingGapReady || ""));
+  if (!passport) reasons.push("passport not confirmed");
+  if (!certificate) reasons.push("PhD certificate not confirmed");
+  if (refs < 2) reasons.push("fewer than two referees");
+  if (!phdWindow) reasons.push("PhD completion is outside the two-year window or unclear");
+  if (!residence) reasons.push("Nairobi residency not clearly accepted");
+  if (!gap) reasons.push("teaching-continuity duty not clearly accepted");
+  const label = reasons.length === 0 ? "Progress strong" : reasons.length <= 2 ? "Progress" : reasons.length <= 4 ? "Review" : "Do not progress";
+  const color = label === "Progress strong" ? "green" : label === "Progress" ? "blue" : label === "Review" ? "gold" : "danger";
+  return { label, color, reasons: reasons.length ? reasons : ["All deterministic gate checks passed."] };
+}
+
+function tfReferenceCount(app) {
+  return (app.references || []).filter((ref) => ref && (ref.name || ref.email || ref.affiliation)).length;
+}
+
+function tfLengthBias(apps) {
+  if (apps.length < 2) return "n/a";
+  const xs = apps.map((app) => app.assessment.wordCount || 0);
+  const ys = apps.map((app) => app.assessment.weightedScore || 0);
+  const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const my = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const numerator = xs.reduce((sum, x, i) => sum + (x - mx) * (ys[i] - my), 0);
+  const dx = Math.sqrt(xs.reduce((sum, x) => sum + (x - mx) ** 2, 0));
+  const dy = Math.sqrt(ys.reduce((sum, y) => sum + (y - my) ** 2, 0));
+  if (!dx || !dy) return "0.00";
+  return (numerator / (dx * dy)).toFixed(2);
+}
+
+function parseJson(value, fallback) {
+  try {
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 function renderPersonRow(item) {
@@ -4992,6 +5964,16 @@ function renderGoogle() {
     "ConsentAudit",
     "EmergencyAccessAudit",
     "CalendarSyncSettings",
+    "CfaStatuses",
+    "LecturerApplications",
+    "TutorialFellowApplications",
+    "Reviewers",
+    "ReviewAssignments",
+    "ReviewScores",
+    "ReviewNotes",
+    "ReviewStages",
+    "ReviewConfig",
+    "ReviewAudit",
     "DriveDocuments",
     "AccessRoles",
   ];
@@ -5106,6 +6088,16 @@ function sheetDescription(tab) {
     ConsentAudit: "consent_id, user_id, support_id, scope, granted_at, withdrawn_at",
     EmergencyAccessAudit: "access_id, support_id, accessor_id, reason, timestamp, review_status",
     CalendarSyncSettings: "user_id, provider, sync_enabled, selected_calendars, reminder_preferences",
+    CfaStatuses: "call_id, status, updated_at",
+    LecturerApplications: "application_id, submitted_at, applicant_name, email, course_code, availability, uploaded_files_json",
+    TutorialFellowApplications: "application_id, submitted_at, applicant_name, email, phd_completion_date, residence_ready, full_application_json",
+    Reviewers: "reviewer_email, name, role, status, assigned_call, created_at, updated_at",
+    ReviewAssignments: "assignment_id, application_id, reviewer_email, call_id, status, created_at, updated_at",
+    ReviewScores: "score_id, application_id, reviewer_email, teaching_score, research_score, weighted_score, eligibility_decision, recommendation, reason",
+    ReviewNotes: "note_id, application_id, author_email, stage, note, status, created_at, edited_at, withdrawn_at",
+    ReviewStages: "application_id, stage, stage_reason, updated_by, updated_at",
+    ReviewConfig: "config_key, config_value, updated_by, updated_at",
+    ReviewAudit: "audit_id, timestamp, reviewer_email, action, application_id, before_json, after_json, reason",
     DriveDocuments: "document_id, course_code, folder_id, url, visibility, version",
     AccessRoles: "email, role, active, invited_by, last_login",
   };
@@ -5266,6 +6258,7 @@ function renderDrawer() {
   if (type === "supportForm") content = supportFormDrawer(payload);
   if (type === "supportRequest") content = supportRequestDrawer(payload);
   if (type === "cfaCall") content = cfaCallDrawer(payload);
+  if (type === "tfReviewAudit") content = tfReviewAuditDrawer(payload);
   return `<div class="drawer-backdrop" onclick="if(event.target.classList.contains('drawer-backdrop')) closeDrawer()">${content}</div>`;
 }
 
@@ -5668,6 +6661,11 @@ function exportDrawer() {
   };
   const body = `<div class="field"><label>Prototype data export</label><textarea readonly style="min-height:360px">${escapeHtml(JSON.stringify(payload, null, 2))}</textarea></div>`;
   return drawerShell("Data Export", "JSON structure ready for backend or Google Sheets sync.", body, `<button class="button ghost" onclick="closeDrawer()">Close</button>`);
+}
+
+function tfReviewAuditDrawer(payload) {
+  const body = `<div class="field"><label>Tutorial Fellow review audit</label><textarea readonly style="min-height:420px">${escapeHtml(JSON.stringify(payload || {}, null, 2))}</textarea></div>`;
+  return drawerShell("TF Review Audit", "Copy-ready reviewer scores, notes, stages, and audit trail.", body, `<button class="button ghost" onclick="closeDrawer()">Close</button>`);
 }
 
 function timesheetFormDrawer() {
@@ -6454,6 +7452,20 @@ window.updateSupportStatus = updateSupportStatus;
 window.addStudyGroup = addStudyGroup;
 window.addStudyGroupActivity = addStudyGroupActivity;
 window.updateStudyGroupInvitation = updateStudyGroupInvitation;
+window.requestTfReviewerOtp = requestTfReviewerOtp;
+window.verifyTfReviewerOtp = verifyTfReviewerOtp;
+window.signOutTfReviewer = signOutTfReviewer;
+window.refreshTfReviews = refreshTfReviews;
+window.updateTfReviewStage = updateTfReviewStage;
+window.saveTfReviewScore = saveTfReviewScore;
+window.saveTfReviewNote = saveTfReviewNote;
+window.withdrawTfReviewNote = withdrawTfReviewNote;
+window.exportTfReviewAudit = exportTfReviewAudit;
+window.selectTfReviewApplicant = selectTfReviewApplicant;
+window.setTfReviewFilter = setTfReviewFilter;
+window.setTfReviewTab = setTfReviewTab;
+window.insertTfDraftNote = insertTfDraftNote;
+window.updateTfReviewWeightedPreview = updateTfReviewWeightedPreview;
 window.state = state;
 
 migrateProgrammeData();
