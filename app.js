@@ -2069,7 +2069,7 @@ const TF_REVIEW_STAGES = [
   { id: "finalists", label: "Finalists", target: 30 },
   { id: "decision", label: "Decision", target: 10 },
 ];
-const TF_REVIEW_TABS = ["Evaluation", "Application", "Notes and revision"];
+const TF_REVIEW_TABS = ["Evaluation", "Application"];
 const GOOGLE_DATASETS = [
   ["courses", "Courses"],
   ["people", "People"],
@@ -2244,6 +2244,9 @@ const state = {
     config: {},
     selectedId: "",
     stageFilter: "all",
+    query: "",
+    sort: "weighted",
+    courseFilter: "",
     tab: "Evaluation",
     loading: false,
     lastSync: "",
@@ -4356,6 +4359,21 @@ function setTfReviewTab(tab) {
   render();
 }
 
+function setTfReviewQuery(value) {
+  state.tfReview.query = String(value || "");
+  render();
+}
+
+function setTfReviewSort(value) {
+  state.tfReview.sort = value || "weighted";
+  render();
+}
+
+function setTfReviewCourseFilter(value) {
+  state.tfReview.courseFilter = value || "";
+  render();
+}
+
 function insertTfDraftNote(applicationId) {
   const app = state.tfReview.applications.find((item) => item.applicationId === applicationId);
   if (!app) return;
@@ -4376,12 +4394,11 @@ function renderTfReviews() {
   const session = tfReviewSession();
   if (!googleBackendAvailable()) {
     return `
-      <div class="view">
-        <section class="card">
-          <div class="card-header"><div><h2>TF Reviews need Google Sheets connection</h2><p>Set the Apps Script Web App URL in Sheets & Drive before loading reviewer data.</p></div></div>
-          <div class="card-body">
-            <button class="button primary" onclick="setView('google')">${icon("cloud", 17)}Open Sheets & Drive</button>
-          </div>
+      <div class="view tf-review-view tf-review-mock">
+        <section class="tf-review-empty">
+          <h2>TF Reviews need Google Sheets connection</h2>
+          <p>Set the Apps Script Web App URL in Sheets & Drive before loading reviewer data.</p>
+          <button class="button primary" onclick="setView('google')">${icon("cloud", 17)}Open Sheets & Drive</button>
         </section>
       </div>
     `;
@@ -4390,81 +4407,93 @@ function renderTfReviews() {
   const assessed = tfReviewAssessedApplicants();
   const visible = tfReviewFilteredApplicants(assessed);
   const selected = assessed.find((item) => item.applicationId === state.tfReview.selectedId) || visible[0] || assessed[0];
+  const courseOptions = tfReviewComponents();
   return `
-    <div class="view tf-review-view">
-      <section class="review-hero">
+    <div class="view tf-review-view tf-review-mock">
+      <header class="tf-review-masthead">
         <div>
-          <span class="mission-eyebrow">${icon("shield", 16)} Reviewer-only window</span>
-          <h2>Tutorial Fellow staged review.</h2>
-          <p>Read submitted applications from Google Sheets, revise scores with reasons, keep reviewer notes owned, and use the cohort heatmap to avoid uncovered curriculum components.</p>
-          <div class="hero-actions">
-            <button class="button primary" onclick="refreshTfReviews()">${icon("database", 17)}Refresh from Sheets</button>
-            <button class="button ghost" onclick="exportTfReviewAudit()">${icon("sheet", 17)}Export audit</button>
-            <button class="button ghost" onclick="signOutTfReviewer()">${icon("x", 17)}Clear session</button>
-          </div>
-          ${state.tfReview.error ? `<p class="review-error">${escapeHtml(state.tfReview.error)}</p>` : ""}
+          <h1>Tutorial Fellow Applications, Staged Review</h1>
+          <div class="tf-review-sub">MathEpi Cooperative Master's Programme &nbsp;|&nbsp; AIMS RIC and KEMRI &nbsp;|&nbsp; Ref MathEpi-TF-2026-001</div>
         </div>
-        <div class="review-session-card">
-          <span class="badge green">Verified reviewer</span>
-          <h3>${escapeHtml(tfReviewReviewerName())}</h3>
-          <p>${escapeHtml(session.email || "")}</p>
-          <p>Last sync: ${state.tfReview.lastSync ? escapeHtml(new Date(state.tfReview.lastSync).toLocaleString()) : "Not loaded yet"}</p>
-        </div>
-      </section>
+        ${renderTfReviewGenderSummary(assessed)}
+      </header>
 
-      <section class="kpi-grid review-kpis">
-        ${kpi("Applicants", assessed.length, "Rows loaded from TutorialFellowApplications", "users", "blue")}
-        ${kpi("Visible", visible.length, "Current funnel filter", "filter", "gold")}
-        ${kpi("Shortlist+", tfReviewShortlisted(assessed).length, "Applicants at shortlist or beyond", "check", "green")}
-        ${kpi("Length bias", tfLengthBias(assessed), "Correlation between words and machine score", "activity", "maroon")}
-      </section>
-
+      <div class="tf-review-note">Decision support, not a decision. Terms are weighted by how rare they are in this applicant pool, so common vocabulary counts for little. <b>Known limitation: coverage can correlate with how much the applicant wrote, so this instrument partly measures fluency, not capability.</b></div>
       ${renderTfReviewFunnel(assessed)}
-      ${renderTfReviewGenderAndHeatmap(assessed)}
 
-      <section class="section-grid tf-review-grid">
-        <div class="card">
-          <div class="card-header">
-            <div><h2>Applicants</h2><p>Filtered to ${escapeHtml(tfReviewStageLabel(state.tfReview.stageFilter))} or beyond.</p></div>
-            <span class="badge ${state.tfReview.loading ? "gold" : "blue"}">${state.tfReview.loading ? "Loading" : "Sheets linked"}</span>
-          </div>
-          <div class="card-body applicant-review-list">
+      <div class="tf-review-toolbar">
+        <input type="text" value="${escapeHtml(state.tfReview.query)}" oninput="setTfReviewQuery(this.value)" placeholder="Search name, country, PhD field, institution" />
+        <select onchange="setTfReviewSort(this.value)">
+          ${[
+            ["weighted", "Sort: weighted 70:30 score"],
+            ["recommendation", "Sort: recommendation"],
+            ["coverage", "Sort: curriculum coverage"],
+            ["research", "Sort: research strength"],
+            ["name", "Sort: name"],
+            ["notes", "Sort: most discussed"],
+          ].map(([value, label]) => `<option value="${value}" ${state.tfReview.sort === value ? "selected" : ""}>${label}</option>`).join("")}
+        </select>
+        <select onchange="setTfReviewCourseFilter(this.value)">
+          <option value="">Filter: any course</option>
+          ${courseOptions.map((course) => `<option value="${course.code}" ${state.tfReview.courseFilter === course.code ? "selected" : ""}>${course.code} ${escapeHtml(course.title)}</option>`).join("")}
+        </select>
+        <button onclick="exportTfReviewAudit()">Export review JSON</button>
+        <button onclick="refreshTfReviews()">Refresh from Sheets</button>
+        <button onclick="signOutTfReviewer()">Clear session</button>
+        <div class="tf-reviewer">Reviewing as <b>${escapeHtml(tfReviewReviewerName())}</b></div>
+      </div>
+
+      <main class="tf-review-main">
+        ${state.tfReview.error ? `<p class="review-error">${escapeHtml(state.tfReview.error)}</p>` : ""}
+        ${renderTfReviewGenderAndHeatmap(assessed)}
+        <section class="tf-review-board">
+          <div class="tf-review-list">
             ${visible.length ? visible.map(renderTfApplicantRow).join("") : `<p class="muted-note">No applications match this review filter yet.</p>`}
           </div>
-        </div>
-        ${selected ? renderTfReviewDetail(selected) : renderTfReviewEmptyDetail()}
-      </section>
+          ${selected ? renderTfReviewDetail(selected) : renderTfReviewEmptyDetail()}
+        </section>
+      </main>
     </div>
   `;
 }
 
 function renderTfReviewLogin() {
   return `
-    <div class="view">
-      <section class="card review-login-card">
-        <div class="card-header">
-          <div><h2>Reviewer verification</h2><p>Only active reviewers listed in the Reviewers Google Sheet can access Tutorial Fellow reviews.</p></div>
-          <span class="badge gray">Restricted</span>
+    <div class="view tf-review-view tf-review-mock">
+      <header class="tf-review-masthead">
+        <div>
+          <h1>Tutorial Fellow Applications, Staged Review</h1>
+          <div class="tf-review-sub">Reviewer-only access &nbsp;|&nbsp; Google Sheets-backed verification</div>
         </div>
-        <div class="card-body">
-          <div class="form-grid">
-            <div class="field">
-              <label>Reviewer email</label>
+        <div class="tf-gcount">
+          <div class="tf-glabel">Access level</div>
+          <b>Restricted</b>
+        </div>
+      </header>
+      <div class="tf-review-note">Only active reviewers listed in the Reviewers Google Sheet can access Tutorial Fellow reviews. Security is enforced in Apps Script before any application data is loaded.</div>
+      <main class="tf-review-main">
+        <section class="tf-login-card">
+          <div>
+            <span class="tf-login-label">Reviewer verification</span>
+            <h2>Enter your email, receive a code, then open the review window.</h2>
+          </div>
+          <div class="tf-login-grid">
+            <label>
+              <span>Reviewer email</span>
               <input id="tfReviewEmail" type="email" value="${escapeHtml(state.tfReview.email || "")}" placeholder="reviewer@example.org" />
-            </div>
-            <div class="field">
-              <label>Verification code</label>
+            </label>
+            <label>
+              <span>Verification code</span>
               <input id="tfReviewCode" inputmode="numeric" maxlength="6" placeholder="6-digit code" />
-            </div>
+            </label>
           </div>
-          <div class="hero-actions compact-actions">
-            <button class="button ghost" onclick="requestTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("mail", 17)}Send code</button>
-            <button class="button primary" onclick="verifyTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("shield", 17)}Verify and open reviews</button>
+          <div class="tf-login-actions">
+            <button onclick="requestTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("mail", 17)}Send code</button>
+            <button class="primary" onclick="verifyTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("shield", 17)}Verify and open reviews</button>
           </div>
-          <p class="muted-note">Security is enforced in Apps Script. The frontend tab only opens after the backend confirms the reviewer session.</p>
           ${state.tfReview.error ? `<p class="review-error">${escapeHtml(state.tfReview.error)}</p>` : ""}
-        </div>
-      </section>
+        </section>
+      </main>
     </div>
   `;
 }
@@ -4476,9 +4505,47 @@ function tfReviewAssessedApplicants() {
 
 function tfReviewFilteredApplicants(apps) {
   const minRank = tfReviewStageRank(tfReviewStageLabel(state.tfReview.stageFilter));
-  return apps
-    .filter((app) => tfReviewStageRank(tfReviewStageFor(app.applicationId)) >= minRank)
-    .sort((a, b) => tfEffectiveWeighted(b).score - tfEffectiveWeighted(a).score);
+  let result = apps.filter((app) => tfReviewStageRank(tfReviewStageFor(app.applicationId)) >= minRank);
+  const query = String(state.tfReview.query || "").trim().toLowerCase();
+  if (query) {
+    result = result.filter((app) =>
+      [
+        app.applicant,
+        app.nationality,
+        app.country,
+        app.phdField,
+        app.affiliation,
+        app.designation,
+        app.researchArea,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(query),
+    );
+  }
+  if (state.tfReview.courseFilter) {
+    result = result.filter((app) => {
+      const verdict = app.assessment.components.find((item) => item.code === state.tfReview.courseFilter)?.verdict || "Gap";
+      return verdict !== "Gap";
+    });
+  }
+  const sort = state.tfReview.sort || "weighted";
+  const recommendationRank = { "Progress strong": 0, Progress: 1, Review: 2, "Do not progress": 3 };
+  if (sort === "recommendation") {
+    result.sort((a, b) => (recommendationRank[a.assessment.eligibility.label] ?? 9) - (recommendationRank[b.assessment.eligibility.label] ?? 9) || tfEffectiveWeighted(b).score - tfEffectiveWeighted(a).score);
+  } else if (sort === "coverage") {
+    result.sort((a, b) => tfReviewCoverageCount(b) - tfReviewCoverageCount(a) || tfEffectiveWeighted(b).score - tfEffectiveWeighted(a).score);
+  } else if (sort === "research") {
+    result.sort((a, b) => b.assessment.researchScore - a.assessment.researchScore || tfEffectiveWeighted(b).score - tfEffectiveWeighted(a).score);
+  } else if (sort === "name") {
+    result.sort((a, b) => String(a.applicant || "").localeCompare(String(b.applicant || "")));
+  } else if (sort === "notes") {
+    result.sort((a, b) => tfReviewNoteCount(b.applicationId) - tfReviewNoteCount(a.applicationId) || tfEffectiveWeighted(b).score - tfEffectiveWeighted(a).score);
+  } else {
+    result.sort((a, b) => tfEffectiveWeighted(b).score - tfEffectiveWeighted(a).score);
+  }
+  return result;
 }
 
 function tfReviewShortlisted(apps) {
@@ -4514,18 +4581,74 @@ function tfEffectiveWeighted(app) {
   };
 }
 
+function tfReviewCoverageCount(app) {
+  return app.assessment.components.filter((item) => item.verdict !== "Gap").length;
+}
+
+function tfReviewLectureCount(app) {
+  return app.assessment.components.filter((item) => item.verdict === "Can lecture").length;
+}
+
+function tfReviewTutorCount(app) {
+  return app.assessment.components.filter((item) => item.verdict === "Can tutor").length;
+}
+
+function tfReviewNoteCount(applicationId) {
+  return state.tfReview.notes.filter((item) => item.application_id === applicationId && item.status !== "Withdrawn").length;
+}
+
+function tfScoreBand(score) {
+  const value = Number(score || 0);
+  if (value >= 75) return "Strong";
+  if (value >= 55) return "Credible";
+  if (value >= 30) return "Thin";
+  return "Not evidenced";
+}
+
+function tfRowStageClass(app) {
+  const stage = tfReviewStageFor(app.applicationId);
+  if (stage === "Shortlist") return "shortlist";
+  if (stage === "Finalists") return "final";
+  if (stage === "Decision" && app.assessment.eligibility.label !== "Do not progress") return "award";
+  if (app.assessment.eligibility.label === "Do not progress") return "reject";
+  return "";
+}
+
+function tfRecommendationClass(label) {
+  if (label === "Progress strong") return "s";
+  if (label === "Progress") return "p";
+  if (label === "Review") return "r";
+  return "d";
+}
+
+function tfReviewGenderSummary(apps) {
+  const shortlisted = tfReviewShortlisted(apps);
+  const pool = shortlisted.length ? shortlisted : apps;
+  const women = pool.filter((app) => /^f|woman|female/i.test(String(app.gender || ""))).length;
+  const total = pool.length;
+  const percent = total ? Math.round((women / total) * 100) : 0;
+  return `
+    <div class="tf-gcount">
+      <div class="tf-glabel">${shortlisted.length ? "Shortlist and beyond" : "Full applicant pool"}</div>
+      <b>${percent}%</b> women (${women} of ${total}) &middot; programme target 50%
+      <div class="tf-gbar"><i style="width:${Math.min(percent, 100)}%"></i></div>
+    </div>
+  `;
+}
+
 function renderTfReviewFunnel(apps) {
   const total = Math.max(1, apps.length);
   return `
-    <section class="review-funnel">
+    <section class="tf-funnel">
       ${TF_REVIEW_STAGES.map((stage) => {
         const count = stage.id === "all" ? apps.length : apps.filter((app) => tfReviewStageRank(tfReviewStageFor(app.applicationId)) >= tfReviewStageRank(stage.label)).length;
         const share = Math.round((count / total) * 100);
         return `
-          <button class="funnel-step ${state.tfReview.stageFilter === stage.id ? "active" : ""}" onclick="setTfReviewFilter('${stage.id}')">
-            <strong>${stage.label}</strong>
-            <span>${count} applicants</span>
-            <small>${share}% of intake, target ${stage.target}%</small>
+          <button class="tf-stage ${state.tfReview.stageFilter === stage.id ? "active" : ""}" onclick="setTfReviewFilter('${stage.id}')">
+            <span class="tf-stage-name">${stage.label}</span>
+            <span class="tf-stage-count">${count}</span>
+            <span class="tf-stage-percent">${share}% of intake &middot; target ${stage.target}%</span>
+            <span class="tf-stage-bar"><i style="width:${share}%"></i></span>
           </button>
         `;
       }).join("")}
@@ -4536,25 +4659,33 @@ function renderTfReviewFunnel(apps) {
 function renderTfReviewGenderAndHeatmap(apps) {
   const shortlist = tfReviewShortlisted(apps);
   const pool = shortlist.length ? shortlist : apps;
-  const women = pool.filter((app) => /^f|woman|female/i.test(String(app.gender || ""))).length;
-  const targetLabel = shortlist.length ? "shortlist and beyond" : "full pool";
+  const label = shortlist.length ? "your current shortlist and beyond" : "the full applicant pool";
+  const coverageStats = tfReviewCoverageStats(pool);
   return `
-    <section class="section-grid review-coverage-grid">
-      <div class="card">
-        <div class="card-header"><div><h2>Cohort coverage heatmap</h2><p>Coverage among applicants at shortlist or beyond.</p></div></div>
-        <div class="card-body">
-          <div class="coverage-grid">${renderTfCoverageHeatmap(apps)}</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header"><div><h2>Gender counter</h2><p>Target is 50 percent for the active review pool.</p></div></div>
-        <div class="card-body gender-counter">
-          <strong>${pool.length ? Math.round((women / pool.length) * 100) : 0}%</strong>
-          <p>${women} of ${pool.length} in ${targetLabel}. The display switches from full pool to shortlist once shortlisting begins.</p>
-        </div>
+    <section class="tf-cov">
+      <h3>Curriculum cover across ${label}</h3>
+      <div class="tf-cov-summary">${pool.length} ${pool.length === 1 ? "person" : "people"} covering the 20 assessable components. ${coverageStats.lecture} with lecture cover, ${coverageStats.tutor} tutor cover only, ${coverageStats.gap} with nobody. Move people into Shortlist and this recalculates, so you can select a set that covers the programme rather than several people with the same strengths.</div>
+      <div class="tf-coverage-grid">${renderTfCoverageHeatmap(apps)}</div>
+      <div class="tf-legend">
+        <span><i class="tf-sw lecture"></i>Someone can step in and lecture</span>
+        <span><i class="tf-sw tutor"></i>Tutorial and marking cover only</span>
+        <span><i class="tf-sw gap"></i>No cover in this group</span>
       </div>
     </section>
   `;
+}
+
+function tfReviewCoverageStats(pool) {
+  return tfReviewComponents().reduce(
+    (acc, component) => {
+      const verdicts = pool.map((app) => app.assessment.components.find((item) => item.code === component.code)?.verdict || "Gap");
+      if (verdicts.includes("Can lecture")) acc.lecture += 1;
+      else if (verdicts.includes("Can tutor")) acc.tutor += 1;
+      else acc.gap += 1;
+      return acc;
+    },
+    { lecture: 0, tutor: 0, gap: 0 },
+  );
 }
 
 function renderTfCoverageHeatmap(apps) {
@@ -4565,8 +4696,8 @@ function renderTfCoverageHeatmap(apps) {
     .map((component) => {
       const verdicts = pool.map((app) => app.assessment.components.find((item) => item.code === component.code)?.verdict || "Gap");
       const level = verdicts.includes("Can lecture") ? "lecture" : verdicts.includes("Can tutor") ? "tutor" : "gap";
-      const label = level === "lecture" ? "Lecture cover" : level === "tutor" ? "Tutor only" : "No cover";
-      return `<span class="coverage-cell ${level}" title="${escapeHtml(component.title)}">${component.code}<small>${label}</small></span>`;
+      const label = level === "lecture" ? `${verdicts.filter((item) => item === "Can lecture").length} can lecture` : level === "tutor" ? `${verdicts.filter((item) => item === "Can tutor").length} can tutor` : "no cover";
+      return `<span class="tf-coverage-cell ${level}" title="${escapeHtml(component.title)}"><b>${component.code}</b><small>${label}</small></span>`;
     })
     .join("");
 }
@@ -4578,59 +4709,80 @@ function renderTfApplicantRow(app) {
   const refs = tfReferenceCount(app);
   const lecture = assessment.components.filter((item) => item.verdict === "Can lecture");
   const tutor = assessment.components.filter((item) => item.verdict === "Can tutor");
+  const noteCount = tfReviewNoteCount(app.applicationId);
+  const genderClass = /^f|woman|female/i.test(String(app.gender || "")) ? "f" : "m";
+  const bestFit = assessment.bestFit || {};
+  const recommendation = assessment.eligibility.label;
   return `
-    <article class="tf-applicant-row ${state.tfReview.selectedId === app.applicationId ? "active" : ""}">
-      <button class="tf-applicant-main" onclick="selectTfReviewApplicant(${jsString(app.applicationId)})">
-        <span class="avatar">${initials(app.applicant || "TF")}</span>
-        <span>
-          <strong>${escapeHtml(app.applicant || "Unnamed applicant")}</strong>
-          <small>${escapeHtml([app.gender, app.phone, app.phdField].filter(Boolean).join(" | "))}</small>
-          <span class="row-tags">
-            <span class="chip ${assessment.eligibility.color}">${assessment.eligibility.label}</span>
-            <span class="chip blue">Best fit ${assessment.bestFit?.code || "TBC"}</span>
-            <span class="chip gray">${refs} referees</span>
-            <span class="chip ${score.revised ? "gold" : "gray"}">${score.revised ? "Revised" : "Machine"} ${score.score}</span>
-            ${lecture.slice(0, 2).map((item) => `<span class="chip green">${item.code} lecture</span>`).join("")}
-            ${tutor.length ? `<span class="chip gold">plus ${tutor.length} tutor level</span>` : ""}
-          </span>
-        </span>
-      </button>
-      <div class="tf-score-strip">
-        <span><b>${score.teaching}</b><small>Teaching</small></span>
-        <span><b>${score.research}</b><small>Research</small></span>
-        <span><b>${score.score}</b><small>70:30</small></span>
+    <article class="tf-row ${state.tfReview.selectedId === app.applicationId ? "active" : ""}" data-s="${tfRowStageClass(app)}">
+      <div class="tf-idtag">${escapeHtml(app.applicationId || "TF")}</div>
+      <div>
+        <div class="tf-name">${escapeHtml([app.title, app.applicant || "Unnamed applicant"].filter(Boolean).join(" "))}</div>
+        <div class="tf-ident">
+          <div><span class="k">Gender</span><span class="v ${genderClass}">${escapeHtml(app.gender || "Not stated")}</span></div>
+          <div><span class="k">Phone</span><span class="v">${escapeHtml(app.phone || "Not given")}</span></div>
+          <div><span class="k">PhD field</span><span class="v">${escapeHtml(app.phdField || "Not stated")}</span></div>
+        </div>
+        <div class="tf-dual">
+          <div><span class="k">Teaching x0.7</span><span class="v ${tfScoreBand(score.teaching).replace(/\s/g, "")}">${score.teaching}</span><span class="k soft">${tfScoreBand(score.teaching)}</span></div>
+          <div><span class="k">Research x0.3</span><span class="v ${tfScoreBand(score.research).replace(/\s/g, "")}">${score.research}</span><span class="k soft">${tfScoreBand(score.research)}</span></div>
+          <div class="weighted"><span class="k">Weighted 70:30${score.revised ? ", revised" : ""}</span><span class="v ${tfScoreBand(score.score).replace(/\s/g, "")}">${score.score}</span><span class="k soft">${score.revised ? `machine said ${assessment.weightedScore}` : tfScoreBand(score.score)}</span></div>
+        </div>
+        <div class="tf-chips">
+          <span class="tf-chip">${escapeHtml(stage)}</span>
+          <span class="tf-chip ${app.passport && app.phdCertificate ? "good" : "bad"}">${app.passport && app.phdCertificate ? "Documents attached" : "Documents missing"}</span>
+          <span class="tf-chip ${refs >= 2 ? "good" : "bad"}">${refs} referee${refs === 1 ? "" : "s"}</span>
+          <span class="tf-chip">${tfReviewCoverageCount(app)} of ${assessment.components.length} components</span>
+          <span class="tf-chip ${assessment.delivery.score >= 65 ? "good" : "flag"}">Delivery: ${escapeHtml(assessment.delivery.label)}</span>
+          ${assessment.eligibility.reasons.length > 1 ? `<span class="tf-chip flag">${assessment.eligibility.reasons.length} eligibility flag${assessment.eligibility.reasons.length === 1 ? "" : "s"}</span>` : ""}
+        </div>
+        <div class="tf-chips">
+          <span class="tf-chip crs bf" title="${escapeHtml(bestFit.title || "")}">Best fit ${bestFit.code || "TBC"}</span>
+          ${lecture.filter((item) => item.code !== bestFit.code).slice(0, 3).map((item) => `<span class="tf-chip crs" title="${escapeHtml(item.title)}">Can lecture ${item.code}</span>`).join("")}
+          ${tutor.length ? `<span class="tf-chip">plus ${tutor.length} at tutor level</span>` : ""}
+        </div>
       </div>
-      <select class="stage-select" onchange="updateTfReviewStage(${jsString(app.applicationId)}, this.value)">
-        ${TF_REVIEW_STAGES.map((item) => `<option ${stage === item.label ? "selected" : ""}>${item.label}</option>`).join("")}
-      </select>
+      <div class="tf-actions">
+        <div class="tf-rec ${tfRecommendationClass(recommendation)}">${recommendation}</div>
+        <span class="tf-covnum">${Math.round((tfReviewCoverageCount(app) / Math.max(1, assessment.components.length)) * 100)}% of matrix &middot; depth ${bestFit.normalized || 0}</span>
+        <button onclick="selectTfReviewApplicant(${jsString(app.applicationId)})">Open and review</button>
+        <select class="stage-select" onchange="updateTfReviewStage(${jsString(app.applicationId)}, this.value)">
+          ${TF_REVIEW_STAGES.map((item) => `<option ${stage === item.label ? "selected" : ""}>${item.label}</option>`).join("")}
+        </select>
+        ${noteCount ? `<span class="tf-notecount">${noteCount} note${noteCount === 1 ? "" : "s"}</span>` : ""}
+      </div>
     </article>
   `;
 }
 
 function renderTfReviewEmptyDetail() {
   return `
-    <div class="card">
-      <div class="card-header"><div><h2>No applicant selected</h2><p>Refresh from Google Sheets or select an applicant row.</p></div></div>
-      <div class="card-body"><p class="muted-note">The review panel reads from TutorialFellowApplications after reviewer verification.</p></div>
-    </div>
+    <aside class="tf-drawer-card">
+      <div class="tf-dhead"><h2>No applicant selected</h2><div class="tf-dmeta">Refresh from Google Sheets or select an applicant row.</div></div>
+      <div class="tf-dbody"><p class="muted-note">The review panel reads from TutorialFellowApplications after reviewer verification.</p></div>
+    </aside>
   `;
 }
 
 function renderTfReviewDetail(app) {
   const tab = state.tfReview.tab || "Evaluation";
   return `
-    <div class="card tf-review-detail">
-      <div class="card-header">
-        <div><h2>${escapeHtml(app.applicant)}</h2><p>${escapeHtml([app.email, app.affiliation, app.designation].filter(Boolean).join(" | "))}</p></div>
-        <span class="badge ${app.assessment.eligibility.color}">${app.assessment.eligibility.label}</span>
+    <aside class="tf-drawer-card tf-review-detail">
+      <div class="tf-dhead">
+        <h2>${escapeHtml(app.applicant || "Unnamed applicant")}</h2>
+        <div class="tf-dmeta">${escapeHtml([app.applicationId, app.gender || "gender not stated", app.phone || "no phone", app.phdField || "field not stated", app.nationality].filter(Boolean).join(" | "))}</div>
       </div>
-      <div class="card-body">
-        <div class="tabs review-tabs">
-          ${TF_REVIEW_TABS.map((item) => `<button class="tab ${tab === item ? "active" : ""}" onclick="setTfReviewTab(${jsString(item)})">${item}</button>`).join("")}
-        </div>
-        ${tab === "Application" ? renderTfApplicationTab(app) : tab === "Notes and revision" ? renderTfNotesTab(app) : renderTfEvaluationTab(app)}
+      <div class="tf-tabs">
+        ${TF_REVIEW_TABS.map((item) => `<button class="${tab === item ? "on" : ""}" onclick="setTfReviewTab(${jsString(item)})">${item}</button>`).join("")}
       </div>
-    </div>
+      <div class="tf-stagepick">
+        ${TF_REVIEW_STAGES.map((item) => `<button class="${tfReviewStageFor(app.applicationId) === item.label ? "sel" : ""}" onclick="updateTfReviewStage(${jsString(app.applicationId)}, ${jsString(item.label)})">${item.label}</button>`).join("")}
+      </div>
+      <div class="tf-dbody">
+        ${tab === "Application" ? renderTfApplicationTab(app) : renderTfEvaluationTab(app)}
+      </div>
+      ${renderTfReviewNotesPanel(app)}
+    </aside>
   `;
 }
 
@@ -4639,68 +4791,73 @@ function renderTfEvaluationTab(app) {
   const latest = tfLatestScore(app.applicationId);
   const effective = tfEffectiveWeighted(app);
   const verdicts = parseJson(latest?.course_verdicts_json, {});
+  const gaps = assessment.components.filter((item) => item.verdict === "Gap").slice(0, 4).map((item) => item.code).join(", ") || "no major matrix gap";
   return `
-    <div class="review-detail-stack">
-      <div class="review-score-editor">
-        <div class="field"><label>Teaching score</label><input id="tfReviewTeaching" type="number" min="0" max="100" value="${effective.teaching}" oninput="updateTfReviewWeightedPreview()" /><small>Machine: ${assessment.teachingScore}</small></div>
-        <div class="field"><label>Research score</label><input id="tfReviewResearch" type="number" min="0" max="100" value="${effective.research}" oninput="updateTfReviewWeightedPreview()" /><small>Machine: ${assessment.researchScore}</small></div>
-        <div class="weighted-preview"><span id="tfReviewWeighted">${effective.score}</span><small>Weighted 70:30</small></div>
-        <div class="field"><label>Eligibility decision</label><select id="tfReviewEligibility">${["Progress strong", "Progress", "Review", "Do not progress"].map((item) => `<option ${((latest?.eligibility_decision || assessment.eligibility.label) === item) ? "selected" : ""}>${item}</option>`).join("")}</select></div>
-        <div class="field"><label>Recommendation</label><select id="tfReviewRecommendation">${["Review", "Shortlist", "Interview", "Reserve", "Do not progress"].map((item) => `<option ${latest?.recommendation === item ? "selected" : ""}>${item}</option>`).join("")}</select></div>
-        <div class="field full"><label>Reason for revision</label><textarea id="tfReviewReason" placeholder="Required before saving any revised score or verdict">${escapeHtml(latest?.reason || "")}</textarea></div>
-        <button class="button primary" onclick="saveTfReviewScore(${jsString(app.applicationId)})">${icon("check", 17)}Save score revision</button>
-      </div>
-
-      <div class="review-summary-grid">
-        ${kpi("Machine teaching", assessment.teachingScore, assessment.delivery.label, "users", "blue")}
-        ${kpi("Machine research", assessment.researchScore, assessment.institutionalFit.label, "database", "green")}
-        ${kpi("Best fit", assessment.bestFit?.code || "TBC", assessment.bestFit?.title || "Ranked from all components", "book", "gold")}
-        ${kpi("Stability", assessment.stability, "Threshold perturbation estimate", "activity", "maroon")}
-      </div>
-
-      <div class="timeline-list">
-        <div class="timeline-item"><h4>Eligibility gate</h4><p>${assessment.eligibility.reasons.map(escapeHtml).join("; ")}</p></div>
-        <div class="timeline-item"><h4>Delivery evidence</h4><p>${escapeHtml(assessment.delivery.explanation)}</p></div>
-        <div class="timeline-item"><h4>KEMRI and AIMS RIC fit</h4><p>${escapeHtml(assessment.institutionalFit.explanation)}</p></div>
-      </div>
-
-      <div>
-        <h3 class="review-section-title">Ranked top five</h3>
-        <div class="ranked-fit-list">
-          ${assessment.components.slice(0, 5).map((item, index) => `
-            <div class="ranked-fit">
-              <b>${index + 1}. ${item.code} ${escapeHtml(item.title)}</b>
-              <span class="badge ${item.verdict === "Can lecture" ? "green" : item.verdict === "Can tutor" ? "gold" : "gray"}">${item.verdict}</span>
-              <p>Confidence: ${item.confidence}. Matched terms: ${item.terms.length ? item.terms.map(escapeHtml).join(", ") : "limited direct evidence"}.</p>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-
-      <div>
-        <h3 class="review-section-title">Editable 20-component matrix</h3>
-        <div class="component-matrix">
-          ${assessment.components.map((item) => {
-            const value = verdicts[item.code] || item.verdict;
-            return `
-              <div class="component-row">
-                <span><b>${item.code}</b><small>${escapeHtml(item.title)}</small></span>
-                <select data-course-verdict="${item.code}">
-                  ${["Can lecture", "Can tutor", "Gap", "Would need preparation"].map((option) => `<option ${value === option ? "selected" : ""}>${option}</option>`).join("")}
-                </select>
-              </div>
-            `;
-          }).join("")}
-        </div>
-      </div>
-
-      <div>
-        <h3 class="review-section-title">Research dimensions</h3>
-        <div class="research-bars">
+    <div class="tf-eval-stack">
+      <div class="tf-narr">
+        <h4>Drafted panel note</h4>
+        <h5>Why they could fit</h5>
+        <ul>
+          <li>Best fit is ${assessment.bestFit?.code || "TBC"} ${escapeHtml(assessment.bestFit?.title || "the closest matching component")}.</li>
+          <li>Weighted 70:30 score ${effective.score}: teaching ${effective.teaching}, research ${effective.research}.</li>
+          <li>Delivery evidence: ${escapeHtml(assessment.delivery.explanation)}</li>
+        </ul>
+        <h5>The 30 per cent research commitment</h5>
+        <div class="tf-rbars-list">
           ${assessment.researchDimensions.map((item) => `
-            <div class="research-bar"><span>${escapeHtml(item.label)}</span><b style="width:${item.score}%"></b><small>${item.score}</small></div>
+            <div class="tf-rbars"><span>${escapeHtml(item.label)}</span><span class="t"><i style="width:${item.score}%"></i></span><span>${item.score}</span></div>
           `).join("")}
         </div>
+        <ul><li>${escapeHtml(assessment.institutionalFit.explanation)}</li></ul>
+        <h5>Gaps</h5>
+        <ul><li>Check ${escapeHtml(gaps)}, delivery evidence, documents, and whether the applicant can support hands-on sessions at pace.</li></ul>
+        <h5>Ask at interview</h5>
+        <ul><li>Ask for one concrete tutorial plan, one marking or feedback example, and how the proposed 30 percent research plan would fit within protected research time.</li></ul>
+        <button class="primary" onclick="insertTfDraftNote(${jsString(app.applicationId)})">Insert as draft note under your name</button>
+        <div class="tf-disc">Drafted from this applicant's own answers by keyword and structure matching. Treat every line as a prompt to check rather than a finding. Nothing enters the record until a reviewer saves it.</div>
+      </div>
+
+      <div class="tf-overrides">
+        <div class="tf-ov-title">Revise the score</div>
+        <div class="tf-ov-row"><span>Teaching, weighted 70</span><input id="tfReviewTeaching" type="number" min="0" max="100" value="${effective.teaching}" oninput="updateTfReviewWeightedPreview()" /><span class="was">machine score ${assessment.teachingScore}</span></div>
+        <div class="tf-ov-row"><span>Research, weighted 30</span><input id="tfReviewResearch" type="number" min="0" max="100" value="${effective.research}" oninput="updateTfReviewWeightedPreview()" /><span class="was">machine score ${assessment.researchScore}</span></div>
+        <div class="tf-ov-row"><span>Weighted 70:30</span><b id="tfReviewWeighted">${effective.score}</b><span class="was">machine score ${assessment.weightedScore} &middot; ${tfScoreBand(assessment.weightedScore)}</span></div>
+        <div class="tf-ov-row wide"><span>Eligibility</span><select id="tfReviewEligibility">${["Progress strong", "Progress", "Review", "Do not progress"].map((item) => `<option ${((latest?.eligibility_decision || assessment.eligibility.label) === item) ? "selected" : ""}>${item}</option>`).join("")}</select><span></span></div>
+        <div class="tf-ov-row wide"><span>Recommendation</span><select id="tfReviewRecommendation">${["Review", "Shortlist", "Interview", "Reserve", "Do not progress"].map((item) => `<option ${latest?.recommendation === item ? "selected" : ""}>${item}</option>`).join("")}</select><span></span></div>
+        <input id="tfReviewReason" type="text" placeholder="Reason for the revision, required" value="${escapeHtml(latest?.reason || "")}" />
+        <button class="primary" onclick="saveTfReviewScore(${jsString(app.applicationId)})">Save revision as ${escapeHtml(tfReviewReviewerName())}</button>
+        ${latest ? `<div class="was">Revised by ${escapeHtml(latest.reviewer_name || latest.reviewer_email || "")}. Reason: ${escapeHtml(latest.reason || "")}</div>` : ""}
+      </div>
+
+      <div class="tf-gate">
+        <h4>Eligibility gate</h4>
+        <div class="tf-gate-rec ${tfRecommendationClass(assessment.eligibility.label)}">${assessment.eligibility.label}</div>
+        ${assessment.eligibility.reasons.length ? `<ul>${assessment.eligibility.reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>` : `<p>Passport and certificate attached, two or more referees, PhD window checked, residency and teaching-continuity duty both accepted.</p>`}
+        <p>Teaching ${tfScoreBand(assessment.teachingScore).toLowerCase()}, research ${tfScoreBand(assessment.researchScore).toLowerCase()}, institutional fit ${escapeHtml(assessment.institutionalFit.label)}. Stability: ${escapeHtml(assessment.stability)}.</p>
+      </div>
+
+      <div class="tf-topfit">
+        <div class="b">Where they fit best, five strongest components</div>
+        ${assessment.components.slice(0, 5).map((item, index) => `
+          <div class="tf-unit"><b>${index + 1}. ${item.code} ${escapeHtml(item.title)}</b><span>${item.verdict} &middot; ${item.confidence} confidence${item.terms.length ? `, matched on ${item.terms.map(escapeHtml).join(", ")}` : ", limited direct evidence"}</span></div>
+        `).join("")}
+        <div class="tf-unit-note">Ranked across all assessable components. Read the label and evidence, not only the position.</div>
+      </div>
+
+      <div class="tf-component-list">
+        ${assessment.components.map((item) => {
+          const value = verdicts[item.code] || item.verdict;
+          const level = value === "Can lecture" ? "l" : value === "Can tutor" ? "t" : "n";
+          return `
+            <div class="tf-crow">
+              <code>${item.code}</code>
+              <div>${escapeHtml(item.title)}${item.terms.length ? `<span class="tf-ev">Matched on ${item.terms.map(escapeHtml).join(", ")}</span>` : ""}</div>
+              <select class="tf-lv ${level}" data-course-verdict="${item.code}">
+                ${["Can lecture", "Can tutor", "Gap", "Would need preparation"].map((option) => `<option ${value === option ? "selected" : ""}>${option}</option>`).join("")}
+              </select>
+            </div>
+          `;
+        }).join("")}
       </div>
     </div>
   `;
@@ -4739,6 +4896,31 @@ function renderTfApplicationTab(app) {
     <div class="application-answer-list">
       ${rows.map(([label, value]) => `<div><b>${escapeHtml(label)}</b><p>${escapeHtml(value || "Not provided")}</p></div>`).join("")}
       <div><b>Referees</b><p>${app.references.map((ref) => [ref.title, ref.name, ref.affiliation, ref.role, ref.email].filter(Boolean).join(" - ")).filter(Boolean).map(escapeHtml).join("<br>") || "Not provided"}</p></div>
+    </div>
+  `;
+}
+
+function renderTfReviewNotesPanel(app) {
+  const notes = state.tfReview.notes
+    .filter((item) => item.application_id === app.applicationId)
+    .sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+  return `
+    <div class="tf-notes">
+      ${notes.length ? notes.map((note) => `
+        <div class="tf-note ${note.status === "Withdrawn" ? "withdrawn" : ""}">
+          <div class="who">${escapeHtml(note.author_name || note.author_email || "Reviewer")}<span class="when">${escapeHtml(note.created_at || "")} &middot; ${escapeHtml(note.stage || "")}</span></div>
+          <textarea id="tfNote-${tfSafeDomId(note.note_id)}">${escapeHtml(note.note || "")}</textarea>
+          <div class="tf-note-actions">
+            <button onclick="saveTfReviewNote(${jsString(app.applicationId)}, ${jsString(note.note_id)})">Save edit</button>
+            <button onclick="withdrawTfReviewNote(${jsString(note.note_id)})">Withdraw</button>
+          </div>
+          ${note.edited_at ? `<div class="ed">Edited by ${escapeHtml(note.edited_by || "")}, ${escapeHtml(note.edited_at)}</div>` : ""}
+        </div>
+      `).join("") : `<div class="tf-empty-note">No review notes yet.</div>`}
+    </div>
+    <div class="tf-noteform">
+      <textarea id="tfNewNote" placeholder="Add a review note. Tagged with your name and the current stage."></textarea>
+      <button class="primary" onclick="saveTfReviewNote(${jsString(app.applicationId)})">Add note</button>
     </div>
   `;
 }
@@ -7464,6 +7646,9 @@ window.exportTfReviewAudit = exportTfReviewAudit;
 window.selectTfReviewApplicant = selectTfReviewApplicant;
 window.setTfReviewFilter = setTfReviewFilter;
 window.setTfReviewTab = setTfReviewTab;
+window.setTfReviewQuery = setTfReviewQuery;
+window.setTfReviewSort = setTfReviewSort;
+window.setTfReviewCourseFilter = setTfReviewCourseFilter;
 window.insertTfDraftNote = insertTfDraftNote;
 window.updateTfReviewWeightedPreview = updateTfReviewWeightedPreview;
 window.state = state;
