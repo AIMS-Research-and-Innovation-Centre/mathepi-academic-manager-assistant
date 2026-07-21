@@ -1615,7 +1615,7 @@
           return payload;
         }
 
-        function reviewerEmail() {
+        function loginReviewerEmail() {
           return $("reviewerEmail").value.trim().toLowerCase();
         }
 
@@ -1624,7 +1624,7 @@
         }
 
         function requestCode() {
-          var email = reviewerEmail();
+          var email = loginReviewerEmail();
           if (!email) {
             showMessage("messageArea", "error", "Enter reviewer email first.");
             return;
@@ -1643,7 +1643,7 @@
         }
 
         function verifyCode() {
-          var email = reviewerEmail();
+          var email = loginReviewerEmail();
           var code = reviewerCode();
           if (!email || !code) {
             showMessage("messageArea", "error", "Enter reviewer email and the 6-digit verification code.");
@@ -1685,6 +1685,8 @@
         }
 
         function reviewerEmail() {
+          var typed = $("reviewerEmail") && $("reviewerEmail").value ? $("reviewerEmail").value.trim().toLowerCase() : "";
+          if (typed) return typed;
           var reviewer = session && session.reviewer ? session.reviewer : {};
           return String(reviewer.email || (session && session.email) || "").toLowerCase();
         }
