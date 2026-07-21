@@ -916,7 +916,7 @@ const courses = [
     "title": "Numerical Methods",
     "category": "Specialization",
     "credits": "6",
-    "duration": "Block 6",
+    "duration": "Block 7",
     "contact": "60 contact hours",
     "description": "To provide students with computational methods required to solve mathematical models used in epidemiology, enabling effective simulation, analysis, and interpretation of complex disease dynamics.",
     "outcomes": [
@@ -984,7 +984,7 @@ const courses = [
     "title": "Advanced Data Analysis (Data Analysis II)",
     "category": "Specialization",
     "credits": "6",
-    "duration": "Block 7",
+    "duration": "Block 8",
     "contact": "60 contact hours",
     "description": "To introduce advanced data analysis methods for complex epidemiological data, including generalized linear models, spatial analysis, and machine learning applications in public health.",
     "outcomes": [
@@ -1018,7 +1018,7 @@ const courses = [
     "title": "Professional, Project, and Entrepreneurship Development",
     "category": "Professional Development",
     "credits": "6",
-    "duration": "Block 8",
+    "duration": "Block 6",
     "contact": "60 contact hours",
     "description": "To prepare students for successful transitions to employment, entrepreneurship, or further studies through professional development, project management, and career readiness skills.",
     "outcomes": [
@@ -1349,10 +1349,10 @@ const calendarBlocks = [
     "dates": "2027-02-15 - 2027-03-05",
     "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
-    "note": "Specialization: MEC05 Model Fitting and Validation; MEC06 Numerical Methods",
+    "note": "MEC09 Professional, Project, and Entrepreneurship Development; MEC05 Model Fitting and Validation",
     "courseIds": [
-      "MEC05",
-      "MEC06"
+      "MEC09",
+      "MEC05"
     ]
   },
   {
@@ -1361,19 +1361,19 @@ const calendarBlocks = [
     "dates": "2027-03-08 - 2027-03-26",
     "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
-    "note": "Specialization: MEC07 Introduction to Data Analysis; MEC08 Advanced Data Analysis",
+    "note": "MEC06 Numerical Methods; MEC07 Introduction to Data Analysis",
     "courseIds": [
-      "MEC07",
-      "MEC08"
+      "MEC06",
+      "MEC07"
     ]
   },
   {
     "id": "reading-2",
-    "label": "Reading Week",
+    "label": "Reading / Elective Preparation",
     "dates": "2027-03-29 - 2027-04-02",
     "host": ACTIVE_HOST_PATHWAY,
     "kind": "Reading",
-    "note": "Reflection, catch-up, elective selection",
+    "note": "Catch-up, reflection, elective preparation",
     "courseIds": []
   },
   {
@@ -1382,9 +1382,9 @@ const calendarBlocks = [
     "dates": "2027-04-05 - 2027-04-23",
     "host": ACTIVE_HOST_PATHWAY,
     "kind": "Teaching",
-    "note": "Professional development and advanced data science: MEC09; MEC10",
+    "note": "MEC08 Advanced Data Analysis; MEC10 Advanced Data Science for Epidemiology",
     "courseIds": [
-      "MEC09",
+      "MEC08",
       "MEC10"
     ]
   },
@@ -1403,23 +1403,32 @@ const calendarBlocks = [
     ]
   },
   {
+    "id": "coursework-consolidation",
+    "label": "Coursework Consolidation",
+    "dates": "2027-05-17 - 2027-05-28",
+    "host": ACTIVE_HOST_PATHWAY,
+    "kind": "Assessment",
+    "note": "Final coursework review, assessment completion, internship preparation",
+    "courseIds": []
+  },
+  {
     "id": "internship-plus-thesis",
-    "label": "Mandatory Internship",
-    "dates": "2027-05-17 - 2027-08-13",
+    "label": "Internship",
+    "dates": "2027-05-31 - 2027-11-26",
     "host": ACTIVE_HOST_PATHWAY,
     "kind": "Practical",
-    "note": "MEI01 supervised research or industry placement",
+    "note": "MEI01 internship, supervised placement, or research project",
     "courseIds": [
       "MEI01"
     ]
   },
   {
     "id": "thesis",
-    "label": "Thesis/Project Write-up",
-    "dates": "2027-08-16 - 2027-11-12",
+    "label": "Essay, Review, Graduation Prep",
+    "dates": "2027-11-29 - 2028-01-28",
     "host": ACTIVE_HOST_PATHWAY,
     "kind": "Thesis",
-    "note": "MEI01 thesis/project write-up and review",
+    "note": "MEI01 essay/write-up, final review, and graduation preparation",
     "courseIds": [
       "MEI01"
     ]

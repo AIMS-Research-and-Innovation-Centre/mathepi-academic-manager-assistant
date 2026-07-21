@@ -268,7 +268,7 @@ const DEFAULT_COURSES = [
     "type": "specialization",
     "units": 6,
     "hours": 60,
-    "block": "Block 6",
+    "block": "Block 7",
     "software": "Python/R for numerical implementations",
     "prerequisites": "MES02 - Differential Equations; MES06 - Scientific Computing",
     "outcomes": "Solve differential equations numerically, assess stability and convergence, implement computational simulations of epidemiological models, and critically evaluate numerical results.",
@@ -302,7 +302,7 @@ const DEFAULT_COURSES = [
     "type": "specialization",
     "units": 6,
     "hours": 60,
-    "block": "Block 7",
+    "block": "Block 8",
     "software": "R/Python for advanced statistical modelling",
     "prerequisites": "MEC07 - Introduction to Data Analysis",
     "outcomes": "Formulate generalized linear models, apply methods to complex survey and hierarchical data, perform spatial data analysis and disease mapping, and implement machine learning for health prediction.",
@@ -319,7 +319,7 @@ const DEFAULT_COURSES = [
     "type": "professional",
     "units": 6,
     "hours": 60,
-    "block": "Block 8",
+    "block": "Block 6",
     "software": "Various productivity and project management tools",
     "prerequisites": "None; runs concurrently with other courses",
     "outcomes": "Develop professional application materials, write grant proposals and project plans, manage projects, collaborate in diverse teams, and understand innovation ecosystems.",
@@ -528,10 +528,10 @@ const DEFAULT_BLOCKS = [
     "start": "2027-02-15",
     "end": "2027-03-05",
     "kind": "teaching",
-    "note": "Specialization: MEC05 Model Fitting and Validation; MEC06 Numerical Methods",
+    "note": "Professional and specialization block: MEC09 Professional, Project, and Entrepreneurship Development; MEC05 Model Fitting and Validation",
     "courses": [
-      "MEC05",
-      "MEC06"
+      "MEC09",
+      "MEC05"
     ]
   },
   {
@@ -540,19 +540,19 @@ const DEFAULT_BLOCKS = [
     "start": "2027-03-08",
     "end": "2027-03-26",
     "kind": "teaching",
-    "note": "Specialization: MEC07 Introduction to Data Analysis; MEC08 Advanced Data Analysis",
+    "note": "Specialization: MEC06 Numerical Methods; MEC07 Introduction to Data Analysis",
     "courses": [
-      "MEC07",
-      "MEC08"
+      "MEC06",
+      "MEC07"
     ]
   },
   {
     "id": "reading-2",
-    "title": "Reading Week",
+    "title": "Reading / Elective Preparation",
     "start": "2027-03-29",
     "end": "2027-04-02",
     "kind": "reading",
-    "note": "Reflection, catch-up, elective selection",
+    "note": "Catch-up, reflection, elective preparation",
     "courses": []
   },
   {
@@ -561,9 +561,9 @@ const DEFAULT_BLOCKS = [
     "start": "2027-04-05",
     "end": "2027-04-23",
     "kind": "teaching",
-    "note": "Professional development and advanced data science: MEC09; MEC10",
+    "note": "Specialization: MEC08 Advanced Data Analysis; MEC10 Advanced Data Science for Epidemiology",
     "courses": [
-      "MEC09",
+      "MEC08",
       "MEC10"
     ]
   },
@@ -582,34 +582,43 @@ const DEFAULT_BLOCKS = [
     ]
   },
   {
+    "id": "coursework-consolidation",
+    "title": "Coursework Consolidation",
+    "start": "2027-05-17",
+    "end": "2027-05-28",
+    "kind": "assessment",
+    "note": "Final coursework review, assessment completion, internship preparation",
+    "courses": []
+  },
+  {
     "id": "internship",
     "title": "Mandatory Internship",
-    "start": "2027-05-17",
-    "end": "2027-08-13",
+    "start": "2027-05-31",
+    "end": "2027-11-26",
     "kind": "practical",
-    "note": "MEI01 supervised research or industry placement",
+    "note": "MEI01 internship, supervised placement, or research project",
     "courses": [
       "MEI01"
     ]
   },
   {
     "id": "thesis",
-    "title": "Thesis/Project Write-up",
-    "start": "2027-08-16",
-    "end": "2027-11-12",
+    "title": "Essay, Review, Graduation Prep",
+    "start": "2027-11-29",
+    "end": "2028-01-28",
     "kind": "thesis",
-    "note": "MEI01 thesis/project write-up and review",
+    "note": "MEI01 essay/write-up, final review, and graduation preparation",
     "courses": [
       "MEI01"
     ]
   },
   {
     "id": "graduation",
-    "title": "Graduation",
-    "start": "2027-12-21",
-    "end": "2027-12-22",
+    "title": "Graduation Close-out",
+    "start": "2028-01-28",
+    "end": "2028-01-28",
     "kind": "graduation",
-    "note": "Graduation window",
+    "note": "Graduation close-out milestone",
     "courses": []
   }
 ];
@@ -839,18 +848,18 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-021",
-    "courseCode": "MEC05",
+    "courseCode": "MEC09",
     "day": "Monday",
     "time": "09:00",
     "duration": 2,
-    "type": "Lecture",
+    "type": "Professional workshop",
     "room": "Lecture Room",
     "blockId": "block-6",
     "personId": null
   },
   {
     "id": "s-022",
-    "courseCode": "MEC06",
+    "courseCode": "MEC05",
     "day": "Tuesday",
     "time": "09:00",
     "duration": 2,
@@ -861,18 +870,18 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-023",
-    "courseCode": "MEC05",
+    "courseCode": "MEC09",
     "day": "Wednesday",
     "time": "11:00",
     "duration": 2,
-    "type": "Tutorial / practical",
+    "type": "Project clinic",
     "room": "Computing / Tutorial Room",
     "blockId": "block-6",
     "personId": null
   },
   {
     "id": "s-024",
-    "courseCode": "MEC06",
+    "courseCode": "MEC05",
     "day": "Thursday",
     "time": "11:00",
     "duration": 2,
@@ -883,7 +892,7 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-025",
-    "courseCode": "MEC07",
+    "courseCode": "MEC06",
     "day": "Monday",
     "time": "09:00",
     "duration": 2,
@@ -894,7 +903,7 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-026",
-    "courseCode": "MEC08",
+    "courseCode": "MEC07",
     "day": "Tuesday",
     "time": "09:00",
     "duration": 2,
@@ -905,7 +914,7 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-027",
-    "courseCode": "MEC07",
+    "courseCode": "MEC06",
     "day": "Wednesday",
     "time": "11:00",
     "duration": 2,
@@ -916,7 +925,7 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-028",
-    "courseCode": "MEC08",
+    "courseCode": "MEC07",
     "day": "Thursday",
     "time": "11:00",
     "duration": 2,
@@ -927,11 +936,11 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-029",
-    "courseCode": "MEC09",
+    "courseCode": "MEC08",
     "day": "Monday",
     "time": "09:00",
     "duration": 2,
-    "type": "Professional workshop",
+    "type": "Lecture",
     "room": "Lecture Room",
     "blockId": "block-8",
     "personId": null
@@ -949,11 +958,11 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-031",
-    "courseCode": "MEC09",
+    "courseCode": "MEC08",
     "day": "Wednesday",
     "time": "11:00",
     "duration": 2,
-    "type": "Project clinic",
+    "type": "Tutorial / practical",
     "room": "Computing / Tutorial Room",
     "blockId": "block-8",
     "personId": null
@@ -2132,6 +2141,10 @@ function appsScriptUrl() {
   return (window.MATHEPI_APPS_SCRIPT_URL || safeStorageGet(GOOGLE_BACKEND_URL_KEY) || PUBLIC_APPS_SCRIPT_URL || "").trim();
 }
 
+function reviewerAppsScriptUrl() {
+  return (window.MATHEPI_APPS_SCRIPT_URL || PUBLIC_APPS_SCRIPT_URL || safeStorageGet(GOOGLE_BACKEND_URL_KEY) || "").trim();
+}
+
 function hasAppsScriptBridge() {
   return !!(window.google && google.script && google.script.run);
 }
@@ -2151,6 +2164,10 @@ function googleApi(action, payload = {}) {
   }
   const endpoint = appsScriptUrl();
   if (!endpoint) return Promise.reject(new Error("Apps Script Web App URL is not configured."));
+  return googleEndpointApi(endpoint, action, payload);
+}
+
+function googleEndpointApi(endpoint, action, payload = {}) {
   const payloadText = JSON.stringify(payload || {});
   if (payloadText.length < 6500 && /script\.google\.com\/macros\/s\//i.test(endpoint)) {
     return googleJsonpApi(endpoint, action, payload);
@@ -2163,6 +2180,29 @@ function googleApi(action, payload = {}) {
     if (!response.ok) throw new Error(`Apps Script request failed: ${response.status}`);
     return response.json();
   });
+}
+
+function timedGoogleApi(promise, message, timeoutMs = 30000) {
+  let timer = null;
+  const timeout = new Promise((resolve, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+function tfReviewApi(action, payload = {}) {
+  if (hasAppsScriptBridge()) {
+    return timedGoogleApi(
+      googleApi(action, payload),
+      "Google Apps Script is taking too long to respond. Try Send code again; if it repeats, redeploy the Apps Script files.",
+    );
+  }
+  const endpoint = reviewerAppsScriptUrl();
+  if (!endpoint) return Promise.reject(new Error("Apps Script Web App URL is not configured."));
+  return timedGoogleApi(
+    googleEndpointApi(endpoint, action, payload),
+    "Google Apps Script is taking too long to respond. Try again; if it repeats, redeploy the Apps Script files.",
+  );
 }
 
 function googleJsonpApi(endpoint, action, payload = {}) {
@@ -2178,7 +2218,7 @@ function googleJsonpApi(endpoint, action, payload = {}) {
     function cleanup() {
       clearTimeout(timeout);
       delete window[callbackName];
-      script.remove();
+      if (script.parentNode) script.parentNode.removeChild(script);
     }
 
     window[callbackName] = (result) => {
@@ -2333,6 +2373,7 @@ const state = {
     courseFilter: "",
     tab: "Evaluation",
     loading: false,
+    loadingAction: "",
     loadingMessage: "",
     lastSync: "",
     error: "",
@@ -2374,70 +2415,170 @@ function migrateProgrammeData() {
     safeStorageSet("mathepi-production-curriculum-v2", "1");
   }
 
-  const schedule = {
-    onboarding: ["2026-09-28", "2026-10-02"],
-    "block-1": ["2026-10-05", "2026-10-23"],
-    "block-2": ["2026-10-26", "2026-11-13"],
-    "reading-1": ["2026-11-16", "2026-11-20"],
-    "block-3": ["2026-11-23", "2026-12-11"],
-    vacation: ["2026-12-14", "2027-01-03"],
-    "block-4": ["2027-01-04", "2027-01-22"],
-    "block-5": ["2027-01-25", "2027-02-12"],
-    "block-6": ["2027-02-15", "2027-03-05"],
-    "block-7": ["2027-03-08", "2027-03-26"],
-    "reading-2": ["2027-03-29", "2027-04-02"],
-    "block-8": ["2027-04-05", "2027-04-23"],
-    "block-9": ["2027-04-26", "2027-05-14"],
-    internship: ["2027-05-17", "2027-08-13"],
-    thesis: ["2027-08-16", "2027-11-12"],
-    graduation: ["2027-12-21", "2027-12-22"],
+  const programmeSchedule = {
+    onboarding: {
+      title: "Introduction and Onboarding Week",
+      start: "2026-09-28",
+      end: "2026-10-02",
+      kind: "onboarding",
+      note: "Orientation, software setup, programme briefing",
+      courses: [],
+    },
+    "block-1": {
+      title: "Block 1",
+      start: "2026-10-05",
+      end: "2026-10-23",
+      kind: "teaching",
+      note: "MES01 Mathematical Problem Solving; MES05 Introduction to R and Python",
+      courses: ["MES01", "MES05"],
+    },
+    "block-2": {
+      title: "Block 2",
+      start: "2026-10-26",
+      end: "2026-11-13",
+      kind: "teaching",
+      note: "MES02 Differential Equations and Modelling; MES04 Introduction to Probability and Statistics",
+      courses: ["MES02", "MES04"],
+    },
+    "reading-1": {
+      title: "Reading / Convening Week",
+      start: "2026-11-16",
+      end: "2026-11-20",
+      kind: "reading",
+      note: "Reading, reflection, AHC/convening activities",
+      courses: [],
+    },
+    "block-3": {
+      title: "Block 3",
+      start: "2026-11-23",
+      end: "2026-12-11",
+      kind: "teaching",
+      note: "MES03 Physical Problem Solving; MES06 Scientific Computing and LaTeX",
+      courses: ["MES03", "MES06"],
+    },
+    vacation: {
+      title: "December Holiday",
+      start: "2026-12-14",
+      end: "2027-01-03",
+      kind: "holiday",
+      note: "Vacation / December break",
+      courses: [],
+    },
+    "block-4": {
+      title: "Block 4",
+      start: "2027-01-04",
+      end: "2027-01-22",
+      kind: "teaching",
+      note: "MEC01 Introduction to Epidemiology; MEC03 Introduction to Mathematical Modelling",
+      courses: ["MEC01", "MEC03"],
+    },
+    "block-5": {
+      title: "Block 5",
+      start: "2027-01-25",
+      end: "2027-02-12",
+      kind: "teaching",
+      note: "MEC02 Epidemiology for Disease Modelling; MEC04 Developing Mathematical Models in Public Health",
+      courses: ["MEC02", "MEC04"],
+    },
+    "block-6": {
+      title: "Block 6",
+      start: "2027-02-15",
+      end: "2027-03-05",
+      kind: "teaching",
+      note: "MEC09 Professional, Project, and Entrepreneurship Development; MEC05 Model Fitting and Validation",
+      courses: ["MEC09", "MEC05"],
+    },
+    "block-7": {
+      title: "Block 7",
+      start: "2027-03-08",
+      end: "2027-03-26",
+      kind: "teaching",
+      note: "MEC06 Numerical Methods; MEC07 Introduction to Data Analysis",
+      courses: ["MEC06", "MEC07"],
+    },
+    "reading-2": {
+      title: "Reading / Elective Preparation",
+      start: "2027-03-29",
+      end: "2027-04-02",
+      kind: "reading",
+      note: "Catch-up, reflection, elective preparation",
+      courses: [],
+    },
+    "block-8": {
+      title: "Block 8",
+      start: "2027-04-05",
+      end: "2027-04-23",
+      kind: "teaching",
+      note: "MEC08 Advanced Data Analysis; MEC10 Advanced Data Science for Epidemiology",
+      courses: ["MEC08", "MEC10"],
+    },
+    "block-9": {
+      title: "Block 9",
+      start: "2027-04-26",
+      end: "2027-05-14",
+      kind: "teaching",
+      note: "MEE01 Survival Analysis; MEE02 Time Series Analysis; MEE03 Bayesian Statistics; MEE04 Stochastic Models",
+      courses: ["MEE01", "MEE02", "MEE03", "MEE04"],
+    },
+    "coursework-consolidation": {
+      title: "Coursework Consolidation",
+      start: "2027-05-17",
+      end: "2027-05-28",
+      kind: "assessment",
+      note: "Final coursework review, assessment completion, internship preparation",
+      courses: [],
+    },
+    internship: {
+      title: "Internship",
+      start: "2027-05-31",
+      end: "2027-11-26",
+      kind: "practical",
+      note: "MEI01 internship, supervised placement, or research project",
+      courses: ["MEI01"],
+    },
+    thesis: {
+      title: "Essay, Review, Graduation Prep",
+      start: "2027-11-29",
+      end: "2028-01-28",
+      kind: "thesis",
+      note: "MEI01 essay/write-up, final review, and graduation preparation",
+      courses: ["MEI01"],
+    },
+    graduation: {
+      title: "Graduation Close-out",
+      start: "2028-01-28",
+      end: "2028-01-28",
+      kind: "graduation",
+      note: "Graduation close-out milestone",
+      courses: [],
+    },
   };
 
-  state.blocks.forEach((block) => {
-    const dates = schedule[block.id];
-    if (dates) {
-      block.start = dates[0];
-      block.end = dates[1];
-    }
+  Object.entries(programmeSchedule).forEach(([id, block]) => {
+    const existing = state.blocks.find((item) => item.id === id);
+    if (existing) Object.assign(existing, block);
+    else state.blocks.push({ id, ...safeClone(block) });
   });
 
-  const vacation = state.blocks.find((item) => item.id === "vacation");
-  if (vacation) {
-    Object.assign(vacation, {
-      title: "Vacation and December Holiday",
-      kind: "holiday",
-      note: "December holiday break",
-      courses: [],
+  const courseToBlock = {};
+  const courseToBlockId = {};
+  Object.entries(programmeSchedule).forEach(([blockId, block]) => {
+    (block.courses || []).forEach((code) => {
+      courseToBlock[code] = block.title;
+      courseToBlockId[code] = blockId;
     });
-  }
+  });
 
-  const internship = state.blocks.find((item) => item.id === "internship");
-  if (internship) {
-    Object.assign(internship, {
-      title: "Mandatory Internship",
-      kind: "practical",
-      note: "MEI01 supervised research or industry placement",
-      courses: ["MEI01"],
-    });
-  }
+  state.courses.forEach((course) => {
+    if (courseToBlock[course.code]) course.block = courseToBlock[course.code];
+  });
 
-  const thesis = state.blocks.find((item) => item.id === "thesis");
-  if (thesis) {
-    Object.assign(thesis, {
-      title: "Thesis/Project Write-up",
-      kind: "thesis",
-      note: "MEI01 thesis/project write-up and review",
-      courses: ["MEI01"],
-    });
-  }
-
-  const graduation = state.blocks.find((item) => item.id === "graduation");
-  if (graduation) {
-    Object.assign(graduation, {
-      title: "Graduation",
-      kind: "graduation",
-      note: "Graduation window",
-      courses: [],
+  if (!safeStorageGet("mathepi-programme-schedule-v3")) {
+    state.sessions = safeClone(DEFAULT_SESSIONS);
+    safeStorageSet("mathepi-programme-schedule-v3", "1");
+  } else {
+    state.sessions.forEach((session) => {
+      if (courseToBlockId[session.courseCode]) session.blockId = courseToBlockId[session.courseCode];
     });
   }
 
@@ -4228,12 +4369,13 @@ async function requestTfReviewerOtp() {
     return;
   }
   state.tfReview.loading = true;
+  state.tfReview.loadingAction = "send";
   state.tfReview.loadingMessage = "Sending verification code through Google...";
   state.tfReview.email = email;
   state.tfReview.error = "";
   render();
   try {
-    const result = await googleApi("requestReviewerOtp", { email });
+    const result = await tfReviewApi("requestReviewerOtp", { email });
     if (result?.ok === false) throw new Error(result.error || "Reviewer code could not be sent.");
     state.tfReview.email = email;
     toast("Reviewer verification code sent.");
@@ -4242,6 +4384,7 @@ async function requestTfReviewerOtp() {
     toast(state.tfReview.error);
   } finally {
     state.tfReview.loading = false;
+    state.tfReview.loadingAction = "";
     state.tfReview.loadingMessage = "";
     render();
   }
@@ -4255,12 +4398,13 @@ async function verifyTfReviewerOtp() {
     return;
   }
   state.tfReview.loading = true;
+  state.tfReview.loadingAction = "verify";
   state.tfReview.loadingMessage = "Verifying reviewer access...";
   state.tfReview.email = email;
   state.tfReview.error = "";
   render();
   try {
-    const result = await googleApi("verifyReviewerOtp", { email, code });
+    const result = await tfReviewApi("verifyReviewerOtp", { email, code });
     if (result?.ok === false) throw new Error(result.error || "Reviewer verification failed.");
     state.tfReview.session = {
       email: result.email || email,
@@ -4276,6 +4420,7 @@ async function verifyTfReviewerOtp() {
     toast(state.tfReview.error);
   } finally {
     state.tfReview.loading = false;
+    state.tfReview.loadingAction = "";
     state.tfReview.loadingMessage = "";
     render();
   }
@@ -4304,10 +4449,12 @@ async function refreshTfReviews(options = {}) {
     return;
   }
   state.tfReview.loading = true;
+  state.tfReview.loadingAction = "refresh";
+  state.tfReview.loadingMessage = "Loading applications from Google Sheets...";
   state.tfReview.error = "";
   render();
   try {
-    const result = await googleApi("listReviewApplicants", tfReviewPayload());
+    const result = await tfReviewApi("listReviewApplicants", tfReviewPayload());
     if (result?.ok === false) throw new Error(result.error || "Could not load review data.");
     state.tfReview.applications = result.applications || [];
     state.tfReview.scores = result.scores || [];
@@ -4323,13 +4470,15 @@ async function refreshTfReviews(options = {}) {
     toast(state.tfReview.error);
   } finally {
     state.tfReview.loading = false;
+    state.tfReview.loadingAction = "";
+    state.tfReview.loadingMessage = "";
     render();
   }
 }
 
 async function updateTfReviewStage(applicationId, stage) {
   try {
-    const result = await googleApi("updateReviewStage", tfReviewPayload({ applicationId, stage }));
+    const result = await tfReviewApi("updateReviewStage", tfReviewPayload({ applicationId, stage }));
     if (result?.ok === false) throw new Error(result.error || "Stage update failed.");
     const index = state.tfReview.stages.findIndex((item) => item.application_id === applicationId);
     if (index >= 0) state.tfReview.stages[index] = result.stage;
@@ -4358,7 +4507,7 @@ async function saveTfReviewScore(applicationId) {
     courseVerdicts[select.dataset.courseVerdict] = select.value;
   });
   try {
-    const result = await googleApi(
+    const result = await tfReviewApi(
       "saveReviewScore",
       tfReviewPayload({
         applicationId,
@@ -4395,7 +4544,7 @@ async function saveTfReviewNote(applicationId, noteId = "") {
     return;
   }
   try {
-    const result = await googleApi(
+    const result = await tfReviewApi(
       "saveReviewNote",
       tfReviewPayload({
         applicationId,
@@ -4417,7 +4566,7 @@ async function saveTfReviewNote(applicationId, noteId = "") {
 
 async function withdrawTfReviewNote(noteId) {
   try {
-    const result = await googleApi("withdrawReviewNote", tfReviewPayload({ noteId }));
+    const result = await tfReviewApi("withdrawReviewNote", tfReviewPayload({ noteId }));
     if (result?.ok === false) throw new Error(result.error || "Note withdrawal failed.");
     const index = state.tfReview.notes.findIndex((item) => item.note_id === result.note.note_id);
     if (index >= 0) state.tfReview.notes[index] = result.note;
@@ -4430,7 +4579,7 @@ async function withdrawTfReviewNote(noteId) {
 
 async function exportTfReviewAudit() {
   try {
-    const result = await googleApi("exportReviewAudit", tfReviewPayload());
+    const result = await tfReviewApi("exportReviewAudit", tfReviewPayload());
     if (result?.ok === false) throw new Error(result.error || "Audit export failed.");
     const text = JSON.stringify(result, null, 2);
     await navigator.clipboard?.writeText(text);
@@ -4556,6 +4705,9 @@ function renderTfReviews() {
 }
 
 function renderTfReviewLogin() {
+  const action = state.tfReview.loadingAction || "";
+  const sendLabel = action === "send" ? "Sending code..." : "Send code";
+  const verifyLabel = action === "verify" ? "Checking access..." : "Verify and open reviews";
   return `
     <div class="view tf-review-view tf-review-mock">
       <header class="tf-review-masthead">
@@ -4586,8 +4738,8 @@ function renderTfReviewLogin() {
             </label>
           </div>
           <div class="tf-login-actions">
-            <button onclick="requestTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("mail", 17)}${state.tfReview.loading ? "Sending code..." : "Send code"}</button>
-            <button class="primary" onclick="verifyTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("shield", 17)}${state.tfReview.loading ? "Checking access..." : "Verify and open reviews"}</button>
+            <button onclick="requestTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("mail", 17)}${sendLabel}</button>
+            <button class="primary" onclick="verifyTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("shield", 17)}${verifyLabel}</button>
           </div>
           ${state.tfReview.loading ? `<p class="review-status">${escapeHtml(state.tfReview.loadingMessage || "Contacting Google Apps Script...")}</p>` : ""}
           ${state.tfReview.error ? `<p class="review-error">${escapeHtml(state.tfReview.error)}</p>` : ""}
