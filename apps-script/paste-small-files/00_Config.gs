@@ -75,6 +75,13 @@ const TAB_HEADERS = {
     "research_score", "weighted_score", "eligibility_decision", "recommendation",
     "course_verdicts_json", "machine_score_json", "reason", "updated_at",
   ],
+  ReviewAnalyses: [
+    "analysis_id", "application_id", "applicant_code", "reviewer_email", "reviewer_name", "stage",
+    "teaching_score", "research_score", "weighted_score", "score_details_json",
+    "component_verdicts_json", "eligibility_text", "best_fit_text", "delivery_text",
+    "teaching_text", "research_text", "kemri_aims_text", "gaps_text",
+    "interview_questions_text", "general_comment", "analysis_json", "updated_at",
+  ],
   ReviewNotes: [
     "note_id", "application_id", "author_email", "author_name", "stage", "note",
     "status", "created_at", "edited_at", "edited_by", "withdrawn_at",

@@ -127,6 +127,30 @@ const TAB_HEADERS = {
     "reason",
     "updated_at",
   ],
+  ReviewAnalyses: [
+    "analysis_id",
+    "application_id",
+    "applicant_code",
+    "reviewer_email",
+    "reviewer_name",
+    "stage",
+    "teaching_score",
+    "research_score",
+    "weighted_score",
+    "score_details_json",
+    "component_verdicts_json",
+    "eligibility_text",
+    "best_fit_text",
+    "delivery_text",
+    "teaching_text",
+    "research_text",
+    "kemri_aims_text",
+    "gaps_text",
+    "interview_questions_text",
+    "general_comment",
+    "analysis_json",
+    "updated_at",
+  ],
   ReviewNotes: [
     "note_id",
     "application_id",
@@ -233,6 +257,7 @@ function apiPost(request) {
   if (action === "getReviewerSession") return getReviewerSession(payload);
   if (action === "listReviewApplicants") return listReviewApplicants(payload);
   if (action === "saveReviewScore") return saveReviewScore(payload);
+  if (action === "saveReviewAnalysis") return saveReviewAnalysis(payload);
   if (action === "saveReviewNote") return saveReviewNote(payload);
   if (action === "withdrawReviewNote") return withdrawReviewNote(payload);
   if (action === "updateReviewStage") return updateReviewStage(payload);
@@ -520,6 +545,7 @@ function listReviewApplicants(payload) {
     reviewer,
     applications: visibleApplications,
     scores: readSheetObjects(getSheet(spreadsheet, "ReviewScores")),
+    analyses: readSheetObjects(getSheet(spreadsheet, "ReviewAnalyses")),
     notes: readSheetObjects(getSheet(spreadsheet, "ReviewNotes")),
     stages: readSheetObjects(getSheet(spreadsheet, "ReviewStages")),
     assignments,
@@ -554,13 +580,54 @@ function saveReviewScore(payload) {
     eligibility_decision: String(payload.eligibilityDecision || ""),
     recommendation: String(payload.recommendation || ""),
     course_verdicts_json: JSON.stringify(payload.courseVerdicts || {}),
-    machine_score_json: JSON.stringify(payload.machineScore || {}),
+    machine_score_json: JSON.stringify(payload.initialScore || payload.machineScore || {}),
     reason,
     updated_at: new Date().toISOString(),
   };
   upsertRows(sheet, [row]);
   appendReviewAudit(spreadsheet, reviewer, "saveReviewScore", applicationId, before, row, reason);
   return { ok: true, score: row };
+}
+
+function saveReviewAnalysis(payload) {
+  payload = payload || {};
+  const reviewer = requireReviewerSession(payload);
+  const spreadsheet = getOrCreateSpreadsheet();
+  ensureSheets(spreadsheet);
+  const applicationId = String(payload.applicationId || "").trim();
+  if (!applicationId) throw new Error("Application id is required.");
+  const sheet = getSheet(spreadsheet, "ReviewAnalyses");
+  const analysisId = applicationId + "::" + reviewer.email;
+  const before = findSheetObject(sheet, analysisId);
+  const teaching = clampScore(payload.teachingScore);
+  const research = clampScore(payload.researchScore);
+  const row = {
+    analysis_id: analysisId,
+    application_id: applicationId,
+    applicant_code: String(payload.applicantCode || ""),
+    reviewer_email: reviewer.email,
+    reviewer_name: reviewer.name || reviewer.email,
+    stage: reviewStageLabel(payload.stage || "All applicants"),
+    teaching_score: teaching,
+    research_score: research,
+    weighted_score: Math.round(teaching * 0.7 + research * 0.3),
+    score_details_json: JSON.stringify(payload.scoreDetails || {}),
+    component_verdicts_json: JSON.stringify(payload.componentVerdicts || payload.courseVerdicts || {}),
+    eligibility_text: String(payload.eligibilityText || ""),
+    best_fit_text: String(payload.bestFitText || ""),
+    delivery_text: String(payload.deliveryText || ""),
+    teaching_text: String(payload.teachingText || ""),
+    research_text: String(payload.researchText || ""),
+    kemri_aims_text: String(payload.kemriAimsText || payload.kemriAimsRicText || ""),
+    gaps_text: String(payload.gapsText || ""),
+    interview_questions_text: String(payload.interviewQuestionsText || ""),
+    general_comment: String(payload.generalComment || ""),
+    analysis_json: JSON.stringify(payload.analysis || {}),
+    updated_at: new Date().toISOString(),
+  };
+  upsertRows(sheet, [row]);
+  appendReviewAudit(spreadsheet, reviewer, "saveReviewAnalysis", applicationId, before, row, String(payload.reason || ""));
+  return { ok: true, analysis: row };
 }
 
 function saveEligibilityDecision(payload) {
@@ -659,6 +726,7 @@ function exportReviewAudit(payload) {
     exportedAt: new Date().toISOString(),
     applications: readTutorialReviewApplications(spreadsheet),
     scores: readSheetObjects(getSheet(spreadsheet, "ReviewScores")),
+    analyses: readSheetObjects(getSheet(spreadsheet, "ReviewAnalyses")),
     notes: readSheetObjects(getSheet(spreadsheet, "ReviewNotes")),
     stages: readSheetObjects(getSheet(spreadsheet, "ReviewStages")),
     audit: readSheetObjects(getSheet(spreadsheet, "ReviewAudit")),

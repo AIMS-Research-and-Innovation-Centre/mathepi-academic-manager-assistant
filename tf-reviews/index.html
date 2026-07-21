@@ -794,6 +794,59 @@
         margin-bottom: 4px;
       }
 
+      .analysis-editor {
+        border-top-color: var(--maroon);
+        background: #fff;
+      }
+
+      .analysis-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .analysis-grid label,
+      .score-detail label {
+        display: grid;
+        gap: 4px;
+        color: var(--navy);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .analysis-grid textarea {
+        width: 100%;
+        min-height: 110px;
+        padding: 8px;
+        color: var(--ink);
+        font-size: 13px;
+        resize: vertical;
+      }
+
+      .analysis-grid label.wide {
+        grid-column: 1 / -1;
+      }
+
+      .analysis-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-top: 10px;
+      }
+
+      .score-detail {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin: 9px 0 11px;
+      }
+
+      .score-detail input[type="number"] {
+        width: 100%;
+        padding: 5px 7px;
+      }
+
       .disc {
         margin-top: 11px;
         padding-top: 8px;
@@ -933,6 +986,15 @@
         background: #fbfaf7;
       }
 
+      .notes-title {
+        margin-bottom: 8px;
+        color: var(--maroon);
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 1.1px;
+        text-transform: uppercase;
+      }
+
       .note {
         margin-bottom: 8px;
         padding: 7px 10px;
@@ -1011,6 +1073,8 @@
         .gate-grid,
         .row,
         .crow,
+        .analysis-grid,
+        .score-detail,
         .ovr .r,
         .rbars {
           grid-template-columns: 1fr;
@@ -1074,7 +1138,7 @@
         <div class="gcount" id="gcount"></div>
       </header>
 
-      <div class="mocknote">Decision support, not a decision. Terms are weighted by how rare they are in this applicant pool, so common vocabulary counts for little. <b>Known limitation: coverage can correlate with how much the applicant wrote, so this instrument partly measures fluency, not capability.</b></div>
+      <div class="mocknote">Reviewer assessment workspace. The panel decides; this page helps reviewers trace evidence, edit scores, and record comments. Coverage can still reflect how much the applicant wrote, so reviewers should adjust every score against the application text.</div>
       <div class="funnel" id="funnel"></div>
 
       <div class="toolbar">
@@ -1129,6 +1193,7 @@
         var state = {
           applications: [],
           scores: [],
+          analyses: [],
           notes: [],
           stages: [],
           assignments: [],
@@ -1166,7 +1231,7 @@
           ["MEC07", "Introduction to Data Analysis", "data analysis visualization regression statistics"],
           ["MEC08", "Advanced Data Analysis", "advanced data analysis modelling statistical learning"],
           ["MEC09", "Professional and Entrepreneurship Development", "communication entrepreneurship professional development leadership"],
-          ["MEC10", "Advanced Data Science for Epidemiology", "data science machine learning artificial intelligence epidemiology"],
+          ["MEC10", "Advanced Data Science for Epidemiology", "data science machine learning predictive modelling epidemiology"],
           ["MEE01", "Survival Analysis", "survival analysis time event hazard censoring"],
           ["MEE02", "Time Series Analysis", "time series forecasting temporal sequential data"],
           ["MEE03", "Bayesian Statistics", "bayesian statistics mcmc prior posterior inference"],
@@ -1361,6 +1426,7 @@
             .then(function (result) {
               state.applications = (result.applications || []).map(normalizeApplication);
               state.scores = result.scores || [];
+              state.analyses = result.analyses || [];
               state.notes = result.notes || [];
               state.stages = result.stages || [];
               state.assignments = result.assignments || [];
@@ -1384,6 +1450,7 @@
           return {
             original: app,
             applicationId: String(id),
+            displayId: shortApplicationCode(app, index),
             applicant: app.applicant || app.fullName || app.full_name || app.name || "Unnamed applicant",
             title: app.title || "",
             gender: app.gender || "",
@@ -1420,6 +1487,14 @@
             references: references,
             fullApplication: app.fullApplication || app
           };
+        }
+
+        function shortApplicationCode(app, index) {
+          var existing = app.applicant_code || app.applicantCode || app.short_code || app.shortCode;
+          if (existing) return String(existing);
+          var yearText = String(app.submittedAt || app.submitted_at || "2026");
+          var year = (yearText.match(/\b(20\d{2})\b/) || ["2026", "2026"])[1].slice(-2);
+          return "TF-" + String(index + 1).padStart(2, "0") + "-" + year;
         }
 
         function tokenSet(text) {
@@ -1534,7 +1609,7 @@
         function institutionalFit(text) {
           var value = String(text || "").toLowerCase();
           var disease = /(malaria|hiv|tuberculosis|tb|infectious|vector|maternal|child|ncd|one health|vaccine|clinical|surveillance)/i.test(value);
-          var method = /(model|statistics|informatics|machine learning|data science|bayesian|spatial|epidemiology|artificial intelligence)/i.test(value);
+          var method = /(model|statistics|informatics|machine learning|data science|bayesian|spatial|epidemiology|predictive)/i.test(value);
           if (disease && method) return { label: "clear home", explanation: "The plan combines a disease or public-health domain with quantitative methods." };
           if (disease || method) return { label: "plausible home", explanation: "There is a plausible Nairobi home, but the panel should identify the concrete host during interview." };
           return { label: "would need brokering", explanation: "The plan needs brokering because the current text does not name a clear domain home." };
@@ -1750,14 +1825,14 @@
             var lecture = a.components.filter(function (item) { return item.verdict === "lecture"; });
             var tutor = a.components.filter(function (item) { return item.verdict === "tutor"; });
             return '<div class="row" data-s="' + rowStageClass(app) + '" data-id="' + esc(app.applicationId) + '">' +
-              '<div class="idtag">' + esc(app.applicationId) + '</div>' +
+              '<div class="idtag">' + esc(app.displayId || app.applicationId) + '</div>' +
               '<div><div class="nm2">' + esc([app.title, app.applicant].filter(Boolean).join(" ")) + '</div>' +
               '<div class="ident"><div><span class="k">Gender</span><span class="v ' + genderClass + '">' + esc(app.gender || "Not stated") + '</span></div>' +
               '<div><span class="k">Phone</span><span class="v">' + esc(app.phone || "Not given") + '</span></div>' +
               '<div><span class="k">PhD field</span><span class="v">' + esc(app.phdField || "Not stated") + '</span></div></div>' +
               '<div class="dual"><div><span class="k">Teaching x0.7</span><span class="v ' + bandClass(band(e.t)) + '">' + e.t + '</span><span class="k" style="letter-spacing:.3px;text-transform:none">' + band(e.t) + '</span></div>' +
               '<div><span class="k">Research x0.3</span><span class="v ' + bandClass(band(e.r)) + '">' + e.r + '</span><span class="k" style="letter-spacing:.3px;text-transform:none">' + band(e.r) + '</span></div>' +
-              '<div style="background:#F2F4F9"><span class="k">Weighted 70:30' + (e.edited ? ", revised" : "") + '</span><span class="v ' + bandClass(band(e.ov)) + '">' + e.ov + '</span><span class="k" style="letter-spacing:.3px;text-transform:none">' + (e.edited ? "machine said " + a.weightedScore : band(e.ov)) + '</span></div></div>' +
+              '<div style="background:#F2F4F9"><span class="k">Weighted 70:30' + (e.edited ? ", revised" : "") + '</span><span class="v ' + bandClass(band(e.ov)) + '">' + e.ov + '</span><span class="k" style="letter-spacing:.3px;text-transform:none">' + (e.edited ? "initial " + a.weightedScore : band(e.ov)) + '</span></div></div>' +
               '<div class="chips"><span class="chip">' + esc(stage) + '</span>' +
               '<span class="chip ' + (app.passport && app.phdCertificate ? "good" : "bad") + '">' + (app.passport && app.phdCertificate ? "Documents attached" : "Documents missing") + '</span>' +
               '<span class="chip ' + (refs >= 2 ? "good" : "bad") + '">' + refs + " referee" + (refs === 1 ? "" : "s") + '</span>' +
@@ -1783,7 +1858,7 @@
           if (!app) return;
           state.openId = id;
           $("dName").textContent = [app.title, app.applicant].filter(Boolean).join(" ");
-          $("dMeta").textContent = [app.applicationId, app.gender || "gender not stated", app.phone || "no phone", app.phdField || "field not stated", app.nationality].filter(Boolean).join(" | ");
+          $("dMeta").textContent = [app.displayId || app.applicationId, app.gender || "gender not stated", app.phone || "no phone", app.phdField || "field not stated", app.nationality].filter(Boolean).join(" | ");
           $("stagepick").innerHTML = STAGES.map(function (stage) {
             return '<button data-label="' + esc(stage.label) + '" class="' + (stageFor(id) === stage.label ? "sel" : "") + '" type="button">' + esc(stage.label) + "</button>";
           }).join("");
@@ -1796,27 +1871,168 @@
           $("scrim").classList.add("open");
         }
 
+        function analysisFor(app) {
+          var email = session && session.email || "";
+          var rows = state.analyses.filter(function (row) {
+            return String(row.application_id || "") === String(app.applicationId) &&
+              (!email || String(row.reviewer_email || "").toLowerCase() === email.toLowerCase());
+          });
+          rows.sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); });
+          return rows[0] || null;
+        }
+
+        function clamp(value) {
+          return Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+        }
+
+        function sourceForComponent(app, item) {
+          var teachingTokens = tokenSet([app.teachingExperience, app.tutoringExperience, app.mentoringExperience, app.teachingSupport].join(" "));
+          var researchTokens = tokenSet([app.phdField, app.thesisTitleExplainer, app.researchArea, app.quantitativeBackground, app.appliedTrackRecord, app.researchExperience, app.researchPlan].join(" "));
+          var teachingHits = (item.terms || []).filter(function (term) { return teachingTokens[term]; }).length;
+          var researchHits = (item.terms || []).filter(function (term) { return researchTokens[term]; }).length;
+          if (teachingHits >= researchHits && teachingHits > 0) return "teaching, tutoring, mentoring, or teaching-support answer";
+          if (researchHits > 0) return "PhD field, thesis, research-area, or research-plan answer";
+          return "no direct source named, would need preparation";
+        }
+
+        function firstSentence(text) {
+          var clean = String(text || "").replace(/\s+/g, " ").trim();
+          if (!clean) return "No research plan sentence was provided.";
+          var match = clean.match(/^(.+?[.!?])(\s|$)/);
+          return match ? match[1] : clean;
+        }
+
+        function scoreDetailsFor(app) {
+          var a = app.assessment;
+          var saved = analysisFor(app);
+          var savedDetails = parseJson(saved && saved.score_details_json, null);
+          var dimScores = {};
+          a.researchDimensions.forEach(function (item) { dimScores[item.label] = item.score; });
+          var defaults = {
+            teachingDepth: clamp(a.bestFit && a.bestFit.score),
+            teachingDelivery: clamp(a.delivery.score),
+            teachingBreadth: clamp(coverageCount(app) * 12),
+            researchSubstance: clamp(dimScores["Substance of the plan"]),
+            researchFeasibility: clamp(dimScores["Feasibility at 30%"]),
+            researchTrackRecord: clamp(dimScores["Track record"]),
+            researchProgrammeFit: clamp(dimScores["Programme and place fit"]),
+            researchIndependence: clamp(dimScores["Independence"])
+          };
+          if (!savedDetails) return defaults;
+          Object.keys(defaults).forEach(function (key) {
+            if (savedDetails[key] != null && savedDetails[key] !== "") defaults[key] = clamp(savedDetails[key]);
+          });
+          return defaults;
+        }
+
+        function scoreDetailHtml(id, label, value) {
+          return '<label>' + esc(label) + '<input type="number" id="' + id + '" min="0" max="100" value="' + clamp(value) + '"></label>';
+        }
+
+        function componentVerdictLine(app, item, index) {
+          return (index + 1) + ". " + item.code + " " + item.title + ": " + item.label +
+            ", " + item.confidence + " confidence. Source: " + sourceForComponent(app, item) +
+            ". Evidence terms: " + ((item.terms && item.terms.length) ? item.terms.join(", ") : "limited direct evidence") + ".";
+        }
+
+        function analysisTextsFor(app) {
+          var a = app.assessment;
+          var saved = analysisFor(app);
+          var gaps = a.components.filter(function (item) { return item.verdict === "gap"; }).slice(0, 5).map(function (item) { return item.code + " " + item.title; });
+          var topFive = a.components.slice(0, 5);
+          var researchDims = a.researchDimensions.slice(0, 5).map(function (d) {
+            return d.label + ": " + d.score + "/100. Source: research plan, research experience, PhD field, thesis, and quantitative-background answers. Matched evidence: " + (d.matched.length ? d.matched.join(", ") : "not clearly evidenced") + ".";
+          }).join("\n");
+          var defaults = {
+            eligibility: (a.eligibility.label === "Progress strong" ? "Pass. " : "Flags to check. ") +
+              a.eligibility.reasons.join("; ") +
+              ". Sources: documents, referees, PhD completion date, Nairobi residency answer, teaching-continuity answer, and substantive completeness of the form.",
+            bestFit: "Best fit: " + (a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "not yet clear") + ".\n" +
+              topFive.map(function (item, index) { return componentVerdictLine(app, item, index); }).join("\n"),
+            delivery: "Delivery evidence tier: " + a.delivery.label + ". " + a.delivery.explanation +
+              " Source: teaching experience, tutoring and marking, mentoring, and teaching-support answers. Candid statements of limited formal lecturing should not be penalised where concrete training, mentoring, or hands-on teaching evidence follows.",
+            teaching: "Teaching judgement, 70 per cent: the score is " + a.teachingScore + "/100 before reviewer edits. It is driven by depth in " +
+              (a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "the strongest matched component") +
+              ", delivery evidence, and breadth across " + coverageCount(app) + " of the 20 assessable components. Adjust this if the application text gives stronger or weaker concrete evidence than the score suggests.",
+            research: "Research judgement, 30 per cent. Applicant's first sentence: \"" + firstSentence(app.researchPlan) + "\"\n" + researchDims,
+            institutionalFit: "KEMRI and AIMS RIC fit: " + a.institutionalFit.label + ". " + a.institutionalFit.explanation +
+              " DESI may be a methodological co-host, but a disease, surveillance, clinical, public-health, or systems home should be named before calling the match clear.",
+            gaps: "Gaps to verify: " + (gaps.length ? gaps.join("; ") : "no major curriculum gap identified by the first screen") +
+              ". Also check document evidence, two contactable referees, readiness for residence in Nairobi, and whether the applicant can support hands-on sessions at pace.",
+            interviewQuestions: [
+              "1. Which one Tutorial Fellow course component could you teach at short notice, and what would the first hands-on session look like?",
+              "2. Give one concrete example of marking, feedback, tutorial delivery, or mentoring where you improved a learner's work.",
+              "3. What existing data, collaborator, and output make your 30 per cent research plan feasible during a heavy teaching term?",
+              "4. Which KEMRI disease, surveillance, clinical, public-health, or systems unit would be the natural home for the project, and why?",
+              "5. What support would you need in the first month to fill any gaps in the course matrix?"
+            ].join("\n"),
+            generalComment: "Initial evaluator comment: review the evidence above against the full application. The strongest case rests on concrete delivery evidence, depth in the best-fit components, feasibility of the 30 per cent research plan, and clear residency and teaching-continuity commitments."
+          };
+          if (!saved) return defaults;
+          return {
+            eligibility: saved.eligibility_text || defaults.eligibility,
+            bestFit: saved.best_fit_text || defaults.bestFit,
+            delivery: saved.delivery_text || defaults.delivery,
+            teaching: saved.teaching_text || defaults.teaching,
+            research: saved.research_text || defaults.research,
+            institutionalFit: saved.kemri_aims_text || defaults.institutionalFit,
+            gaps: saved.gaps_text || defaults.gaps,
+            interviewQuestions: saved.interview_questions_text || defaults.interviewQuestions,
+            generalComment: saved.general_comment || defaults.generalComment
+          };
+        }
+
+        function analysisFieldHtml(id, label, value, wide) {
+          return '<label class="' + (wide ? "wide" : "") + '">' + esc(label) + '<textarea id="' + id + '">' + esc(value) + '</textarea></label>';
+        }
+
         function evalHtml(app) {
           var a = app.assessment;
           var e = effective(app, a);
           var latest = latestScore(app.applicationId);
+          var savedAnalysis = analysisFor(app);
+          var details = scoreDetailsFor(app);
+          var text = analysisTextsFor(app);
           var verdicts = parseJson(latest && latest.course_verdicts_json, {});
           var gaps = a.components.filter(function (item) { return item.verdict === "gap"; }).slice(0, 4).map(function (item) { return item.code; }).join(", ") || "no major matrix gap";
-          return '<div class="narr"><h4>Drafted panel note</h4>' +
+          return '<div class="narr"><h4>Initial panel note</h4>' +
             '<h5>Why they could fit</h5><ul><li>Best fit is ' + esc(a.bestFit.code + " " + a.bestFit.title) + '.</li><li>Weighted 70:30 score ' + e.ov + ': teaching ' + e.t + ', research ' + e.r + '.</li><li>Delivery evidence: ' + esc(a.delivery.explanation) + '</li></ul>' +
             '<h5>The 30 per cent research commitment - ' + esc(band(a.researchScore).toLowerCase()) + '</h5>' +
             a.researchDimensions.map(function (d) { return '<div class="rbars"><span>' + esc(d.label) + '</span><span class="t"><i style="width:' + d.score + '%"></i></span><span>' + d.score + '</span></div>'; }).join("") +
             '<ul><li>' + esc(a.institutionalFit.explanation) + '</li></ul>' +
             '<h5>Gaps</h5><ul><li>Check ' + esc(gaps) + ', delivery evidence, documents, and whether the applicant can support hands-on sessions at pace.</li></ul>' +
             '<h5>Ask at interview</h5><ul><li>Ask for one concrete tutorial plan, one marking or feedback example, and how the proposed 30 percent research plan would fit within protected research time.</li></ul>' +
-            '<button class="primary" id="insertDraft" type="button">Insert as draft note under your name</button>' +
-            '<div class="disc">Drafted from this applicant\'s own answers by keyword and structure matching. Treat every line as a prompt to check rather than a finding. Nothing here enters the record until a reviewer saves it.</div></div>' +
+            '<button class="primary" id="insertDraft" type="button">Insert as general comment under your name</button>' +
+            '<div class="disc">Built from this applicant\'s own answers and designed for reviewer correction. Treat every line as editable evidence, not as a panel decision.</div></div>' +
+            '<div class="narr analysis-editor"><h4>First evaluator assessment, editable</h4>' +
+            '<div class="analysis-grid">' +
+            analysisFieldHtml("analysisEligibility", "Eligibility", text.eligibility, false) +
+            analysisFieldHtml("analysisBestFit", "Best fit and top five components", text.bestFit, false) +
+            analysisFieldHtml("analysisDelivery", "Delivery evidence", text.delivery, false) +
+            analysisFieldHtml("analysisTeaching", "Teaching judgement, 70 per cent", text.teaching, false) +
+            analysisFieldHtml("analysisResearch", "Research judgement, 30 per cent", text.research, true) +
+            analysisFieldHtml("analysisInstitutional", "KEMRI and AIMS RIC fit", text.institutionalFit, false) +
+            analysisFieldHtml("analysisGaps", "Gaps", text.gaps, false) +
+            analysisFieldHtml("analysisQuestions", "Ask at interview", text.interviewQuestions, true) +
+            analysisFieldHtml("analysisGeneral", "General first evaluator comment", text.generalComment, true) +
+            '</div>' +
+            '<div class="disc">' + (savedAnalysis ? "Saved structured assessment found for " + esc(savedAnalysis.reviewer_name || savedAnalysis.reviewer_email || "this reviewer") + ", updated " + esc(savedAnalysis.updated_at || "") + "." : "Nothing here enters the structured review record until you save it.") + '</div></div>' +
             '<div class="ovr"><div class="b">Revise the score</div>' +
-            '<div class="r"><span>Teaching, weighted 70</span><input type="number" id="ovT" min="0" max="100" value="' + e.t + '"><span class="was">machine score ' + a.teachingScore + '</span></div>' +
-            '<div class="r"><span>Research, weighted 30</span><input type="number" id="ovR" min="0" max="100" value="' + e.r + '"><span class="was">machine score ' + a.researchScore + '</span></div>' +
-            '<div class="r"><span>Weighted 70:30</span><b id="ovOut">' + e.ov + '</b><span class="was">machine score ' + a.weightedScore + ' &middot; ' + band(a.weightedScore) + '</span></div>' +
-            '<div style="margin:7px 0 8px"><input type="text" id="ovWhy" placeholder="Reason for the revision, required" value="' + esc(e.reason || "") + '"></div>' +
-            '<button class="primary" id="saveScore" type="button">Save revision as ' + esc(reviewerName()) + '</button>' + (latest ? '<div class="was" style="margin-top:7px">Revised by ' + esc(latest.reviewer_name || latest.reviewer_email || "") + '. Reason: ' + esc(latest.reason || "") + '</div>' : "") + '</div>' +
+            '<div class="score-detail">' +
+            scoreDetailHtml("scoreDepth", "Teaching depth in best-fit component", details.teachingDepth) +
+            scoreDetailHtml("scoreDelivery", "Delivery evidence", details.teachingDelivery) +
+            scoreDetailHtml("scoreBreadth", "Teaching breadth across matrix", details.teachingBreadth) +
+            scoreDetailHtml("scoreSubstance", "Research substance", details.researchSubstance) +
+            scoreDetailHtml("scoreFeasibility", "Research feasibility at 30 per cent", details.researchFeasibility) +
+            scoreDetailHtml("scoreTrack", "Research track record", details.researchTrackRecord) +
+            scoreDetailHtml("scoreFit", "Programme and place fit", details.researchProgrammeFit) +
+            scoreDetailHtml("scoreIndependence", "Research independence", details.researchIndependence) +
+            '</div>' +
+            '<div class="r"><span>Teaching, weighted 70</span><input type="number" id="ovT" min="0" max="100" value="' + e.t + '"><span class="was">initial score ' + a.teachingScore + '</span></div>' +
+            '<div class="r"><span>Research, weighted 30</span><input type="number" id="ovR" min="0" max="100" value="' + e.r + '"><span class="was">initial score ' + a.researchScore + '</span></div>' +
+            '<div class="r"><span>Weighted 70:30</span><b id="ovOut">' + e.ov + '</b><span class="was">initial score ' + a.weightedScore + ' &middot; ' + band(a.weightedScore) + '</span></div>' +
+            '<div style="margin:7px 0 8px"><input type="text" id="ovWhy" placeholder="Reason for the revision or assessment update" value="' + esc(e.reason || "") + '"></div>' +
+            '<div class="analysis-actions"><button class="primary" id="saveAnalysis" type="button">Save first evaluator assessment</button><button id="saveScore" type="button">Save score only</button></div>' + (latest ? '<div class="was" style="margin-top:7px">Last score saved by ' + esc(latest.reviewer_name || latest.reviewer_email || "") + '. Reason: ' + esc(latest.reason || "") + '</div>' : "") + '</div>' +
             '<div class="gate"><h4>Eligibility gate</h4><div class="rec ' + recClass(a.eligibility.label) + '">' + esc(a.eligibility.label) + '</div><ul>' + a.eligibility.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul></div>' +
             '<div class="best"><div class="b">Where they fit best, five strongest components</div>' +
             a.components.slice(0, 5).map(function (item, index) { return '<div class="unit"><b>' + (index + 1) + '. ' + item.code + ' ' + esc(item.title) + '</b><span> ' + item.label + ' &middot; ' + item.confidence + ' confidence' + (item.terms.length ? ', matched on ' + item.terms.map(esc).join(", ") : ', limited direct evidence') + '</span></div>'; }).join("") + '<div class="unit"><span>Ranked across all 20 assessable components. Read the label and evidence, not only the position.</span></div></div>' +
@@ -1854,12 +2070,13 @@
 
         function drawNotes(id) {
           var notes = notesFor(id);
-          $("dNotes").innerHTML = notes.length ? notes.map(function (note) {
+          var title = '<div class="notes-title">General reviewer comments, tagged by reviewer</div>';
+          $("dNotes").innerHTML = title + (notes.length ? notes.map(function (note) {
             var noteId = note.note_id || "";
             return '<div class="note"><span class="act"><button data-note="' + esc(noteId) + '" class="editNote" type="button">Edit</button><button data-note="' + esc(noteId) + '" class="withdrawNote" type="button">Withdraw</button></span>' +
               '<div class="who">' + esc(note.author_name || note.author_email || "Reviewer") + '<span class="when">' + esc(note.created_at || "") + " | at " + esc(note.stage || "") + '</span></div>' +
               '<div class="txt">' + esc(note.note || "") + '</div>' + (note.edited_at ? '<div class="was">Edited by ' + esc(note.edited_by || "") + ', ' + esc(note.edited_at) + '</div>' : "") + '</div>';
-          }).join("") : '<div class="empty" style="padding:12px">No review notes yet.</div>';
+          }).join("") : '<div class="empty" style="padding:12px">No general reviewer comments yet.</div>');
           Array.prototype.forEach.call($("dNotes").querySelectorAll(".editNote"), function (button) {
             button.onclick = function () {
               var note = notes.filter(function (item) { return String(item.note_id) === String(button.getAttribute("data-note")); })[0];
@@ -1886,39 +2103,116 @@
           }
           if (t) t.oninput = live;
           if (r) r.oninput = live;
+          function detailLive() {
+            var depth = Number($("scoreDepth") && $("scoreDepth").value || 0);
+            var delivery = Number($("scoreDelivery") && $("scoreDelivery").value || 0);
+            var breadth = Number($("scoreBreadth") && $("scoreBreadth").value || 0);
+            var substance = Number($("scoreSubstance") && $("scoreSubstance").value || 0);
+            var feasibility = Number($("scoreFeasibility") && $("scoreFeasibility").value || 0);
+            var track = Number($("scoreTrack") && $("scoreTrack").value || 0);
+            var fit = Number($("scoreFit") && $("scoreFit").value || 0);
+            var independence = Number($("scoreIndependence") && $("scoreIndependence").value || 0);
+            if (t) t.value = clamp(depth * 0.45 + delivery * 0.3 + breadth * 0.25);
+            if (r) r.value = clamp((substance + feasibility + track + fit + independence) / 5);
+            live();
+          }
+          ["scoreDepth", "scoreDelivery", "scoreBreadth", "scoreSubstance", "scoreFeasibility", "scoreTrack", "scoreFit", "scoreIndependence"].forEach(function (id) {
+            var input = $(id);
+            if (input) input.oninput = detailLive;
+          });
           if ($("saveScore")) $("saveScore").onclick = function () { saveScore(id); };
+          if ($("saveAnalysis")) $("saveAnalysis").onclick = function () { saveAnalysis(id); };
           if ($("insertDraft")) $("insertDraft").onclick = function () {
             var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
-            var a = app.assessment;
-            $("noteTxt").value = [
-              "Why they could fit:",
-              "- Best fit is " + a.bestFit.code + " " + a.bestFit.title + ".",
-              "- Weighted 70:30 score " + effective(app, a).ov + ": teaching " + effective(app, a).t + ", research " + effective(app, a).r + ".",
-              "",
-              "Gaps:",
-              "- Check delivery evidence, documents, and whether the applicant can support hands-on sessions at pace.",
-              "",
-              "Ask at interview:",
-              "- Ask for one concrete tutorial plan, one marking or feedback example, and the protected 30 percent research plan."
-            ].join("\n");
+            var text = analysisTextsFor(app);
+            $("noteTxt").value = text.generalComment;
             $("noteTxt").focus();
+          };
+        }
+
+        function collectCourseVerdicts() {
+          var verdicts = {};
+          Array.prototype.forEach.call(document.querySelectorAll("[data-course-verdict]"), function (select) {
+            verdicts[select.getAttribute("data-course-verdict")] = select.value;
+          });
+          return verdicts;
+        }
+
+        function fieldValue(id) {
+          return ($(id) && $(id).value || "").trim();
+        }
+
+        function collectScoreDetails() {
+          return {
+            teachingDepth: clamp(fieldValue("scoreDepth")),
+            teachingDelivery: clamp(fieldValue("scoreDelivery")),
+            teachingBreadth: clamp(fieldValue("scoreBreadth")),
+            researchSubstance: clamp(fieldValue("scoreSubstance")),
+            researchFeasibility: clamp(fieldValue("scoreFeasibility")),
+            researchTrackRecord: clamp(fieldValue("scoreTrack")),
+            researchProgrammeFit: clamp(fieldValue("scoreFit")),
+            researchIndependence: clamp(fieldValue("scoreIndependence"))
+          };
+        }
+
+        function collectAnalysisPayload(id) {
+          var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+          var teaching = clamp($("ovT") && $("ovT").value);
+          var research = clamp($("ovR") && $("ovR").value);
+          var reason = fieldValue("ovWhy") || "First evaluator assessment updated.";
+          var scoreDetails = collectScoreDetails();
+          var courseVerdicts = collectCourseVerdicts();
+          return {
+            applicationId: id,
+            applicantCode: app.displayId || id,
+            stage: stageFor(id),
+            teachingScore: teaching,
+            researchScore: research,
+            weightedScore: Math.round(teaching * 0.7 + research * 0.3),
+            eligibilityDecision: app.assessment.eligibility.label,
+            recommendation: app.assessment.eligibility.label,
+            courseVerdicts: courseVerdicts,
+            initialScore: {
+              teaching: app.assessment.teachingScore,
+              research: app.assessment.researchScore,
+              weighted: app.assessment.weightedScore,
+              bestFit: app.assessment.bestFit && app.assessment.bestFit.code
+            },
+            scoreDetails: scoreDetails,
+            componentVerdicts: courseVerdicts,
+            eligibilityText: fieldValue("analysisEligibility"),
+            bestFitText: fieldValue("analysisBestFit"),
+            deliveryText: fieldValue("analysisDelivery"),
+            teachingText: fieldValue("analysisTeaching"),
+            researchText: fieldValue("analysisResearch"),
+            kemriAimsText: fieldValue("analysisInstitutional"),
+            gapsText: fieldValue("analysisGaps"),
+            interviewQuestionsText: fieldValue("analysisQuestions"),
+            generalComment: fieldValue("analysisGeneral"),
+            analysis: {
+              applicantCode: app.displayId || id,
+              applicant: app.applicant,
+              generatedFrom: "TutorialFellowApplications",
+              eligibility: fieldValue("analysisEligibility"),
+              bestFit: fieldValue("analysisBestFit"),
+              delivery: fieldValue("analysisDelivery"),
+              teaching: fieldValue("analysisTeaching"),
+              research: fieldValue("analysisResearch"),
+              institutionalFit: fieldValue("analysisInstitutional"),
+              gaps: fieldValue("analysisGaps"),
+              interviewQuestions: fieldValue("analysisQuestions"),
+              generalComment: fieldValue("analysisGeneral")
+            },
+            reason: reason
           };
         }
 
         function saveScore(id) {
           var teaching = Number($("ovT") && $("ovT").value || 0);
           var research = Number($("ovR") && $("ovR").value || 0);
-          var reason = ($("ovWhy") && $("ovWhy").value || "").trim();
-          if (!reason) {
-            $("ovWhy").style.borderColor = "var(--bad)";
-            $("ovWhy").focus();
-            return;
-          }
+          var reason = ($("ovWhy") && $("ovWhy").value || "").trim() || "Score revised by reviewer.";
           var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
-          var verdicts = {};
-          Array.prototype.forEach.call(document.querySelectorAll("[data-course-verdict]"), function (select) {
-            verdicts[select.getAttribute("data-course-verdict")] = select.value;
-          });
+          var verdicts = collectCourseVerdicts();
           showMessage("reviewMessageArea", "status", "Saving score revision...");
           jsonp("saveReviewScore", reviewPayload({
             applicationId: id,
@@ -1927,7 +2221,7 @@
             eligibilityDecision: app.assessment.eligibility.label,
             recommendation: app.assessment.eligibility.label,
             courseVerdicts: verdicts,
-            machineScore: {
+            initialScore: {
               teaching: app.assessment.teachingScore,
               research: app.assessment.researchScore,
               weighted: app.assessment.weightedScore,
@@ -1944,6 +2238,29 @@
           }).catch(function (error) {
             showMessage("reviewMessageArea", "error", error.message || "Score save failed.");
           });
+        }
+
+        function saveAnalysis(id) {
+          var payload = collectAnalysisPayload(id);
+          showMessage("reviewMessageArea", "status", "Saving first evaluator assessment...");
+          jsonp("saveReviewScore", reviewPayload(payload), 30000)
+            .then(function (scoreResult) {
+              var scoreIndex = state.scores.findIndex(function (row) { return row.score_id === scoreResult.score.score_id; });
+              if (scoreIndex >= 0) state.scores[scoreIndex] = scoreResult.score;
+              else state.scores.push(scoreResult.score);
+              return jsonp("saveReviewAnalysis", reviewPayload(payload), 30000);
+            })
+            .then(function (result) {
+              var index = state.analyses.findIndex(function (row) { return row.analysis_id === result.analysis.analysis_id; });
+              if (index >= 0) state.analyses[index] = result.analysis;
+              else state.analyses.push(result.analysis);
+              showMessage("reviewMessageArea", "success", "First evaluator assessment saved.");
+              openApp(id);
+              render();
+            })
+            .catch(function (error) {
+              showMessage("reviewMessageArea", "error", error.message || "Assessment save failed. Check that the latest Apps Script review file has been redeployed.");
+            });
         }
 
         function saveNote() {
@@ -2011,10 +2328,11 @@
           var rows = assessedApps().map(function (app) {
             return {
               applicationId: app.applicationId,
+              applicantCode: app.displayId || app.applicationId,
               applicant: app.applicant,
               stage: stageFor(app.applicationId),
               recommendation: app.assessment.eligibility.label,
-              machineScores: {
+              initialScores: {
                 teaching: app.assessment.teachingScore,
                 research: app.assessment.researchScore,
                 weighted: app.assessment.weightedScore
@@ -2023,6 +2341,7 @@
               bestFit: app.assessment.bestFit && app.assessment.bestFit.code,
               canLecture: app.assessment.components.filter(function (item) { return item.verdict === "lecture"; }).map(function (item) { return item.code; }),
               canTutor: app.assessment.components.filter(function (item) { return item.verdict === "tutor"; }).map(function (item) { return item.code; }),
+              analysis: analysisFor(app),
               notes: notesFor(app.applicationId)
             };
           });
@@ -2050,6 +2369,7 @@
           session = null;
           state.applications = [];
           state.scores = [];
+          state.analyses = [];
           state.notes = [];
           state.stages = [];
           try {
@@ -2085,7 +2405,7 @@
               mentoringExperience: "Mentored postgraduate students on reproducible analysis and scientific computing.",
               researchExperience: "Two manuscripts and one conference presentation on infectious disease modelling.",
               teachingSupport: "Can support hands-on sessions, marking, and emergency lecture continuity in modelling and data analysis blocks.",
-              researchPlan: "A feasible 30 percent project using existing surveillance datasets to compare mechanistic and machine-learning nowcasting models.",
+              researchPlan: "A feasible 30 percent project using existing surveillance datasets to compare mechanistic and predictive nowcasting models.",
               residenceReady: "Yes",
               teachingGapReady: "Yes",
               passport: "passport.pdf",
