@@ -375,6 +375,7 @@ function parseJsonSafe(value, fallback) {
 
 function readSheetObjects(sheet) {
   const headers = getHeaders(sheet);
+  if (!headers.length) return [];
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
   return sheet.getRange(2, 1, lastRow - 1, headers.length).getValues().map((row) => {

@@ -38,7 +38,9 @@ function readJsonRecords(sheet) {
 }
 
 function upsertRows(sheet, objects) {
+  if (!objects || !objects.length) return;
   const headers = getHeaders(sheet);
+  if (!headers.length) throw new Error("Sheet " + sheet.getName() + " is missing its header row.");
   const lastRow = sheet.getLastRow();
   const existing = {};
   if (lastRow >= 2) {
@@ -55,12 +57,29 @@ function upsertRows(sheet, objects) {
 }
 
 function appendRows(sheet, objects) {
+  if (!objects || !objects.length) return;
   const headers = getHeaders(sheet);
+  if (!headers.length) throw new Error("Sheet " + sheet.getName() + " is missing its header row.");
   objects.forEach((object) => sheet.appendRow(headers.map((header) => object[header] || "")));
 }
 
 function getHeaders(sheet) {
-  return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const expected = TAB_HEADERS[sheet.getName()] || ["record_id"];
+  if (sheet.getLastColumn() < 1) {
+    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+    sheet.setFrozenRows(1);
+    return expected.slice();
+  }
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map((value, index) => {
+    const header = String(value || "").trim();
+    return header || "column_" + (index + 1);
+  });
+  if (!headers.some((header) => header.indexOf("column_") !== 0)) {
+    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+    sheet.setFrozenRows(1);
+    return expected.slice();
+  }
+  return headers;
 }
 
 function clearBody(sheet) {

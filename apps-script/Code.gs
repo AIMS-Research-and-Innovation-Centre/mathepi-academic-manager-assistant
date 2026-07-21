@@ -883,6 +883,7 @@ function parseJsonSafe(value, fallback) {
 
 function readSheetObjects(sheet) {
   const headers = getHeaders(sheet);
+  if (!headers.length) return [];
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
   return sheet.getRange(2, 1, lastRow - 1, headers.length).getValues().map((row) => {
@@ -1130,13 +1131,38 @@ function ensureSheets(spreadsheet) {
   Object.keys(TAB_HEADERS).forEach((name) => {
     const sheet = getSheet(spreadsheet, name);
     const headers = TAB_HEADERS[name];
-    const current = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
-    if (current.join("") !== headers.join("")) {
-      sheet.clear();
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.setFrozenRows(1);
-    }
+    ensureSheetHeaders(sheet, headers);
   });
+}
+
+function ensureSheetHeaders(sheet, headers) {
+  const expectedHeaders = (headers && headers.length ? headers : ["record_id"]).map(String);
+  const lastColumn = sheet.getLastColumn();
+  if (lastColumn < 1) {
+    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
+    sheet.setFrozenRows(1);
+    return expectedHeaders;
+  }
+
+  const width = Math.max(lastColumn, expectedHeaders.length);
+  const current = sheet.getRange(1, 1, 1, width).getValues()[0].map((value) => String(value || "").trim());
+  const hasHeaderRow = current.some(Boolean);
+  if (!hasHeaderRow) {
+    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
+    sheet.setFrozenRows(1);
+    return expectedHeaders;
+  }
+
+  const present = {};
+  current.forEach((header) => {
+    if (header) present[header] = true;
+  });
+  const missing = expectedHeaders.filter((header) => !present[header]);
+  if (missing.length) {
+    sheet.getRange(1, lastColumn + 1, 1, missing.length).setValues([missing]);
+  }
+  if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
+  return getHeaders(sheet);
 }
 
 function ensureDriveFolders(rootFolder) {
@@ -1231,7 +1257,9 @@ function readCfaStatuses(spreadsheet) {
 }
 
 function upsertRows(sheet, objects) {
+  if (!objects || !objects.length) return;
   const headers = getHeaders(sheet);
+  if (!headers.length) throw new Error("Sheet " + sheet.getName() + " is missing its header row.");
   const lastRow = sheet.getLastRow();
   const existing = {};
   if (lastRow >= 2) {
@@ -1248,12 +1276,29 @@ function upsertRows(sheet, objects) {
 }
 
 function appendRows(sheet, objects) {
+  if (!objects || !objects.length) return;
   const headers = getHeaders(sheet);
+  if (!headers.length) throw new Error("Sheet " + sheet.getName() + " is missing its header row.");
   objects.forEach((object) => sheet.appendRow(headers.map((header) => object[header] || "")));
 }
 
 function getHeaders(sheet) {
-  return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const expected = TAB_HEADERS[sheet.getName()] || ["record_id"];
+  if (sheet.getLastColumn() < 1) {
+    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+    sheet.setFrozenRows(1);
+    return expected.slice();
+  }
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map((value, index) => {
+    const header = String(value || "").trim();
+    return header || "column_" + (index + 1);
+  });
+  if (!headers.some((header) => header.indexOf("column_") !== 0)) {
+    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+    sheet.setFrozenRows(1);
+    return expected.slice();
+  }
+  return headers;
 }
 
 function clearBody(sheet) {

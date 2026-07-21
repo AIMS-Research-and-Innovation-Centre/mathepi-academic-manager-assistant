@@ -40,13 +40,38 @@ function ensureSheets(spreadsheet) {
   Object.keys(TAB_HEADERS).forEach((name) => {
     const sheet = getSheet(spreadsheet, name);
     const headers = TAB_HEADERS[name];
-    const current = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
-    if (current.join("") !== headers.join("")) {
-      sheet.clear();
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.setFrozenRows(1);
-    }
+    ensureSheetHeaders(sheet, headers);
   });
+}
+
+function ensureSheetHeaders(sheet, headers) {
+  const expectedHeaders = (headers && headers.length ? headers : ["record_id"]).map(String);
+  const lastColumn = sheet.getLastColumn();
+  if (lastColumn < 1) {
+    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
+    sheet.setFrozenRows(1);
+    return expectedHeaders;
+  }
+
+  const width = Math.max(lastColumn, expectedHeaders.length);
+  const current = sheet.getRange(1, 1, 1, width).getValues()[0].map((value) => String(value || "").trim());
+  const hasHeaderRow = current.some(Boolean);
+  if (!hasHeaderRow) {
+    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
+    sheet.setFrozenRows(1);
+    return expectedHeaders;
+  }
+
+  const present = {};
+  current.forEach((header) => {
+    if (header) present[header] = true;
+  });
+  const missing = expectedHeaders.filter((header) => !present[header]);
+  if (missing.length) {
+    sheet.getRange(1, lastColumn + 1, 1, missing.length).setValues([missing]);
+  }
+  if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
+  return getHeaders(sheet);
 }
 
 function ensureDriveFolders(rootFolder) {
