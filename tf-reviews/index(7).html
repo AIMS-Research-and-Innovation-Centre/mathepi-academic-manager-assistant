@@ -1,0 +1,3326 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MathEpi Tutorial Fellow Review Portal</title>
+    <meta name="theme-color" content="#800000" />
+    <style>
+      :root {
+        --maroon: #800000;
+        --navy: #0c1940;
+        --paper: #fbfaf7;
+        --line: #ded9cf;
+        --ink: #1b1f2a;
+        --muted: #6e6a62;
+        --gold: #b08c3a;
+        --ok: #2f6b4f;
+        --warn: #9a5b12;
+        --bad: #a33131;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Myriad Pro", "Segoe UI", Frutiger, "Helvetica Neue", Arial, sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      header.masthead {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 26px;
+        border-bottom: 4px solid var(--maroon);
+        background: var(--navy);
+        color: #fff;
+      }
+
+      .masthead h1 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .masthead .sub {
+        margin-top: 4px;
+        font-size: 12px;
+        letter-spacing: 1.3px;
+        text-transform: uppercase;
+        opacity: 0.78;
+      }
+
+      .gcount {
+        font-size: 12px;
+        line-height: 1.7;
+        text-align: right;
+      }
+
+      .gcount b {
+        font-size: 17px;
+      }
+
+      .gbar {
+        width: 170px;
+        height: 6px;
+        margin-top: 5px;
+        overflow: hidden;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.22);
+      }
+
+      .gbar i {
+        display: block;
+        height: 100%;
+        background: var(--gold);
+      }
+
+      .mocknote {
+        padding: 9px 26px;
+        border-bottom: 1px solid var(--line);
+        background: #f2ece4;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .funnel {
+        display: flex;
+        overflow-x: auto;
+        padding: 0 26px;
+        border-bottom: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .stage {
+        position: relative;
+        min-width: 146px;
+        flex: 1 1 0;
+        padding: 14px 13px 12px;
+        border: 0;
+        border-right: 1px solid var(--line);
+        border-radius: 0;
+        background: #fff;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .stage:last-child {
+        border-right: 0;
+      }
+
+      .stage:hover {
+        background: #f5f2ec;
+      }
+
+      .stage.active {
+        background: #f2ece4;
+      }
+
+      .stage.active::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: -1px;
+        left: 0;
+        height: 3px;
+        background: var(--maroon);
+      }
+
+      .stage .nm {
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 1.1px;
+        text-transform: uppercase;
+      }
+
+      .stage .ct {
+        color: var(--navy);
+        font-size: 28px;
+        font-weight: 600;
+        line-height: 1.15;
+      }
+
+      .stage .pct {
+        color: var(--maroon);
+        font-size: 11.5px;
+        font-weight: 600;
+      }
+
+      .bar {
+        height: 4px;
+        margin-top: 7px;
+        overflow: hidden;
+        border-radius: 2px;
+        background: #ede8e0;
+      }
+
+      .bar i {
+        display: block;
+        height: 100%;
+        background: var(--maroon);
+      }
+
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 6;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 26px;
+        border-bottom: 1px solid var(--line);
+        background: var(--paper);
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="number"],
+      textarea,
+      select {
+        border: 1px solid var(--line);
+        border-radius: 2px;
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      select {
+        padding: 6px 9px;
+        font-size: 14px;
+      }
+
+      input[type="text"] {
+        min-width: 210px;
+      }
+
+      button {
+        border: 1px solid var(--navy);
+        border-radius: 2px;
+        background: #fff;
+        color: var(--navy);
+        padding: 6px 12px;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--navy);
+        color: #fff;
+      }
+
+      button.primary {
+        border-color: var(--maroon);
+        background: var(--maroon);
+        color: #fff;
+      }
+
+      button.primary:hover {
+        background: #600;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.68;
+      }
+
+      .reviewer {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      main {
+        max-width: 1220px;
+        padding: 18px 26px 70px;
+      }
+
+      .gate-card {
+        max-width: 860px;
+        margin: 28px auto;
+        padding: 26px 30px;
+        border: 1px solid var(--line);
+        border-left: 5px solid var(--maroon);
+        background: #fff;
+        box-shadow: 0 18px 44px rgba(12, 25, 64, 0.09);
+      }
+
+      .gate-card .eyebrow {
+        margin: 0 0 8px;
+        color: var(--maroon);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2.6px;
+        text-transform: uppercase;
+      }
+
+      .gate-card h2 {
+        max-width: 720px;
+        margin: 0 0 18px;
+        color: var(--navy);
+        font-size: clamp(24px, 2.6vw, 34px);
+        line-height: 1.18;
+      }
+
+      .gate-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .gate-grid label {
+        display: grid;
+        gap: 8px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .gate-grid input {
+        min-height: 48px;
+        padding: 10px 12px;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .gate-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .gate-actions button {
+        min-height: 44px;
+        padding: 9px 16px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .status,
+      .error,
+      .success {
+        width: fit-content;
+        max-width: 100%;
+        margin: 18px 0 0;
+        padding: 11px 13px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--gold);
+        background: #fcfbf8;
+        color: var(--navy);
+        font-weight: 600;
+      }
+
+      .error {
+        border-left-color: var(--bad);
+        background: #f8e7e7;
+        color: var(--bad);
+      }
+
+      .success {
+        border-left-color: var(--ok);
+        background: #e6efe9;
+        color: var(--ok);
+      }
+
+      .cov {
+        margin-bottom: 18px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-top: 3px solid var(--navy);
+        background: #fff;
+      }
+
+      .cov h3 {
+        margin: 0 0 3px;
+        color: var(--navy);
+        font-size: 14px;
+        letter-spacing: 0.3px;
+      }
+
+      .cov .cs {
+        margin-bottom: 11px;
+        color: var(--muted);
+        font-size: 12.5px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+        gap: 5px;
+      }
+
+      .cell {
+        padding: 6px 7px;
+        border: 1px solid var(--line);
+        background: #f7f5f1;
+        font-size: 11px;
+      }
+
+      .cell b {
+        display: block;
+        font-size: 11.5px;
+        letter-spacing: 0.4px;
+      }
+
+      .cell.l {
+        border-color: #a8c6b4;
+        background: #e6efe9;
+      }
+
+      .cell.t {
+        border-color: #e0cb99;
+        background: #faf2de;
+      }
+
+      .cell.n {
+        border-color: #ddb3b3;
+        background: #f8e7e7;
+      }
+
+      .cell span {
+        color: var(--muted);
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 9px;
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .sw {
+        display: inline-block;
+        width: 11px;
+        height: 11px;
+        margin-right: 4px;
+        border: 1px solid var(--line);
+        vertical-align: -1px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 56px 1fr 168px;
+        gap: 14px;
+        align-items: start;
+        margin-bottom: 8px;
+        padding: 13px 15px;
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--line);
+        background: #fff;
+      }
+
+      .row[data-s="shortlist"] {
+        border-left-color: var(--gold);
+      }
+
+      .row[data-s="final"] {
+        border-left-color: var(--navy);
+      }
+
+      .row[data-s="award"] {
+        border-left-color: var(--ok);
+      }
+
+      .row[data-s="reject"] {
+        border-left-color: var(--bad);
+        opacity: 0.72;
+      }
+
+      .idtag {
+        padding-top: 3px;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+
+      .nm2 {
+        color: var(--navy);
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .ident {
+        display: flex;
+        gap: 0;
+        max-width: 660px;
+        margin-top: 6px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 2px;
+        background: #fcfbf8;
+      }
+
+      .ident div {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 5px 10px;
+        border-right: 1px solid var(--line);
+      }
+
+      .ident div:last-child {
+        flex: 2 1 auto;
+        border-right: 0;
+      }
+
+      .ident .k,
+      .dual .k {
+        display: block;
+        color: var(--muted);
+        font-size: 9.5px;
+        letter-spacing: 1.1px;
+        text-transform: uppercase;
+      }
+
+      .ident .v {
+        display: block;
+        overflow: hidden;
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .ident .v.f {
+        color: var(--maroon);
+      }
+
+      .ident .v.m {
+        color: var(--navy);
+      }
+
+      .dual {
+        display: flex;
+        gap: 5px;
+        margin-top: 6px;
+      }
+
+      .dual div {
+        flex: 1;
+        padding: 4px 7px;
+        border: 1px solid var(--line);
+        background: #fcfbf8;
+        text-align: center;
+      }
+
+      .dual .v {
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+
+      .v.Strong {
+        color: var(--ok);
+      }
+
+      .v.Credible {
+        color: var(--navy);
+      }
+
+      .v.Thin {
+        color: var(--warn);
+      }
+
+      .v.Notevidenced {
+        color: var(--bad);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 7px;
+      }
+
+      .chip {
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: #faf8f4;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.4px;
+      }
+
+      .chip.good {
+        border-color: #bfd8cb;
+        color: var(--ok);
+      }
+
+      .chip.flag {
+        border-color: #e3cda8;
+        color: var(--warn);
+      }
+
+      .chip.bad {
+        border-color: #e0b9b9;
+        color: var(--bad);
+      }
+
+      .chip.crs {
+        border-color: #b9c2d6;
+        background: #f2f4f9;
+        color: var(--navy);
+        font-weight: 600;
+      }
+
+      .chip.crs.bf {
+        border-color: var(--navy);
+        background: var(--navy);
+        color: #fff;
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-end;
+        text-align: right;
+      }
+
+      .rec {
+        width: 100%;
+        padding: 5px 9px;
+        border: 1px solid;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .rec.s {
+        border-color: var(--ok);
+        background: var(--ok);
+        color: #fff;
+      }
+
+      .rec.p {
+        border-color: #a8c6b4;
+        background: #eff5f1;
+        color: var(--ok);
+      }
+
+      .rec.r {
+        border-color: #e0cb99;
+        background: #fbf5e7;
+        color: var(--warn);
+      }
+
+      .rec.d {
+        border-color: var(--bad);
+        background: var(--bad);
+        color: #fff;
+      }
+
+      .covnum {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .notecount {
+        color: var(--maroon);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .empty {
+        padding: 34px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        background: rgba(12, 25, 64, 0.42);
+      }
+
+      .scrim.open {
+        display: block;
+      }
+
+      .drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        z-index: 21;
+        display: block;
+        width: min(980px, 100%);
+        height: 100%;
+        border-left: 4px solid var(--maroon);
+        background: #fff;
+        overflow-y: auto;
+        transform: translateX(100%);
+        transition: transform 0.22s;
+      }
+
+      .drawer.open {
+        transform: none;
+      }
+
+      .dhead {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--line);
+        background: var(--navy);
+        color: #fff;
+      }
+
+      .dhead h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .dhead .dmeta {
+        margin-top: 3px;
+        font-size: 12.5px;
+        opacity: 0.82;
+      }
+
+      .close {
+        float: right;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        background: none;
+        color: #fff;
+      }
+
+      .close:hover {
+        background: #fff;
+        color: var(--navy);
+      }
+
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--line);
+        background: #f7f4ef;
+      }
+
+      .tabs button {
+        padding: 9px 15px;
+        border: 0;
+        border-right: 1px solid var(--line);
+        border-radius: 0;
+        background: none;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .tabs button.on {
+        background: #fff;
+        color: var(--maroon);
+        box-shadow: inset 0 -3px 0 var(--maroon);
+        font-weight: 600;
+      }
+
+      .stagepick {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        padding: 11px 20px;
+        border-bottom: 1px solid var(--line);
+        background: #f7f4ef;
+      }
+
+      .stagepick button.sel {
+        border-color: var(--maroon);
+        background: var(--maroon);
+        color: #fff;
+      }
+
+      .stagepick button:disabled {
+        cursor: default;
+      }
+
+      .stagepick .stage-help {
+        align-self: center;
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .dbody {
+        padding: 18px 20px;
+      }
+
+      .fld {
+        margin-bottom: 15px;
+      }
+
+      .fld h4,
+      .narr h4,
+      .gate h4 {
+        margin: 0 0 3px;
+        color: var(--maroon);
+        font-size: 10.5px;
+        letter-spacing: 1.1px;
+        text-transform: uppercase;
+      }
+
+      .fld p {
+        margin: 0;
+        font-size: 14px;
+        white-space: pre-wrap;
+      }
+
+      .narr {
+        margin-bottom: 16px;
+        padding: 13px 15px;
+        border: 1px solid var(--line);
+        border-top: 3px solid var(--gold);
+        background: #fcfbf8;
+      }
+
+      .narr h5 {
+        margin: 12px 0 4px;
+        color: var(--navy);
+        font-size: 12.5px;
+      }
+
+      .narr ul {
+        margin: 0;
+        padding-left: 17px;
+        font-size: 13.5px;
+      }
+
+      .narr li {
+        margin-bottom: 4px;
+      }
+
+      .analysis-editor {
+        border-top-color: var(--maroon);
+        background: #fff;
+      }
+
+      .analysis-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .score-detail label {
+        display: grid;
+        gap: 4px;
+        color: var(--navy);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .analysis-section {
+        border: 1px solid #b9c7dc;
+        border-left: 4px solid var(--navy);
+        background: #f4f7fb;
+      }
+
+      .analysis-section .section-top {
+        background: #eaf0f8;
+      }
+
+      .evidence-card {
+        margin-top: 7px;
+        border: 1px solid #ddd3c3;
+        border-left: 4px solid var(--gold);
+        background: #fffaf0;
+      }
+
+      .evidence-card h5 {
+        margin: 0;
+        padding: 8px 11px;
+        border-bottom: 1px solid #e8dfd0;
+        color: #674d17;
+        background: #fbf1dd;
+        font-size: 12.5px;
+      }
+
+      .evidence-card .evidence-body {
+        padding: 9px 11px;
+        color: var(--ink);
+        font-size: 13px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+      }
+
+      .analysis-section .section-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 11px;
+        border-bottom: 1px solid #d6dfec;
+        background: #eaf0f8;
+      }
+
+      .analysis-section h5 {
+        margin: 0;
+        color: var(--navy);
+        font-size: 13px;
+      }
+
+      .analysis-section .section-top button,
+      .analysis-section .section-actions button {
+        padding: 4px 8px;
+        border-color: var(--line);
+        color: var(--navy);
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+
+      .section-view {
+        padding: 10px 12px 12px;
+        color: var(--ink);
+        font-size: 13.5px;
+        line-height: 1.6;
+      }
+
+      .section-view h6 {
+        margin: 10px 0 3px;
+        color: var(--navy);
+        font-size: 12.5px;
+      }
+
+      .section-view h6:first-child {
+        margin-top: 0;
+      }
+
+      .section-view p {
+        margin: 0 0 9px;
+      }
+
+      .section-view p:last-child {
+        margin-bottom: 0;
+      }
+
+      .section-edit {
+        display: none;
+        width: 100%;
+        min-height: 128px;
+        padding: 10px 11px;
+        border: 0;
+        border-top: 1px solid var(--line);
+        border-radius: 0;
+        color: var(--ink);
+        font-size: 14px;
+        line-height: 1.55;
+        resize: vertical;
+      }
+
+      .section-edit.tall {
+        min-height: 210px;
+      }
+
+      .analysis-section.editing .section-view {
+        display: none;
+      }
+
+      .analysis-section.editing .section-edit {
+        display: block;
+      }
+
+      .section-actions {
+        display: none;
+        gap: 6px;
+        padding: 8px 11px;
+        border-top: 1px solid var(--line);
+        background: #f7f4ef;
+      }
+
+      .analysis-section.editing .section-actions {
+        display: flex;
+      }
+
+      .analysis-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-top: 10px;
+      }
+
+      .score-detail {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin: 9px 0 11px;
+      }
+
+      .score-detail input[type="number"] {
+        width: 100%;
+        padding: 5px 7px;
+      }
+
+      .score-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin: 10px 0 12px;
+      }
+
+      .score-card {
+        padding: 10px 11px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .score-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .score-card input,
+      .score-card b {
+        display: block;
+        width: 100%;
+        margin-top: 4px;
+        color: var(--navy);
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .score-card input {
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        border-radius: 0;
+        padding: 0 0 3px;
+      }
+
+      .score-basis {
+        margin: 10px 0;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .score-basis summary {
+        cursor: pointer;
+        padding: 9px 11px;
+        color: var(--navy);
+        font-weight: 700;
+      }
+
+      .score-basis .score-detail {
+        margin: 0;
+        padding: 0 11px 11px;
+      }
+
+      .disc {
+        margin-top: 11px;
+        padding-top: 8px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .rbars {
+        display: grid;
+        grid-template-columns: 150px 1fr 34px;
+        gap: 7px;
+        align-items: center;
+        margin-bottom: 5px;
+        font-size: 12.5px;
+      }
+
+      .rbars .t {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 3px;
+        background: #ede8e0;
+      }
+
+      .rbars .t i {
+        display: block;
+        height: 100%;
+        background: var(--navy);
+      }
+
+      .best,
+      .inst,
+      .gate,
+      .ovr {
+        margin: 12px 0;
+        padding: 11px 13px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--navy);
+        background: #f7f9fc;
+      }
+
+      .best {
+        border-left-color: var(--maroon);
+        background: #fbf7f4;
+      }
+
+      .ovr {
+        border-left-color: var(--gold);
+        background: #fcfaf5;
+      }
+
+      .inst .b,
+      .best .b,
+      .ovr .b {
+        color: var(--navy);
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+
+      .unit {
+        padding: 4px 0;
+        border-bottom: 1px solid #e7ebf2;
+        font-size: 12.5px;
+      }
+
+      .unit b {
+        color: var(--navy);
+      }
+
+      .unit span {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .crow {
+        display: grid;
+        grid-template-columns: 56px 1fr 120px;
+        gap: 9px;
+        align-items: start;
+        padding: 7px 8px;
+        border-bottom: 1px solid #efebe4;
+        font-size: 13px;
+      }
+
+      .crow code {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .crow .lv {
+        padding-top: 2px;
+        border: 0;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        text-align: right;
+        text-transform: uppercase;
+      }
+
+      .ev {
+        display: block;
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .ovr .r {
+        display: grid;
+        grid-template-columns: 150px 78px 1fr;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 6px;
+        font-size: 12.5px;
+      }
+
+      .ovr input[type="number"] {
+        width: 72px;
+        padding: 4px 6px;
+      }
+
+      .ovr input[type="text"] {
+        width: 100%;
+        padding: 5px 7px;
+        font-size: 13px;
+      }
+
+      .was {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .notes {
+        max-height: none;
+        overflow: visible;
+        padding: 13px 20px;
+        border-top: 1px solid var(--line);
+        background: #fbfaf7;
+      }
+
+      .notes-title {
+        margin-bottom: 8px;
+        color: var(--maroon);
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 1.1px;
+        text-transform: uppercase;
+      }
+
+      .note {
+        margin-bottom: 8px;
+        padding: 7px 10px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--gold);
+        background: #fff;
+      }
+
+      .manager-stage {
+        margin-bottom: 12px;
+        padding: 10px 11px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--maroon);
+        background: #fff;
+      }
+
+      .manager-stage .rowline,
+      .note-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        align-items: end;
+      }
+
+      .manager-stage label,
+      .note-controls label {
+        display: grid;
+        gap: 4px;
+        color: var(--navy);
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+
+      .panel-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .panel-card {
+        min-height: 132px;
+        padding: 9px 10px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--navy);
+        background: #fff;
+      }
+
+      .panel-card.pending {
+        border-left-color: var(--line);
+        color: var(--muted);
+      }
+
+      .panel-card .panel-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .panel-card .name {
+        color: var(--navy);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .panel-card .role {
+        color: var(--muted);
+        font-size: 10.5px;
+        letter-spacing: 0.7px;
+        text-transform: uppercase;
+      }
+
+      .panel-card .verdict {
+        margin: 8px 0 5px;
+        color: var(--maroon);
+        font-size: 12.5px;
+        font-weight: 700;
+      }
+
+      .panel-card .stage-rec,
+      .panel-card .when {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .panel-card .comment {
+        margin-top: 8px;
+        color: var(--ink);
+        font-size: 12.5px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
+
+      .note .who {
+        color: var(--navy);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .note .when {
+        margin-left: 6px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 400;
+      }
+
+      .note .txt,
+      .note textarea {
+        width: 100%;
+        min-height: 48px;
+        margin-top: 4px;
+        padding: 6px;
+        border: 1px solid var(--line);
+        font: inherit;
+        font-size: 13.5px;
+        resize: vertical;
+        white-space: pre-wrap;
+      }
+
+      .note .act {
+        float: right;
+      }
+
+      .note .act button {
+        margin-left: 4px;
+        padding: 2px 7px;
+        border-color: var(--line);
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .noteform {
+        display: grid;
+        gap: 8px;
+        padding: 11px 20px;
+        border-top: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .noteform textarea {
+        min-height: 50px;
+        width: 100%;
+        padding: 7px;
+        font: inherit;
+        font-size: 14px;
+        resize: vertical;
+      }
+
+      .noteform .note-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      @media (max-width: 700px) {
+        header.masthead,
+        .toolbar,
+        main {
+          padding-inline: 14px;
+        }
+
+        .gate-card {
+          margin: 20px 14px;
+          padding: 24px;
+        }
+
+        .gate-grid,
+        .row,
+        .crow,
+        .analysis-grid,
+        .panel-grid,
+        .manager-stage .rowline,
+        .note-controls,
+        .score-summary,
+        .score-detail,
+        .ovr .r,
+        .rbars {
+          grid-template-columns: 1fr;
+        }
+
+        .actions {
+          flex-direction: row;
+          align-items: center;
+          text-align: left;
+        }
+
+        .ident,
+        .dual,
+        .noteform {
+          flex-wrap: wrap;
+        }
+
+        .reviewer {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <section id="loginScreen">
+      <header class="masthead">
+        <div>
+          <h1>Tutorial Fellow Applications, Staged Review</h1>
+          <div class="sub">Reviewer-only access | Google Sheets-backed verification</div>
+        </div>
+        <div class="gcount"><div style="font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;opacity:.75">Access level</div><b>Restricted</b></div>
+      </header>
+      <div class="mocknote">Only active reviewers listed in the Reviewers Google Sheet can access Tutorial Fellow reviews. Security is enforced in Apps Script before any application data is loaded.</div>
+      <section class="gate-card">
+        <p class="eyebrow">Reviewer verification</p>
+        <h2>Enter your email, receive a code, then open the review window.</h2>
+        <div class="gate-grid">
+          <label>
+            Reviewer email
+            <input id="reviewerEmail" type="email" placeholder="reviewer@example.org" autocomplete="email" />
+          </label>
+          <label>
+            Verification code
+            <input id="reviewerCode" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" />
+          </label>
+        </div>
+        <div class="gate-actions">
+          <button id="sendCodeButton" type="button">Send code</button>
+          <button id="verifyButton" class="primary" type="button">Verify and open reviews</button>
+        </div>
+        <div id="messageArea"></div>
+      </section>
+    </section>
+
+    <section id="reviewScreen" hidden>
+      <header class="masthead">
+        <div>
+          <h1>Tutorial Fellow Applications, Staged Review</h1>
+          <div class="sub">MathEpi Cooperative Master's Programme | AIMS RIC and KEMRI | Ref MathEpi-TF-2026-001</div>
+        </div>
+        <div class="gcount" id="gcount"></div>
+      </header>
+
+      <div class="mocknote">Reviewer assessment workspace. The panel decides; this page helps reviewers trace evidence, edit scores, and record comments. Coverage can still reflect how much the applicant wrote, so reviewers should adjust every score against the application text.</div>
+      <div class="funnel" id="funnel"></div>
+
+      <div class="toolbar">
+        <input type="text" id="q" placeholder="Search name, country, PhD field, institution" />
+        <select id="sortby">
+          <option value="weighted">Sort: weighted 70:30 score</option>
+          <option value="rec">Sort: recommendation</option>
+          <option value="cov">Sort: curriculum coverage</option>
+          <option value="res">Sort: research strength</option>
+          <option value="name">Sort: name</option>
+          <option value="notes">Sort: most discussed</option>
+        </select>
+        <select id="crs"><option value="">Filter: any course</option></select>
+        <button id="exportBtn" type="button">Export review JSON</button>
+        <button id="refreshButton" type="button">Refresh from Sheets</button>
+        <button id="signOutButton" type="button">Clear session</button>
+        <div class="reviewer">Reviewing as <b id="reviewerName">Reviewer</b></div>
+      </div>
+
+      <main>
+        <div id="reviewMessageArea"></div>
+        <div class="cov" id="cov"></div>
+        <div id="list"></div>
+      </main>
+
+      <div class="scrim" id="scrim"></div>
+      <aside class="drawer" id="drawer">
+        <div class="dhead">
+          <button class="close" id="closeBtn" type="button">Close</button>
+          <h2 id="dName"></h2>
+          <div class="dmeta" id="dMeta"></div>
+        </div>
+        <div class="tabs">
+          <button data-t="eval" class="on" type="button">Evaluation</button>
+          <button data-t="app" type="button">Application</button>
+        </div>
+        <div class="stagepick" id="stagepick"></div>
+        <div class="dbody" id="dBody"></div>
+        <div class="notes" id="dNotes"></div>
+        <div class="noteform">
+          <div class="note-controls">
+            <label>
+              Your verdict
+              <select id="panelVerdict"></select>
+            </label>
+            <label>
+              Your stage recommendation
+              <select id="panelStageRec"></select>
+            </label>
+          </div>
+          <textarea id="noteTxt" placeholder="Write your panel comment. It will be tagged with your reviewer name and visible to the other reviewers."></textarea>
+          <div class="note-actions">
+            <button class="primary" id="addNote" type="button">Save panel comment</button>
+            <button id="cancelNoteEdit" type="button">Cancel edit</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <script>
+      (function () {
+        var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrBseE_6REWP5D4zySf-Z6j_x9nUofWvT426M_HG5FoPllMDOZEcEa-f_Of4zryTQ9/exec";
+        var SESSION_KEY = "mathepi-standalone-review-session";
+        var session = null;
+        var state = {
+          applications: [],
+          scores: [],
+          analyses: [],
+          notes: [],
+          stages: [],
+          assignments: [],
+          reviewers: [],
+          stage: "all",
+          sort: "weighted",
+          query: "",
+          course: "",
+          openId: "",
+          tab: "eval",
+          editingNoteId: ""
+        };
+
+        var STAGES = [
+          { id: "all", label: "All applicants", target: 100, rank: 0 },
+          { id: "screened", label: "Screened", target: 85, rank: 1 },
+          { id: "shortlist", label: "Shortlist", target: 70, rank: 2 },
+          { id: "finalists", label: "Finalists", target: 30, rank: 3 },
+          { id: "decision", label: "Decision", target: 10, rank: 4 }
+        ];
+
+        var REVIEW_VERDICTS = [
+          "Strongly support",
+          "Support",
+          "Maybe / discuss",
+          "Do not support"
+        ];
+
+        var STAGE_RECOMMENDATIONS = [
+          "Keep current stage",
+          "Screened",
+          "Shortlist",
+          "Finalists",
+          "Decision",
+          "Do not progress"
+        ];
+
+        var COURSES = [
+          ["MES01", "Mathematical Problem Solving", "problem solving proof logic quantitative reasoning"],
+          ["MES02", "Differential Equations and Modelling", "differential equations dynamical systems modelling ode pde"],
+          ["MES03", "Physical Problem Solving", "physical systems mechanics physics modelling"],
+          ["MES04", "Introduction to Probability and Statistics", "probability statistics inference distributions uncertainty"],
+          ["MES05", "Introduction to R and Python", "R Python programming data wrangling computing"],
+          ["MES06", "Scientific Computing and LaTeX", "scientific computing latex reproducible reports numerical"],
+          ["MEC01", "Introduction to Epidemiology", "epidemiology incidence prevalence public health disease"],
+          ["MEC02", "Epidemiology for Disease Modelling", "infectious disease epidemic models surveillance transmission"],
+          ["MEC03", "Introduction to Mathematical Modelling", "mathematical modelling systems assumptions simulation"],
+          ["MEC04", "Developing Models in Public Health", "public health modelling policy interventions model building"],
+          ["MEC05", "Model Fitting and Validation", "model fitting validation calibration likelihood inference"],
+          ["MEC06", "Numerical Methods", "numerical methods computation algorithms simulation"],
+          ["MEC07", "Introduction to Data Analysis", "data analysis visualization regression statistics"],
+          ["MEC08", "Advanced Data Analysis", "advanced data analysis modelling statistical learning"],
+          ["MEC09", "Professional and Entrepreneurship Development", "communication entrepreneurship professional development leadership"],
+          ["MEC10", "Advanced Data Science for Epidemiology", "data science machine learning predictive modelling epidemiology"],
+          ["MEE01", "Survival Analysis", "survival analysis time event hazard censoring"],
+          ["MEE02", "Time Series Analysis", "time series forecasting temporal sequential data"],
+          ["MEE03", "Bayesian Statistics", "bayesian statistics mcmc prior posterior inference"],
+          ["MEE04", "Stochastic Models", "stochastic models random processes markov uncertainty"]
+        ].map(function (row) {
+          return { code: row[0], title: row[1], text: row.join(" ") };
+        });
+
+        function $(id) {
+          return document.getElementById(id);
+        }
+
+        function esc(value) {
+          return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
+          });
+        }
+
+        function safeId(value) {
+          return String(value || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+        }
+
+        function jsString(value) {
+          return JSON.stringify(String(value == null ? "" : value));
+        }
+
+        function textOf(value) {
+          if (!value) return "";
+          if (typeof value === "string" || typeof value === "number") return String(value);
+          if (Array.isArray(value)) return value.map(textOf).join(" ");
+          if (typeof value === "object") return Object.keys(value).map(function (key) { return textOf(value[key]); }).join(" ");
+          return "";
+        }
+
+        function parseJson(value, fallback) {
+          try {
+            return value ? JSON.parse(value) : fallback;
+          } catch (error) {
+            return fallback;
+          }
+        }
+
+        function showMessage(targetId, type, text) {
+          $(targetId).innerHTML = text ? '<p class="' + type + '">' + esc(text) + "</p>" : "";
+        }
+
+        function setBusy(action, busy) {
+          $("sendCodeButton").disabled = busy;
+          $("verifyButton").disabled = busy;
+          $("refreshButton").disabled = busy;
+          $("sendCodeButton").textContent = action === "send" && busy ? "Sending code..." : "Send code";
+          $("verifyButton").textContent = action === "verify" && busy ? "Checking access..." : "Verify and open reviews";
+          $("refreshButton").textContent = action === "load" && busy ? "Loading..." : "Refresh from Sheets";
+        }
+
+        function jsonp(action, payload, timeoutMs) {
+          return new Promise(function (resolve, reject) {
+            var callbackName = "mathepiReview_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+            var script = document.createElement("script");
+            var done = false;
+            var timer = setTimeout(function () {
+              finish();
+              reject(new Error("Google Apps Script is taking too long to respond. Please try again."));
+            }, timeoutMs || 30000);
+
+            function finish() {
+              if (done) return;
+              done = true;
+              clearTimeout(timer);
+              try {
+                delete window[callbackName];
+              } catch (error) {
+                window[callbackName] = undefined;
+              }
+              if (script.parentNode) script.parentNode.removeChild(script);
+            }
+
+            window[callbackName] = function (result) {
+              finish();
+              if (result && result.ok === false) reject(new Error(result.error || "Apps Script request failed."));
+              else resolve(result || {});
+            };
+
+            script.onerror = function () {
+              finish();
+              reject(new Error("Could not reach Apps Script. Check the Web App deployment."));
+            };
+
+            script.src =
+              APPS_SCRIPT_URL +
+              "?" +
+              [
+                "action=" + encodeURIComponent(action),
+                "payload=" + encodeURIComponent(JSON.stringify(payload || {})),
+                "callback=" + encodeURIComponent(callbackName),
+                "_=" + Date.now()
+              ].join("&");
+            document.head.appendChild(script);
+          });
+        }
+
+        function reviewPayload(extra) {
+          var payload = {
+            email: session && session.email || "",
+            reviewerEmail: session && session.email || "",
+            sessionToken: session && session.sessionToken || ""
+          };
+          extra = extra || {};
+          Object.keys(extra).forEach(function (key) {
+            payload[key] = extra[key];
+          });
+          return payload;
+        }
+
+        function loginReviewerEmail() {
+          return $("reviewerEmail").value.trim().toLowerCase();
+        }
+
+        function reviewerCode() {
+          return $("reviewerCode").value.trim();
+        }
+
+        function requestCode() {
+          var email = loginReviewerEmail();
+          if (!email) {
+            showMessage("messageArea", "error", "Enter reviewer email first.");
+            return;
+          }
+          setBusy("send", true);
+          showMessage("messageArea", "status", "Sending verification code through Google...");
+          jsonp("requestReviewerOtp", { email: email }, 30000)
+            .then(function () {
+              showMessage("messageArea", "success", "Verification code sent. Check your inbox, spam, Promotions, and Updates folders.");
+              setBusy("", false);
+            })
+            .catch(function (error) {
+              showMessage("messageArea", "error", error.message || "Reviewer code could not be sent.");
+              setBusy("", false);
+            });
+        }
+
+        function verifyCode() {
+          var email = loginReviewerEmail();
+          var code = reviewerCode();
+          if (!email || !code) {
+            showMessage("messageArea", "error", "Enter reviewer email and the 6-digit verification code.");
+            return;
+          }
+          setBusy("verify", true);
+          showMessage("messageArea", "status", "Verifying reviewer access...");
+          jsonp("verifyReviewerOtp", { email: email, code: code }, 30000)
+            .then(function (result) {
+              session = {
+                email: result.email || email,
+                sessionToken: result.sessionToken,
+                reviewer: result.reviewer || { email: email },
+                expiresAt: Date.now() + Number(result.expiresInSeconds || 21600) * 1000
+              };
+              try {
+                window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+              } catch (error) {}
+              openReviewWindow();
+              loadApplications();
+            })
+            .catch(function (error) {
+              showMessage("messageArea", "error", error.message || "Reviewer verification failed.");
+              setBusy("", false);
+            });
+        }
+
+        function openReviewWindow() {
+          $("loginScreen").hidden = true;
+          $("reviewScreen").hidden = false;
+          $("reviewerName").textContent = reviewerName();
+          setBusy("", false);
+          render();
+        }
+
+        function reviewerName() {
+          var reviewer = session && session.reviewer ? session.reviewer : {};
+          return reviewer.name || reviewer.email || (session && session.email) || "Reviewer";
+        }
+
+        function reviewerEmail() {
+          var typed = $("reviewerEmail") && $("reviewerEmail").value ? $("reviewerEmail").value.trim().toLowerCase() : "";
+          if (typed) return typed;
+          var reviewer = session && session.reviewer ? session.reviewer : {};
+          return String(reviewer.email || (session && session.email) || "").toLowerCase();
+        }
+
+        function isReviewManager() {
+          var reviewer = session && session.reviewer ? session.reviewer : {};
+          var role = String(reviewer.role || "").toLowerCase();
+          var identity = [reviewer.name, reviewer.email, session && session.email].filter(Boolean).join(" ").toLowerCase();
+          return role === "academic manager" ||
+            role === "review manager" ||
+            role === "manager" ||
+            role === "admin" ||
+            role === "super admin" ||
+            role === "chair" ||
+            identity.indexOf("cecil") >= 0;
+        }
+
+        function optionsHtml(options, selected) {
+          return options.map(function (option) {
+            return '<option value="' + esc(option) + '" ' + (String(selected || "") === option ? "selected" : "") + '>' + esc(option) + "</option>";
+          }).join("");
+        }
+
+        function loadApplications() {
+          if (!session || !session.sessionToken) {
+            showMessage("reviewMessageArea", "error", "Reviewer session missing. Please verify again.");
+            return;
+          }
+          setBusy("load", true);
+          showMessage("reviewMessageArea", "status", "Loading applications from Google Sheets...");
+          jsonp("listReviewApplicants", reviewPayload(), 45000)
+            .then(function (result) {
+              state.applications = (result.applications || []).map(normalizeApplication);
+              state.scores = result.scores || [];
+              state.analyses = result.analyses || [];
+              state.notes = result.notes || [];
+              state.stages = result.stages || [];
+              state.assignments = result.assignments || [];
+              state.reviewers = result.reviewers || [];
+              if (!state.openId && state.applications[0]) state.openId = state.applications[0].applicationId;
+              showMessage("reviewMessageArea", "success", "Loaded " + state.applications.length + " applications.");
+              setBusy("", false);
+              render();
+            })
+            .catch(function (error) {
+              showMessage("reviewMessageArea", "error", error.message || "Could not load applications from Google Sheets.");
+              setBusy("", false);
+            });
+        }
+
+        function normalizeApplication(app, index) {
+          app = app || {};
+          var id = app.applicationId || app.application_id || app.id || app.ref || ("TF" + String(index + 1).padStart(3, "0"));
+          var references = app.references || app.refs || parseJson(app.references_json, []);
+          if (!Array.isArray(references)) references = [];
+          return {
+            original: app,
+            applicationId: String(id),
+            displayId: shortApplicationCode(app, index),
+            applicant: app.applicant || app.fullName || app.full_name || app.name || "Unnamed applicant",
+            title: app.title || "",
+            gender: app.gender || "",
+            email: app.email || app.applicantEmail || "",
+            phone: app.phone || app.phoneNumber || "",
+            nationality: app.nationality || "",
+            country: app.country || app.countryOfResidence || app.residenceCountry || "",
+            affiliation: app.affiliation || app.currentAffiliation || "",
+            designation: app.designation || app.currentDesignation || "",
+            phdInstitution: app.phdInstitution || app.phd_institution || "",
+            phdField: app.phdField || app.phd_field || app.field || "",
+            phdCompletion: app.phdCompletion || app.phd_completion || app.phdCompletionDate || "",
+            thesisTitleExplainer: app.thesisTitleExplainer || app.thesis || app.thesisTitle || "",
+            researchArea: app.researchArea || "",
+            quantitativeBackground: app.quantitativeBackground || "",
+            appliedTrackRecord: app.appliedTrackRecord || "",
+            teachingExperience: app.teachingExperience || "",
+            tutoringExperience: app.tutoringExperience || "",
+            mentoringExperience: app.mentoringExperience || "",
+            researchExperience: app.researchExperience || "",
+            teachingSupport: app.teachingSupport || app.handsOnSupport || "",
+            researchPlan: app.researchPlan || "",
+            careerGrowth: app.careerGrowth || "",
+            availability: app.availability || "",
+            residenceReady: app.residenceReady || "",
+            teachingGapReady: app.teachingGapReady || "",
+            englishCommunication: app.englishCommunication || "",
+            aimsAlumni: app.aimsAlumni || "",
+            aimsCentre: app.aimsCentre || "",
+            aimsProgrammeYear: app.aimsProgrammeYear || "",
+            passport: app.passport || app.passportFile || "",
+            phdCertificate: app.phdCertificate || app.certificate || "",
+            submittedAt: app.submittedAt || app.submitted_at || "",
+            references: references,
+            fullApplication: app.fullApplication || app
+          };
+        }
+
+        function shortApplicationCode(app, index) {
+          var existing = app.applicant_code || app.applicantCode || app.short_code || app.shortCode;
+          if (existing) return String(existing);
+          var yearText = String(app.submittedAt || app.submitted_at || "2026");
+          var year = (yearText.match(/\b(20\d{2})\b/) || ["2026", "2026"])[1].slice(-2);
+          return "TF-" + String(index + 1).padStart(2, "0") + "-" + year;
+        }
+
+        function tokenSet(text) {
+          var stop = {
+            with: true, that: true, this: true, from: true, have: true, will: true, been: true,
+            their: true, there: true, they: true, them: true, into: true, using: true, used: true,
+            also: true, such: true, more: true, than: true, course: true, students: true, research: true,
+            teaching: true, public: true, health: true, mathematical: true, mathematics: true
+          };
+          var words = String(text || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/);
+          var out = {};
+          words.forEach(function (word) {
+            if (word.length >= 4 && !stop[word]) out[word] = true;
+          });
+          return out;
+        }
+
+        function allText(app) {
+          return [
+            app.phdField,
+            app.thesisTitleExplainer,
+            app.researchArea,
+            app.quantitativeBackground,
+            app.appliedTrackRecord,
+            app.teachingExperience,
+            app.tutoringExperience,
+            app.mentoringExperience,
+            app.researchExperience,
+            app.teachingSupport,
+            app.researchPlan,
+            app.careerGrowth,
+            textOf(app.fullApplication)
+          ].join(" ");
+        }
+
+        
+        function cleanEvidence(value) {
+          return String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+        }
+
+        function evidenceLength(value) {
+          return cleanEvidence(value).split(/\s+/).filter(Boolean).length;
+        }
+
+        function countMatches(value, patterns) {
+          return patterns.filter(function (pattern) { return pattern.test(String(value || "")); }).length;
+        }
+
+        function evidenceLevel(value) {
+          var text = cleanEvidence(value);
+          if (!text) return 0;
+          var detail = countMatches(text, [
+            /\d+/,
+            /(student|cohort|participant|class|group|research assistant|intern)/i,
+            /(week|month|year|semester|hour|daily|weekly)/i,
+            /(university|institute|centre|college|school|kemri|aims|hospital|ministry)/i,
+            /(R|Python|Sage|Matlab|Stata|SPSS|LaTeX|Quarto|SQL|Julia)/,
+            /(MSc|PhD|undergraduate|postgraduate|junior|senior)/i,
+            /(mark|assess|feedback|grade|rubric|supervis|mentor|facilitat|lectur|tutor)/i
+          ]);
+          var words = evidenceLength(text);
+          if (words >= 120 && detail >= 5) return 4;
+          if (words >= 70 && detail >= 3) return 3;
+          if (words >= 35 && detail >= 2) return 2;
+          return 1;
+        }
+
+        function actualBackground(app) {
+          var parts = [];
+          if (cleanEvidence(app.phdField)) parts.push("PhD field: " + cleanEvidence(app.phdField));
+          if (cleanEvidence(app.thesisTitleExplainer)) parts.push("Doctoral work: " + cleanEvidence(app.thesisTitleExplainer));
+          if (cleanEvidence(app.researchArea)) parts.push("Research area: " + cleanEvidence(app.researchArea));
+          if (cleanEvidence(app.quantitativeBackground)) parts.push("Quantitative preparation: " + cleanEvidence(app.quantitativeBackground));
+          if (cleanEvidence(app.appliedTrackRecord)) parts.push("Applied record: " + cleanEvidence(app.appliedTrackRecord));
+          return parts.length ? parts.join("\n") : "The form does not provide enough detail to describe the applicant's disciplinary background reliably.";
+        }
+
+        function courseJudgement(a) {
+          var immediate = a.components.filter(function (item) {
+            return item.verdict === "lecture" && item.confidence === "high";
+          }).slice(0, 4);
+          var orientation = a.components.filter(function (item) {
+            return item.verdict === "tutor" || (item.verdict === "lecture" && item.confidence !== "high");
+          }).slice(0, 5);
+          var unsupported = a.components.filter(function (item) {
+            return item.verdict === "gap";
+          }).slice(0, 5);
+          function names(rows) {
+            return rows.length ? rows.map(function (item) { return item.code + " " + item.title; }).join("; ") : "none established from the form";
+          }
+          return {
+            immediate: names(immediate),
+            orientation: names(orientation),
+            unsupported: names(unsupported)
+          };
+        }
+
+        function criterion(label, source, checks) {
+          var text = cleanEvidence(source);
+          if (!text) return { label: label, score: 0, matched: [], judgement: "Not evidenced in the application." };
+          var matched = checks.filter(function (check) { return check.pattern.test(text); }).map(function (check) { return check.label; });
+          var detail = evidenceLevel(text);
+          var score = Math.min(85, Math.round((matched.length / Math.max(1, checks.length)) * 58 + detail * 7));
+          var judgement = score >= 70 ? "Well supported by the response."
+            : score >= 50 ? "Plausible, with some concrete support."
+            : score >= 30 ? "Partly supported but requires clarification."
+            : "Claimed or implied, but not adequately evidenced.";
+          return { label: label, score: score, matched: matched, judgement: judgement };
+        }
+
+        function evidenceGapQuestions(app, a) {
+          var questions = [];
+          var teaching = cleanEvidence(app.teachingExperience + " " + app.tutoringExperience + " " + app.mentoringExperience);
+          if (evidenceLevel(teaching) < 3) {
+            questions.push("Describe one specific course or cohort you taught or supported, including your role, class level, duration, and how you assessed or gave feedback to learners.");
+          }
+          if (!/(mark|assess|feedback|grade|rubric)/i.test(teaching)) {
+            questions.push("Give one concrete example of marking or feedback you provided and explain how it changed a learner's work.");
+          }
+          if (!/(R|Python|Matlab|Stata|SPSS|Julia|Sage|LaTeX|Quarto|coding|programming)/i.test(teaching + " " + app.quantitativeBackground)) {
+            questions.push("Which computational tools can you support confidently in a live practical session, and what task have you completed with each?");
+          }
+          var fit = courseJudgement(a);
+          questions.push("The current evidence maps most strongly to " + (a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "no single course") + ". What 90-minute tutorial would you deliver first, and what would students produce by the end?");
+          if (a.researchScore < 60) {
+            questions.push("State the research question, named dataset or data-access route, principal method, and one publication-ready output achievable within the protected 30 per cent research time.");
+          }
+          if (!/(kemri|kenya|nairobi)/i.test(allText(app))) {
+            questions.push("Which KEMRI centre, programme, dataset, or investigator would provide the most credible home for the proposed work, and why?");
+          }
+          if (fit.unsupported !== "none established from the form") {
+            questions.push("Which of these presently unsupported areas could you cover after orientation, and what preparation would be required: " + fit.unsupported + "?");
+          }
+          return questions.slice(0, 6);
+        }
+
+        function teachingScoreCap(teachingText, delivery, depth, breadth) {
+          var text = cleanEvidence(teachingText);
+          if (!text) return 45;
+          if (delivery.score < 35) return 55;
+          if (delivery.score < 55 || breadth < 3) return 65;
+          if (delivery.score < 70 || breadth < 5) return 75;
+          return 85;
+        }
+
+        function assess(app) {
+          var teachingText = [app.teachingExperience, app.tutoringExperience, app.mentoringExperience, app.teachingSupport].join(" ");
+          var researchText = [app.phdField, app.thesisTitleExplainer, app.researchArea, app.quantitativeBackground, app.appliedTrackRecord, app.researchExperience, app.researchPlan, app.careerGrowth].join(" ");
+          var delivery = deliveryEvidence(teachingText);
+          var appTokens = tokenSet(teachingText + " " + researchText);
+          var components = COURSES.map(function (course) {
+            var terms = Object.keys(tokenSet(course.text)).filter(function (term) { return appTokens[term]; }).slice(0, 8);
+            var direct = terms.length;
+            var score = Math.min(85, Math.round(direct * 10 + Math.min(25, evidenceLevel(teachingText) * 6)));
+            var verdict = score >= 62 && delivery.score >= 55 ? "lecture" : score >= 35 ? "tutor" : "gap";
+            return {
+              code: course.code,
+              title: course.title,
+              terms: terms,
+              score: score,
+              verdict: verdict,
+              label: verdict === "lecture" ? "Immediate contribution" : verdict === "tutor" ? "Contribution after orientation" : "Insufficient evidence",
+              confidence: score >= 70 ? "high" : score >= 42 ? "medium" : "low"
+            };
+          }).sort(function (a, b) { return b.score - a.score; });
+          var depth = components[0] ? components[0].score : 0;
+          var breadth = components.filter(function (item) { return item.score >= 35; }).length;
+          var teachingRaw = Math.round(depth * 0.4 + delivery.score * 0.35 + Math.min(85, breadth * 9) * 0.25);
+          var teachingScore = Math.min(85, teachingScoreCap(teachingText, delivery, depth, breadth), teachingRaw);
+          var research = researchScore(app, researchText);
+          var weighted = Math.min(85, Math.round(teachingScore * 0.7 + research.score * 0.3));
+          var eligibility = eligibilityGate(app);
+          return {
+            delivery: delivery,
+            components: components,
+            teachingScore: teachingScore,
+            researchScore: research.score,
+            weightedScore: weighted,
+            researchDimensions: research.dimensions,
+            institutionalFit: research.institutionalFit,
+            eligibility: eligibility,
+            bestFit: components[0],
+            wordCount: Object.keys(tokenSet(allText(app))).length
+          };
+        }
+
+        function deliveryEvidence(text) {
+          var value = cleanEvidence(text);
+          if (!value || !/(teach|tutor|mentor|supervis|train|facilitat|session|mark|assess|workshop|practical|laboratory|hands-on)/i.test(value)) {
+            return {
+              score: 0,
+              label: "No direct delivery evidence",
+              explanation: "The response does not establish a teaching, tutoring, mentoring, supervision, marking, training, or practical-session role."
+            };
+          }
+          var level = evidenceLevel(value);
+          var score = [0, 35, 55, 70, 85][level];
+          var labels = ["No evidence", "Role mentioned", "Some concrete detail", "Credible delivery evidence", "Strongly documented delivery evidence"];
+          return {
+            score: score,
+            label: labels[level],
+            explanation: level >= 3
+              ? "The response identifies a delivery role and supplies concrete contextual detail."
+              : "The role is plausible, but the form does not yet establish its scale, level, duration, assessment responsibility, or learner outcomes."
+          };
+        }
+
+        function researchScore(app, text) {
+          var plan = cleanEvidence(app.researchPlan);
+          var experience = cleanEvidence([app.researchExperience, app.appliedTrackRecord, app.thesisTitleExplainer, app.researchArea].join(" "));
+          var quantitative = cleanEvidence(app.quantitativeBackground);
+          var fitText = cleanEvidence([plan, experience, app.country, app.nationality].join(" "));
+          var dimensions = [
+            criterion("Research question and contribution", plan, [
+              { label: "defined problem or question", pattern: /(question|problem|aim|objective|investigat|estimate|assess|evaluate|determin|develop)/i },
+              { label: "intended contribution or output", pattern: /(output|paper|publication|framework|tool|model|evidence|estimate|policy|decision)/i }
+            ]),
+            criterion("Methodological specification", plan + " " + quantitative, [
+              { label: "named quantitative method", pattern: /(regression|bayesian|survival|time series|mathematical model|differential equation|simulation|machine learning|causal|spatial|stochastic|inference)/i },
+              { label: "analysis or validation approach", pattern: /(analysis|validate|calibrat|sensitivity|uncertainty|comparison|evaluation|cross-validation)/i }
+            ]),
+            criterion("Data and feasibility at 30 per cent", plan, [
+              { label: "data source or access route", pattern: /(dataset|data source|secondary data|routine data|surveillance data|registry|cohort|records|database|existing data|kemri data)/i },
+              { label: "bounded and feasible workplan", pattern: /(existing|secondary|retrospective|reanalysis|available|within|month|term|feasible|pilot)/i }
+            ]),
+            criterion("Relevant research track record", experience, [
+              { label: "completed research output", pattern: /(publication|paper|article|preprint|conference|thesis|report|software|dataset|grant)/i },
+              { label: "personal analytical role", pattern: /(led|developed|analysed|analyzed|implemented|designed|authored|co-authored|supervised)/i }
+            ]),
+            criterion("Independence and ownership", plan + " " + experience, [
+              { label: "clear personal role", pattern: /(I propose|I will|I developed|I led|my role|independent|principal|lead)/i },
+              { label: "defined next step", pattern: /(next step|workplan|timeline|milestone|deliverable|submit|complete|develop)/i }
+            ]),
+            criterion("KEMRI, AIMS RIC and African relevance", fitText, [
+              { label: "health or epidemiological problem", pattern: /(health|disease|epidem|surveillance|clinical|malaria|hiv|tb|vector|maternal|child|ncd|one health|outbreak)/i },
+              { label: "African or Kenyan anchor", pattern: /(africa|kenya|nairobi|kemri|east africa|rwanda|cameroon|uganda|tanzania|ghana|senegal)/i },
+              { label: "quantitative AIMS RIC contribution", pattern: /(model|statistics|data science|machine learning|inference|simulation|bayesian|forecast|prediction|computational)/i }
+            ])
+          ];
+          var score = Math.min(85, Math.round(dimensions.reduce(function (sum, item) { return sum + item.score; }, 0) / dimensions.length));
+          return { score: score, dimensions: dimensions, institutionalFit: institutionalFit(text) };
+        }
+
+        function dim(label, text, terms) {
+          return criterion(label, text, terms.map(function (term) {
+            return { label: term, pattern: new RegExp("\\\\b" + term.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&") + "\\\\b", "i") };
+          }));
+        }
+
+        function institutionalFit(text) {
+          var value = cleanEvidence(text);
+          var disease = /(malaria|hiv|tuberculosis|tb|infectious|vector|maternal|child|ncd|one health|vaccine|clinical|surveillance|outbreak|public health)/i.test(value);
+          var method = /(model|statistics|informatics|machine learning|data science|bayesian|spatial|epidemiology|predictive|simulation|inference)/i.test(value);
+          var anchor = /(kemri|kenya|nairobi|africa|east africa)/i.test(value);
+          if (disease && method && anchor) return { label: "clear home", explanation: "The application links a health problem, a quantitative method, and an African or Kenyan institutional setting." };
+          if (disease && method) return { label: "plausible home", explanation: "The scientific fit is plausible, but the application should identify a concrete KEMRI programme, dataset, or collaborator." };
+          if (disease || method) return { label: "would need brokering", explanation: "Only one side of the health-methods partnership is explicit; the panel should test the missing side." };
+          return { label: "weakly evidenced", explanation: "The present response does not establish a credible health-research and quantitative-methods home." };
+        }
+
+        function referenceCount(app) {
+          return (app.references || []).filter(function (ref) {
+            return ref && (ref.name || ref.email || ref.affiliation || ref.aff);
+          }).length;
+        }
+
+        function eligibilityGate(app) {
+          var reasons = [];
+          var refs = referenceCount(app);
+          var completion = Date.parse(app.phdCompletion || "");
+          var start = Date.parse("2026-10-01");
+          var earliest = Date.parse("2024-10-01");
+          if (!app.passport) reasons.push("passport not confirmed");
+          if (!app.phdCertificate) reasons.push("PhD certificate not confirmed");
+          if (refs < 2) reasons.push("fewer than two referees");
+          if (!(completion && completion >= earliest && completion <= start)) reasons.push("PhD completion is outside the two-year window or unclear");
+          if (!/yes|ready|accept|available|commit/i.test(String(app.residenceReady || ""))) reasons.push("Nairobi residency not clearly accepted");
+          if (!/yes|ready|accept|available|commit/i.test(String(app.teachingGapReady || ""))) reasons.push("teaching-continuity duty not clearly accepted");
+          var label = reasons.length === 0 ? "Progress strong" : reasons.length <= 2 ? "Progress" : reasons.length <= 4 ? "Review" : "Do not progress";
+          return { label: label, reasons: reasons.length ? reasons : ["All deterministic gate checks passed."] };
+        }
+
+        function band(score) {
+          score = Number(score || 0);
+          if (score >= 75) return "Strong";
+          if (score >= 55) return "Credible";
+          if (score >= 30) return "Thin";
+          return "Not evidenced";
+        }
+
+        function bandClass(label) {
+          return String(label || "").replace(/\s/g, "");
+        }
+
+        function recClass(label) {
+          if (label === "Progress strong") return "s";
+          if (label === "Progress") return "p";
+          if (label === "Review") return "r";
+          return "d";
+        }
+
+        function stageFor(id) {
+          var found = state.stages.filter(function (row) { return String(row.application_id || row.applicationId || "") === String(id); })[0];
+          return found && found.stage ? found.stage : "All applicants";
+        }
+
+        function stageRank(label) {
+          var value = String(label || "").toLowerCase();
+          var found = STAGES.filter(function (stage) { return stage.id === value || stage.label.toLowerCase() === value; })[0];
+          return found ? found.rank : 0;
+        }
+
+        function latestScore(id) {
+          var email = session && session.email || "";
+          var rows = state.scores.filter(function (row) {
+            return String(row.application_id || "") === String(id) && (!email || String(row.reviewer_email || "").toLowerCase() === email.toLowerCase());
+          });
+          rows.sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); });
+          return rows[0] || null;
+        }
+
+        function firstName(value) {
+          return String(value || "").trim().split(/\s+/)[0].toLowerCase();
+        }
+
+        function latestScoreByReviewer(id, email, name) {
+          var targetEmail = String(email || "").toLowerCase();
+          var targetName = firstName(name);
+          var rows = state.scores.filter(function (row) {
+            var rowEmail = String(row.reviewer_email || "").toLowerCase();
+            var rowName = firstName(row.reviewer_name || row.reviewer_email);
+            return String(row.application_id || "") === String(id) &&
+              ((targetEmail && rowEmail === targetEmail) || (!targetEmail && targetName && rowName === targetName));
+          });
+          rows.sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); });
+          return rows[0] || null;
+        }
+
+        function latestNoteByReviewer(id, email, name) {
+          var targetEmail = String(email || "").toLowerCase();
+          var targetName = firstName(name);
+          var rows = notesFor(id).filter(function (row) {
+            var rowEmail = String(row.author_email || "").toLowerCase();
+            var rowName = firstName(row.author_name || row.author_email);
+            return (targetEmail && rowEmail === targetEmail) || (!targetEmail && targetName && rowName === targetName);
+          });
+          rows.sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
+          return rows[0] || null;
+        }
+
+        function addPanelReviewer(rows, reviewer) {
+          var email = String(reviewer.email || reviewer.reviewer_email || reviewer.author_email || reviewer.reviewerEmail || "").toLowerCase();
+          var name = reviewer.name || reviewer.reviewer_name || reviewer.author_name || email || "Reviewer";
+          var keyName = firstName(name);
+          var existing = rows.filter(function (row) {
+            return (email && row.email && row.email === email) || (keyName && firstName(row.name) === keyName);
+          })[0];
+          if (existing) {
+            existing.email = existing.email || email;
+            existing.name = existing.name || name;
+            existing.role = existing.role || reviewer.role || "Reviewer";
+            return;
+          }
+          rows.push({ email: email, name: name, role: reviewer.role || "Reviewer" });
+        }
+
+        function panelReviewersFor(id) {
+          var rows = [];
+          [
+            { name: "Cecil", role: "Review manager" },
+            { name: "Eva", role: "Reviewer" },
+            { name: "Wilfred", role: "Reviewer" }
+          ].forEach(function (reviewer) { addPanelReviewer(rows, reviewer); });
+          if (session && session.reviewer) addPanelReviewer(rows, session.reviewer);
+          state.reviewers.forEach(function (reviewer) { addPanelReviewer(rows, reviewer); });
+          state.scores.filter(function (row) { return String(row.application_id || "") === String(id); }).forEach(function (row) {
+            addPanelReviewer(rows, { email: row.reviewer_email, name: row.reviewer_name, role: "Reviewer" });
+          });
+          notesFor(id).forEach(function (note) {
+            addPanelReviewer(rows, { email: note.author_email, name: note.author_name, role: "Reviewer" });
+          });
+          return rows;
+        }
+
+        function canEditPanelNote(note) {
+          if (!note) return false;
+          return isReviewManager() || String(note.author_email || "").toLowerCase() === reviewerEmail();
+        }
+
+        function effective(app, assessment) {
+          var score = latestScore(app.applicationId);
+          if (score) {
+            return {
+              t: Number(score.teaching_score || 0),
+              r: Number(score.research_score || 0),
+              ov: Number(score.weighted_score || 0),
+              edited: true,
+              reason: score.reason || ""
+            };
+          }
+          return { t: assessment.teachingScore, r: assessment.researchScore, ov: assessment.weightedScore, edited: false, reason: "" };
+        }
+
+        function notesFor(id) {
+          return state.notes.filter(function (note) {
+            return String(note.application_id || "") === String(id) && String(note.status || "Active") !== "Withdrawn";
+          }).sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
+        }
+
+        function assessedApps() {
+          return state.applications.map(function (app) {
+            app.assessment = app.assessment || assess(app);
+            return app;
+          });
+        }
+
+        function visibleApps() {
+          var minRank = state.stage === "all" ? 0 : stageRank(state.stage);
+          var rows = assessedApps().filter(function (app) { return stageRank(stageFor(app.applicationId)) >= minRank; });
+          if (state.query) {
+            var q = state.query.toLowerCase();
+            rows = rows.filter(function (app) {
+              return [app.applicant, app.nationality, app.country, app.phdField, app.affiliation, app.phdInstitution, app.researchArea].join(" ").toLowerCase().indexOf(q) >= 0;
+            });
+          }
+          if (state.course) {
+            rows = rows.filter(function (app) {
+              var found = app.assessment.components.filter(function (item) { return item.code === state.course; })[0];
+              return found && found.verdict !== "gap";
+            });
+          }
+          rows.sort(sorter);
+          return rows;
+        }
+
+        function sorter(a, b) {
+          var aa = a.assessment;
+          var bb = b.assessment;
+          var ea = effective(a, aa);
+          var eb = effective(b, bb);
+          var rank = { "Progress strong": 0, Progress: 1, Review: 2, "Do not progress": 3 };
+          if (state.sort === "rec") return (rank[aa.eligibility.label] || 9) - (rank[bb.eligibility.label] || 9) || eb.ov - ea.ov;
+          if (state.sort === "cov") return coverageCount(b) - coverageCount(a) || eb.ov - ea.ov;
+          if (state.sort === "res") return bb.researchScore - aa.researchScore || eb.ov - ea.ov;
+          if (state.sort === "name") return String(a.applicant || "").localeCompare(String(b.applicant || ""));
+          if (state.sort === "notes") return notesFor(b.applicationId).length - notesFor(a.applicationId).length || eb.ov - ea.ov;
+          return eb.ov - ea.ov;
+        }
+
+        function coverageCount(app) {
+          return app.assessment.components.filter(function (item) { return item.verdict !== "gap"; }).length;
+        }
+
+        function drawGender(apps) {
+          var pool = apps.filter(function (app) { return stageRank(stageFor(app.applicationId)) >= 2; });
+          var set = pool.length ? pool : apps;
+          var women = set.filter(function (app) { return /^f|woman|female/i.test(String(app.gender || "")); }).length;
+          var total = set.length;
+          var pct = total ? Math.round(100 * women / total) : 0;
+          $("gcount").innerHTML =
+            '<div style="font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;opacity:.75">' +
+            (pool.length ? "Shortlist and beyond" : "Full applicant pool") +
+            "</div><b>" + pct + "%</b> women (" + women + " of " + total + ") &middot; programme target 50%" +
+            '<div class="gbar"><i style="width:' + Math.min(pct, 100) + '%"></i></div>';
+        }
+
+        function drawFunnel(apps) {
+          var total = Math.max(1, apps.length);
+          $("funnel").innerHTML = STAGES.map(function (stage) {
+            var count = stage.id === "all" ? apps.length : apps.filter(function (app) { return stageRank(stageFor(app.applicationId)) >= stage.rank; }).length;
+            var pct = Math.round(100 * count / total);
+            return '<button class="stage ' + (state.stage === stage.id ? "active" : "") + '" data-stage="' + stage.id + '" type="button">' +
+              '<div class="nm">' + esc(stage.label) + '</div><div class="ct">' + count + '</div><div class="pct">' + pct + '% of intake &middot; target ' + stage.target + '%</div>' +
+              '<div class="bar"><i style="width:' + pct + '%"></i></div></button>';
+          }).join("");
+          Array.prototype.forEach.call(document.querySelectorAll(".stage"), function (el) {
+            el.onclick = function () {
+              state.stage = el.getAttribute("data-stage");
+              render();
+            };
+          });
+        }
+
+        function drawCoverage(apps) {
+          var pool = apps.filter(function (app) { return stageRank(stageFor(app.applicationId)) >= 2; });
+          var using = pool.length ? pool : apps;
+          var label = pool.length ? "your current shortlist and beyond" : "the full applicant pool";
+          var nL = 0;
+          var nT = 0;
+          var nN = 0;
+          var cells = COURSES.map(function (course) {
+            var verdicts = using.map(function (app) {
+              var found = app.assessment.components.filter(function (item) { return item.code === course.code; })[0];
+              return found ? found.verdict : "gap";
+            });
+            var lectures = verdicts.filter(function (v) { return v === "lecture"; }).length;
+            var tutors = verdicts.filter(function (v) { return v === "tutor"; }).length;
+            var klass = lectures ? "l" : tutors ? "t" : "n";
+            if (klass === "l") nL += 1;
+            else if (klass === "t") nT += 1;
+            else nN += 1;
+            return '<div class="cell ' + klass + '" title="' + esc(course.title) + '"><b>' + course.code + '</b><span>' + (lectures ? lectures + " can lecture" : tutors ? tutors + " can tutor" : "no cover") + "</span></div>";
+          }).join("");
+          $("cov").innerHTML =
+            "<h3>Curriculum cover across " + esc(label) + "</h3>" +
+            '<div class="cs">' + using.length + " " + (using.length === 1 ? "person" : "people") + " covering the 20 assessable components (MEI01 excluded, it applies to every fellow). " +
+            nL + " with lecture cover, " + nT + " tutor cover only, " + nN + " with nobody. Move people into Shortlist and this recalculates, so you can select a set that covers the programme rather than several people with the same strengths.</div>" +
+            '<div class="grid">' + cells + "</div>" +
+            '<div class="legend"><span><i class="sw" style="background:#E6EFE9;border-color:#A8C6B4"></i>Someone can step in and lecture</span>' +
+            '<span><i class="sw" style="background:#FAF2DE;border-color:#E0CB99"></i>Tutorial and marking cover only</span>' +
+            '<span><i class="sw" style="background:#F8E7E7;border-color:#DDB3B3"></i>No cover in this group</span></div>';
+        }
+
+        function rowStageClass(app) {
+          var stage = stageFor(app.applicationId);
+          if (stage === "Shortlist") return "shortlist";
+          if (stage === "Finalists") return "final";
+          if (stage === "Decision" && app.assessment.eligibility.label !== "Do not progress") return "award";
+          if (app.assessment.eligibility.label === "Do not progress") return "reject";
+          return "";
+        }
+
+        function drawList() {
+          var rows = visibleApps();
+          if (!rows.length) {
+            $("list").innerHTML = '<div class="empty">Nobody matches. Clear the course filter or move people forward from an earlier stage.</div>';
+            return;
+          }
+          $("list").innerHTML = rows.map(function (app) {
+            var a = app.assessment;
+            var e = effective(app, a);
+            var refs = referenceCount(app);
+            var stage = stageFor(app.applicationId);
+            var noteCount = notesFor(app.applicationId).length;
+            var genderClass = /^f|woman|female/i.test(String(app.gender || "")) ? "f" : "m";
+            var lecture = a.components.filter(function (item) { return item.verdict === "lecture"; });
+            var tutor = a.components.filter(function (item) { return item.verdict === "tutor"; });
+            return '<div class="row" data-s="' + rowStageClass(app) + '" data-id="' + esc(app.applicationId) + '">' +
+              '<div class="idtag">' + esc(app.displayId || app.applicationId) + '</div>' +
+              '<div><div class="nm2">' + esc([app.title, app.applicant].filter(Boolean).join(" ")) + '</div>' +
+              '<div class="ident"><div><span class="k">Gender</span><span class="v ' + genderClass + '">' + esc(app.gender || "Not stated") + '</span></div>' +
+              '<div><span class="k">Phone</span><span class="v">' + esc(app.phone || "Not given") + '</span></div>' +
+              '<div><span class="k">PhD field</span><span class="v">' + esc(app.phdField || "Not stated") + '</span></div></div>' +
+              '<div class="dual"><div><span class="k">Teaching x0.7</span><span class="v ' + bandClass(band(e.t)) + '">' + e.t + '</span><span class="k" style="letter-spacing:.3px;text-transform:none">' + band(e.t) + '</span></div>' +
+              '<div><span class="k">Research x0.3</span><span class="v ' + bandClass(band(e.r)) + '">' + e.r + '</span><span class="k" style="letter-spacing:.3px;text-transform:none">' + band(e.r) + '</span></div>' +
+              '<div style="background:#F2F4F9"><span class="k">Weighted 70:30' + (e.edited ? ", revised" : "") + '</span><span class="v ' + bandClass(band(e.ov)) + '">' + e.ov + '</span><span class="k" style="letter-spacing:.3px;text-transform:none">' + (e.edited ? "initial " + a.weightedScore : band(e.ov)) + '</span></div></div>' +
+              '<div class="chips"><span class="chip">' + esc(stage) + '</span>' +
+              '<span class="chip ' + (app.passport && app.phdCertificate ? "good" : "bad") + '">' + (app.passport && app.phdCertificate ? "Documents attached" : "Documents missing") + '</span>' +
+              '<span class="chip ' + (refs >= 2 ? "good" : "bad") + '">' + refs + " referee" + (refs === 1 ? "" : "s") + '</span>' +
+              '<span class="chip">' + coverageCount(app) + " of " + a.components.length + " components</span>" +
+              '<span class="chip ' + (a.delivery.score >= 65 ? "good" : "flag") + '">Delivery: ' + esc(a.delivery.label) + '</span>' +
+              (a.eligibility.reasons.length > 1 ? '<span class="chip flag">' + a.eligibility.reasons.length + " eligibility flags</span>" : "") + '</div>' +
+              '<div class="chips"><span class="chip crs bf" title="' + esc(a.bestFit.title) + '">Best fit ' + esc(a.bestFit.code) + '</span>' +
+              lecture.filter(function (item) { return item.code !== a.bestFit.code; }).slice(0, 3).map(function (item) { return '<span class="chip crs" title="' + esc(item.title) + '">Can lecture ' + item.code + '</span>'; }).join("") +
+              (tutor.length ? '<span class="chip">plus ' + tutor.length + ' at tutor level</span>' : "") +
+              (e.edited ? '<span class="chip flag">Score revised</span>' : "") + '</div></div>' +
+              '<div class="actions"><div class="rec ' + recClass(a.eligibility.label) + '">' + esc(a.eligibility.label) + '</div>' +
+              '<span class="covnum">' + Math.round(coverageCount(app) / Math.max(1, a.components.length) * 100) + '% of the matrix &middot; depth ' + (a.bestFit.score || 0) + '</span>' +
+              '<button class="openBtn" type="button">Open and review</button>' +
+              (noteCount ? '<span class="notecount">' + noteCount + " note" + (noteCount === 1 ? "" : "s") + '</span>' : "") + '</div></div>';
+          }).join("");
+          Array.prototype.forEach.call(document.querySelectorAll(".row"), function (row) {
+            row.querySelector(".openBtn").onclick = function () { openApp(row.getAttribute("data-id")); };
+          });
+        }
+
+        function openApp(id) {
+          var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+          if (!app) return;
+          state.openId = id;
+          $("dName").textContent = [app.title, app.applicant].filter(Boolean).join(" ");
+          $("dMeta").textContent = [app.displayId || app.applicationId, app.gender || "gender not stated", app.phone || "no phone", app.phdField || "field not stated", app.nationality].filter(Boolean).join(" | ");
+          var manager = isReviewManager();
+          $("stagepick").innerHTML = STAGES.map(function (stage) {
+            return '<button data-label="' + esc(stage.label) + '" class="' + (stageFor(id) === stage.label ? "sel" : "") + '" type="button" ' + (manager ? "" : "disabled") + '>' + esc(stage.label) + "</button>";
+          }).join("") + '<span class="stage-help">' + (manager ? "Formal stage control" : "Formal stage view only; use your recommendation below") + "</span>";
+          Array.prototype.forEach.call($("stagepick").querySelectorAll("button"), function (button) {
+            if (manager) button.onclick = function () { updateStage(id, button.getAttribute("data-label")); };
+          });
+          $("dBody").innerHTML = state.tab === "app" ? appHtml(app) : evalHtml(app);
+          drawNotes(id);
+          $("drawer").classList.add("open");
+          $("scrim").classList.add("open");
+        }
+
+        function analysisFor(app) {
+          var email = session && session.email || "";
+          var rows = state.analyses.filter(function (row) {
+            return String(row.application_id || "") === String(app.applicationId) &&
+              (!email || String(row.reviewer_email || "").toLowerCase() === email.toLowerCase());
+          });
+          rows.sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); });
+          return rows[0] || null;
+        }
+
+        function clamp(value) {
+          return Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+        }
+
+        function sourceForComponent(app, item) {
+          var teachingTokens = tokenSet([app.teachingExperience, app.tutoringExperience, app.mentoringExperience, app.teachingSupport].join(" "));
+          var researchTokens = tokenSet([app.phdField, app.thesisTitleExplainer, app.researchArea, app.quantitativeBackground, app.appliedTrackRecord, app.researchExperience, app.researchPlan].join(" "));
+          var teachingHits = (item.terms || []).filter(function (term) { return teachingTokens[term]; }).length;
+          var researchHits = (item.terms || []).filter(function (term) { return researchTokens[term]; }).length;
+          if (teachingHits >= researchHits && teachingHits > 0) return "teaching, tutoring, mentoring, or teaching-support answer";
+          if (researchHits > 0) return "PhD field, thesis, research-area, or research-plan answer";
+          return "no direct source named, would need preparation";
+        }
+
+        function firstSentence(text) {
+          var clean = String(text || "").replace(/\s+/g, " ").trim();
+          if (!clean) return "No research plan sentence was provided.";
+          var match = clean.match(/^(.+?[.!?])(\s|$)/);
+          return match ? match[1] : clean;
+        }
+
+        function scoreDetailsFor(app) {
+          var a = app.assessment;
+          var saved = analysisFor(app);
+          var savedDetails = parseJson(saved && saved.score_details_json, null);
+          var dimScores = {};
+          a.researchDimensions.forEach(function (item) { dimScores[item.label] = item.score; });
+          var defaults = {
+            teachingDepth: clamp(a.bestFit && a.bestFit.score),
+            teachingDelivery: clamp(a.delivery.score),
+            teachingBreadth: clamp(coverageCount(app) * 12),
+            researchSubstance: clamp(dimScores["Substance of the plan"]),
+            researchFeasibility: clamp(dimScores["Feasibility at 30%"]),
+            researchTrackRecord: clamp(dimScores["Track record"]),
+            researchProgrammeFit: clamp(dimScores["Programme and place fit"]),
+            researchIndependence: clamp(dimScores["Independence"])
+          };
+          if (!savedDetails) return defaults;
+          Object.keys(defaults).forEach(function (key) {
+            if (savedDetails[key] != null && savedDetails[key] !== "") defaults[key] = clamp(savedDetails[key]);
+          });
+          return defaults;
+        }
+
+        function scoreDetailHtml(id, label, value) {
+          return '<label>' + esc(label) + '<input type="number" id="' + id + '" min="0" max="100" value="' + clamp(value) + '"></label>';
+        }
+
+        function componentVerdictLine(app, item, index) {
+          return (index + 1) + ". " + item.code + " " + item.title + ": " + item.label +
+            ", " + item.confidence + " confidence. Source: " + sourceForComponent(app, item) +
+            ". Evidence terms: " + ((item.terms && item.terms.length) ? item.terms.join(", ") : "limited direct evidence") + ".";
+        }
+
+        function compactEvidence(text, fallback) {
+          var clean = cleanEvidence(text);
+          if (!clean) return fallback || "not directly evidenced in the form";
+          return clean;
+        }
+
+        function responseSource(label, text) {
+          var clean = compactEvidence(text, "not directly evidenced in this answer");
+          return "Application question: " + label + "\nApplicant response: \"" + clean + "\"";
+        }
+
+        function hasAny(text, pattern) {
+          return pattern.test(String(text || "").toLowerCase());
+        }
+
+        function possibleKemriHomes(app) {
+          var text = allText(app).toLowerCase();
+          var homes = [];
+          if (hasAny(text, /malaria|vector|mosquito|arbovirus|parasite|parasitic/)) homes.push("Centre for Vector Diseases Control, Centre for Global Health Research, Centre for Geographic Medicine Research Coast, or the Infectious and Parasitic Disease Programme");
+          if (hasAny(text, /hiv|tb|tuberculosis|respiratory|pneumonia|influenza|covid|mpox|virus|viral/)) homes.push("Centre for Virus Research, Centre for Respiratory Diseases Research, Centre for Disease Control and Surveillance, or relevant infectious-disease programmes");
+          if (hasAny(text, /surveillance|outbreak|epidemic|disease control|early warning|routine data|monitoring/)) homes.push("Centre for Disease Control and Surveillance, DESI, or Public Health and Health Research Systems Programme");
+          if (hasAny(text, /maternal|child|adolescent|reproductive|pregnancy|neonatal/)) homes.push("Sexual Reproductive, Adolescent and Child Health Programme, Centre for Public Health Research, or clinical/community health groups");
+          if (hasAny(text, /ncd|non-communicable|diabetes|cancer|hypertension|cardio/)) homes.push("Non-Communicable Diseases Programme, Centre for Clinical Research, or Centre for Public Health Research");
+          if (hasAny(text, /one health|zoonotic|animal|environment|climate|water|sanitation/)) homes.push("One Health Programme, Centre for Public Health Research, or a disease-specific field station");
+          if (hasAny(text, /model|statistics|statistical|data science|machine learning|informatics|bayesian|spatial|forecast|prediction|inference/)) homes.push("DESI as methodological co-host for epidemiology, statistics, informatics, data reuse, and quantitative methods");
+          if (!homes.length) homes.push("A KEMRI host would need brokering after the panel clarifies the disease, public-health, clinical, surveillance, systems, or implementation home");
+          return homes.filter(function (home, index) { return homes.indexOf(home) === index; }).slice(0, 4);
+        }
+
+        function aimsRicContribution(app) {
+          var text = allText(app).toLowerCase();
+          var strengths = [];
+          if (hasAny(text, /model|modelling|differential|simulation|dynamical|stochastic/)) strengths.push("mathematical modelling and simulation");
+          if (hasAny(text, /statistics|bayesian|inference|regression|survival|time series/)) strengths.push("statistics and inference");
+          if (hasAny(text, /data science|machine learning|python|r | r,|computational|algorithm|forecast|prediction/)) strengths.push("data science, computation, and reproducible analysis");
+          if (hasAny(text, /policy|intervention|resource allocation|decision|public health/)) strengths.push("translation of quantitative work into public-health decision support");
+          if (!strengths.length) return "AIMS RIC contribution is not yet clear because the response does not make the quantitative method explicit.";
+          return "AIMS RIC could add " + strengths.filter(function (item, index) { return strengths.indexOf(item) === index; }).join(", ") + ".";
+        }
+
+        function africaAnchor(app) {
+          var text = [app.researchPlan, app.researchArea, app.appliedTrackRecord, app.researchExperience, app.country, app.nationality].join(" ").toLowerCase();
+          if (hasAny(text, /kenya|nairobi|kemri|kisumu|kilifi|kwale|mombasa|busia|mandera/)) return "The plan has a Kenya or KEMRI-facing anchor in the application text.";
+          if (hasAny(text, /africa|east africa|sub-saharan|rwanda|cameroon|uganda|tanzania|ghana|senegal|south africa/)) return "The plan has an African or regional anchor, but the panel should check how it would be pointed toward Kenyan or KEMRI-held data.";
+          return "The plan is not yet clearly anchored to Kenya, East Africa, or an African public-health setting. The panel should ask whether it can be redirected toward KEMRI data or Kenyan priorities.";
+        }
+
+        function institutionalFitBand(app, a) {
+          var text = allText(app).toLowerCase();
+          var health = hasAny(text, /health|disease|epidem|surveillance|clinical|public health|malaria|hiv|tb|virus|vector|ncd|maternal|child|one health|outbreak/);
+          var method = hasAny(text, /model|statistics|statistical|data science|machine learning|inference|simulation|bayesian|forecast|prediction|computational/);
+          if (health && method) return "Clear fit";
+          if (health || method) return "Plausible fit";
+          if (a.researchScore >= 35) return "Fit would need brokering";
+          return "Weak fit";
+        }
+
+        function deliveryQuestionAssessment(title, response, kind) {
+          var text = String(response || "").trim();
+          if (!text) return title + ": Insufficient evidence. No response was provided.";
+          var concrete = /\b(course|class|tutorial|lab|practical|workshop|students?|semester|module|mark|grade|feedback|assessment|supervis|mentor|office hours|lesson|session)\b/i.test(text);
+          var quantified = /\b\d+\b/.test(text);
+          var action = /\b(designed|delivered|taught|facilitated|marked|graded|assessed|supported|mentored|supervised|developed|coordinated|led|provided)\b/i.test(text);
+          var fit = kind === "teaching"
+            ? /\b(teach|taught|course|class|lecture|curriculum|lesson|module)\b/i.test(text)
+            : kind === "tutorial"
+              ? /\b(tutor|tutorial|practical|lab|mark|grade|feedback|assessment)\b/i.test(text)
+              : /\b(mentor|supervis|student support|advis|coaching|guidance)\b/i.test(text);
+          if (fit && action && (concrete || quantified)) return title + ": Clear evidence. The response identifies a relevant role and describes concrete delivery activity.";
+          if (fit && (action || concrete)) return title + ": Partial evidence. The response indicates relevant experience, but scale, level, frequency, or outcomes should be verified.";
+          return title + ": Limited evidence. The response is general and does not yet establish the applicant's precise responsibilities or delivery record.";
+        }
+
+        function evidenceFieldHtml(label, question, response) {
+          return '<section class="evidence-card"><h5>' + esc(label) + '</h5><div class="evidence-body"><b>Application question</b>\n' + esc(question) + '\n\n<b>Applicant response</b>\n' + esc(String(response || "No response provided.")) + '</div></section>';
+        }
+
+        function analysisTextsFor(app) {
+          var a = app.assessment;
+          var saved = analysisFor(app);
+          var map = courseJudgement(a);
+          var homes = possibleKemriHomes(app);
+          var fitBand = institutionalFitBand(app, a);
+          var researchDims = a.researchDimensions.map(function (d) {
+            return d.label + ": " + d.score + "/85. " + d.judgement +
+              " Evidence identified: " + (d.matched.length ? d.matched.join(", ") : "none established") + ".";
+          }).join("\n");
+          var questions = evidenceGapQuestions(app, a);
+          var defaults = {
+            eligibility: "Eligibility judgement\n" +
+              (a.eligibility.label === "Progress strong"
+                ? "The deterministic eligibility checks are clear on the information currently available."
+                : "The file contains eligibility points that require verification before progression.") +
+              "\n" + a.eligibility.reasons.join("; ") + ".\n\n" +
+              responseSource("Required documents", "Passport " + (app.passport ? "confirmed" : "not confirmed") + "; PhD certificate " + (app.phdCertificate ? "confirmed" : "not confirmed")) + "\n\n" +
+              responseSource("PhD completion date", app.phdCompletion) + "\n\n" +
+              responseSource("Residence and teaching-continuity readiness", "Residence: " + (app.residenceReady || "not stated") + "; continuity duty: " + (app.teachingGapReady || "not stated")),
+
+            bestFit: "Academic and professional background\n" + actualBackground(app) +
+              "\n\nCurriculum relationship\nImmediate contribution: " + map.immediate +
+              ".\nContribution after orientation: " + map.orientation +
+              ".\nInsufficient evidence: " + map.unsupported +
+              ".\n\nJudgement\nThe mapping is provisional and is based on the applicant's stated disciplinary preparation, methods, delivery record, and tools. It is not a claim that a keyword match is equivalent to course-level teaching competence.",
+
+            delivery: "Delivery assessment\n" +
+              deliveryQuestionAssessment("1. Teaching experience", app.teachingExperience, "teaching") + "\n\n" +
+              deliveryQuestionAssessment("2. Tutoring, practical support, and marking", app.tutoringExperience, "tutorial") + "\n\n" +
+              deliveryQuestionAssessment("3. Mentoring and student support", app.mentoringExperience, "mentoring") +
+              "\n\nOverall judgement: " + a.delivery.label + ". " + a.delivery.explanation,
+
+            teaching: "Teaching assessment\n" +
+              "The application currently supports the strongest contribution in " +
+              (a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "no clearly established course area") + ".\n\n" +
+              "Can contribute immediately: " + map.immediate + ".\n" +
+              "Could contribute after orientation: " + map.orientation + ".\n" +
+              "Insufficient evidence: " + map.unsupported + ".\n\n" +
+              "Panel judgement: The evidence should be checked for course level, actual responsibility, frequency of delivery, assessment experience, and ability to support practical sessions. The numeric score is a decision aid, not the judgement itself.",
+
+            research: "Research assessment\n" +
+              "The assessment considers whether the application establishes a defined research problem, an appropriate method, an identifiable data source, a feasible scope, relevant prior work, intellectual ownership, and institutional fit.\n\nCriterion record\n" +
+              researchDims +
+              "\n\nPanel judgement: Verify the proposed data-access route, the applicant's own methodological contribution, the intended output, and whether the work can be completed within the protected research allocation.",
+
+            institutionalFit: "Institutional-fit judgement\n" + fitBand + ". " +
+              (a.institutionalFit.explanation || "The panel should judge both the health-research home and the quantitative contribution.") +
+              "\n\nPossible KEMRI home\n" + homes.map(function (home, index) { return (index + 1) + ". " + home + "."; }).join("\n") +
+              "\n\nAIMS RIC contribution\n" + aimsRicContribution(app) +
+              "\n\nGeographic and public-health anchor\n" + africaAnchor(app) +
+              "\n\nPanel verification\nThe interview should identify a named data source or access route, a credible KEMRI host, the principal quantitative method, and an output achievable within the protected 30 per cent research time.",
+
+            gaps: "Evidence gaps\n" +
+              (map.unsupported !== "none established from the form"
+                ? "Curriculum areas without sufficient support: " + map.unsupported + "."
+                : "No major curriculum gap was identified by the initial evidence screen.") +
+              "\n\nThe panel should also verify the level and duration of teaching, assessment responsibility, computational-tool fluency, two contactable referees, residence readiness, and the feasibility of maintaining tutorial support during intensive teaching blocks.",
+
+            interviewQuestions: questions.map(function (question, index) {
+              return (index + 1) + ". " + question;
+            }).join("\n"),
+
+            generalComment: "Initial academic review\nThe file should be judged on verifiable evidence. The strongest case would combine a clearly described disciplinary background, direct evidence of teaching or tutorial delivery, defensible alignment to named MathEpi courses, a feasible 30 per cent research plan, a plausible KEMRI health-research home, and a clear AIMS RIC quantitative contribution. Missing evidence should be recorded as a question for interview rather than replaced by an assumption."
+          };
+          if (!saved) return defaults;
+          return {
+            eligibility: saved.eligibility_text || defaults.eligibility,
+            bestFit: saved.best_fit_text || defaults.bestFit,
+            delivery: saved.delivery_text || defaults.delivery,
+            teaching: saved.teaching_text || defaults.teaching,
+            research: saved.research_text || defaults.research,
+            institutionalFit: saved.kemri_aims_text || defaults.institutionalFit,
+            gaps: saved.gaps_text || defaults.gaps,
+            interviewQuestions: saved.interview_questions_text || defaults.interviewQuestions,
+            generalComment: saved.general_comment || defaults.generalComment
+          };
+        }
+
+        function formatSectionText(value) {
+          var blocks = String(value || "").split(/\n{2,}/).map(function (block) {
+            return block.trim();
+          }).filter(Boolean);
+          if (!blocks.length) return '<p class="was">No assessment text yet.</p>';
+          return blocks.map(function (block) {
+            var lines = block.split(/\n/).map(function (line) { return line.trim(); }).filter(Boolean);
+            if (lines.length > 1 && lines[0].length <= 72 && !/[.!?]$/.test(lines[0])) {
+              return '<h6>' + esc(lines[0]) + '</h6><p>' + esc(lines.slice(1).join("\n")).replace(/\n/g, "<br>") + "</p>";
+            }
+            if (lines.length === 1 && lines[0].length <= 72 && !/[.!?]$/.test(lines[0])) {
+              return '<h6>' + esc(lines[0]) + "</h6>";
+            }
+            return '<p>' + esc(block).replace(/\n/g, "<br>") + "</p>";
+          }).join("");
+        }
+
+        function analysisFieldHtml(id, label, value, wide) {
+          return '<section class="analysis-section" data-section="' + esc(id) + '">' +
+            '<div class="section-top"><h5>' + esc(label) + '</h5><button type="button" data-edit-section="' + esc(id) + '">Edit</button></div>' +
+            '<div class="section-view" id="' + esc(id) + 'View">' + formatSectionText(value) + '</div>' +
+            '<textarea id="' + id + '" class="section-edit ' + (wide ? "tall" : "") + '">' + esc(value) + '</textarea>' +
+            '<div class="section-actions"><button type="button" data-save-section="' + esc(id) + '">Save section</button><button type="button" data-cancel-section="' + esc(id) + '">Cancel</button></div>' +
+            '</section>';
+        }
+
+        function evalHtml(app) {
+          var a = app.assessment;
+          var e = effective(app, a);
+          var latest = latestScore(app.applicationId);
+          var savedAnalysis = analysisFor(app);
+          var details = scoreDetailsFor(app);
+          var text = analysisTextsFor(app);
+          var verdicts = parseJson(latest && latest.course_verdicts_json, {});
+          var gaps = a.components.filter(function (item) { return item.verdict === "gap"; }).slice(0, 4).map(function (item) { return item.code; }).join(", ") || "no major matrix gap";
+          return '<div class="narr"><h4>Initial panel note</h4>' +
+            '<h5>Why they could fit</h5><ul><li>Best fit is ' + esc(a.bestFit.code + " " + a.bestFit.title) + '.</li><li>Weighted 70:30 score ' + e.ov + ': teaching ' + e.t + ', research ' + e.r + '.</li><li>Delivery evidence: ' + esc(a.delivery.explanation) + '</li></ul>' +
+            '<h5>The 30 per cent research commitment - ' + esc(band(a.researchScore).toLowerCase()) + '</h5>' +
+            a.researchDimensions.map(function (d) { return '<div class="rbars"><span>' + esc(d.label) + '</span><span class="t"><i style="width:' + d.score + '%"></i></span><span>' + d.score + '</span></div>'; }).join("") +
+            '<ul><li>' + esc(a.institutionalFit.explanation) + '</li></ul>' +
+            '<h5>Gaps</h5><ul><li>Check ' + esc(gaps) + ', delivery evidence, documents, and whether the applicant can support hands-on sessions at pace.</li></ul>' +
+            '<h5>Ask at interview</h5><ul><li>Ask for one concrete tutorial plan, one marking or feedback example, and how the proposed 30 per cent research plan would fit within protected research time.</li></ul>' +
+            '<button class="primary" id="insertDraft" type="button">Insert as general comment under your name</button>' +
+            '<div class="disc">Built from this applicant\'s own answers and designed for reviewer correction. Treat every line as editable evidence, not as a panel decision.</div></div>' +
+            '<div class="narr analysis-editor"><h4>First evaluator assessment, editable</h4>' +
+            '<div class="analysis-grid">' +
+            analysisFieldHtml("analysisEligibility", "Eligibility", text.eligibility, false) +
+            analysisFieldHtml("analysisBestFit", "Best fit and top five components", text.bestFit, false) +
+            analysisFieldHtml("analysisDelivery", "Delivery assessment", text.delivery, false) +
+            evidenceFieldHtml("Applicant evidence: teaching experience", "Describe your teaching experience, including courses, level, responsibilities, and duration.", app.teachingExperience) +
+            evidenceFieldHtml("Applicant evidence: tutoring, practical support, and marking", "Describe your experience supporting tutorials, practical sessions, assessment, marking, or feedback.", app.tutoringExperience) +
+            evidenceFieldHtml("Applicant evidence: mentoring and student support", "Describe your experience mentoring, supervising, or supporting students.", app.mentoringExperience) +
+            analysisFieldHtml("analysisTeaching", "Teaching assessment, 70 per cent", text.teaching, false) +
+            evidenceFieldHtml("Applicant evidence: proposed teaching contribution", "Describe how you would contribute to teaching in the MathEpi programme.", app.teachingSupport) +
+            analysisFieldHtml("analysisResearch", "Research assessment, 30 per cent", text.research, true) +
+            evidenceFieldHtml("Applicant evidence: proposed research plan", "Describe the research you propose to undertake during the protected research allocation.", app.researchPlan) +
+            evidenceFieldHtml("Applicant evidence: relevant research experience", "Describe the research experience most relevant to the proposed work.", app.researchExperience) +
+            analysisFieldHtml("analysisInstitutional", "KEMRI and AIMS RIC fit", text.institutionalFit, false) +
+            analysisFieldHtml("analysisGaps", "Gaps", text.gaps, false) +
+            analysisFieldHtml("analysisQuestions", "Ask at interview", text.interviewQuestions, true) +
+            analysisFieldHtml("analysisGeneral", "General first evaluator comment", text.generalComment, true) +
+            '</div>' +
+            '<div class="disc">' + (savedAnalysis ? "Saved structured assessment found for " + esc(savedAnalysis.reviewer_name || savedAnalysis.reviewer_email || "this reviewer") + ", updated " + esc(savedAnalysis.updated_at || "") + "." : "Nothing here enters the structured review record until you save it.") + '</div></div>' +
+            '<div class="ovr"><div class="b">Reviewer score</div>' +
+            '<div class="score-summary">' +
+            '<div class="score-card"><span>Teaching readiness, 70 per cent</span><input type="number" id="ovT" min="0" max="100" value="' + e.t + '"><em class="was">Initial ' + a.teachingScore + '</em></div>' +
+            '<div class="score-card"><span>Research potential, 30 per cent</span><input type="number" id="ovR" min="0" max="100" value="' + e.r + '"><em class="was">Initial ' + a.researchScore + '</em></div>' +
+            '<div class="score-card"><span>Weighted 70:30</span><b id="ovOut">' + e.ov + '</b><em class="was">Initial ' + a.weightedScore + ' &middot; ' + band(a.weightedScore) + '</em></div>' +
+            '</div>' +
+            '<details class="score-basis"><summary>Score basis, optional detail</summary><div class="score-detail">' +
+            scoreDetailHtml("scoreDepth", "Teaching depth in best-fit component", details.teachingDepth) +
+            scoreDetailHtml("scoreDelivery", "Delivery evidence", details.teachingDelivery) +
+            scoreDetailHtml("scoreBreadth", "Teaching breadth across matrix", details.teachingBreadth) +
+            scoreDetailHtml("scoreSubstance", "Research substance", details.researchSubstance) +
+            scoreDetailHtml("scoreFeasibility", "Research feasibility at 30 per cent", details.researchFeasibility) +
+            scoreDetailHtml("scoreTrack", "Research track record", details.researchTrackRecord) +
+            scoreDetailHtml("scoreFit", "Programme and place fit", details.researchProgrammeFit) +
+            scoreDetailHtml("scoreIndependence", "Research independence", details.researchIndependence) +
+            '</div></details>' +
+            '<div style="margin:7px 0 8px"><input type="text" id="ovWhy" placeholder="Reason for the revision or assessment update" value="' + esc(e.reason || "") + '"></div>' +
+            '<div class="analysis-actions"><button class="primary" id="saveAnalysis" type="button">Save first evaluator assessment</button><button id="saveScore" type="button">Save score only</button></div>' + (latest ? '<div class="was" style="margin-top:7px">Last score saved by ' + esc(latest.reviewer_name || latest.reviewer_email || "") + '. Reason: ' + esc(latest.reason || "") + '</div>' : "") + '</div>' +
+            '<div class="gate"><h4>Eligibility gate</h4><div class="rec ' + recClass(a.eligibility.label) + '">' + esc(a.eligibility.label) + '</div><ul>' + a.eligibility.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul></div>' +
+            '<div class="best"><div class="b">Where they fit best, five strongest components</div>' +
+            a.components.slice(0, 5).map(function (item, index) { return '<div class="unit"><b>' + (index + 1) + '. ' + item.code + ' ' + esc(item.title) + '</b><span> ' + item.label + ' &middot; ' + item.confidence + ' confidence' + (item.terms.length ? ', matched on ' + item.terms.map(esc).join(", ") : ', limited direct evidence') + '</span></div>'; }).join("") + '<div class="unit"><span>Ranked across all 20 assessable components. Read the label and evidence, not only the position.</span></div></div>' +
+            '<div class="inst">' + a.components.map(function (item) {
+              var value = verdicts[item.code] || item.label;
+              return '<div class="crow"><code>' + item.code + '</code><div>' + esc(item.title) + (item.terms.length ? '<span class="ev">Matched on ' + item.terms.map(esc).join(", ") + '</span>' : "") + '</div><select class="lv" data-course-verdict="' + item.code + '">' +
+                ["Can lecture", "Can tutor", "Gap", "Would need preparation"].map(function (option) { return '<option ' + (value === option ? "selected" : "") + '>' + option + '</option>'; }).join("") +
+                '</select></div>';
+            }).join("") + '</div>';
+        }
+
+        function appHtml(app) {
+          var fields = [
+            ["Contact and identity", "Gender: " + (app.gender || "Not stated") + "\nPhone: " + (app.phone || "Not given") + "\nEmail: " + (app.email || "Not provided") + "\nNationality: " + (app.nationality || "Not stated") + " | Resident in " + (app.country || "not stated") + "\nCurrent post: " + (app.designation || "Not stated") + ", " + (app.affiliation || "Not stated")],
+            ["Doctorate", (app.phdField || "Not stated") + "\n" + (app.phdInstitution || "Not stated") + "\nCompleted: " + (app.phdCompletion || "Not stated")],
+            ["Eligibility answers", "Availability: " + (app.availability || "Not stated") + "\nReady to relocate to Nairobi: " + (app.residenceReady || "Not stated") + "\nAccepts teaching-continuity duty: " + (app.teachingGapReady || "Not stated") + "\nEnglish: " + (app.englishCommunication || "Not stated") + "\nAIMS alumnus: " + (app.aimsAlumni || "Not stated")],
+            ["Thesis and explainer", app.thesisTitleExplainer],
+            ["Research area", app.researchArea],
+            ["Quantitative background", app.quantitativeBackground],
+            ["Applied track record", app.appliedTrackRecord],
+            ["Teaching experience", app.teachingExperience],
+            ["Tutoring and marking", app.tutoringExperience],
+            ["Mentoring and student support", app.mentoringExperience],
+            ["Research experience", app.researchExperience],
+            ["Proposed teaching contribution", app.teachingSupport],
+            ["Research plan, 30 per cent", app.researchPlan],
+            ["Career development", app.careerGrowth],
+            ["Referees", app.references.length ? app.references.map(function (r) { return [r.title, r.name, r.affiliation || r.aff, r.role, r.email].filter(Boolean).join(", "); }).join("\n\n") : "None supplied"],
+            ["Documents", "Passport: " + (app.passport || "Not uploaded") + "\nPhD certificate: " + (app.phdCertificate || "Not uploaded")]
+          ];
+          return fields.map(function (field) {
+            return field[1] ? '<div class="fld"><h4>' + esc(field[0]) + '</h4><p>' + esc(field[1]) + '</p></div>' : "";
+          }).join("");
+        }
+
+        function drawNotes(id) {
+          var notes = notesFor(id);
+          var manager = isReviewManager();
+          var currentStage = stageFor(id);
+          var latest = latestScore(id);
+          var managerStage = manager
+            ? '<div class="manager-stage"><div class="notes-title">Cecil / review manager stage decision</div><div class="rowline"><label>Formal stage<select id="managerStageSelect">' + optionsHtml(STAGES.map(function (stage) { return stage.label; }), currentStage) + '</select></label><button class="primary" id="managerStageButton" type="button">Move official stage</button></div><div class="was" style="margin-top:7px">Panel reviewers recommend below; this control changes the official Google Sheets stage.</div></div>'
+            : '<div class="manager-stage"><div class="notes-title">Formal stage</div><div class="was">Current official stage: <b>' + esc(currentStage) + '</b>. Your recommendation below is visible to the panel; only Cecil or a review manager moves the official stage.</div></div>';
+          var cards = panelReviewersFor(id).map(function (reviewer) {
+            var score = latestScoreByReviewer(id, reviewer.email, reviewer.name);
+            var note = latestNoteByReviewer(id, reviewer.email, reviewer.name);
+            var verdict = score && score.recommendation ? score.recommendation : "No verdict yet";
+            var rec = score && score.eligibility_decision ? score.eligibility_decision : "No stage recommendation";
+            var comment = note && note.note ? note.note : "No comment saved yet.";
+            var editable = note && canEditPanelNote(note);
+            var count = notes.filter(function (item) {
+              return (reviewer.email && String(item.author_email || "").toLowerCase() === reviewer.email) ||
+                (!reviewer.email && firstName(item.author_name || item.author_email) === firstName(reviewer.name));
+            }).length;
+            return '<article class="panel-card ' + (note || score ? "" : "pending") + '">' +
+              '<div class="panel-top"><div><div class="name">' + esc(reviewer.name || reviewer.email || "Reviewer") + '</div><div class="role">' + esc(reviewer.role || "Reviewer") + '</div></div>' +
+              (editable ? '<button data-note="' + esc(note.note_id || "") + '" class="editPanelNote" type="button">Edit</button>' : "") + '</div>' +
+              '<div class="verdict">' + esc(verdict) + '</div>' +
+              '<div class="stage-rec">Recommended next step: ' + esc(rec) + '</div>' +
+              '<div class="comment">' + esc(comment) + '</div>' +
+              '<div class="when">' + (note ? esc(note.created_at || "Saved") + (count > 1 ? " | " + count + " comments" : "") : "Waiting for reviewer") + '</div>' +
+              (editable ? '<div style="margin-top:7px"><button data-note="' + esc(note.note_id || "") + '" class="withdrawNote" type="button">Withdraw comment</button></div>' : "") +
+              '</article>';
+          }).join("");
+          $("dNotes").innerHTML =
+            '<div class="notes-title">Panel recommendations and reviewer comments</div>' +
+            managerStage +
+            '<div class="panel-grid">' + cards + '</div>' +
+            '<div class="disc">Each reviewer can see the panel record. Regular reviewers save their own verdict and comment; Cecil or a review manager makes the formal stage decision after reading the panel.</div>';
+          if ($("panelVerdict")) $("panelVerdict").innerHTML = optionsHtml(REVIEW_VERDICTS, latest && latest.recommendation || "Maybe / discuss");
+          if ($("panelStageRec")) $("panelStageRec").innerHTML = optionsHtml(STAGE_RECOMMENDATIONS, latest && latest.eligibility_decision || "Keep current stage");
+          if (!state.editingNoteId && $("noteTxt")) {
+            $("noteTxt").value = "";
+            $("addNote").textContent = "Save panel comment";
+          }
+          if ($("managerStageButton")) $("managerStageButton").onclick = function () {
+            updateStage(id, $("managerStageSelect").value);
+          };
+          Array.prototype.forEach.call($("dNotes").querySelectorAll(".editPanelNote"), function (button) {
+            button.onclick = function () {
+              var note = notes.filter(function (item) { return String(item.note_id) === String(button.getAttribute("data-note")); })[0];
+              if (!note) return;
+              var score = latestScoreByReviewer(id, note.author_email, note.author_name);
+              state.editingNoteId = note.note_id;
+              $("noteTxt").value = note.note || "";
+              if ($("panelVerdict")) $("panelVerdict").value = score && score.recommendation || "Maybe / discuss";
+              if ($("panelStageRec")) $("panelStageRec").value = score && score.eligibility_decision || "Keep current stage";
+              $("addNote").textContent = "Save panel comment";
+              $("noteTxt").focus();
+            };
+          });
+          Array.prototype.forEach.call($("dNotes").querySelectorAll(".withdrawNote"), function (button) {
+            button.onclick = function () { withdrawNote(button.getAttribute("data-note")); };
+          });
+          wireDrawerActions(id);
+        }
+
+        function wireDrawerActions(id) {
+          var t = $("ovT");
+          var r = $("ovR");
+          var out = $("ovOut");
+          function live() {
+            if (!t || !r || !out) return;
+            out.textContent = Math.round(((Number(t.value) || 0) * 0.7 + (Number(r.value) || 0) * 0.3) * 10) / 10;
+          }
+          if (t) t.oninput = live;
+          if (r) r.oninput = live;
+          function detailLive() {
+            var depth = Number($("scoreDepth") && $("scoreDepth").value || 0);
+            var delivery = Number($("scoreDelivery") && $("scoreDelivery").value || 0);
+            var breadth = Number($("scoreBreadth") && $("scoreBreadth").value || 0);
+            var substance = Number($("scoreSubstance") && $("scoreSubstance").value || 0);
+            var feasibility = Number($("scoreFeasibility") && $("scoreFeasibility").value || 0);
+            var track = Number($("scoreTrack") && $("scoreTrack").value || 0);
+            var fit = Number($("scoreFit") && $("scoreFit").value || 0);
+            var independence = Number($("scoreIndependence") && $("scoreIndependence").value || 0);
+            var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+            var teachingText = app ? [app.teachingExperience, app.tutoringExperience, app.mentoringExperience, app.teachingSupport].join(" ") : "";
+            var cap = teachingScoreCap(teachingText, { score: delivery }, depth, Math.ceil(breadth / 12));
+            if (t) t.value = Math.min(cap, clamp(depth * 0.45 + delivery * 0.3 + breadth * 0.25));
+            if (r) r.value = clamp((substance + feasibility + track + fit + independence) / 5);
+            live();
+          }
+          ["scoreDepth", "scoreDelivery", "scoreBreadth", "scoreSubstance", "scoreFeasibility", "scoreTrack", "scoreFit", "scoreIndependence"].forEach(function (id) {
+            var input = $(id);
+            if (input) input.oninput = detailLive;
+          });
+          if ($("saveScore")) $("saveScore").onclick = function () { saveScore(id); };
+          if ($("saveAnalysis")) $("saveAnalysis").onclick = function () { saveAnalysis(id); };
+          if ($("insertDraft")) $("insertDraft").onclick = function () {
+            var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+            var text = analysisTextsFor(app);
+            $("noteTxt").value = text.generalComment;
+            $("noteTxt").focus();
+          };
+          Array.prototype.forEach.call(document.querySelectorAll("[data-edit-section]"), function (button) {
+            button.onclick = function () {
+              var sectionId = button.getAttribute("data-edit-section");
+              var section = document.querySelector('[data-section="' + sectionId + '"]');
+              var textarea = $(sectionId);
+              if (!section || !textarea) return;
+              textarea.setAttribute("data-original", textarea.value || "");
+              section.classList.add("editing");
+              textarea.focus();
+            };
+          });
+          Array.prototype.forEach.call(document.querySelectorAll("[data-save-section]"), function (button) {
+            button.onclick = function () {
+              var sectionId = button.getAttribute("data-save-section");
+              var section = document.querySelector('[data-section="' + sectionId + '"]');
+              var textarea = $(sectionId);
+              var view = $(sectionId + "View");
+              if (!section || !textarea || !view) return;
+              view.innerHTML = formatSectionText(textarea.value);
+              section.classList.remove("editing");
+            };
+          });
+          Array.prototype.forEach.call(document.querySelectorAll("[data-cancel-section]"), function (button) {
+            button.onclick = function () {
+              var sectionId = button.getAttribute("data-cancel-section");
+              var section = document.querySelector('[data-section="' + sectionId + '"]');
+              var textarea = $(sectionId);
+              if (!section || !textarea) return;
+              textarea.value = textarea.getAttribute("data-original") || textarea.value || "";
+              section.classList.remove("editing");
+            };
+          });
+          if ($("cancelNoteEdit")) $("cancelNoteEdit").onclick = function () {
+            state.editingNoteId = "";
+            if ($("noteTxt")) $("noteTxt").value = "";
+            if ($("addNote")) $("addNote").textContent = "Save panel comment";
+            drawNotes(id);
+          };
+        }
+
+        function collectCourseVerdicts() {
+          var verdicts = {};
+          Array.prototype.forEach.call(document.querySelectorAll("[data-course-verdict]"), function (select) {
+            verdicts[select.getAttribute("data-course-verdict")] = select.value;
+          });
+          return verdicts;
+        }
+
+        function fieldValue(id) {
+          return ($(id) && $(id).value || "").trim();
+        }
+
+        function collectScoreDetails() {
+          return {
+            teachingDepth: clamp(fieldValue("scoreDepth")),
+            teachingDelivery: clamp(fieldValue("scoreDelivery")),
+            teachingBreadth: clamp(fieldValue("scoreBreadth")),
+            researchSubstance: clamp(fieldValue("scoreSubstance")),
+            researchFeasibility: clamp(fieldValue("scoreFeasibility")),
+            researchTrackRecord: clamp(fieldValue("scoreTrack")),
+            researchProgrammeFit: clamp(fieldValue("scoreFit")),
+            researchIndependence: clamp(fieldValue("scoreIndependence"))
+          };
+        }
+
+        function collectAnalysisPayload(id) {
+          var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+          var teaching = clamp($("ovT") && $("ovT").value);
+          var research = clamp($("ovR") && $("ovR").value);
+          var reason = fieldValue("ovWhy") || "First evaluator assessment updated.";
+          var scoreDetails = collectScoreDetails();
+          var courseVerdicts = collectCourseVerdicts();
+          return {
+            applicationId: id,
+            applicantCode: app.displayId || id,
+            stage: stageFor(id),
+            teachingScore: teaching,
+            researchScore: research,
+            weightedScore: Math.round(teaching * 0.7 + research * 0.3),
+            eligibilityDecision: app.assessment.eligibility.label,
+            recommendation: app.assessment.eligibility.label,
+            courseVerdicts: courseVerdicts,
+            initialScore: {
+              teaching: app.assessment.teachingScore,
+              research: app.assessment.researchScore,
+              weighted: app.assessment.weightedScore,
+              bestFit: app.assessment.bestFit && app.assessment.bestFit.code
+            },
+            scoreDetails: scoreDetails,
+            componentVerdicts: courseVerdicts,
+            eligibilityText: fieldValue("analysisEligibility"),
+            bestFitText: fieldValue("analysisBestFit"),
+            deliveryText: fieldValue("analysisDelivery"),
+            teachingText: fieldValue("analysisTeaching"),
+            researchText: fieldValue("analysisResearch"),
+            kemriAimsText: fieldValue("analysisInstitutional"),
+            gapsText: fieldValue("analysisGaps"),
+            interviewQuestionsText: fieldValue("analysisQuestions"),
+            generalComment: fieldValue("analysisGeneral"),
+            analysis: {
+              applicantCode: app.displayId || id,
+              applicant: app.applicant,
+              generatedFrom: "TutorialFellowApplications",
+              eligibility: fieldValue("analysisEligibility"),
+              bestFit: fieldValue("analysisBestFit"),
+              delivery: fieldValue("analysisDelivery"),
+              teaching: fieldValue("analysisTeaching"),
+              research: fieldValue("analysisResearch"),
+              institutionalFit: fieldValue("analysisInstitutional"),
+              gaps: fieldValue("analysisGaps"),
+              interviewQuestions: fieldValue("analysisQuestions"),
+              generalComment: fieldValue("analysisGeneral")
+            },
+            reason: reason
+          };
+        }
+
+        function saveScore(id) {
+          var teaching = Number($("ovT") && $("ovT").value || 0);
+          var research = Number($("ovR") && $("ovR").value || 0);
+          var reason = ($("ovWhy") && $("ovWhy").value || "").trim() || "Score revised by reviewer.";
+          var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+          var verdicts = collectCourseVerdicts();
+          showMessage("reviewMessageArea", "status", "Saving score revision...");
+          jsonp("saveReviewScore", reviewPayload({
+            applicationId: id,
+            teachingScore: teaching,
+            researchScore: research,
+            eligibilityDecision: app.assessment.eligibility.label,
+            recommendation: app.assessment.eligibility.label,
+            courseVerdicts: verdicts,
+            initialScore: {
+              teaching: app.assessment.teachingScore,
+              research: app.assessment.researchScore,
+              weighted: app.assessment.weightedScore,
+              bestFit: app.assessment.bestFit && app.assessment.bestFit.code
+            },
+            reason: reason
+          }), 30000).then(function (result) {
+            var index = state.scores.findIndex(function (row) { return row.score_id === result.score.score_id; });
+            if (index >= 0) state.scores[index] = result.score;
+            else state.scores.push(result.score);
+            showMessage("reviewMessageArea", "success", "Review score saved.");
+            openApp(id);
+            render();
+          }).catch(function (error) {
+            showMessage("reviewMessageArea", "error", error.message || "Score save failed.");
+          });
+        }
+
+        function saveAnalysis(id) {
+          var payload = collectAnalysisPayload(id);
+          showMessage("reviewMessageArea", "status", "Saving first evaluator assessment...");
+          jsonp("saveReviewScore", reviewPayload(payload), 30000)
+            .then(function (scoreResult) {
+              var scoreIndex = state.scores.findIndex(function (row) { return row.score_id === scoreResult.score.score_id; });
+              if (scoreIndex >= 0) state.scores[scoreIndex] = scoreResult.score;
+              else state.scores.push(scoreResult.score);
+              return jsonp("saveReviewAnalysis", reviewPayload(payload), 30000);
+            })
+            .then(function (result) {
+              var index = state.analyses.findIndex(function (row) { return row.analysis_id === result.analysis.analysis_id; });
+              if (index >= 0) state.analyses[index] = result.analysis;
+              else state.analyses.push(result.analysis);
+              showMessage("reviewMessageArea", "success", "First evaluator assessment saved.");
+              openApp(id);
+              render();
+            })
+            .catch(function (error) {
+              showMessage("reviewMessageArea", "error", error.message || "Assessment save failed. Check that the latest Apps Script review file has been redeployed.");
+            });
+        }
+
+        function saveNote() {
+          var id = state.openId;
+          var note = ($("noteTxt").value || "").trim();
+          if (!id || !note) return;
+          var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+          var current = effective(app, app.assessment);
+          var verdict = $("panelVerdict") && $("panelVerdict").value || "Maybe / discuss";
+          var stageRecommendation = $("panelStageRec") && $("panelStageRec").value || "Keep current stage";
+          var existingNote = state.editingNoteId ? state.notes.filter(function (item) { return String(item.note_id) === String(state.editingNoteId); })[0] : null;
+          var editingAnotherReviewer = existingNote &&
+            String(existingNote.author_email || "").toLowerCase() &&
+            String(existingNote.author_email || "").toLowerCase() !== reviewerEmail();
+          var payload = {
+            applicationId: id,
+            noteId: state.editingNoteId || "",
+            note: note,
+            stage: stageFor(id)
+          };
+          var scorePayload = {
+            applicationId: id,
+            teachingScore: Number($("ovT") && $("ovT").value || current.t || 0),
+            researchScore: Number($("ovR") && $("ovR").value || current.r || 0),
+            eligibilityDecision: stageRecommendation,
+            recommendation: verdict,
+            courseVerdicts: collectCourseVerdicts(),
+            initialScore: {
+              teaching: app.assessment.teachingScore,
+              research: app.assessment.researchScore,
+              weighted: app.assessment.weightedScore,
+              bestFit: app.assessment.bestFit && app.assessment.bestFit.code
+            },
+            reason: "Panel recommendation: " + verdict + "; suggested next step: " + stageRecommendation + ". " + note.slice(0, 420)
+          };
+          showMessage("reviewMessageArea", "status", state.editingNoteId ? "Saving panel comment edit..." : "Saving panel recommendation...");
+          var scoreJob = editingAnotherReviewer ? Promise.resolve(null) : jsonp("saveReviewScore", reviewPayload(scorePayload), 30000).then(function (scoreResult) {
+            var scoreIndex = state.scores.findIndex(function (row) { return row.score_id === scoreResult.score.score_id; });
+            if (scoreIndex >= 0) state.scores[scoreIndex] = scoreResult.score;
+            else state.scores.push(scoreResult.score);
+            return scoreResult;
+          });
+          scoreJob.then(function () {
+            return jsonp("saveReviewNote", reviewPayload(payload), 30000);
+          }).then(function (result) {
+            var index = state.notes.findIndex(function (row) { return row.note_id === result.note.note_id; });
+            if (index >= 0) state.notes[index] = result.note;
+            else state.notes.push(result.note);
+            state.editingNoteId = "";
+            $("noteTxt").value = "";
+            $("addNote").textContent = "Save panel comment";
+            showMessage("reviewMessageArea", "success", "Panel comment saved.");
+            openApp(id);
+            render();
+          }).catch(function (error) {
+            showMessage("reviewMessageArea", "error", error.message || "Panel comment save failed.");
+          });
+        }
+
+        function withdrawNote(noteId) {
+          if (!noteId) return;
+          showMessage("reviewMessageArea", "status", "Withdrawing review note...");
+          jsonp("withdrawReviewNote", reviewPayload({ noteId: noteId }), 30000).then(function (result) {
+            var index = state.notes.findIndex(function (row) { return row.note_id === result.note.note_id; });
+            if (index >= 0) state.notes[index] = result.note;
+            showMessage("reviewMessageArea", "success", "Review note withdrawn.");
+            openApp(state.openId);
+            render();
+          }).catch(function (error) {
+            showMessage("reviewMessageArea", "error", error.message || "Note withdrawal failed.");
+          });
+        }
+
+        function updateStage(id, label) {
+          if (!isReviewManager()) {
+            showMessage("reviewMessageArea", "error", "Only Cecil or a review manager can move the official stage. Save your recommendation instead.");
+            return;
+          }
+          showMessage("reviewMessageArea", "status", "Updating review stage...");
+          jsonp("updateReviewStage", reviewPayload({ applicationId: id, stage: label, reason: "Formal review stage moved from the review portal." }), 30000).then(function (result) {
+            var index = state.stages.findIndex(function (row) { return String(row.application_id) === String(id); });
+            if (index >= 0) state.stages[index] = result.stage;
+            else state.stages.push(result.stage);
+            showMessage("reviewMessageArea", "success", "Review stage updated.");
+            openApp(id);
+            render();
+          }).catch(function (error) {
+            showMessage("reviewMessageArea", "error", error.message || "Stage update failed.");
+          });
+        }
+
+        function closeDrawer() {
+          $("drawer").classList.remove("open");
+          $("scrim").classList.remove("open");
+          state.editingNoteId = "";
+          $("addNote").textContent = "Save panel comment";
+        }
+
+        function exportJson() {
+          var rows = assessedApps().map(function (app) {
+            return {
+              applicationId: app.applicationId,
+              applicantCode: app.displayId || app.applicationId,
+              applicant: app.applicant,
+              stage: stageFor(app.applicationId),
+              recommendation: app.assessment.eligibility.label,
+              initialScores: {
+                teaching: app.assessment.teachingScore,
+                research: app.assessment.researchScore,
+                weighted: app.assessment.weightedScore
+              },
+              effective: effective(app, app.assessment),
+              bestFit: app.assessment.bestFit && app.assessment.bestFit.code,
+              canLecture: app.assessment.components.filter(function (item) { return item.verdict === "lecture"; }).map(function (item) { return item.code; }),
+              canTutor: app.assessment.components.filter(function (item) { return item.verdict === "tutor"; }).map(function (item) { return item.code; }),
+              analysis: analysisFor(app),
+              notes: notesFor(app.applicationId)
+            };
+          });
+          var blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
+          var url = URL.createObjectURL(blob);
+          var link = document.createElement("a");
+          link.href = url;
+          link.download = "tutorial-fellow-review.json";
+          link.click();
+          URL.revokeObjectURL(url);
+        }
+
+        function render() {
+          var apps = assessedApps();
+          $("crs").innerHTML = '<option value="">Filter: any course</option>' + COURSES.map(function (course) {
+            return '<option value="' + course.code + '" ' + (state.course === course.code ? "selected" : "") + '>' + course.code + " " + esc(course.title) + "</option>";
+          }).join("");
+          drawGender(apps);
+          drawFunnel(apps);
+          drawCoverage(apps);
+          drawList();
+        }
+
+        function clearSession() {
+          session = null;
+          state.applications = [];
+          state.scores = [];
+          state.analyses = [];
+          state.notes = [];
+          state.stages = [];
+          try {
+            window.sessionStorage.removeItem(SESSION_KEY);
+          } catch (error) {}
+          $("reviewScreen").hidden = true;
+          $("loginScreen").hidden = false;
+          showMessage("messageArea", "status", "Reviewer session cleared.");
+        }
+
+        function localPreviewApps() {
+          return [
+            normalizeApplication({
+              applicationId: "TF001",
+              title: "Dr",
+              applicant: "Preview Candidate One",
+              gender: "Female",
+              email: "preview.one@example.org",
+              phone: "+254 700 000 001",
+              nationality: "Kenyan",
+              country: "Kenya",
+              affiliation: "University research group",
+              designation: "Recent PhD graduate",
+              phdInstitution: "Preview University",
+              phdField: "Applied mathematics and infectious disease modelling",
+              phdCompletion: "2025-11-15",
+              thesisTitleExplainer: "Mathematical models for infectious disease surveillance. The work combined differential equations, inference, and public-health data.",
+              researchArea: "Epidemiological modelling, Bayesian inference, and data science",
+              quantitativeBackground: "Differential equations, statistics, Bayesian modelling, R, Python, and numerical simulation.",
+              appliedTrackRecord: "Applied models to malaria and respiratory disease surveillance data.",
+              teachingExperience: "Taught modelling workshops for MSc students over two semesters, including weekly hands-on Python sessions.",
+              tutoringExperience: "Tutored probability, statistics, numerical methods, and model fitting groups.",
+              mentoringExperience: "Mentored postgraduate students on reproducible analysis and scientific computing.",
+              researchExperience: "Two manuscripts and one conference presentation on infectious disease modelling.",
+              teachingSupport: "Can support hands-on sessions, marking, and emergency lecture continuity in modelling and data analysis blocks.",
+              researchPlan: "A feasible 30 per cent project using existing surveillance datasets to compare mechanistic and predictive nowcasting models.",
+              residenceReady: "Yes",
+              teachingGapReady: "Yes",
+              passport: "passport.pdf",
+              phdCertificate: "phd-certificate.pdf",
+              references: [{ name: "Referee One", email: "ref1@example.org" }, { name: "Referee Two", email: "ref2@example.org" }]
+            }, 0),
+            normalizeApplication({
+              applicationId: "TF002",
+              title: "Dr",
+              applicant: "Preview Candidate Two",
+              gender: "Male",
+              email: "preview.two@example.org",
+              nationality: "Rwandan",
+              country: "Rwanda",
+              phdField: "Machine learning and computational biology",
+              phdCompletion: "2024-12-10",
+              quantitativeBackground: "Machine learning, data science, statistics, Python, and computational biology.",
+              teachingExperience: "Assisted undergraduate data science labs and supervised student projects.",
+              tutoringExperience: "Provided tutorials in Python and introductory statistics.",
+              researchPlan: "Develop interpretable machine-learning tools for health data quality assessment.",
+              residenceReady: "Yes",
+              teachingGapReady: "Tentative",
+              references: [{ name: "Referee One", email: "ref1@example.org" }]
+            }, 1)
+          ];
+        }
+
+        function restoreSession() {
+          if (location.hostname === "127.0.0.1" && hasSearchParam("preview")) {
+            session = {
+              email: "preview@mathepi.org",
+              sessionToken: "local-preview",
+              reviewer: { name: "Cecil", email: "preview@mathepi.org", role: "Review manager" },
+              expiresAt: Date.now() + 3600000
+            };
+            state.applications = localPreviewApps();
+            state.stages = [{ application_id: "TF001", stage: "Shortlist" }, { application_id: "TF002", stage: "Screened" }];
+            state.scores = [
+              { score_id: "TF001::preview@mathepi.org", application_id: "TF001", reviewer_email: "preview@mathepi.org", reviewer_name: "Cecil", teaching_score: 84, research_score: 82, weighted_score: 83, eligibility_decision: "Shortlist", recommendation: "Support", reason: "Preview recommendation", updated_at: "2026-07-21 09:00" }
+            ];
+            state.notes = [
+              { note_id: "preview-note-1", application_id: "TF001", author_email: "preview@mathepi.org", author_name: "Cecil", stage: "Shortlist", status: "Active", note: "Concrete teaching evidence and a plausible Nairobi research home. I would shortlist, but ask for a tighter first-month work plan.", created_at: "2026-07-21 09:00" },
+              { note_id: "preview-note-2", application_id: "TF001", author_email: "", author_name: "Eva", stage: "Shortlist", status: "Active", note: "Agreed, with attention to whether the applicant can balance marking and research outputs during heavy teaching blocks.", created_at: "2026-07-21 09:15" }
+            ];
+            openReviewWindow();
+            showMessage("reviewMessageArea", "success", "Local visual preview. Live reviewers still need OTP verification.");
+            render();
+            return;
+          }
+          try {
+            var raw = window.sessionStorage.getItem(SESSION_KEY);
+            if (raw) session = JSON.parse(raw);
+          } catch (error) {}
+          if (session && session.sessionToken && (!session.expiresAt || session.expiresAt > Date.now())) {
+            openReviewWindow();
+            loadApplications();
+          }
+        }
+
+        function hasSearchParam(name) {
+          return new RegExp("[?&]" + name + "=").test(window.location.search);
+        }
+
+        function freshReviewUrl() {
+          var url = new URL("./", window.location.href);
+          url.search = "";
+          url.searchParams.set("t", String(Date.now()));
+          return url.toString();
+        }
+
+        function resetLegacyCache() {
+          if (!hasSearchParam("reset")) return false;
+          showMessage("messageArea", "status", "Clearing old cached review files, then reopening the review portal...");
+          var jobs = [];
+          try {
+            if ("serviceWorker" in navigator) {
+              jobs.push(navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                return Promise.all(registrations.map(function (registration) { return registration.unregister(); }));
+              }));
+            }
+          } catch (error) {}
+          try {
+            if (window.caches) {
+              jobs.push(caches.keys().then(function (keys) {
+                return Promise.all(keys.map(function (key) { return caches.delete(key); }));
+              }));
+            }
+          } catch (error) {}
+          function reopen() {
+            window.location.replace(freshReviewUrl());
+          }
+          if (jobs.length && window.Promise) Promise.all(jobs).then(reopen).catch(reopen);
+          else reopen();
+          window.setTimeout(reopen, 5000);
+          return true;
+        }
+
+        $("sendCodeButton").addEventListener("click", requestCode);
+        $("verifyButton").addEventListener("click", verifyCode);
+        $("reviewerCode").addEventListener("keydown", function (event) {
+          if (event.key === "Enter") verifyCode();
+        });
+        $("q").addEventListener("input", function (event) {
+          state.query = event.target.value;
+          drawList();
+        });
+        $("sortby").addEventListener("change", function (event) {
+          state.sort = event.target.value;
+          drawList();
+        });
+        $("crs").addEventListener("change", function (event) {
+          state.course = event.target.value;
+          drawList();
+        });
+        $("refreshButton").addEventListener("click", loadApplications);
+        $("signOutButton").addEventListener("click", clearSession);
+        $("exportBtn").addEventListener("click", exportJson);
+        $("closeBtn").addEventListener("click", closeDrawer);
+        $("scrim").addEventListener("click", closeDrawer);
+        $("addNote").addEventListener("click", saveNote);
+        Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (button) {
+          button.addEventListener("click", function () {
+            Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (item) { item.classList.remove("on"); });
+            button.classList.add("on");
+            state.tab = button.getAttribute("data-t");
+            if (state.openId) openApp(state.openId);
+          });
+        });
+
+        if (!resetLegacyCache()) restoreSession();
+      })();
+    </script>
+  </body>
+</html>
