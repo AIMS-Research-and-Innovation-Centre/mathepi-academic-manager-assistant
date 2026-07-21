@@ -538,19 +538,19 @@ function listReviewApplicants(payload) {
   const spreadsheet = getOrCreateSpreadsheet();
   ensureSheets(spreadsheet);
   const applications = readTutorialReviewApplications(spreadsheet);
-  const assignments = readSheetObjects(getSheet(spreadsheet, "ReviewAssignments"));
+  const assignments = readReviewSheetObjects(spreadsheet, "ReviewAssignments");
   const visibleApplications = filterReviewApplicationsForReviewer(applications, assignments, reviewer);
   return {
     ok: true,
     reviewer,
     applications: visibleApplications,
-    scores: readSheetObjects(getSheet(spreadsheet, "ReviewScores")),
-    analyses: readSheetObjects(getSheet(spreadsheet, "ReviewAnalyses")),
-    notes: readSheetObjects(getSheet(spreadsheet, "ReviewNotes")),
-    stages: readSheetObjects(getSheet(spreadsheet, "ReviewStages")),
+    scores: readReviewSheetObjects(spreadsheet, "ReviewScores"),
+    analyses: readReviewSheetObjects(spreadsheet, "ReviewAnalyses"),
+    notes: readReviewSheetObjects(spreadsheet, "ReviewNotes"),
+    stages: readReviewSheetObjects(spreadsheet, "ReviewStages"),
     assignments,
     config: reviewConfig(spreadsheet),
-    reviewers: reviewerCanManage(reviewer) ? readSheetObjects(getSheet(spreadsheet, "Reviewers")) : [],
+    reviewers: reviewerCanManage(reviewer) ? readReviewSheetObjects(spreadsheet, "Reviewers") : [],
     syncedAt: new Date().toISOString(),
   };
 }
@@ -737,11 +737,11 @@ function exportReviewAudit(payload) {
     ok: true,
     exportedAt: new Date().toISOString(),
     applications: readTutorialReviewApplications(spreadsheet),
-    scores: readSheetObjects(getSheet(spreadsheet, "ReviewScores")),
-    analyses: readSheetObjects(getSheet(spreadsheet, "ReviewAnalyses")),
-    notes: readSheetObjects(getSheet(spreadsheet, "ReviewNotes")),
-    stages: readSheetObjects(getSheet(spreadsheet, "ReviewStages")),
-    audit: readSheetObjects(getSheet(spreadsheet, "ReviewAudit")),
+    scores: readReviewSheetObjects(spreadsheet, "ReviewScores"),
+    analyses: readReviewSheetObjects(spreadsheet, "ReviewAnalyses"),
+    notes: readReviewSheetObjects(spreadsheet, "ReviewNotes"),
+    stages: readReviewSheetObjects(spreadsheet, "ReviewStages"),
+    audit: readReviewSheetObjects(spreadsheet, "ReviewAudit"),
   };
 }
 
@@ -782,7 +782,7 @@ function findReviewerByEmail(email) {
   const spreadsheet = getOrCreateSpreadsheet();
   ensureSheets(spreadsheet);
   const target = normalizeEmailAddress(email);
-  return readSheetObjects(getSheet(spreadsheet, "Reviewers")).find((row) => {
+  return readReviewSheetObjects(spreadsheet, "Reviewers").find((row) => {
     const rowEmail = row.reviewer_email || row.email;
     return rowEmail && normalizeEmailAddress(rowEmail) === target;
   });
@@ -816,7 +816,7 @@ function filterReviewApplicationsForReviewer(applications, assignments, reviewer
 }
 
 function readTutorialReviewApplications(spreadsheet) {
-  const rows = readSheetObjects(getSheet(spreadsheet, "TutorialFellowApplications"));
+  const rows = readReviewSheetObjects(spreadsheet, "TutorialFellowApplications");
   return rows
     .map((row) => normalizeTutorialReviewApplication(row))
     .filter((app) => app.applicant);
@@ -895,6 +895,52 @@ function readSheetObjects(sheet) {
   });
 }
 
+function readReviewSheetObjects(spreadsheet, name) {
+  const sheet = getSheet(spreadsheet, name);
+  const headers = ensureReviewSheetHeaders(sheet, TAB_HEADERS[name] || ["record_id"]);
+  const lastRow = sheet.getLastRow();
+  if (!headers.length || lastRow < 2) return [];
+  return sheet.getRange(2, 1, lastRow - 1, headers.length).getValues().map((row) => {
+    const object = {};
+    headers.forEach((header, index) => {
+      object[header] = row[index];
+    });
+    return object;
+  });
+}
+
+function ensureReviewSheetHeaders(sheet, headers) {
+  const expectedHeaders = (headers && headers.length ? headers : ["record_id"]).map(String);
+  const lastColumn = sheet.getLastColumn();
+  if (lastColumn < 1) {
+    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
+    sheet.setFrozenRows(1);
+    return expectedHeaders;
+  }
+
+  const width = Math.max(lastColumn, expectedHeaders.length);
+  const current = sheet.getRange(1, 1, 1, width).getValues()[0].map((value) => String(value || "").trim());
+  if (!current.some(Boolean)) {
+    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
+    sheet.setFrozenRows(1);
+    return expectedHeaders;
+  }
+
+  const present = {};
+  current.forEach((header) => {
+    if (header) present[header] = true;
+  });
+  const missing = expectedHeaders.filter((header) => !present[header]);
+  if (missing.length) {
+    sheet.getRange(1, lastColumn + 1, 1, missing.length).setValues([missing]);
+  }
+  if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
+  return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map((value, index) => {
+    const header = String(value || "").trim();
+    return header || "column_" + (index + 1);
+  });
+}
+
 function findSheetObject(sheet, key) {
   const headers = getHeaders(sheet);
   const keyHeader = headers[0];
@@ -908,7 +954,7 @@ function reviewStageLabel(value) {
 }
 
 function reviewConfig(spreadsheet) {
-  const rows = readSheetObjects(getSheet(spreadsheet, "ReviewConfig"));
+  const rows = readReviewSheetObjects(spreadsheet, "ReviewConfig");
   const config = {
     stages: ["All applicants", "Screened", "Shortlist", "Finalists", "Decision"],
     stageTargets: { "All applicants": 100, Screened: 85, Shortlist: 70, Finalists: 30, Decision: 10 },
