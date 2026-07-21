@@ -3,13 +3,13 @@ function doGet(e) {
     const action = e && e.parameter && e.parameter.action;
     if (action) {
       const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : e.parameter;
-      return jsonResponse(apiPost({ action, payload }));
+      return routeResponse(apiPost({ action, payload }), e);
     }
     return HtmlService.createHtmlOutput(
       "<h1>MathEpi Apps Script Backend</h1><p>Deploy this Web App URL into the MathEpi portal Sheets & Drive settings.</p>",
     );
   } catch (error) {
-    return jsonResponse(routeErrorResponse(error));
+    return routeResponse(routeErrorResponse(error), e);
   }
 }
 
@@ -62,4 +62,19 @@ function jsonResponse(data) {
 
 function routeErrorResponse(error) {
   return { ok: false, error: error && error.message ? error.message : String(error || "Unknown Apps Script error.") };
+}
+
+function routeResponse(data, e) {
+  const callback = e && e.parameter && e.parameter.callback;
+  if (callback) return jsonpResponse(callback, data);
+  return jsonResponse(data);
+}
+
+function jsonpResponse(callback, data) {
+  const name = String(callback || "");
+  if (!/^[A-Za-z_$][0-9A-Za-z_$]*(\.[A-Za-z_$][0-9A-Za-z_$]*)*$/.test(name)) {
+    return jsonResponse({ ok: false, error: "Invalid callback name." });
+  }
+  const body = `${name}(${JSON.stringify(data).replace(/</g, "\\u003c")});`;
+  return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JAVASCRIPT);
 }

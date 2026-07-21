@@ -2061,6 +2061,7 @@ const CFA_CALLS = [
 
 const GOOGLE_BACKEND_URL_KEY = "mathepi-apps-script-url";
 const GOOGLE_AUTOSYNC_KEY = "mathepi-google-autosync";
+const PUBLIC_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrBseE_6REWP5D4zySf-Z6j_x9nUofWvT426M_HG5FoPllMDOZEcEa-f_Of4zryTQ9/exec";
 const TF_REVIEW_SESSION_KEY = "mathepi-tf-review-session-v1";
 const TF_REVIEW_STAGES = [
   { id: "all", label: "All applicants", target: 100 },
@@ -2092,7 +2093,7 @@ let googleSyncTimer = null;
 let googleSyncSuspended = false;
 
 function appsScriptUrl() {
-  return (window.MATHEPI_APPS_SCRIPT_URL || localStorage.getItem(GOOGLE_BACKEND_URL_KEY) || "").trim();
+  return (window.MATHEPI_APPS_SCRIPT_URL || localStorage.getItem(GOOGLE_BACKEND_URL_KEY) || PUBLIC_APPS_SCRIPT_URL || "").trim();
 }
 
 function hasAppsScriptBridge() {
@@ -2114,6 +2115,10 @@ function googleApi(action, payload = {}) {
   }
   const endpoint = appsScriptUrl();
   if (!endpoint) return Promise.reject(new Error("Apps Script Web App URL is not configured."));
+  const payloadText = JSON.stringify(payload || {});
+  if (payloadText.length < 6500 && /script\.google\.com\/macros\/s\//i.test(endpoint)) {
+    return googleJsonpApi(endpoint, action, payload);
+  }
   return fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -2121,6 +2126,48 @@ function googleApi(action, payload = {}) {
   }).then((response) => {
     if (!response.ok) throw new Error(`Apps Script request failed: ${response.status}`);
     return response.json();
+  });
+}
+
+function googleJsonpApi(endpoint, action, payload = {}) {
+  return new Promise((resolve, reject) => {
+    const callbackName = `mathepiJsonp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const separator = endpoint.includes("?") ? "&" : "?";
+    const script = document.createElement("script");
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error("Apps Script did not respond. Update and redeploy the Apps Script route files, then try again."));
+    }, 20000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
+    }
+
+    window[callbackName] = (result) => {
+      cleanup();
+      if (result && result.ok === false) {
+        reject(new Error(result.error || "Apps Script request failed."));
+      } else {
+        resolve(result);
+      }
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("Could not reach Apps Script. Check the deployment access and Web App URL."));
+    };
+    script.src =
+      endpoint +
+      separator +
+      new URLSearchParams({
+        action,
+        payload: JSON.stringify(payload || {}),
+        callback: callbackName,
+        _: String(Date.now()),
+      }).toString();
+    document.head.appendChild(script);
   });
 }
 
@@ -2218,8 +2265,9 @@ async function pullGoogleBootstrap() {
   }
 }
 
+const initialHashView = window.location.hash ? window.location.hash.slice(1) : "";
 const state = {
-  view: "dashboard",
+  view: NAV.some((item) => item.id === initialHashView) ? initialHashView : "dashboard",
   role: "manager",
   query: "",
   calendarMode: "timeline",
@@ -3074,6 +3122,9 @@ function toast(message) {
 function setView(view) {
   state.view = canView(view) ? view : "dashboard";
   state.drawer = null;
+  if (window.location.hash !== `#${state.view}`) {
+    history.replaceState(null, "", `#${state.view}`);
+  }
   render();
 }
 
@@ -3341,7 +3392,11 @@ function mobileNav(nav) {
   const priorityIds =
     state.role === "student"
       ? ["dashboard", "planner", "groups", "support", "appointments"]
-      : ["dashboard", "calendar", "courses", "groups", "support"];
+      : state.role === "reviewer"
+        ? ["dashboard", "tf-reviews"]
+        : canView("tf-reviews")
+          ? ["dashboard", "tf-reviews", "cfa", "calendar", "google"]
+          : ["dashboard", "calendar", "courses", "groups", "support"];
   const priority = priorityIds.map((id) => nav.find((item) => item.id === id)).filter(Boolean);
   const first = priority.length >= 5 ? priority.slice(0, 5) : nav.slice(0, 5);
   const active = nav.find((item) => item.id === state.view);
@@ -7652,6 +7707,15 @@ window.setTfReviewCourseFilter = setTfReviewCourseFilter;
 window.insertTfDraftNote = insertTfDraftNote;
 window.updateTfReviewWeightedPreview = updateTfReviewWeightedPreview;
 window.state = state;
+
+window.addEventListener("hashchange", () => {
+  const nextView = window.location.hash ? window.location.hash.slice(1) : "dashboard";
+  if (NAV.some((item) => item.id === nextView) && nextView !== state.view) {
+    state.view = canView(nextView) ? nextView : "dashboard";
+    state.drawer = null;
+    render();
+  }
+});
 
 migrateProgrammeData();
 save();
