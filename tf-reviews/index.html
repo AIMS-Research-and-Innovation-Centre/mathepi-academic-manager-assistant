@@ -1,22 +1,22 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MathEpi TF Review Portal</title>
-    <meta name="theme-color" content="#8d111c" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MathEpi Tutorial Fellow Review Portal</title>
+    <meta name="theme-color" content="#800000" />
     <style>
       :root {
-        --ink: #07143d;
-        --muted: #596274;
-        --line: #ddd8ce;
-        --paper: #f8f7f3;
-        --card: #fffefb;
-        --maroon: #9d0012;
-        --maroon-dark: #7f0010;
-        --good: #0c7a43;
-        --warn: #a15c00;
-        font-family: Arial, Helvetica, sans-serif;
+        --maroon: #800000;
+        --navy: #0c1940;
+        --paper: #fbfaf7;
+        --line: #ded9cf;
+        --ink: #1b1f2a;
+        --muted: #6e6a62;
+        --gold: #b08c3a;
+        --ok: #2f6b4f;
+        --warn: #9a5b12;
+        --bad: #a33131;
       }
 
       * {
@@ -27,108 +27,292 @@
         margin: 0;
         background: var(--paper);
         color: var(--ink);
+        font-family: "Myriad Pro", "Segoe UI", Frutiger, "Helvetica Neue", Arial, sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
       }
 
-      .shell {
-        width: min(1440px, calc(100vw - 48px));
-        margin: 34px auto;
+      [hidden] {
+        display: none !important;
       }
 
-      .masthead {
-        padding: 28px 0 18px;
+      header.masthead {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 26px;
+        border-bottom: 4px solid var(--maroon);
+        background: var(--navy);
+        color: #fff;
       }
 
-      .eyebrow {
-        margin: 0 0 12px;
-        color: var(--maroon);
-        font-size: 16px;
-        font-weight: 900;
-        letter-spacing: 0.16em;
+      .masthead h1 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .masthead .sub {
+        margin-top: 4px;
+        font-size: 12px;
+        letter-spacing: 1.3px;
+        text-transform: uppercase;
+        opacity: 0.78;
+      }
+
+      .gcount {
+        font-size: 12px;
+        line-height: 1.7;
+        text-align: right;
+      }
+
+      .gcount b {
+        font-size: 17px;
+      }
+
+      .gbar {
+        width: 170px;
+        height: 6px;
+        margin-top: 5px;
+        overflow: hidden;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.22);
+      }
+
+      .gbar i {
+        display: block;
+        height: 100%;
+        background: var(--gold);
+      }
+
+      .mocknote {
+        padding: 9px 26px;
+        border-bottom: 1px solid var(--line);
+        background: #f2ece4;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .funnel {
+        display: flex;
+        overflow-x: auto;
+        padding: 0 26px;
+        border-bottom: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .stage {
+        position: relative;
+        min-width: 146px;
+        flex: 1 1 0;
+        padding: 14px 13px 12px;
+        border: 0;
+        border-right: 1px solid var(--line);
+        border-radius: 0;
+        background: #fff;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .stage:last-child {
+        border-right: 0;
+      }
+
+      .stage:hover {
+        background: #f5f2ec;
+      }
+
+      .stage.active {
+        background: #f2ece4;
+      }
+
+      .stage.active::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: -1px;
+        left: 0;
+        height: 3px;
+        background: var(--maroon);
+      }
+
+      .stage .nm {
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 1.1px;
         text-transform: uppercase;
       }
 
-      h1 {
-        margin: 0;
-        max-width: 1120px;
-        font-size: clamp(34px, 4.8vw, 66px);
-        line-height: 1.08;
-        letter-spacing: 0;
+      .stage .ct {
+        color: var(--navy);
+        font-size: 28px;
+        font-weight: 600;
+        line-height: 1.15;
       }
 
-      .sub {
-        max-width: 980px;
-        margin: 18px 0 0;
-        color: var(--muted);
-        font-size: 20px;
-        line-height: 1.55;
+      .stage .pct {
+        color: var(--maroon);
+        font-size: 11.5px;
+        font-weight: 600;
       }
 
-      .card {
-        margin-top: 24px;
-        padding: clamp(24px, 4vw, 48px);
-        border: 1px solid var(--line);
-        border-left: 7px solid var(--maroon);
-        background: var(--card);
-        box-shadow: 0 24px 56px rgba(7, 20, 61, 0.08);
+      .bar {
+        height: 4px;
+        margin-top: 7px;
+        overflow: hidden;
+        border-radius: 2px;
+        background: #ede8e0;
       }
 
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 20px;
+      .bar i {
+        display: block;
+        height: 100%;
+        background: var(--maroon);
       }
 
-      label {
-        display: grid;
-        gap: 8px;
-        color: #6b665f;
-        font-size: 16px;
-        font-weight: 800;
-      }
-
-      input {
-        width: 100%;
-        min-height: 62px;
-        border: 1px solid var(--line);
-        background: #fff;
-        color: var(--ink);
-        padding: 14px 16px;
-        font: inherit;
-        font-size: 20px;
-        font-weight: 800;
-      }
-
-      .actions {
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 6;
         display: flex;
         flex-wrap: wrap;
-        gap: 14px;
-        margin-top: 24px;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 26px;
+        border-bottom: 1px solid var(--line);
+        background: var(--paper);
       }
 
-      button,
-      .button {
-        min-height: 58px;
-        border: 2px solid var(--ink);
+      input[type="text"],
+      input[type="email"],
+      input[type="number"],
+      textarea,
+      select {
+        border: 1px solid var(--line);
+        border-radius: 2px;
         background: #fff;
         color: var(--ink);
-        padding: 13px 18px;
         font: inherit;
-        font-size: 18px;
-        font-weight: 900;
-        cursor: pointer;
-        text-decoration: none;
       }
 
-      button.primary,
-      .button.primary {
+      input[type="text"],
+      input[type="email"],
+      select {
+        padding: 6px 9px;
+        font-size: 14px;
+      }
+
+      input[type="text"] {
+        min-width: 210px;
+      }
+
+      button {
+        border: 1px solid var(--navy);
+        border-radius: 2px;
+        background: #fff;
+        color: var(--navy);
+        padding: 6px 12px;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--navy);
+        color: #fff;
+      }
+
+      button.primary {
         border-color: var(--maroon);
         background: var(--maroon);
         color: #fff;
       }
 
+      button.primary:hover {
+        background: #600;
+      }
+
       button:disabled {
         cursor: wait;
-        opacity: 0.72;
+        opacity: 0.68;
+      }
+
+      .reviewer {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      main {
+        max-width: 1220px;
+        padding: 18px 26px 70px;
+      }
+
+      .gate-card {
+        max-width: 1180px;
+        margin: 48px auto;
+        padding: 42px 52px;
+        border: 1px solid var(--line);
+        border-left: 7px solid var(--maroon);
+        background: #fff;
+        box-shadow: 0 28px 70px rgba(12, 25, 64, 0.1);
+      }
+
+      .gate-card .eyebrow {
+        margin: 0 0 14px;
+        color: var(--maroon);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+      }
+
+      .gate-card h2 {
+        max-width: 1060px;
+        margin: 0 0 28px;
+        color: var(--navy);
+        font-size: clamp(34px, 4vw, 56px);
+        line-height: 1.12;
+      }
+
+      .gate-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .gate-grid label {
+        display: grid;
+        gap: 8px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .gate-grid input {
+        min-height: 62px;
+        padding: 13px 16px;
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .gate-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .gate-actions button {
+        min-height: 58px;
+        padding: 12px 22px;
+        font-size: 18px;
+        font-weight: 700;
       }
 
       .status,
@@ -136,116 +320,734 @@
       .success {
         width: fit-content;
         max-width: 100%;
-        margin: 20px 0 0;
-        padding: 14px 16px;
-        border-radius: 8px;
-        font-size: 18px;
-        font-weight: 900;
-        line-height: 1.4;
-      }
-
-      .status {
+        margin: 18px 0 0;
+        padding: 11px 13px;
         border: 1px solid var(--line);
-        background: #f0eee8;
+        border-left: 3px solid var(--gold);
+        background: #fcfbf8;
+        color: var(--navy);
+        font-weight: 600;
       }
 
       .error {
-        background: #c64155;
-        color: #fff;
+        border-left-color: var(--bad);
+        background: #f8e7e7;
+        color: var(--bad);
       }
 
       .success {
-        background: #e7f4ed;
-        color: var(--good);
+        border-left-color: var(--ok);
+        background: #e6efe9;
+        color: var(--ok);
       }
 
-      .toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin: 22px 0;
-      }
-
-      .reviewer {
-        color: var(--muted);
-        font-weight: 800;
-      }
-
-      .app-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 16px;
-      }
-
-      .app-card {
+      .cov {
+        margin-bottom: 18px;
+        padding: 14px 16px;
         border: 1px solid var(--line);
+        border-top: 3px solid var(--navy);
         background: #fff;
-        padding: 18px;
       }
 
-      .app-card h3 {
-        margin: 0 0 10px;
-        font-size: 24px;
+      .cov h3 {
+        margin: 0 0 3px;
+        color: var(--navy);
+        font-size: 14px;
+        letter-spacing: 0.3px;
       }
 
-      .meta {
+      .cov .cs {
+        margin-bottom: 11px;
+        color: var(--muted);
+        font-size: 12.5px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+        gap: 5px;
+      }
+
+      .cell {
+        padding: 6px 7px;
+        border: 1px solid var(--line);
+        background: #f7f5f1;
+        font-size: 11px;
+      }
+
+      .cell b {
+        display: block;
+        font-size: 11.5px;
+        letter-spacing: 0.4px;
+      }
+
+      .cell.l {
+        border-color: #a8c6b4;
+        background: #e6efe9;
+      }
+
+      .cell.t {
+        border-color: #e0cb99;
+        background: #faf2de;
+      }
+
+      .cell.n {
+        border-color: #ddb3b3;
+        background: #f8e7e7;
+      }
+
+      .cell span {
+        color: var(--muted);
+      }
+
+      .legend {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        margin: 12px 0;
+        gap: 14px;
+        margin-top: 9px;
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .sw {
+        display: inline-block;
+        width: 11px;
+        height: 11px;
+        margin-right: 4px;
+        border: 1px solid var(--line);
+        vertical-align: -1px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 56px 1fr 168px;
+        gap: 14px;
+        align-items: start;
+        margin-bottom: 8px;
+        padding: 13px 15px;
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--line);
+        background: #fff;
+      }
+
+      .row[data-s="shortlist"] {
+        border-left-color: var(--gold);
+      }
+
+      .row[data-s="final"] {
+        border-left-color: var(--navy);
+      }
+
+      .row[data-s="award"] {
+        border-left-color: var(--ok);
+      }
+
+      .row[data-s="reject"] {
+        border-left-color: var(--bad);
+        opacity: 0.72;
+      }
+
+      .idtag {
+        padding-top: 3px;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+
+      .nm2 {
+        color: var(--navy);
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .ident {
+        display: flex;
+        gap: 0;
+        max-width: 660px;
+        margin-top: 6px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 2px;
+        background: #fcfbf8;
+      }
+
+      .ident div {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 5px 10px;
+        border-right: 1px solid var(--line);
+      }
+
+      .ident div:last-child {
+        flex: 2 1 auto;
+        border-right: 0;
+      }
+
+      .ident .k,
+      .dual .k {
+        display: block;
+        color: var(--muted);
+        font-size: 9.5px;
+        letter-spacing: 1.1px;
+        text-transform: uppercase;
+      }
+
+      .ident .v {
+        display: block;
+        overflow: hidden;
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .ident .v.f {
+        color: var(--maroon);
+      }
+
+      .ident .v.m {
+        color: var(--navy);
+      }
+
+      .dual {
+        display: flex;
+        gap: 5px;
+        margin-top: 6px;
+      }
+
+      .dual div {
+        flex: 1;
+        padding: 4px 7px;
+        border: 1px solid var(--line);
+        background: #fcfbf8;
+        text-align: center;
+      }
+
+      .dual .v {
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+
+      .v.Strong {
+        color: var(--ok);
+      }
+
+      .v.Credible {
+        color: var(--navy);
+      }
+
+      .v.Thin {
+        color: var(--warn);
+      }
+
+      .v.Notevidenced {
+        color: var(--bad);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 7px;
       }
 
       .chip {
-        border-radius: 999px;
-        background: #f0eee8;
-        padding: 7px 10px;
-        color: #3f4654;
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: #faf8f4;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.4px;
+      }
+
+      .chip.good {
+        border-color: #bfd8cb;
+        color: var(--ok);
+      }
+
+      .chip.flag {
+        border-color: #e3cda8;
+        color: var(--warn);
+      }
+
+      .chip.bad {
+        border-color: #e0b9b9;
+        color: var(--bad);
+      }
+
+      .chip.crs {
+        border-color: #b9c2d6;
+        background: #f2f4f9;
+        color: var(--navy);
+        font-weight: 600;
+      }
+
+      .chip.crs.bf {
+        border-color: var(--navy);
+        background: var(--navy);
+        color: #fff;
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-end;
+        text-align: right;
+      }
+
+      .rec {
+        width: 100%;
+        padding: 5px 9px;
+        border: 1px solid;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .rec.s {
+        border-color: var(--ok);
+        background: var(--ok);
+        color: #fff;
+      }
+
+      .rec.p {
+        border-color: #a8c6b4;
+        background: #eff5f1;
+        color: var(--ok);
+      }
+
+      .rec.r {
+        border-color: #e0cb99;
+        background: #fbf5e7;
+        color: var(--warn);
+      }
+
+      .rec.d {
+        border-color: var(--bad);
+        background: var(--bad);
+        color: #fff;
+      }
+
+      .covnum {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .notecount {
+        color: var(--maroon);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .empty {
+        padding: 34px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        background: rgba(12, 25, 64, 0.42);
+      }
+
+      .scrim.open {
+        display: block;
+      }
+
+      .drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        z-index: 21;
+        display: flex;
+        flex-direction: column;
+        width: min(720px, 100%);
+        height: 100%;
+        border-left: 4px solid var(--maroon);
+        background: #fff;
+        transform: translateX(100%);
+        transition: transform 0.22s;
+      }
+
+      .drawer.open {
+        transform: none;
+      }
+
+      .dhead {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--line);
+        background: var(--navy);
+        color: #fff;
+      }
+
+      .dhead h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .dhead .dmeta {
+        margin-top: 3px;
+        font-size: 12.5px;
+        opacity: 0.82;
+      }
+
+      .close {
+        float: right;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        background: none;
+        color: #fff;
+      }
+
+      .close:hover {
+        background: #fff;
+        color: var(--navy);
+      }
+
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--line);
+        background: #f7f4ef;
+      }
+
+      .tabs button {
+        padding: 9px 15px;
+        border: 0;
+        border-right: 1px solid var(--line);
+        border-radius: 0;
+        background: none;
+        color: var(--muted);
         font-size: 13px;
-        font-weight: 900;
       }
 
-      .answer {
-        margin: 10px 0 0;
-        color: #2d3443;
-        font-size: 15px;
-        line-height: 1.5;
+      .tabs button.on {
+        background: #fff;
+        color: var(--maroon);
+        box-shadow: inset 0 -3px 0 var(--maroon);
+        font-weight: 600;
       }
 
-      @media (max-width: 760px) {
-        .shell {
-          width: min(100vw - 24px, 720px);
-          margin: 18px auto;
+      .stagepick {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        padding: 11px 20px;
+        border-bottom: 1px solid var(--line);
+        background: #f7f4ef;
+      }
+
+      .stagepick button.sel {
+        border-color: var(--maroon);
+        background: var(--maroon);
+        color: #fff;
+      }
+
+      .dbody {
+        flex: 1;
+        overflow-y: auto;
+        padding: 18px 20px;
+      }
+
+      .fld {
+        margin-bottom: 15px;
+      }
+
+      .fld h4,
+      .narr h4,
+      .gate h4 {
+        margin: 0 0 3px;
+        color: var(--maroon);
+        font-size: 10.5px;
+        letter-spacing: 1.1px;
+        text-transform: uppercase;
+      }
+
+      .fld p {
+        margin: 0;
+        font-size: 14px;
+        white-space: pre-wrap;
+      }
+
+      .narr {
+        margin-bottom: 16px;
+        padding: 13px 15px;
+        border: 1px solid var(--line);
+        border-top: 3px solid var(--gold);
+        background: #fcfbf8;
+      }
+
+      .narr h5 {
+        margin: 12px 0 4px;
+        color: var(--navy);
+        font-size: 12.5px;
+      }
+
+      .narr ul {
+        margin: 0;
+        padding-left: 17px;
+        font-size: 13.5px;
+      }
+
+      .narr li {
+        margin-bottom: 4px;
+      }
+
+      .disc {
+        margin-top: 11px;
+        padding-top: 8px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .rbars {
+        display: grid;
+        grid-template-columns: 150px 1fr 34px;
+        gap: 7px;
+        align-items: center;
+        margin-bottom: 5px;
+        font-size: 12.5px;
+      }
+
+      .rbars .t {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 3px;
+        background: #ede8e0;
+      }
+
+      .rbars .t i {
+        display: block;
+        height: 100%;
+        background: var(--navy);
+      }
+
+      .best,
+      .inst,
+      .gate,
+      .ovr {
+        margin: 12px 0;
+        padding: 11px 13px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--navy);
+        background: #f7f9fc;
+      }
+
+      .best {
+        border-left-color: var(--maroon);
+        background: #fbf7f4;
+      }
+
+      .ovr {
+        border-left-color: var(--gold);
+        background: #fcfaf5;
+      }
+
+      .inst .b,
+      .best .b,
+      .ovr .b {
+        color: var(--navy);
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+
+      .unit {
+        padding: 4px 0;
+        border-bottom: 1px solid #e7ebf2;
+        font-size: 12.5px;
+      }
+
+      .unit b {
+        color: var(--navy);
+      }
+
+      .unit span {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .crow {
+        display: grid;
+        grid-template-columns: 56px 1fr 120px;
+        gap: 9px;
+        align-items: start;
+        padding: 7px 8px;
+        border-bottom: 1px solid #efebe4;
+        font-size: 13px;
+      }
+
+      .crow code {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .crow .lv {
+        padding-top: 2px;
+        border: 0;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        text-align: right;
+        text-transform: uppercase;
+      }
+
+      .ev {
+        display: block;
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .ovr .r {
+        display: grid;
+        grid-template-columns: 150px 78px 1fr;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 6px;
+        font-size: 12.5px;
+      }
+
+      .ovr input[type="number"] {
+        width: 72px;
+        padding: 4px 6px;
+      }
+
+      .ovr input[type="text"] {
+        width: 100%;
+        padding: 5px 7px;
+        font-size: 13px;
+      }
+
+      .was {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .notes {
+        max-height: 28vh;
+        overflow-y: auto;
+        padding: 13px 20px;
+        border-top: 1px solid var(--line);
+        background: #fbfaf7;
+      }
+
+      .note {
+        margin-bottom: 8px;
+        padding: 7px 10px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--gold);
+        background: #fff;
+      }
+
+      .note .who {
+        color: var(--navy);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .note .when {
+        margin-left: 6px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 400;
+      }
+
+      .note .txt,
+      .note textarea {
+        width: 100%;
+        min-height: 48px;
+        margin-top: 4px;
+        padding: 6px;
+        border: 1px solid var(--line);
+        font: inherit;
+        font-size: 13.5px;
+        resize: vertical;
+        white-space: pre-wrap;
+      }
+
+      .note .act {
+        float: right;
+      }
+
+      .note .act button {
+        margin-left: 4px;
+        padding: 2px 7px;
+        border-color: var(--line);
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .noteform {
+        display: flex;
+        gap: 8px;
+        padding: 11px 20px;
+        border-top: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .noteform textarea {
+        min-height: 50px;
+        flex: 1;
+        padding: 7px;
+        font: inherit;
+        font-size: 14px;
+        resize: vertical;
+      }
+
+      @media (max-width: 700px) {
+        header.masthead,
+        .toolbar,
+        main {
+          padding-inline: 14px;
         }
 
-        .grid {
+        .gate-card {
+          margin: 20px 14px;
+          padding: 24px;
+        }
+
+        .gate-grid,
+        .row,
+        .crow,
+        .ovr .r,
+        .rbars {
           grid-template-columns: 1fr;
         }
 
-        h1 {
-          font-size: 34px;
+        .actions {
+          flex-direction: row;
+          align-items: center;
+          text-align: left;
         }
 
-        button,
-        .button {
-          width: 100%;
+        .ident,
+        .dual,
+        .noteform {
+          flex-wrap: wrap;
+        }
+
+        .reviewer {
+          margin-left: 0;
         }
       }
     </style>
   </head>
   <body>
-    <main class="shell">
+    <section id="loginScreen">
       <header class="masthead">
-        <p class="eyebrow">MathEpi Review Portal</p>
-        <h1>Tutorial Fellow applications review</h1>
-        <p class="sub">A lightweight reviewer-only page that verifies your email, opens the review window immediately, and then loads applications from Google Sheets.</p>
+        <div>
+          <h1>Tutorial Fellow Applications, Staged Review</h1>
+          <div class="sub">Reviewer-only access | Google Sheets-backed verification</div>
+        </div>
+        <div class="gcount"><div style="font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;opacity:.75">Access level</div><b>Restricted</b></div>
       </header>
-
-      <section id="loginCard" class="card">
+      <div class="mocknote">Only active reviewers listed in the Reviewers Google Sheet can access Tutorial Fellow reviews. Security is enforced in Apps Script before any application data is loaded.</div>
+      <section class="gate-card">
         <p class="eyebrow">Reviewer verification</p>
-        <h1 style="font-size: clamp(30px, 3.5vw, 50px)">Enter your email, receive a code, then open the review window.</h1>
-        <div class="grid" style="margin-top: 28px">
+        <h2>Enter your email, receive a code, then open the review window.</h2>
+        <div class="gate-grid">
           <label>
             Reviewer email
             <input id="reviewerEmail" type="email" placeholder="reviewer@example.org" autocomplete="email" />
@@ -255,66 +1057,179 @@
             <input id="reviewerCode" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" />
           </label>
         </div>
-        <div class="actions">
+        <div class="gate-actions">
           <button id="sendCodeButton" type="button">Send code</button>
           <button id="verifyButton" class="primary" type="button">Verify and open reviews</button>
         </div>
         <div id="messageArea"></div>
       </section>
+    </section>
 
-      <section id="reviewCard" class="card" hidden>
-        <div class="toolbar">
-          <div>
-            <p class="eyebrow">Reviewer window</p>
-            <h1 style="font-size: clamp(30px, 3.5vw, 50px)">Applications from Google Sheets</h1>
-            <p id="reviewerLabel" class="reviewer"></p>
-          </div>
-          <div class="actions" style="margin-top: 0">
-            <button id="refreshButton" type="button">Refresh applications</button>
-            <button id="signOutButton" type="button">Clear session</button>
-          </div>
+    <section id="reviewScreen" hidden>
+      <header class="masthead">
+        <div>
+          <h1>Tutorial Fellow Applications, Staged Review</h1>
+          <div class="sub">MathEpi Cooperative Master's Programme | AIMS RIC and KEMRI | Ref MathEpi-TF-2026-001</div>
         </div>
+        <div class="gcount" id="gcount"></div>
+      </header>
+
+      <div class="mocknote">Decision support, not a decision. Terms are weighted by how rare they are in this applicant pool, so common vocabulary counts for little. <b>Known limitation: coverage can correlate with how much the applicant wrote, so this instrument partly measures fluency, not capability.</b></div>
+      <div class="funnel" id="funnel"></div>
+
+      <div class="toolbar">
+        <input type="text" id="q" placeholder="Search name, country, PhD field, institution" />
+        <select id="sortby">
+          <option value="weighted">Sort: weighted 70:30 score</option>
+          <option value="rec">Sort: recommendation</option>
+          <option value="cov">Sort: curriculum coverage</option>
+          <option value="res">Sort: research strength</option>
+          <option value="name">Sort: name</option>
+          <option value="notes">Sort: most discussed</option>
+        </select>
+        <select id="crs"><option value="">Filter: any course</option></select>
+        <button id="exportBtn" type="button">Export review JSON</button>
+        <button id="refreshButton" type="button">Refresh from Sheets</button>
+        <button id="signOutButton" type="button">Clear session</button>
+        <div class="reviewer">Reviewing as <b id="reviewerName">Reviewer</b></div>
+      </div>
+
+      <main>
         <div id="reviewMessageArea"></div>
-        <div id="applicationsList" class="app-grid"></div>
-      </section>
-    </main>
+        <div class="cov" id="cov"></div>
+        <div id="list"></div>
+      </main>
+
+      <div class="scrim" id="scrim"></div>
+      <aside class="drawer" id="drawer">
+        <div class="dhead">
+          <button class="close" id="closeBtn" type="button">Close</button>
+          <h2 id="dName"></h2>
+          <div class="dmeta" id="dMeta"></div>
+        </div>
+        <div class="tabs">
+          <button data-t="eval" class="on" type="button">Evaluation</button>
+          <button data-t="app" type="button">Application</button>
+        </div>
+        <div class="stagepick" id="stagepick"></div>
+        <div class="dbody" id="dBody"></div>
+        <div class="notes" id="dNotes"></div>
+        <div class="noteform">
+          <textarea id="noteTxt" placeholder="Add a review note. Tagged with your name and the current stage."></textarea>
+          <button class="primary" id="addNote" type="button">Add note</button>
+        </div>
+      </aside>
+    </section>
 
     <script>
       (function () {
         var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrBseE_6REWP5D4zySf-Z6j_x9nUofWvT426M_HG5FoPllMDOZEcEa-f_Of4zryTQ9/exec";
+        var SESSION_KEY = "mathepi-standalone-review-session";
         var session = null;
+        var state = {
+          applications: [],
+          scores: [],
+          notes: [],
+          stages: [],
+          assignments: [],
+          reviewers: [],
+          stage: "all",
+          sort: "weighted",
+          query: "",
+          course: "",
+          openId: "",
+          tab: "eval",
+          editingNoteId: ""
+        };
 
-        function byId(id) {
+        var STAGES = [
+          { id: "all", label: "All applicants", target: 100, rank: 0 },
+          { id: "screened", label: "Screened", target: 85, rank: 1 },
+          { id: "shortlist", label: "Shortlist", target: 70, rank: 2 },
+          { id: "finalists", label: "Finalists", target: 30, rank: 3 },
+          { id: "decision", label: "Decision", target: 10, rank: 4 }
+        ];
+
+        var COURSES = [
+          ["MES01", "Mathematical Problem Solving", "problem solving proof logic quantitative reasoning"],
+          ["MES02", "Differential Equations and Modelling", "differential equations dynamical systems modelling ode pde"],
+          ["MES03", "Physical Problem Solving", "physical systems mechanics physics modelling"],
+          ["MES04", "Introduction to Probability and Statistics", "probability statistics inference distributions uncertainty"],
+          ["MES05", "Introduction to R and Python", "R Python programming data wrangling computing"],
+          ["MES06", "Scientific Computing and LaTeX", "scientific computing latex reproducible reports numerical"],
+          ["MEC01", "Introduction to Epidemiology", "epidemiology incidence prevalence public health disease"],
+          ["MEC02", "Epidemiology for Disease Modelling", "infectious disease epidemic models surveillance transmission"],
+          ["MEC03", "Introduction to Mathematical Modelling", "mathematical modelling systems assumptions simulation"],
+          ["MEC04", "Developing Models in Public Health", "public health modelling policy interventions model building"],
+          ["MEC05", "Model Fitting and Validation", "model fitting validation calibration likelihood inference"],
+          ["MEC06", "Numerical Methods", "numerical methods computation algorithms simulation"],
+          ["MEC07", "Introduction to Data Analysis", "data analysis visualization regression statistics"],
+          ["MEC08", "Advanced Data Analysis", "advanced data analysis modelling statistical learning"],
+          ["MEC09", "Professional and Entrepreneurship Development", "communication entrepreneurship professional development leadership"],
+          ["MEC10", "Advanced Data Science for Epidemiology", "data science machine learning artificial intelligence epidemiology"],
+          ["MEE01", "Survival Analysis", "survival analysis time event hazard censoring"],
+          ["MEE02", "Time Series Analysis", "time series forecasting temporal sequential data"],
+          ["MEE03", "Bayesian Statistics", "bayesian statistics mcmc prior posterior inference"],
+          ["MEE04", "Stochastic Models", "stochastic models random processes markov uncertainty"]
+        ].map(function (row) {
+          return { code: row[0], title: row[1], text: row.join(" ") };
+        });
+
+        function $(id) {
           return document.getElementById(id);
         }
 
-        function escapeHtml(value) {
+        function esc(value) {
           return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
             return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
           });
         }
 
+        function safeId(value) {
+          return String(value || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+        }
+
+        function jsString(value) {
+          return JSON.stringify(String(value == null ? "" : value));
+        }
+
+        function textOf(value) {
+          if (!value) return "";
+          if (typeof value === "string" || typeof value === "number") return String(value);
+          if (Array.isArray(value)) return value.map(textOf).join(" ");
+          if (typeof value === "object") return Object.keys(value).map(function (key) { return textOf(value[key]); }).join(" ");
+          return "";
+        }
+
+        function parseJson(value, fallback) {
+          try {
+            return value ? JSON.parse(value) : fallback;
+          } catch (error) {
+            return fallback;
+          }
+        }
+
         function showMessage(targetId, type, text) {
-          byId(targetId).innerHTML = text ? '<p class="' + type + '">' + escapeHtml(text) + "</p>" : "";
+          $(targetId).innerHTML = text ? '<p class="' + type + '">' + esc(text) + "</p>" : "";
         }
 
         function setBusy(action, busy) {
-          byId("sendCodeButton").disabled = busy;
-          byId("verifyButton").disabled = busy;
-          byId("refreshButton").disabled = busy;
-          byId("sendCodeButton").textContent = action === "send" && busy ? "Sending code..." : "Send code";
-          byId("verifyButton").textContent = action === "verify" && busy ? "Checking access..." : "Verify and open reviews";
-          byId("refreshButton").textContent = action === "load" && busy ? "Loading..." : "Refresh applications";
+          $("sendCodeButton").disabled = busy;
+          $("verifyButton").disabled = busy;
+          $("refreshButton").disabled = busy;
+          $("sendCodeButton").textContent = action === "send" && busy ? "Sending code..." : "Send code";
+          $("verifyButton").textContent = action === "verify" && busy ? "Checking access..." : "Verify and open reviews";
+          $("refreshButton").textContent = action === "load" && busy ? "Loading..." : "Refresh from Sheets";
         }
 
         function jsonp(action, payload, timeoutMs) {
           return new Promise(function (resolve, reject) {
-            var callbackName = "mathepiStandalone_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+            var callbackName = "mathepiReview_" + Date.now() + "_" + Math.random().toString(36).slice(2);
             var script = document.createElement("script");
             var done = false;
             var timer = setTimeout(function () {
               finish();
-              reject(new Error("Google Apps Script is taking too long to respond. Please try again. If it repeats, the Apps Script deployment needs to be redeployed."));
+              reject(new Error("Google Apps Script is taking too long to respond. Please try again."));
             }, timeoutMs || 30000);
 
             function finish() {
@@ -337,7 +1252,7 @@
 
             script.onerror = function () {
               finish();
-              reject(new Error("Could not reach Apps Script. Check internet access and the Web App deployment."));
+              reject(new Error("Could not reach Apps Script. Check the Web App deployment."));
             };
 
             script.src =
@@ -353,12 +1268,25 @@
           });
         }
 
+        function reviewPayload(extra) {
+          var payload = {
+            email: session && session.email || "",
+            reviewerEmail: session && session.email || "",
+            sessionToken: session && session.sessionToken || ""
+          };
+          extra = extra || {};
+          Object.keys(extra).forEach(function (key) {
+            payload[key] = extra[key];
+          });
+          return payload;
+        }
+
         function reviewerEmail() {
-          return byId("reviewerEmail").value.trim().toLowerCase();
+          return $("reviewerEmail").value.trim().toLowerCase();
         }
 
         function reviewerCode() {
-          return byId("reviewerCode").value.trim();
+          return $("reviewerCode").value.trim();
         }
 
         function requestCode() {
@@ -394,10 +1322,11 @@
               session = {
                 email: result.email || email,
                 sessionToken: result.sessionToken,
-                reviewer: result.reviewer || { email: email }
+                reviewer: result.reviewer || { email: email },
+                expiresAt: Date.now() + Number(result.expiresInSeconds || 21600) * 1000
               };
               try {
-                window.sessionStorage.setItem("mathepi-standalone-review-session", JSON.stringify(session));
+                window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
               } catch (error) {}
               openReviewWindow();
               loadApplications();
@@ -409,11 +1338,16 @@
         }
 
         function openReviewWindow() {
-          byId("loginCard").hidden = true;
-          byId("reviewCard").hidden = false;
+          $("loginScreen").hidden = true;
+          $("reviewScreen").hidden = false;
+          $("reviewerName").textContent = reviewerName();
+          setBusy("", false);
+          render();
+        }
+
+        function reviewerName() {
           var reviewer = session && session.reviewer ? session.reviewer : {};
-          byId("reviewerLabel").textContent = "Reviewing as " + (reviewer.name || reviewer.email || session.email);
-          showMessage("reviewMessageArea", "success", "Reviewer access verified. Loading applications separately so this page does not freeze.");
+          return reviewer.name || reviewer.email || (session && session.email) || "Reviewer";
         }
 
         function loadApplications() {
@@ -423,20 +1357,18 @@
           }
           setBusy("load", true);
           showMessage("reviewMessageArea", "status", "Loading applications from Google Sheets...");
-          byId("applicationsList").innerHTML = "";
-          jsonp(
-            "listReviewApplicants",
-            {
-              email: session.email,
-              sessionToken: session.sessionToken,
-              reviewer: session.reviewer
-            },
-            45000
-          )
+          jsonp("listReviewApplicants", reviewPayload(), 45000)
             .then(function (result) {
-              renderApplications(result.applications || []);
-              showMessage("reviewMessageArea", "success", "Loaded " + (result.applications || []).length + " applications.");
+              state.applications = (result.applications || []).map(normalizeApplication);
+              state.scores = result.scores || [];
+              state.notes = result.notes || [];
+              state.stages = result.stages || [];
+              state.assignments = result.assignments || [];
+              state.reviewers = result.reviewers || [];
+              if (!state.openId && state.applications[0]) state.openId = state.applications[0].applicationId;
+              showMessage("reviewMessageArea", "success", "Loaded " + state.applications.length + " applications.");
               setBusy("", false);
+              render();
             })
             .catch(function (error) {
               showMessage("reviewMessageArea", "error", error.message || "Could not load applications from Google Sheets.");
@@ -444,63 +1376,764 @@
             });
         }
 
-        function renderApplications(applications) {
-          if (!applications.length) {
-            byId("applicationsList").innerHTML = '<p class="status">No applications were returned for this reviewer yet.</p>';
+        function normalizeApplication(app, index) {
+          app = app || {};
+          var id = app.applicationId || app.application_id || app.id || app.ref || ("TF" + String(index + 1).padStart(3, "0"));
+          var references = app.references || app.refs || parseJson(app.references_json, []);
+          if (!Array.isArray(references)) references = [];
+          return {
+            original: app,
+            applicationId: String(id),
+            applicant: app.applicant || app.fullName || app.full_name || app.name || "Unnamed applicant",
+            title: app.title || "",
+            gender: app.gender || "",
+            email: app.email || app.applicantEmail || "",
+            phone: app.phone || app.phoneNumber || "",
+            nationality: app.nationality || "",
+            country: app.country || app.countryOfResidence || app.residenceCountry || "",
+            affiliation: app.affiliation || app.currentAffiliation || "",
+            designation: app.designation || app.currentDesignation || "",
+            phdInstitution: app.phdInstitution || app.phd_institution || "",
+            phdField: app.phdField || app.phd_field || app.field || "",
+            phdCompletion: app.phdCompletion || app.phd_completion || app.phdCompletionDate || "",
+            thesisTitleExplainer: app.thesisTitleExplainer || app.thesis || app.thesisTitle || "",
+            researchArea: app.researchArea || "",
+            quantitativeBackground: app.quantitativeBackground || "",
+            appliedTrackRecord: app.appliedTrackRecord || "",
+            teachingExperience: app.teachingExperience || "",
+            tutoringExperience: app.tutoringExperience || "",
+            mentoringExperience: app.mentoringExperience || "",
+            researchExperience: app.researchExperience || "",
+            teachingSupport: app.teachingSupport || app.handsOnSupport || "",
+            researchPlan: app.researchPlan || "",
+            careerGrowth: app.careerGrowth || "",
+            availability: app.availability || "",
+            residenceReady: app.residenceReady || "",
+            teachingGapReady: app.teachingGapReady || "",
+            englishCommunication: app.englishCommunication || "",
+            aimsAlumni: app.aimsAlumni || "",
+            aimsCentre: app.aimsCentre || "",
+            aimsProgrammeYear: app.aimsProgrammeYear || "",
+            passport: app.passport || app.passportFile || "",
+            phdCertificate: app.phdCertificate || app.certificate || "",
+            submittedAt: app.submittedAt || app.submitted_at || "",
+            references: references,
+            fullApplication: app.fullApplication || app
+          };
+        }
+
+        function tokenSet(text) {
+          var stop = {
+            with: true, that: true, this: true, from: true, have: true, will: true, been: true,
+            their: true, there: true, they: true, them: true, into: true, using: true, used: true,
+            also: true, such: true, more: true, than: true, course: true, students: true, research: true,
+            teaching: true, public: true, health: true, mathematical: true, mathematics: true
+          };
+          var words = String(text || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/);
+          var out = {};
+          words.forEach(function (word) {
+            if (word.length >= 4 && !stop[word]) out[word] = true;
+          });
+          return out;
+        }
+
+        function allText(app) {
+          return [
+            app.phdField,
+            app.thesisTitleExplainer,
+            app.researchArea,
+            app.quantitativeBackground,
+            app.appliedTrackRecord,
+            app.teachingExperience,
+            app.tutoringExperience,
+            app.mentoringExperience,
+            app.researchExperience,
+            app.teachingSupport,
+            app.researchPlan,
+            app.careerGrowth,
+            textOf(app.fullApplication)
+          ].join(" ");
+        }
+
+        function assess(app) {
+          var teachingText = [app.teachingExperience, app.tutoringExperience, app.mentoringExperience, app.teachingSupport].join(" ");
+          var researchText = [app.phdField, app.thesisTitleExplainer, app.researchArea, app.quantitativeBackground, app.appliedTrackRecord, app.researchExperience, app.researchPlan, app.careerGrowth].join(" ");
+          var delivery = deliveryEvidence(teachingText);
+          var appTokens = tokenSet(teachingText + " " + researchText);
+          var components = COURSES.map(function (course) {
+            var terms = Object.keys(tokenSet(course.text)).filter(function (term) { return appTokens[term]; }).slice(0, 5);
+            var score = Math.min(100, Math.round(terms.length * 19 + (String(app.phdField || "").toLowerCase().indexOf(course.code.toLowerCase()) >= 0 ? 10 : 0)));
+            var verdict = score >= 60 && delivery.score >= 55 ? "lecture" : score >= 34 ? "tutor" : "gap";
+            return {
+              code: course.code,
+              title: course.title,
+              terms: terms,
+              score: score,
+              verdict: verdict,
+              label: verdict === "lecture" ? "Can lecture" : verdict === "tutor" ? "Can tutor" : "Gap",
+              confidence: score >= 70 ? "high" : score >= 38 ? "medium" : "low"
+            };
+          }).sort(function (a, b) { return b.score - a.score; });
+          var depth = components[0] ? components[0].score : 0;
+          var breadth = components.filter(function (item) { return item.score >= 35; }).length;
+          var teachingScore = Math.min(100, Math.round(depth * 0.45 + delivery.score * 0.3 + Math.min(100, breadth * 12) * 0.25));
+          var research = researchScore(app, researchText);
+          var weighted = Math.round(teachingScore * 0.7 + research.score * 0.3);
+          var eligibility = eligibilityGate(app);
+          return {
+            delivery: delivery,
+            components: components,
+            teachingScore: teachingScore,
+            researchScore: research.score,
+            weightedScore: weighted,
+            researchDimensions: research.dimensions,
+            institutionalFit: research.institutionalFit,
+            eligibility: eligibility,
+            bestFit: components[0],
+            wordCount: Object.keys(tokenSet(allText(app))).length
+          };
+        }
+
+        function deliveryEvidence(text) {
+          var value = String(text || "");
+          if (!/(teach|tutor|mentor|supervis|train|facilitat|session|mark|assess|workshop|hands-on)/i.test(value)) {
+            return { score: 0, label: "No role described", explanation: "No direct teaching, tutoring, mentoring, training, marking, or hands-on session role was described." };
+          }
+          var evidence = [
+            /\d+/.test(value),
+            /(student|cohort|participant|intern|class|group)/i.test(value),
+            /(week|month|year|semester|hour|daily|weekly)/i.test(value),
+            /(university|institute|centre|college|school|kemri|aims)/i.test(value),
+            /(R|Python|Sage|Matlab|Stata|SPSS|LaTeX|Quarto)/.test(value),
+            /(MSc|PhD|undergraduate|postgraduate|junior|senior)/i.test(value)
+          ].filter(Boolean).length;
+          var score = evidence >= 5 ? 100 : evidence >= 3 ? 85 : evidence >= 1 ? 65 : 30;
+          var label = evidence >= 5 ? "Richly evidenced" : evidence >= 3 ? "Several concrete details" : evidence >= 1 ? "Limited concrete detail" : "Role claimed, little detail";
+          return { score: score, label: label, explanation: label + ". Concrete markers found: " + evidence + "." };
+        }
+
+        function researchScore(app, text) {
+          var dimensions = [
+            dim("Substance of the plan", text, ["question", "method", "data", "model", "output", "analysis"]),
+            dim("Feasibility at 30%", text, ["existing", "secondary", "retrospective", "reanalysis", "available", "dataset"]),
+            dim("Track record", text, ["publication", "paper", "conference", "grant", "author", "preprint"]),
+            dim("Programme and place fit", text, ["africa", "kenya", "nairobi", "infectious", "disease", "surveillance", "health"]),
+            dim("Independence", text, ["propose", "plan", "lead", "develop", "agenda", "independent"]),
+            dim("KEMRI and AIMS RIC fit", text, ["kemri", "epidemiology", "statistics", "informatics", "malaria", "hiv", "tb", "health"])
+          ];
+          var score = Math.round(dimensions.reduce(function (sum, item) { return sum + item.score; }, 0) / dimensions.length);
+          return { score: score, dimensions: dimensions, institutionalFit: institutionalFit(text) };
+        }
+
+        function dim(label, text, terms) {
+          var tokens = tokenSet(text);
+          var matched = terms.filter(function (term) { return tokens[term.toLowerCase()]; });
+          return { label: label, score: Math.min(100, matched.length * 22), matched: matched };
+        }
+
+        function institutionalFit(text) {
+          var value = String(text || "").toLowerCase();
+          var disease = /(malaria|hiv|tuberculosis|tb|infectious|vector|maternal|child|ncd|one health|vaccine|clinical|surveillance)/i.test(value);
+          var method = /(model|statistics|informatics|machine learning|data science|bayesian|spatial|epidemiology|artificial intelligence)/i.test(value);
+          if (disease && method) return { label: "clear home", explanation: "The plan combines a disease or public-health domain with quantitative methods." };
+          if (disease || method) return { label: "plausible home", explanation: "There is a plausible Nairobi home, but the panel should identify the concrete host during interview." };
+          return { label: "would need brokering", explanation: "The plan needs brokering because the current text does not name a clear domain home." };
+        }
+
+        function referenceCount(app) {
+          return (app.references || []).filter(function (ref) {
+            return ref && (ref.name || ref.email || ref.affiliation || ref.aff);
+          }).length;
+        }
+
+        function eligibilityGate(app) {
+          var reasons = [];
+          var refs = referenceCount(app);
+          var completion = Date.parse(app.phdCompletion || "");
+          var start = Date.parse("2026-10-01");
+          var earliest = Date.parse("2024-10-01");
+          if (!app.passport) reasons.push("passport not confirmed");
+          if (!app.phdCertificate) reasons.push("PhD certificate not confirmed");
+          if (refs < 2) reasons.push("fewer than two referees");
+          if (!(completion && completion >= earliest && completion <= start)) reasons.push("PhD completion is outside the two-year window or unclear");
+          if (!/yes|ready|accept|available|commit/i.test(String(app.residenceReady || ""))) reasons.push("Nairobi residency not clearly accepted");
+          if (!/yes|ready|accept|available|commit/i.test(String(app.teachingGapReady || ""))) reasons.push("teaching-continuity duty not clearly accepted");
+          var label = reasons.length === 0 ? "Progress strong" : reasons.length <= 2 ? "Progress" : reasons.length <= 4 ? "Review" : "Do not progress";
+          return { label: label, reasons: reasons.length ? reasons : ["All deterministic gate checks passed."] };
+        }
+
+        function band(score) {
+          score = Number(score || 0);
+          if (score >= 75) return "Strong";
+          if (score >= 55) return "Credible";
+          if (score >= 30) return "Thin";
+          return "Not evidenced";
+        }
+
+        function bandClass(label) {
+          return String(label || "").replace(/\s/g, "");
+        }
+
+        function recClass(label) {
+          if (label === "Progress strong") return "s";
+          if (label === "Progress") return "p";
+          if (label === "Review") return "r";
+          return "d";
+        }
+
+        function stageFor(id) {
+          var found = state.stages.filter(function (row) { return String(row.application_id || row.applicationId || "") === String(id); })[0];
+          return found && found.stage ? found.stage : "All applicants";
+        }
+
+        function stageRank(label) {
+          var value = String(label || "").toLowerCase();
+          var found = STAGES.filter(function (stage) { return stage.id === value || stage.label.toLowerCase() === value; })[0];
+          return found ? found.rank : 0;
+        }
+
+        function latestScore(id) {
+          var email = session && session.email || "";
+          var rows = state.scores.filter(function (row) {
+            return String(row.application_id || "") === String(id) && (!email || String(row.reviewer_email || "").toLowerCase() === email.toLowerCase());
+          });
+          rows.sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); });
+          return rows[0] || null;
+        }
+
+        function effective(app, assessment) {
+          var score = latestScore(app.applicationId);
+          if (score) {
+            return {
+              t: Number(score.teaching_score || 0),
+              r: Number(score.research_score || 0),
+              ov: Number(score.weighted_score || 0),
+              edited: true,
+              reason: score.reason || ""
+            };
+          }
+          return { t: assessment.teachingScore, r: assessment.researchScore, ov: assessment.weightedScore, edited: false, reason: "" };
+        }
+
+        function notesFor(id) {
+          return state.notes.filter(function (note) {
+            return String(note.application_id || "") === String(id) && String(note.status || "Active") !== "Withdrawn";
+          }).sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
+        }
+
+        function assessedApps() {
+          return state.applications.map(function (app) {
+            app.assessment = app.assessment || assess(app);
+            return app;
+          });
+        }
+
+        function visibleApps() {
+          var minRank = state.stage === "all" ? 0 : stageRank(state.stage);
+          var rows = assessedApps().filter(function (app) { return stageRank(stageFor(app.applicationId)) >= minRank; });
+          if (state.query) {
+            var q = state.query.toLowerCase();
+            rows = rows.filter(function (app) {
+              return [app.applicant, app.nationality, app.country, app.phdField, app.affiliation, app.phdInstitution, app.researchArea].join(" ").toLowerCase().indexOf(q) >= 0;
+            });
+          }
+          if (state.course) {
+            rows = rows.filter(function (app) {
+              var found = app.assessment.components.filter(function (item) { return item.code === state.course; })[0];
+              return found && found.verdict !== "gap";
+            });
+          }
+          rows.sort(sorter);
+          return rows;
+        }
+
+        function sorter(a, b) {
+          var aa = a.assessment;
+          var bb = b.assessment;
+          var ea = effective(a, aa);
+          var eb = effective(b, bb);
+          var rank = { "Progress strong": 0, Progress: 1, Review: 2, "Do not progress": 3 };
+          if (state.sort === "rec") return (rank[aa.eligibility.label] || 9) - (rank[bb.eligibility.label] || 9) || eb.ov - ea.ov;
+          if (state.sort === "cov") return coverageCount(b) - coverageCount(a) || eb.ov - ea.ov;
+          if (state.sort === "res") return bb.researchScore - aa.researchScore || eb.ov - ea.ov;
+          if (state.sort === "name") return String(a.applicant || "").localeCompare(String(b.applicant || ""));
+          if (state.sort === "notes") return notesFor(b.applicationId).length - notesFor(a.applicationId).length || eb.ov - ea.ov;
+          return eb.ov - ea.ov;
+        }
+
+        function coverageCount(app) {
+          return app.assessment.components.filter(function (item) { return item.verdict !== "gap"; }).length;
+        }
+
+        function drawGender(apps) {
+          var pool = apps.filter(function (app) { return stageRank(stageFor(app.applicationId)) >= 2; });
+          var set = pool.length ? pool : apps;
+          var women = set.filter(function (app) { return /^f|woman|female/i.test(String(app.gender || "")); }).length;
+          var total = set.length;
+          var pct = total ? Math.round(100 * women / total) : 0;
+          $("gcount").innerHTML =
+            '<div style="font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;opacity:.75">' +
+            (pool.length ? "Shortlist and beyond" : "Full applicant pool") +
+            "</div><b>" + pct + "%</b> women (" + women + " of " + total + ") &middot; programme target 50%" +
+            '<div class="gbar"><i style="width:' + Math.min(pct, 100) + '%"></i></div>';
+        }
+
+        function drawFunnel(apps) {
+          var total = Math.max(1, apps.length);
+          $("funnel").innerHTML = STAGES.map(function (stage) {
+            var count = stage.id === "all" ? apps.length : apps.filter(function (app) { return stageRank(stageFor(app.applicationId)) >= stage.rank; }).length;
+            var pct = Math.round(100 * count / total);
+            return '<button class="stage ' + (state.stage === stage.id ? "active" : "") + '" data-stage="' + stage.id + '" type="button">' +
+              '<div class="nm">' + esc(stage.label) + '</div><div class="ct">' + count + '</div><div class="pct">' + pct + '% of intake &middot; target ' + stage.target + '%</div>' +
+              '<div class="bar"><i style="width:' + pct + '%"></i></div></button>';
+          }).join("");
+          Array.prototype.forEach.call(document.querySelectorAll(".stage"), function (el) {
+            el.onclick = function () {
+              state.stage = el.getAttribute("data-stage");
+              render();
+            };
+          });
+        }
+
+        function drawCoverage(apps) {
+          var pool = apps.filter(function (app) { return stageRank(stageFor(app.applicationId)) >= 2; });
+          var using = pool.length ? pool : apps;
+          var label = pool.length ? "your current shortlist and beyond" : "the full applicant pool";
+          var nL = 0;
+          var nT = 0;
+          var nN = 0;
+          var cells = COURSES.map(function (course) {
+            var verdicts = using.map(function (app) {
+              var found = app.assessment.components.filter(function (item) { return item.code === course.code; })[0];
+              return found ? found.verdict : "gap";
+            });
+            var lectures = verdicts.filter(function (v) { return v === "lecture"; }).length;
+            var tutors = verdicts.filter(function (v) { return v === "tutor"; }).length;
+            var klass = lectures ? "l" : tutors ? "t" : "n";
+            if (klass === "l") nL += 1;
+            else if (klass === "t") nT += 1;
+            else nN += 1;
+            return '<div class="cell ' + klass + '" title="' + esc(course.title) + '"><b>' + course.code + '</b><span>' + (lectures ? lectures + " can lecture" : tutors ? tutors + " can tutor" : "no cover") + "</span></div>";
+          }).join("");
+          $("cov").innerHTML =
+            "<h3>Curriculum cover across " + esc(label) + "</h3>" +
+            '<div class="cs">' + using.length + " " + (using.length === 1 ? "person" : "people") + " covering the 20 assessable components (MEI01 excluded, it applies to every fellow). " +
+            nL + " with lecture cover, " + nT + " tutor cover only, " + nN + " with nobody. Move people into Shortlist and this recalculates, so you can select a set that covers the programme rather than several people with the same strengths.</div>" +
+            '<div class="grid">' + cells + "</div>" +
+            '<div class="legend"><span><i class="sw" style="background:#E6EFE9;border-color:#A8C6B4"></i>Someone can step in and lecture</span>' +
+            '<span><i class="sw" style="background:#FAF2DE;border-color:#E0CB99"></i>Tutorial and marking cover only</span>' +
+            '<span><i class="sw" style="background:#F8E7E7;border-color:#DDB3B3"></i>No cover in this group</span></div>';
+        }
+
+        function rowStageClass(app) {
+          var stage = stageFor(app.applicationId);
+          if (stage === "Shortlist") return "shortlist";
+          if (stage === "Finalists") return "final";
+          if (stage === "Decision" && app.assessment.eligibility.label !== "Do not progress") return "award";
+          if (app.assessment.eligibility.label === "Do not progress") return "reject";
+          return "";
+        }
+
+        function drawList() {
+          var rows = visibleApps();
+          if (!rows.length) {
+            $("list").innerHTML = '<div class="empty">Nobody matches. Clear the course filter or move people forward from an earlier stage.</div>';
             return;
           }
-          byId("applicationsList").innerHTML = applications
-            .map(function (app) {
-              return (
-                '<article class="app-card">' +
-                "<h3>" +
-                escapeHtml(app.applicant || "Unnamed applicant") +
-                "</h3>" +
-                '<div class="meta">' +
-                '<span class="chip">' +
-                escapeHtml(app.applicationId || "No ID") +
-                "</span>" +
-                '<span class="chip">' +
-                escapeHtml(app.country || app.nationality || "Country not listed") +
-                "</span>" +
-                '<span class="chip">' +
-                escapeHtml(app.phdCompletion || "PhD date not listed") +
-                "</span>" +
-                "</div>" +
-                '<p class="answer"><b>Email:</b> ' +
-                escapeHtml(app.email || "") +
-                "</p>" +
-                '<p class="answer"><b>PhD field:</b> ' +
-                escapeHtml(app.phdField || "") +
-                "</p>" +
-                '<p class="answer"><b>Research area:</b> ' +
-                escapeHtml(app.researchArea || "") +
-                "</p>" +
-                '<p class="answer"><b>Research plan:</b> ' +
-                escapeHtml(app.researchPlan || "").slice(0, 520) +
-                "</p>" +
-                "</article>"
-              );
-            })
-            .join("");
+          $("list").innerHTML = rows.map(function (app) {
+            var a = app.assessment;
+            var e = effective(app, a);
+            var refs = referenceCount(app);
+            var stage = stageFor(app.applicationId);
+            var noteCount = notesFor(app.applicationId).length;
+            var genderClass = /^f|woman|female/i.test(String(app.gender || "")) ? "f" : "m";
+            var lecture = a.components.filter(function (item) { return item.verdict === "lecture"; });
+            var tutor = a.components.filter(function (item) { return item.verdict === "tutor"; });
+            return '<div class="row" data-s="' + rowStageClass(app) + '" data-id="' + esc(app.applicationId) + '">' +
+              '<div class="idtag">' + esc(app.applicationId) + '</div>' +
+              '<div><div class="nm2">' + esc([app.title, app.applicant].filter(Boolean).join(" ")) + '</div>' +
+              '<div class="ident"><div><span class="k">Gender</span><span class="v ' + genderClass + '">' + esc(app.gender || "Not stated") + '</span></div>' +
+              '<div><span class="k">Phone</span><span class="v">' + esc(app.phone || "Not given") + '</span></div>' +
+              '<div><span class="k">PhD field</span><span class="v">' + esc(app.phdField || "Not stated") + '</span></div></div>' +
+              '<div class="dual"><div><span class="k">Teaching x0.7</span><span class="v ' + bandClass(band(e.t)) + '">' + e.t + '</span><span class="k" style="letter-spacing:.3px;text-transform:none">' + band(e.t) + '</span></div>' +
+              '<div><span class="k">Research x0.3</span><span class="v ' + bandClass(band(e.r)) + '">' + e.r + '</span><span class="k" style="letter-spacing:.3px;text-transform:none">' + band(e.r) + '</span></div>' +
+              '<div style="background:#F2F4F9"><span class="k">Weighted 70:30' + (e.edited ? ", revised" : "") + '</span><span class="v ' + bandClass(band(e.ov)) + '">' + e.ov + '</span><span class="k" style="letter-spacing:.3px;text-transform:none">' + (e.edited ? "machine said " + a.weightedScore : band(e.ov)) + '</span></div></div>' +
+              '<div class="chips"><span class="chip">' + esc(stage) + '</span>' +
+              '<span class="chip ' + (app.passport && app.phdCertificate ? "good" : "bad") + '">' + (app.passport && app.phdCertificate ? "Documents attached" : "Documents missing") + '</span>' +
+              '<span class="chip ' + (refs >= 2 ? "good" : "bad") + '">' + refs + " referee" + (refs === 1 ? "" : "s") + '</span>' +
+              '<span class="chip">' + coverageCount(app) + " of " + a.components.length + " components</span>" +
+              '<span class="chip ' + (a.delivery.score >= 65 ? "good" : "flag") + '">Delivery: ' + esc(a.delivery.label) + '</span>' +
+              (a.eligibility.reasons.length > 1 ? '<span class="chip flag">' + a.eligibility.reasons.length + " eligibility flags</span>" : "") + '</div>' +
+              '<div class="chips"><span class="chip crs bf" title="' + esc(a.bestFit.title) + '">Best fit ' + esc(a.bestFit.code) + '</span>' +
+              lecture.filter(function (item) { return item.code !== a.bestFit.code; }).slice(0, 3).map(function (item) { return '<span class="chip crs" title="' + esc(item.title) + '">Can lecture ' + item.code + '</span>'; }).join("") +
+              (tutor.length ? '<span class="chip">plus ' + tutor.length + ' at tutor level</span>' : "") +
+              (e.edited ? '<span class="chip flag">Score revised</span>' : "") + '</div></div>' +
+              '<div class="actions"><div class="rec ' + recClass(a.eligibility.label) + '">' + esc(a.eligibility.label) + '</div>' +
+              '<span class="covnum">' + Math.round(coverageCount(app) / Math.max(1, a.components.length) * 100) + '% of the matrix &middot; depth ' + (a.bestFit.score || 0) + '</span>' +
+              '<button class="openBtn" type="button">Open and review</button>' +
+              (noteCount ? '<span class="notecount">' + noteCount + " note" + (noteCount === 1 ? "" : "s") + '</span>' : "") + '</div></div>';
+          }).join("");
+          Array.prototype.forEach.call(document.querySelectorAll(".row"), function (row) {
+            row.querySelector(".openBtn").onclick = function () { openApp(row.getAttribute("data-id")); };
+          });
+        }
+
+        function openApp(id) {
+          var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+          if (!app) return;
+          state.openId = id;
+          $("dName").textContent = [app.title, app.applicant].filter(Boolean).join(" ");
+          $("dMeta").textContent = [app.applicationId, app.gender || "gender not stated", app.phone || "no phone", app.phdField || "field not stated", app.nationality].filter(Boolean).join(" | ");
+          $("stagepick").innerHTML = STAGES.map(function (stage) {
+            return '<button data-label="' + esc(stage.label) + '" class="' + (stageFor(id) === stage.label ? "sel" : "") + '" type="button">' + esc(stage.label) + "</button>";
+          }).join("");
+          Array.prototype.forEach.call($("stagepick").querySelectorAll("button"), function (button) {
+            button.onclick = function () { updateStage(id, button.getAttribute("data-label")); };
+          });
+          $("dBody").innerHTML = state.tab === "app" ? appHtml(app) : evalHtml(app);
+          drawNotes(id);
+          $("drawer").classList.add("open");
+          $("scrim").classList.add("open");
+        }
+
+        function evalHtml(app) {
+          var a = app.assessment;
+          var e = effective(app, a);
+          var latest = latestScore(app.applicationId);
+          var verdicts = parseJson(latest && latest.course_verdicts_json, {});
+          var gaps = a.components.filter(function (item) { return item.verdict === "gap"; }).slice(0, 4).map(function (item) { return item.code; }).join(", ") || "no major matrix gap";
+          return '<div class="narr"><h4>Drafted panel note</h4>' +
+            '<h5>Why they could fit</h5><ul><li>Best fit is ' + esc(a.bestFit.code + " " + a.bestFit.title) + '.</li><li>Weighted 70:30 score ' + e.ov + ': teaching ' + e.t + ', research ' + e.r + '.</li><li>Delivery evidence: ' + esc(a.delivery.explanation) + '</li></ul>' +
+            '<h5>The 30 per cent research commitment - ' + esc(band(a.researchScore).toLowerCase()) + '</h5>' +
+            a.researchDimensions.map(function (d) { return '<div class="rbars"><span>' + esc(d.label) + '</span><span class="t"><i style="width:' + d.score + '%"></i></span><span>' + d.score + '</span></div>'; }).join("") +
+            '<ul><li>' + esc(a.institutionalFit.explanation) + '</li></ul>' +
+            '<h5>Gaps</h5><ul><li>Check ' + esc(gaps) + ', delivery evidence, documents, and whether the applicant can support hands-on sessions at pace.</li></ul>' +
+            '<h5>Ask at interview</h5><ul><li>Ask for one concrete tutorial plan, one marking or feedback example, and how the proposed 30 percent research plan would fit within protected research time.</li></ul>' +
+            '<button class="primary" id="insertDraft" type="button">Insert as draft note under your name</button>' +
+            '<div class="disc">Drafted from this applicant\'s own answers by keyword and structure matching. Treat every line as a prompt to check rather than a finding. Nothing here enters the record until a reviewer saves it.</div></div>' +
+            '<div class="ovr"><div class="b">Revise the score</div>' +
+            '<div class="r"><span>Teaching, weighted 70</span><input type="number" id="ovT" min="0" max="100" value="' + e.t + '"><span class="was">machine score ' + a.teachingScore + '</span></div>' +
+            '<div class="r"><span>Research, weighted 30</span><input type="number" id="ovR" min="0" max="100" value="' + e.r + '"><span class="was">machine score ' + a.researchScore + '</span></div>' +
+            '<div class="r"><span>Weighted 70:30</span><b id="ovOut">' + e.ov + '</b><span class="was">machine score ' + a.weightedScore + ' &middot; ' + band(a.weightedScore) + '</span></div>' +
+            '<div style="margin:7px 0 8px"><input type="text" id="ovWhy" placeholder="Reason for the revision, required" value="' + esc(e.reason || "") + '"></div>' +
+            '<button class="primary" id="saveScore" type="button">Save revision as ' + esc(reviewerName()) + '</button>' + (latest ? '<div class="was" style="margin-top:7px">Revised by ' + esc(latest.reviewer_name || latest.reviewer_email || "") + '. Reason: ' + esc(latest.reason || "") + '</div>' : "") + '</div>' +
+            '<div class="gate"><h4>Eligibility gate</h4><div class="rec ' + recClass(a.eligibility.label) + '">' + esc(a.eligibility.label) + '</div><ul>' + a.eligibility.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul></div>' +
+            '<div class="best"><div class="b">Where they fit best, five strongest components</div>' +
+            a.components.slice(0, 5).map(function (item, index) { return '<div class="unit"><b>' + (index + 1) + '. ' + item.code + ' ' + esc(item.title) + '</b><span> ' + item.label + ' &middot; ' + item.confidence + ' confidence' + (item.terms.length ? ', matched on ' + item.terms.map(esc).join(", ") : ', limited direct evidence') + '</span></div>'; }).join("") + '<div class="unit"><span>Ranked across all 20 assessable components. Read the label and evidence, not only the position.</span></div></div>' +
+            '<div class="inst">' + a.components.map(function (item) {
+              var value = verdicts[item.code] || item.label;
+              return '<div class="crow"><code>' + item.code + '</code><div>' + esc(item.title) + (item.terms.length ? '<span class="ev">Matched on ' + item.terms.map(esc).join(", ") + '</span>' : "") + '</div><select class="lv" data-course-verdict="' + item.code + '">' +
+                ["Can lecture", "Can tutor", "Gap", "Would need preparation"].map(function (option) { return '<option ' + (value === option ? "selected" : "") + '>' + option + '</option>'; }).join("") +
+                '</select></div>';
+            }).join("") + '</div>';
+        }
+
+        function appHtml(app) {
+          var fields = [
+            ["Contact and identity", "Gender: " + (app.gender || "Not stated") + "\nPhone: " + (app.phone || "Not given") + "\nEmail: " + (app.email || "Not provided") + "\nNationality: " + (app.nationality || "Not stated") + " | Resident in " + (app.country || "not stated") + "\nCurrent post: " + (app.designation || "Not stated") + ", " + (app.affiliation || "Not stated")],
+            ["Doctorate", (app.phdField || "Not stated") + "\n" + (app.phdInstitution || "Not stated") + "\nCompleted: " + (app.phdCompletion || "Not stated")],
+            ["Eligibility answers", "Availability: " + (app.availability || "Not stated") + "\nReady to relocate to Nairobi: " + (app.residenceReady || "Not stated") + "\nAccepts teaching-continuity duty: " + (app.teachingGapReady || "Not stated") + "\nEnglish: " + (app.englishCommunication || "Not stated") + "\nAIMS alumnus: " + (app.aimsAlumni || "Not stated")],
+            ["Thesis and explainer", app.thesisTitleExplainer],
+            ["Research area", app.researchArea],
+            ["Quantitative background", app.quantitativeBackground],
+            ["Applied track record", app.appliedTrackRecord],
+            ["Teaching experience", app.teachingExperience],
+            ["Tutoring and marking", app.tutoringExperience],
+            ["Mentoring and student support", app.mentoringExperience],
+            ["Research experience", app.researchExperience],
+            ["Proposed teaching contribution", app.teachingSupport],
+            ["Research plan, 30 per cent", app.researchPlan],
+            ["Career development", app.careerGrowth],
+            ["Referees", app.references.length ? app.references.map(function (r) { return [r.title, r.name, r.affiliation || r.aff, r.role, r.email].filter(Boolean).join(", "); }).join("\n\n") : "None supplied"],
+            ["Documents", "Passport: " + (app.passport || "Not uploaded") + "\nPhD certificate: " + (app.phdCertificate || "Not uploaded")]
+          ];
+          return fields.map(function (field) {
+            return field[1] ? '<div class="fld"><h4>' + esc(field[0]) + '</h4><p>' + esc(field[1]) + '</p></div>' : "";
+          }).join("");
+        }
+
+        function drawNotes(id) {
+          var notes = notesFor(id);
+          $("dNotes").innerHTML = notes.length ? notes.map(function (note) {
+            var noteId = note.note_id || "";
+            return '<div class="note"><span class="act"><button data-note="' + esc(noteId) + '" class="editNote" type="button">Edit</button><button data-note="' + esc(noteId) + '" class="withdrawNote" type="button">Withdraw</button></span>' +
+              '<div class="who">' + esc(note.author_name || note.author_email || "Reviewer") + '<span class="when">' + esc(note.created_at || "") + " | at " + esc(note.stage || "") + '</span></div>' +
+              '<div class="txt">' + esc(note.note || "") + '</div>' + (note.edited_at ? '<div class="was">Edited by ' + esc(note.edited_by || "") + ', ' + esc(note.edited_at) + '</div>' : "") + '</div>';
+          }).join("") : '<div class="empty" style="padding:12px">No review notes yet.</div>';
+          Array.prototype.forEach.call($("dNotes").querySelectorAll(".editNote"), function (button) {
+            button.onclick = function () {
+              var note = notes.filter(function (item) { return String(item.note_id) === String(button.getAttribute("data-note")); })[0];
+              if (!note) return;
+              state.editingNoteId = note.note_id;
+              $("noteTxt").value = note.note || "";
+              $("addNote").textContent = "Save edit";
+              $("noteTxt").focus();
+            };
+          });
+          Array.prototype.forEach.call($("dNotes").querySelectorAll(".withdrawNote"), function (button) {
+            button.onclick = function () { withdrawNote(button.getAttribute("data-note")); };
+          });
+          wireDrawerActions(id);
+        }
+
+        function wireDrawerActions(id) {
+          var t = $("ovT");
+          var r = $("ovR");
+          var out = $("ovOut");
+          function live() {
+            if (!t || !r || !out) return;
+            out.textContent = Math.round(((Number(t.value) || 0) * 0.7 + (Number(r.value) || 0) * 0.3) * 10) / 10;
+          }
+          if (t) t.oninput = live;
+          if (r) r.oninput = live;
+          if ($("saveScore")) $("saveScore").onclick = function () { saveScore(id); };
+          if ($("insertDraft")) $("insertDraft").onclick = function () {
+            var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+            var a = app.assessment;
+            $("noteTxt").value = [
+              "Why they could fit:",
+              "- Best fit is " + a.bestFit.code + " " + a.bestFit.title + ".",
+              "- Weighted 70:30 score " + effective(app, a).ov + ": teaching " + effective(app, a).t + ", research " + effective(app, a).r + ".",
+              "",
+              "Gaps:",
+              "- Check delivery evidence, documents, and whether the applicant can support hands-on sessions at pace.",
+              "",
+              "Ask at interview:",
+              "- Ask for one concrete tutorial plan, one marking or feedback example, and the protected 30 percent research plan."
+            ].join("\n");
+            $("noteTxt").focus();
+          };
+        }
+
+        function saveScore(id) {
+          var teaching = Number($("ovT") && $("ovT").value || 0);
+          var research = Number($("ovR") && $("ovR").value || 0);
+          var reason = ($("ovWhy") && $("ovWhy").value || "").trim();
+          if (!reason) {
+            $("ovWhy").style.borderColor = "var(--bad)";
+            $("ovWhy").focus();
+            return;
+          }
+          var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+          var verdicts = {};
+          Array.prototype.forEach.call(document.querySelectorAll("[data-course-verdict]"), function (select) {
+            verdicts[select.getAttribute("data-course-verdict")] = select.value;
+          });
+          showMessage("reviewMessageArea", "status", "Saving score revision...");
+          jsonp("saveReviewScore", reviewPayload({
+            applicationId: id,
+            teachingScore: teaching,
+            researchScore: research,
+            eligibilityDecision: app.assessment.eligibility.label,
+            recommendation: app.assessment.eligibility.label,
+            courseVerdicts: verdicts,
+            machineScore: {
+              teaching: app.assessment.teachingScore,
+              research: app.assessment.researchScore,
+              weighted: app.assessment.weightedScore,
+              bestFit: app.assessment.bestFit && app.assessment.bestFit.code
+            },
+            reason: reason
+          }), 30000).then(function (result) {
+            var index = state.scores.findIndex(function (row) { return row.score_id === result.score.score_id; });
+            if (index >= 0) state.scores[index] = result.score;
+            else state.scores.push(result.score);
+            showMessage("reviewMessageArea", "success", "Review score saved.");
+            openApp(id);
+            render();
+          }).catch(function (error) {
+            showMessage("reviewMessageArea", "error", error.message || "Score save failed.");
+          });
+        }
+
+        function saveNote() {
+          var id = state.openId;
+          var note = ($("noteTxt").value || "").trim();
+          if (!id || !note) return;
+          var payload = {
+            applicationId: id,
+            noteId: state.editingNoteId || "",
+            note: note,
+            stage: stageFor(id)
+          };
+          showMessage("reviewMessageArea", "status", state.editingNoteId ? "Saving note edit..." : "Saving review note...");
+          jsonp("saveReviewNote", reviewPayload(payload), 30000).then(function (result) {
+            var index = state.notes.findIndex(function (row) { return row.note_id === result.note.note_id; });
+            if (index >= 0) state.notes[index] = result.note;
+            else state.notes.push(result.note);
+            state.editingNoteId = "";
+            $("noteTxt").value = "";
+            $("addNote").textContent = "Add note";
+            showMessage("reviewMessageArea", "success", "Review note saved.");
+            openApp(id);
+            render();
+          }).catch(function (error) {
+            showMessage("reviewMessageArea", "error", error.message || "Note save failed.");
+          });
+        }
+
+        function withdrawNote(noteId) {
+          if (!noteId) return;
+          showMessage("reviewMessageArea", "status", "Withdrawing review note...");
+          jsonp("withdrawReviewNote", reviewPayload({ noteId: noteId }), 30000).then(function (result) {
+            var index = state.notes.findIndex(function (row) { return row.note_id === result.note.note_id; });
+            if (index >= 0) state.notes[index] = result.note;
+            showMessage("reviewMessageArea", "success", "Review note withdrawn.");
+            openApp(state.openId);
+            render();
+          }).catch(function (error) {
+            showMessage("reviewMessageArea", "error", error.message || "Note withdrawal failed.");
+          });
+        }
+
+        function updateStage(id, label) {
+          showMessage("reviewMessageArea", "status", "Updating review stage...");
+          jsonp("updateReviewStage", reviewPayload({ applicationId: id, stage: label }), 30000).then(function (result) {
+            var index = state.stages.findIndex(function (row) { return String(row.application_id) === String(id); });
+            if (index >= 0) state.stages[index] = result.stage;
+            else state.stages.push(result.stage);
+            showMessage("reviewMessageArea", "success", "Review stage updated.");
+            openApp(id);
+            render();
+          }).catch(function (error) {
+            showMessage("reviewMessageArea", "error", error.message || "Stage update failed.");
+          });
+        }
+
+        function closeDrawer() {
+          $("drawer").classList.remove("open");
+          $("scrim").classList.remove("open");
+          state.editingNoteId = "";
+          $("addNote").textContent = "Add note";
+        }
+
+        function exportJson() {
+          var rows = assessedApps().map(function (app) {
+            return {
+              applicationId: app.applicationId,
+              applicant: app.applicant,
+              stage: stageFor(app.applicationId),
+              recommendation: app.assessment.eligibility.label,
+              machineScores: {
+                teaching: app.assessment.teachingScore,
+                research: app.assessment.researchScore,
+                weighted: app.assessment.weightedScore
+              },
+              effective: effective(app, app.assessment),
+              bestFit: app.assessment.bestFit && app.assessment.bestFit.code,
+              canLecture: app.assessment.components.filter(function (item) { return item.verdict === "lecture"; }).map(function (item) { return item.code; }),
+              canTutor: app.assessment.components.filter(function (item) { return item.verdict === "tutor"; }).map(function (item) { return item.code; }),
+              notes: notesFor(app.applicationId)
+            };
+          });
+          var blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
+          var url = URL.createObjectURL(blob);
+          var link = document.createElement("a");
+          link.href = url;
+          link.download = "tutorial-fellow-review.json";
+          link.click();
+          URL.revokeObjectURL(url);
+        }
+
+        function render() {
+          var apps = assessedApps();
+          $("crs").innerHTML = '<option value="">Filter: any course</option>' + COURSES.map(function (course) {
+            return '<option value="' + course.code + '" ' + (state.course === course.code ? "selected" : "") + '>' + course.code + " " + esc(course.title) + "</option>";
+          }).join("");
+          drawGender(apps);
+          drawFunnel(apps);
+          drawCoverage(apps);
+          drawList();
         }
 
         function clearSession() {
           session = null;
+          state.applications = [];
+          state.scores = [];
+          state.notes = [];
+          state.stages = [];
           try {
-            window.sessionStorage.removeItem("mathepi-standalone-review-session");
+            window.sessionStorage.removeItem(SESSION_KEY);
           } catch (error) {}
-          byId("reviewCard").hidden = true;
-          byId("loginCard").hidden = false;
+          $("reviewScreen").hidden = true;
+          $("loginScreen").hidden = false;
           showMessage("messageArea", "status", "Reviewer session cleared.");
         }
 
+        function localPreviewApps() {
+          return [
+            normalizeApplication({
+              applicationId: "TF001",
+              title: "Dr",
+              applicant: "Preview Candidate One",
+              gender: "Female",
+              email: "preview.one@example.org",
+              phone: "+254 700 000 001",
+              nationality: "Kenyan",
+              country: "Kenya",
+              affiliation: "University research group",
+              designation: "Recent PhD graduate",
+              phdInstitution: "Preview University",
+              phdField: "Applied mathematics and infectious disease modelling",
+              phdCompletion: "2025-11-15",
+              thesisTitleExplainer: "Mathematical models for infectious disease surveillance. The work combined differential equations, inference, and public-health data.",
+              researchArea: "Epidemiological modelling, Bayesian inference, and data science",
+              quantitativeBackground: "Differential equations, statistics, Bayesian modelling, R, Python, and numerical simulation.",
+              appliedTrackRecord: "Applied models to malaria and respiratory disease surveillance data.",
+              teachingExperience: "Taught modelling workshops for MSc students over two semesters, including weekly hands-on Python sessions.",
+              tutoringExperience: "Tutored probability, statistics, numerical methods, and model fitting groups.",
+              mentoringExperience: "Mentored postgraduate students on reproducible analysis and scientific computing.",
+              researchExperience: "Two manuscripts and one conference presentation on infectious disease modelling.",
+              teachingSupport: "Can support hands-on sessions, marking, and emergency lecture continuity in modelling and data analysis blocks.",
+              researchPlan: "A feasible 30 percent project using existing surveillance datasets to compare mechanistic and machine-learning nowcasting models.",
+              residenceReady: "Yes",
+              teachingGapReady: "Yes",
+              passport: "passport.pdf",
+              phdCertificate: "phd-certificate.pdf",
+              references: [{ name: "Referee One", email: "ref1@example.org" }, { name: "Referee Two", email: "ref2@example.org" }]
+            }, 0),
+            normalizeApplication({
+              applicationId: "TF002",
+              title: "Dr",
+              applicant: "Preview Candidate Two",
+              gender: "Male",
+              email: "preview.two@example.org",
+              nationality: "Rwandan",
+              country: "Rwanda",
+              phdField: "Machine learning and computational biology",
+              phdCompletion: "2024-12-10",
+              quantitativeBackground: "Machine learning, data science, statistics, Python, and computational biology.",
+              teachingExperience: "Assisted undergraduate data science labs and supervised student projects.",
+              tutoringExperience: "Provided tutorials in Python and introductory statistics.",
+              researchPlan: "Develop interpretable machine-learning tools for health data quality assessment.",
+              residenceReady: "Yes",
+              teachingGapReady: "Tentative",
+              references: [{ name: "Referee One", email: "ref1@example.org" }]
+            }, 1)
+          ];
+        }
+
         function restoreSession() {
+          if (location.hostname === "127.0.0.1" && hasSearchParam("preview")) {
+            session = {
+              email: "preview@mathepi.org",
+              sessionToken: "local-preview",
+              reviewer: { name: "Local preview reviewer", email: "preview@mathepi.org" },
+              expiresAt: Date.now() + 3600000
+            };
+            state.applications = localPreviewApps();
+            state.stages = [{ application_id: "TF001", stage: "Shortlist" }, { application_id: "TF002", stage: "Screened" }];
+            state.notes = [{ note_id: "preview-note-1", application_id: "TF001", author_name: "Local preview reviewer", stage: "Shortlist", status: "Active", note: "Preview note showing the exact drawer style.", created_at: "2026-07-21 09:00" }];
+            openReviewWindow();
+            showMessage("reviewMessageArea", "success", "Local visual preview. Live reviewers still need OTP verification.");
+            render();
+            return;
+          }
           try {
-            var raw = window.sessionStorage.getItem("mathepi-standalone-review-session");
+            var raw = window.sessionStorage.getItem(SESSION_KEY);
             if (raw) session = JSON.parse(raw);
           } catch (error) {}
-          if (session && session.sessionToken) {
+          if (session && session.sessionToken && (!session.expiresAt || session.expiresAt > Date.now())) {
             openReviewWindow();
             loadApplications();
           }
@@ -523,28 +2156,16 @@
           var jobs = [];
           try {
             if ("serviceWorker" in navigator) {
-              jobs.push(
-                navigator.serviceWorker.getRegistrations().then(function (registrations) {
-                  return Promise.all(
-                    registrations.map(function (registration) {
-                      return registration.unregister();
-                    })
-                  );
-                })
-              );
+              jobs.push(navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                return Promise.all(registrations.map(function (registration) { return registration.unregister(); }));
+              }));
             }
           } catch (error) {}
           try {
             if (window.caches) {
-              jobs.push(
-                caches.keys().then(function (keys) {
-                  return Promise.all(
-                    keys.map(function (key) {
-                      return caches.delete(key);
-                    })
-                  );
-                })
-              );
+              jobs.push(caches.keys().then(function (keys) {
+                return Promise.all(keys.map(function (key) { return caches.delete(key); }));
+              }));
             }
           } catch (error) {}
           function reopen() {
@@ -556,15 +2177,39 @@
           return true;
         }
 
-        if (resetLegacyCache()) return;
-        byId("sendCodeButton").addEventListener("click", requestCode);
-        byId("verifyButton").addEventListener("click", verifyCode);
-        byId("refreshButton").addEventListener("click", loadApplications);
-        byId("signOutButton").addEventListener("click", clearSession);
-        byId("reviewerCode").addEventListener("keydown", function (event) {
+        $("sendCodeButton").addEventListener("click", requestCode);
+        $("verifyButton").addEventListener("click", verifyCode);
+        $("reviewerCode").addEventListener("keydown", function (event) {
           if (event.key === "Enter") verifyCode();
         });
-        restoreSession();
+        $("q").addEventListener("input", function (event) {
+          state.query = event.target.value;
+          drawList();
+        });
+        $("sortby").addEventListener("change", function (event) {
+          state.sort = event.target.value;
+          drawList();
+        });
+        $("crs").addEventListener("change", function (event) {
+          state.course = event.target.value;
+          drawList();
+        });
+        $("refreshButton").addEventListener("click", loadApplications);
+        $("signOutButton").addEventListener("click", clearSession);
+        $("exportBtn").addEventListener("click", exportJson);
+        $("closeBtn").addEventListener("click", closeDrawer);
+        $("scrim").addEventListener("click", closeDrawer);
+        $("addNote").addEventListener("click", saveNote);
+        Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (button) {
+          button.addEventListener("click", function () {
+            Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (item) { item.classList.remove("on"); });
+            button.classList.add("on");
+            state.tab = button.getAttribute("data-t");
+            if (state.openId) openApp(state.openId);
+          });
+        });
+
+        if (!resetLegacyCache()) restoreSession();
       })();
     </script>
   </body>
