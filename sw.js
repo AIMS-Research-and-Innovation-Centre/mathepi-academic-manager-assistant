@@ -1,11 +1,9 @@
-const CACHE_NAME = "mathepi-academic-manager-v27";
+const CACHE_NAME = "mathepi-academic-manager-v29";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./tf-reviews.html",
-  "./tf-reviews/",
   "./styles.css?v=20",
-  "./app.js?v=24",
+  "./app.js?v=26",
   "./auth/firebase-config.js",
   "./auth/auth-bridge.js?v=17",
   "./manifest.webmanifest",
@@ -36,6 +34,15 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  const isReviewPortal =
+    url.pathname.endsWith("/tf-reviews/") ||
+    url.pathname.endsWith("/tf-reviews/index.html") ||
+    url.pathname.endsWith("/tf-reviews.html");
+
+  if (isReviewPortal) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
+    return;
+  }
 
   const isAppShell =
     request.mode === "navigate" ||

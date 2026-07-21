@@ -3,14 +3,569 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TF Reviews - MathEpi</title>
-    <meta http-equiv="refresh" content="0; url=../?reviewFresh=1#tf-reviews" />
-    <link rel="canonical" href="../#tf-reviews" />
+    <title>MathEpi TF Review Portal</title>
+    <meta name="theme-color" content="#8d111c" />
+    <style>
+      :root {
+        --ink: #07143d;
+        --muted: #596274;
+        --line: #ddd8ce;
+        --paper: #f8f7f3;
+        --card: #fffefb;
+        --maroon: #9d0012;
+        --maroon-dark: #7f0010;
+        --good: #0c7a43;
+        --warn: #a15c00;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+      }
+
+      .shell {
+        width: min(1440px, calc(100vw - 48px));
+        margin: 34px auto;
+      }
+
+      .masthead {
+        padding: 28px 0 18px;
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--maroon);
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 1120px;
+        font-size: clamp(34px, 4.8vw, 66px);
+        line-height: 1.08;
+        letter-spacing: 0;
+      }
+
+      .sub {
+        max-width: 980px;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 20px;
+        line-height: 1.55;
+      }
+
+      .card {
+        margin-top: 24px;
+        padding: clamp(24px, 4vw, 48px);
+        border: 1px solid var(--line);
+        border-left: 7px solid var(--maroon);
+        background: var(--card);
+        box-shadow: 0 24px 56px rgba(7, 20, 61, 0.08);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        color: #6b665f;
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      input {
+        width: 100%;
+        min-height: 62px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        padding: 14px 16px;
+        font: inherit;
+        font-size: 20px;
+        font-weight: 800;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 24px;
+      }
+
+      button,
+      .button {
+        min-height: 58px;
+        border: 2px solid var(--ink);
+        background: #fff;
+        color: var(--ink);
+        padding: 13px 18px;
+        font: inherit;
+        font-size: 18px;
+        font-weight: 900;
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      button.primary,
+      .button.primary {
+        border-color: var(--maroon);
+        background: var(--maroon);
+        color: #fff;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.72;
+      }
+
+      .status,
+      .error,
+      .success {
+        width: fit-content;
+        max-width: 100%;
+        margin: 20px 0 0;
+        padding: 14px 16px;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: 900;
+        line-height: 1.4;
+      }
+
+      .status {
+        border: 1px solid var(--line);
+        background: #f0eee8;
+      }
+
+      .error {
+        background: #c64155;
+        color: #fff;
+      }
+
+      .success {
+        background: #e7f4ed;
+        color: var(--good);
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 22px 0;
+      }
+
+      .reviewer {
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .app-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
+      }
+
+      .app-card {
+        border: 1px solid var(--line);
+        background: #fff;
+        padding: 18px;
+      }
+
+      .app-card h3 {
+        margin: 0 0 10px;
+        font-size: 24px;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 12px 0;
+      }
+
+      .chip {
+        border-radius: 999px;
+        background: #f0eee8;
+        padding: 7px 10px;
+        color: #3f4654;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .answer {
+        margin: 10px 0 0;
+        color: #2d3443;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 760px) {
+        .shell {
+          width: min(100vw - 24px, 720px);
+          margin: 18px auto;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 34px;
+        }
+
+        button,
+        .button {
+          width: 100%;
+        }
+      }
+    </style>
   </head>
   <body>
-    <p>Opening TF Reviews...</p>
+    <main class="shell">
+      <header class="masthead">
+        <p class="eyebrow">MathEpi Review Portal</p>
+        <h1>Tutorial Fellow applications review</h1>
+        <p class="sub">A lightweight reviewer-only page that verifies your email, opens the review window immediately, and then loads applications from Google Sheets.</p>
+      </header>
+
+      <section id="loginCard" class="card">
+        <p class="eyebrow">Reviewer verification</p>
+        <h1 style="font-size: clamp(30px, 3.5vw, 50px)">Enter your email, receive a code, then open the review window.</h1>
+        <div class="grid" style="margin-top: 28px">
+          <label>
+            Reviewer email
+            <input id="reviewerEmail" type="email" placeholder="reviewer@example.org" autocomplete="email" />
+          </label>
+          <label>
+            Verification code
+            <input id="reviewerCode" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="sendCodeButton" type="button">Send code</button>
+          <button id="verifyButton" class="primary" type="button">Verify and open reviews</button>
+        </div>
+        <div id="messageArea"></div>
+      </section>
+
+      <section id="reviewCard" class="card" hidden>
+        <div class="toolbar">
+          <div>
+            <p class="eyebrow">Reviewer window</p>
+            <h1 style="font-size: clamp(30px, 3.5vw, 50px)">Applications from Google Sheets</h1>
+            <p id="reviewerLabel" class="reviewer"></p>
+          </div>
+          <div class="actions" style="margin-top: 0">
+            <button id="refreshButton" type="button">Refresh applications</button>
+            <button id="signOutButton" type="button">Clear session</button>
+          </div>
+        </div>
+        <div id="reviewMessageArea"></div>
+        <div id="applicationsList" class="app-grid"></div>
+      </section>
+    </main>
+
     <script>
-      window.location.replace("../?reviewFresh=1&t=" + Date.now() + "#tf-reviews");
+      (function () {
+        var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrBseE_6REWP5D4zySf-Z6j_x9nUofWvT426M_HG5FoPllMDOZEcEa-f_Of4zryTQ9/exec";
+        var session = null;
+
+        function byId(id) {
+          return document.getElementById(id);
+        }
+
+        function escapeHtml(value) {
+          return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
+          });
+        }
+
+        function showMessage(targetId, type, text) {
+          byId(targetId).innerHTML = text ? '<p class="' + type + '">' + escapeHtml(text) + "</p>" : "";
+        }
+
+        function setBusy(action, busy) {
+          byId("sendCodeButton").disabled = busy;
+          byId("verifyButton").disabled = busy;
+          byId("refreshButton").disabled = busy;
+          byId("sendCodeButton").textContent = action === "send" && busy ? "Sending code..." : "Send code";
+          byId("verifyButton").textContent = action === "verify" && busy ? "Checking access..." : "Verify and open reviews";
+          byId("refreshButton").textContent = action === "load" && busy ? "Loading..." : "Refresh applications";
+        }
+
+        function jsonp(action, payload, timeoutMs) {
+          return new Promise(function (resolve, reject) {
+            var callbackName = "mathepiStandalone_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+            var script = document.createElement("script");
+            var done = false;
+            var timer = setTimeout(function () {
+              finish();
+              reject(new Error("Google Apps Script is taking too long to respond. Please try again. If it repeats, the Apps Script deployment needs to be redeployed."));
+            }, timeoutMs || 30000);
+
+            function finish() {
+              if (done) return;
+              done = true;
+              clearTimeout(timer);
+              try {
+                delete window[callbackName];
+              } catch (error) {
+                window[callbackName] = undefined;
+              }
+              if (script.parentNode) script.parentNode.removeChild(script);
+            }
+
+            window[callbackName] = function (result) {
+              finish();
+              if (result && result.ok === false) reject(new Error(result.error || "Apps Script request failed."));
+              else resolve(result || {});
+            };
+
+            script.onerror = function () {
+              finish();
+              reject(new Error("Could not reach Apps Script. Check internet access and the Web App deployment."));
+            };
+
+            script.src =
+              APPS_SCRIPT_URL +
+              "?" +
+              [
+                "action=" + encodeURIComponent(action),
+                "payload=" + encodeURIComponent(JSON.stringify(payload || {})),
+                "callback=" + encodeURIComponent(callbackName),
+                "_=" + Date.now()
+              ].join("&");
+            document.head.appendChild(script);
+          });
+        }
+
+        function reviewerEmail() {
+          return byId("reviewerEmail").value.trim().toLowerCase();
+        }
+
+        function reviewerCode() {
+          return byId("reviewerCode").value.trim();
+        }
+
+        function requestCode() {
+          var email = reviewerEmail();
+          if (!email) {
+            showMessage("messageArea", "error", "Enter reviewer email first.");
+            return;
+          }
+          setBusy("send", true);
+          showMessage("messageArea", "status", "Sending verification code through Google...");
+          jsonp("requestReviewerOtp", { email: email }, 30000)
+            .then(function () {
+              showMessage("messageArea", "success", "Verification code sent. Check your inbox, spam, Promotions, and Updates folders.");
+              setBusy("", false);
+            })
+            .catch(function (error) {
+              showMessage("messageArea", "error", error.message || "Reviewer code could not be sent.");
+              setBusy("", false);
+            });
+        }
+
+        function verifyCode() {
+          var email = reviewerEmail();
+          var code = reviewerCode();
+          if (!email || !code) {
+            showMessage("messageArea", "error", "Enter reviewer email and the 6-digit verification code.");
+            return;
+          }
+          setBusy("verify", true);
+          showMessage("messageArea", "status", "Verifying reviewer access...");
+          jsonp("verifyReviewerOtp", { email: email, code: code }, 30000)
+            .then(function (result) {
+              session = {
+                email: result.email || email,
+                sessionToken: result.sessionToken,
+                reviewer: result.reviewer || { email: email }
+              };
+              try {
+                window.sessionStorage.setItem("mathepi-standalone-review-session", JSON.stringify(session));
+              } catch (error) {}
+              openReviewWindow();
+              loadApplications();
+            })
+            .catch(function (error) {
+              showMessage("messageArea", "error", error.message || "Reviewer verification failed.");
+              setBusy("", false);
+            });
+        }
+
+        function openReviewWindow() {
+          byId("loginCard").hidden = true;
+          byId("reviewCard").hidden = false;
+          var reviewer = session && session.reviewer ? session.reviewer : {};
+          byId("reviewerLabel").textContent = "Reviewing as " + (reviewer.name || reviewer.email || session.email);
+          showMessage("reviewMessageArea", "success", "Reviewer access verified. Loading applications separately so this page does not freeze.");
+        }
+
+        function loadApplications() {
+          if (!session || !session.sessionToken) {
+            showMessage("reviewMessageArea", "error", "Reviewer session missing. Please verify again.");
+            return;
+          }
+          setBusy("load", true);
+          showMessage("reviewMessageArea", "status", "Loading applications from Google Sheets...");
+          byId("applicationsList").innerHTML = "";
+          jsonp(
+            "listReviewApplicants",
+            {
+              email: session.email,
+              sessionToken: session.sessionToken,
+              reviewer: session.reviewer
+            },
+            45000
+          )
+            .then(function (result) {
+              renderApplications(result.applications || []);
+              showMessage("reviewMessageArea", "success", "Loaded " + (result.applications || []).length + " applications.");
+              setBusy("", false);
+            })
+            .catch(function (error) {
+              showMessage("reviewMessageArea", "error", error.message || "Could not load applications from Google Sheets.");
+              setBusy("", false);
+            });
+        }
+
+        function renderApplications(applications) {
+          if (!applications.length) {
+            byId("applicationsList").innerHTML = '<p class="status">No applications were returned for this reviewer yet.</p>';
+            return;
+          }
+          byId("applicationsList").innerHTML = applications
+            .map(function (app) {
+              return (
+                '<article class="app-card">' +
+                "<h3>" +
+                escapeHtml(app.applicant || "Unnamed applicant") +
+                "</h3>" +
+                '<div class="meta">' +
+                '<span class="chip">' +
+                escapeHtml(app.applicationId || "No ID") +
+                "</span>" +
+                '<span class="chip">' +
+                escapeHtml(app.country || app.nationality || "Country not listed") +
+                "</span>" +
+                '<span class="chip">' +
+                escapeHtml(app.phdCompletion || "PhD date not listed") +
+                "</span>" +
+                "</div>" +
+                '<p class="answer"><b>Email:</b> ' +
+                escapeHtml(app.email || "") +
+                "</p>" +
+                '<p class="answer"><b>PhD field:</b> ' +
+                escapeHtml(app.phdField || "") +
+                "</p>" +
+                '<p class="answer"><b>Research area:</b> ' +
+                escapeHtml(app.researchArea || "") +
+                "</p>" +
+                '<p class="answer"><b>Research plan:</b> ' +
+                escapeHtml(app.researchPlan || "").slice(0, 520) +
+                "</p>" +
+                "</article>"
+              );
+            })
+            .join("");
+        }
+
+        function clearSession() {
+          session = null;
+          try {
+            window.sessionStorage.removeItem("mathepi-standalone-review-session");
+          } catch (error) {}
+          byId("reviewCard").hidden = true;
+          byId("loginCard").hidden = false;
+          showMessage("messageArea", "status", "Reviewer session cleared.");
+        }
+
+        function restoreSession() {
+          try {
+            var raw = window.sessionStorage.getItem("mathepi-standalone-review-session");
+            if (raw) session = JSON.parse(raw);
+          } catch (error) {}
+          if (session && session.sessionToken) {
+            openReviewWindow();
+            loadApplications();
+          }
+        }
+
+        function hasSearchParam(name) {
+          return new RegExp("[?&]" + name + "=").test(window.location.search);
+        }
+
+        function freshReviewUrl() {
+          var url = new URL("./", window.location.href);
+          url.search = "";
+          url.searchParams.set("t", String(Date.now()));
+          return url.toString();
+        }
+
+        function resetLegacyCache() {
+          if (!hasSearchParam("reset")) return false;
+          showMessage("messageArea", "status", "Clearing old cached review files, then reopening the review portal...");
+          var jobs = [];
+          try {
+            if ("serviceWorker" in navigator) {
+              jobs.push(
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                  return Promise.all(
+                    registrations.map(function (registration) {
+                      return registration.unregister();
+                    })
+                  );
+                })
+              );
+            }
+          } catch (error) {}
+          try {
+            if (window.caches) {
+              jobs.push(
+                caches.keys().then(function (keys) {
+                  return Promise.all(
+                    keys.map(function (key) {
+                      return caches.delete(key);
+                    })
+                  );
+                })
+              );
+            }
+          } catch (error) {}
+          function reopen() {
+            window.location.replace(freshReviewUrl());
+          }
+          if (jobs.length && window.Promise) Promise.all(jobs).then(reopen).catch(reopen);
+          else reopen();
+          window.setTimeout(reopen, 5000);
+          return true;
+        }
+
+        if (resetLegacyCache()) return;
+        byId("sendCodeButton").addEventListener("click", requestCode);
+        byId("verifyButton").addEventListener("click", verifyCode);
+        byId("refreshButton").addEventListener("click", loadApplications);
+        byId("signOutButton").addEventListener("click", clearSession);
+        byId("reviewerCode").addEventListener("keydown", function (event) {
+          if (event.key === "Enter") verifyCode();
+        });
+        restoreSession();
+      })();
     </script>
   </body>
 </html>

@@ -3298,6 +3298,12 @@ function toast(message) {
 }
 
 function setView(view) {
+  if (view === "tf-reviews") {
+    const reviewUrl = new URL("./tf-reviews/", window.location.href);
+    reviewUrl.searchParams.set("t", String(Date.now()));
+    window.location.href = reviewUrl.toString();
+    return;
+  }
   state.view = canView(view) ? view : "dashboard";
   state.drawer = null;
   if (window.location.hash !== `#${state.view}`) {
@@ -4414,7 +4420,12 @@ async function verifyTfReviewerOtp() {
     };
     saveTfReviewSession();
     toast("Reviewer access verified.");
-    await refreshTfReviews({ quiet: true });
+    state.tfReview.loading = false;
+    state.tfReview.loadingAction = "";
+    state.tfReview.loadingMessage = "";
+    render();
+    refreshTfReviews({ quiet: true });
+    return;
   } catch (error) {
     state.tfReview.error = error.message || "Reviewer verification failed.";
     toast(state.tfReview.error);
@@ -7906,6 +7917,10 @@ window.state = state;
 
 window.addEventListener("hashchange", () => {
   const nextView = window.location.hash ? window.location.hash.slice(1) : "dashboard";
+  if (nextView === "tf-reviews") {
+    setView("tf-reviews");
+    return;
+  }
   if (NAV.some((item) => item.id === nextView) && nextView !== state.view) {
     state.view = canView(nextView) ? nextView : "dashboard";
     state.drawer = null;
@@ -7916,4 +7931,5 @@ window.addEventListener("hashchange", () => {
 migrateProgrammeData();
 save();
 applyTheme();
-render();
+if (state.view === "tf-reviews") setView("tf-reviews");
+else render();
