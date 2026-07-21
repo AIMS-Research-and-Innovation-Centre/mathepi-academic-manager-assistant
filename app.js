@@ -2092,8 +2092,44 @@ const GOOGLE_DATASETS = [
 let googleSyncTimer = null;
 let googleSyncSuspended = false;
 
+function safeClone(value) {
+  if (typeof structuredClone === "function") {
+    try {
+      return structuredClone(value);
+    } catch {
+      // Use the JSON fallback below.
+    }
+  }
+  if (value === undefined) return undefined;
+  return JSON.parse(JSON.stringify(value));
+}
+
+function safeStorageGet(key, fallback = "") {
+  try {
+    return window.localStorage ? window.localStorage.getItem(key) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function safeStorageSet(key, value) {
+  try {
+    if (window.localStorage) window.localStorage.setItem(key, value);
+  } catch {
+    // Storage may be unavailable in private or restricted browsers.
+  }
+}
+
+function safeStorageRemove(key) {
+  try {
+    if (window.localStorage) window.localStorage.removeItem(key);
+  } catch {
+    // Ignore blocked storage.
+  }
+}
+
 function appsScriptUrl() {
-  return (window.MATHEPI_APPS_SCRIPT_URL || localStorage.getItem(GOOGLE_BACKEND_URL_KEY) || PUBLIC_APPS_SCRIPT_URL || "").trim();
+  return (window.MATHEPI_APPS_SCRIPT_URL || safeStorageGet(GOOGLE_BACKEND_URL_KEY) || PUBLIC_APPS_SCRIPT_URL || "").trim();
 }
 
 function hasAppsScriptBridge() {
@@ -2187,8 +2223,8 @@ function googleSnapshot() {
 function setAppsScriptUrl() {
   const input = document.getElementById("appsScriptUrl");
   const value = (input?.value || "").trim();
-  if (value) localStorage.setItem(GOOGLE_BACKEND_URL_KEY, value);
-  else localStorage.removeItem(GOOGLE_BACKEND_URL_KEY);
+  if (value) safeStorageSet(GOOGLE_BACKEND_URL_KEY, value);
+  else safeStorageRemove(GOOGLE_BACKEND_URL_KEY);
   state.googleConnected = googleBackendAvailable();
   toast(value ? "Apps Script Web App URL saved." : "Apps Script Web App URL cleared.");
   render();
@@ -2196,7 +2232,7 @@ function setAppsScriptUrl() {
 
 function setGoogleAutoSync(checked) {
   state.googleAutoSync = checked;
-  localStorage.setItem(GOOGLE_AUTOSYNC_KEY, String(checked));
+  safeStorageSet(GOOGLE_AUTOSYNC_KEY, String(checked));
   toast(checked ? "Google autosync enabled." : "Google autosync disabled.");
   render();
 }
@@ -2277,9 +2313,9 @@ const state = {
   selected: null,
   drawer: null,
   toast: null,
-  theme: localStorage.getItem("mathepi-theme") || "light",
+  theme: safeStorageGet("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
-  googleAutoSync: localStorage.getItem(GOOGLE_AUTOSYNC_KEY) === "true",
+  googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY) === "true",
   tfReview: {
     session: load(TF_REVIEW_SESSION_KEY, null),
     email: "",
@@ -2300,7 +2336,7 @@ const state = {
     lastSync: "",
     error: "",
   },
-  studentCalendarConnected: localStorage.getItem("mathepi-student-calendar") === "true",
+  studentCalendarConnected: safeStorageGet("mathepi-student-calendar") === "true",
   courses: load("mathepi-courses", DEFAULT_COURSES),
   people: load("mathepi-people", DEFAULT_PEOPLE),
   blocks: load("mathepi-blocks", DEFAULT_BLOCKS),
@@ -2320,21 +2356,21 @@ const state = {
 };
 
 function migrateProgrammeData() {
-  if (!localStorage.getItem("mathepi-tutorial-fellows-cfa-v1")) {
+  if (!safeStorageGet("mathepi-tutorial-fellows-cfa-v1")) {
     state.cfaStatuses = Object.assign({}, DEFAULT_CFA_STATUS, state.cfaStatuses, { tutors: "Open" });
-    localStorage.setItem("mathepi-tutorial-fellows-cfa-v1", "1");
+    safeStorageSet("mathepi-tutorial-fellows-cfa-v1", "1");
   }
 
-  if (!localStorage.getItem("mathepi-production-curriculum-v2")) {
-    state.courses = structuredClone(DEFAULT_COURSES);
-    state.people = structuredClone(DEFAULT_PEOPLE);
-    state.sessions = structuredClone(DEFAULT_SESSIONS);
-    state.timesheets = structuredClone(DEFAULT_TIMESHEETS);
-    state.availability = structuredClone(DEFAULT_AVAILABILITY);
-    state.appointments = structuredClone(DEFAULT_APPOINTMENTS);
-    state.supportRequests = structuredClone(DEFAULT_SUPPORT_REQUESTS);
-    state.studyGroups = structuredClone(DEFAULT_STUDY_GROUPS);
-    localStorage.setItem("mathepi-production-curriculum-v2", "1");
+  if (!safeStorageGet("mathepi-production-curriculum-v2")) {
+    state.courses = safeClone(DEFAULT_COURSES);
+    state.people = safeClone(DEFAULT_PEOPLE);
+    state.sessions = safeClone(DEFAULT_SESSIONS);
+    state.timesheets = safeClone(DEFAULT_TIMESHEETS);
+    state.availability = safeClone(DEFAULT_AVAILABILITY);
+    state.appointments = safeClone(DEFAULT_APPOINTMENTS);
+    state.supportRequests = safeClone(DEFAULT_SUPPORT_REQUESTS);
+    state.studyGroups = safeClone(DEFAULT_STUDY_GROUPS);
+    safeStorageSet("mathepi-production-curriculum-v2", "1");
   }
 
   const schedule = {
@@ -2415,31 +2451,31 @@ function migrateProgrammeData() {
 
 function load(key, fallback) {
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : structuredClone(fallback);
+    const raw = safeStorageGet(key);
+    return raw ? JSON.parse(raw) : safeClone(fallback);
   } catch {
-    return structuredClone(fallback);
+    return safeClone(fallback);
   }
 }
 
 function save() {
-  localStorage.setItem("mathepi-courses", JSON.stringify(state.courses));
-  localStorage.setItem("mathepi-people", JSON.stringify(state.people));
-  localStorage.setItem("mathepi-blocks", JSON.stringify(state.blocks));
-  localStorage.setItem("mathepi-sessions", JSON.stringify(state.sessions));
-  localStorage.setItem("mathepi-timesheets", JSON.stringify(state.timesheets));
-  localStorage.setItem("mathepi-tasks", JSON.stringify(state.tasks));
-  localStorage.setItem("mathepi-planner-tasks", JSON.stringify(state.plannerTasks));
-  localStorage.setItem("mathepi-student-todos", JSON.stringify(state.studentTodos));
-  localStorage.setItem("mathepi-students", JSON.stringify(state.students));
-  localStorage.setItem("mathepi-study-groups", JSON.stringify(state.studyGroups));
-  localStorage.setItem("mathepi-study-group-invitations", JSON.stringify(state.studyGroupInvitations));
-  localStorage.setItem("mathepi-study-group-activities", JSON.stringify(state.studyGroupActivities));
-  localStorage.setItem("mathepi-appointments", JSON.stringify(state.appointments));
-  localStorage.setItem("mathepi-availability", JSON.stringify(state.availability));
-  localStorage.setItem("mathepi-support-requests", JSON.stringify(state.supportRequests));
-  localStorage.setItem("mathepi-student-calendar", String(state.studentCalendarConnected));
-  localStorage.setItem(CFA_STATUS_KEY, JSON.stringify(state.cfaStatuses));
+  safeStorageSet("mathepi-courses", JSON.stringify(state.courses));
+  safeStorageSet("mathepi-people", JSON.stringify(state.people));
+  safeStorageSet("mathepi-blocks", JSON.stringify(state.blocks));
+  safeStorageSet("mathepi-sessions", JSON.stringify(state.sessions));
+  safeStorageSet("mathepi-timesheets", JSON.stringify(state.timesheets));
+  safeStorageSet("mathepi-tasks", JSON.stringify(state.tasks));
+  safeStorageSet("mathepi-planner-tasks", JSON.stringify(state.plannerTasks));
+  safeStorageSet("mathepi-student-todos", JSON.stringify(state.studentTodos));
+  safeStorageSet("mathepi-students", JSON.stringify(state.students));
+  safeStorageSet("mathepi-study-groups", JSON.stringify(state.studyGroups));
+  safeStorageSet("mathepi-study-group-invitations", JSON.stringify(state.studyGroupInvitations));
+  safeStorageSet("mathepi-study-group-activities", JSON.stringify(state.studyGroupActivities));
+  safeStorageSet("mathepi-appointments", JSON.stringify(state.appointments));
+  safeStorageSet("mathepi-availability", JSON.stringify(state.availability));
+  safeStorageSet("mathepi-support-requests", JSON.stringify(state.supportRequests));
+  safeStorageSet("mathepi-student-calendar", String(state.studentCalendarConnected));
+  safeStorageSet(CFA_STATUS_KEY, JSON.stringify(state.cfaStatuses));
   scheduleGoogleSync();
 }
 
@@ -2499,7 +2535,7 @@ function applyTheme() {
 
 function toggleTheme() {
   state.theme = state.theme === "dark" ? "light" : "dark";
-  localStorage.setItem("mathepi-theme", state.theme);
+  safeStorageSet("mathepi-theme", state.theme);
   applyTheme();
   render();
 }
@@ -3989,7 +4025,7 @@ function courseHourSplit(item) {
 }
 
 function updateCfaStatus(id, status) {
-  if (!state.cfaStatuses) state.cfaStatuses = structuredClone(DEFAULT_CFA_STATUS);
+  if (!state.cfaStatuses) state.cfaStatuses = safeClone(DEFAULT_CFA_STATUS);
   state.cfaStatuses[id] = status;
   if (googleBackendAvailable()) {
     googleApi("updateCfaStatus", { id, status }).catch((error) => toast(error.message || "CFA status Google sync failed."));
@@ -4160,8 +4196,8 @@ function tfReviewPayload(extra = {}) {
 }
 
 function saveTfReviewSession() {
-  if (state.tfReview.session) localStorage.setItem(TF_REVIEW_SESSION_KEY, JSON.stringify(state.tfReview.session));
-  else localStorage.removeItem(TF_REVIEW_SESSION_KEY);
+  if (state.tfReview.session) safeStorageSet(TF_REVIEW_SESSION_KEY, JSON.stringify(state.tfReview.session));
+  else safeStorageRemove(TF_REVIEW_SESSION_KEY);
 }
 
 function tfReviewStageRank(stage) {
