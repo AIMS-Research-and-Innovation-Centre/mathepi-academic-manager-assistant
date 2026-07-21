@@ -754,6 +754,16 @@ button {
   font-weight: 800;
 }
 
+.review-status {
+  width: fit-content;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  color: var(--tf-ink);
+  background: #f0eee8;
+  border: 1px solid var(--tf-line);
+  font-weight: 800;
+}
+
 .review-funnel {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

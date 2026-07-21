@@ -2333,6 +2333,7 @@ const state = {
     courseFilter: "",
     tab: "Evaluation",
     loading: false,
+    loadingMessage: "",
     lastSync: "",
     error: "",
   },
@@ -4227,6 +4228,8 @@ async function requestTfReviewerOtp() {
     return;
   }
   state.tfReview.loading = true;
+  state.tfReview.loadingMessage = "Sending verification code through Google...";
+  state.tfReview.email = email;
   state.tfReview.error = "";
   render();
   try {
@@ -4239,6 +4242,7 @@ async function requestTfReviewerOtp() {
     toast(state.tfReview.error);
   } finally {
     state.tfReview.loading = false;
+    state.tfReview.loadingMessage = "";
     render();
   }
 }
@@ -4251,6 +4255,8 @@ async function verifyTfReviewerOtp() {
     return;
   }
   state.tfReview.loading = true;
+  state.tfReview.loadingMessage = "Verifying reviewer access...";
+  state.tfReview.email = email;
   state.tfReview.error = "";
   render();
   try {
@@ -4270,6 +4276,7 @@ async function verifyTfReviewerOtp() {
     toast(state.tfReview.error);
   } finally {
     state.tfReview.loading = false;
+    state.tfReview.loadingMessage = "";
     render();
   }
 }
@@ -4579,9 +4586,10 @@ function renderTfReviewLogin() {
             </label>
           </div>
           <div class="tf-login-actions">
-            <button onclick="requestTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("mail", 17)}Send code</button>
-            <button class="primary" onclick="verifyTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("shield", 17)}Verify and open reviews</button>
+            <button onclick="requestTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("mail", 17)}${state.tfReview.loading ? "Sending code..." : "Send code"}</button>
+            <button class="primary" onclick="verifyTfReviewerOtp()" ${state.tfReview.loading ? "disabled" : ""}>${icon("shield", 17)}${state.tfReview.loading ? "Checking access..." : "Verify and open reviews"}</button>
           </div>
+          ${state.tfReview.loading ? `<p class="review-status">${escapeHtml(state.tfReview.loadingMessage || "Contacting Google Apps Script...")}</p>` : ""}
           ${state.tfReview.error ? `<p class="review-error">${escapeHtml(state.tfReview.error)}</p>` : ""}
         </section>
       </main>

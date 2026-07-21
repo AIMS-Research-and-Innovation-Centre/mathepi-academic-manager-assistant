@@ -16,17 +16,23 @@
     <link rel="icon" href="assets/aims-ric-logo.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=19" />
+    <link rel="stylesheet" href="styles.css?v=20" />
   </head>
   <body>
     <div id="app"></div>
-    <script src="auth/firebase-config.js"></script>
-    <script src="auth/auth-bridge.js?v=17"></script>
-    <script src="app.js?v=22"></script>
     <script>
       (function () {
+        var APP_SCRIPT = "app.js?v=23";
+        var AUTH_BRIDGE = "auth/auth-bridge.js?v=17";
+        var booted = false;
+        var resetDone = false;
+
+        function appRoot() {
+          return document.getElementById("app");
+        }
+
         function showBootFallback() {
-          var app = document.getElementById("app");
+          var app = appRoot();
           if (!app || app.innerHTML.replace(/\s/g, "")) return;
           app.innerHTML =
             '<main style="min-height:100vh;padding:32px;font-family:Arial,sans-serif;background:#f8f8f5;color:#101828">' +
@@ -39,6 +45,114 @@
             '</main>';
         }
 
+        function showResetScreen() {
+          var app = appRoot();
+          if (!app) return;
+          app.innerHTML =
+            '<main style="min-height:100vh;padding:32px;font-family:Arial,sans-serif;background:#f8f8f5;color:#101828">' +
+            '<section style="max-width:760px;margin:48px auto;padding:28px;border:1px solid #dedbd3;border-radius:18px;background:#fff;box-shadow:0 18px 48px rgba(16,24,40,.08)">' +
+            '<p style="margin:0 0 10px;color:#8d111c;font-weight:800;letter-spacing:.08em;text-transform:uppercase">MathEpi Review Portal</p>' +
+            '<h1 style="margin:0 0 14px;font-size:32px;line-height:1.15">Refreshing the review portal</h1>' +
+            '<p style="font-size:18px;line-height:1.55;color:#475467">Clearing the old cached copy and reopening TF Reviews. This should only take a moment.</p>' +
+            '</section>' +
+            '</main>';
+        }
+
+        function hasParam(name) {
+          return new RegExp("[?&]" + name + "=").test(window.location.search);
+        }
+
+        function reviewFreshUrl(includeReset) {
+          var url = new URL(window.location.href);
+          if (includeReset) url.searchParams.set("reset", "1");
+          else url.searchParams.delete("reset");
+          url.searchParams.set("reviewFresh", "1");
+          url.searchParams.set("t", String(Date.now()));
+          url.hash = window.location.hash || "#tf-reviews";
+          return url.toString();
+        }
+
+        function loadScript(src, next) {
+          var script = document.createElement("script");
+          script.src = src;
+          script.onload = function () {
+            if (next) next();
+          };
+          script.onerror = function () {
+            showBootFallback();
+          };
+          document.head.appendChild(script);
+        }
+
+        function loadApp() {
+          if (booted) return;
+          booted = true;
+          loadScript("auth/firebase-config.js", function () {
+            loadScript(AUTH_BRIDGE, function () {
+              loadScript(APP_SCRIPT, function () {
+                window.setTimeout(showBootFallback, 2500);
+              });
+            });
+          });
+        }
+
+        function registerServiceWorker() {
+          if (!("serviceWorker" in navigator)) return;
+          navigator.serviceWorker.register("./sw.js").catch(function () {});
+        }
+
+        function finishReset() {
+          if (resetDone) return;
+          resetDone = true;
+          window.location.replace(reviewFreshUrl(false));
+        }
+
+        function resetSiteCache() {
+          showResetScreen();
+          var jobs = [];
+          try {
+            if ("serviceWorker" in navigator) {
+              jobs.push(
+                navigator.serviceWorker
+                  .getRegistrations()
+                  .then(function (registrations) {
+                    return Promise.all(
+                      registrations.map(function (registration) {
+                        return registration.unregister();
+                      })
+                    );
+                  })
+              );
+            }
+          } catch (error) {}
+          try {
+            if (window.caches) {
+              jobs.push(
+                caches.keys().then(function (keys) {
+                  return Promise.all(
+                    keys.map(function (key) {
+                      return caches.delete(key);
+                    })
+                  );
+                })
+              );
+            }
+          } catch (error) {}
+          if (jobs.length && window.Promise) Promise.all(jobs).then(finishReset).catch(finishReset);
+          else finishReset();
+          window.setTimeout(finishReset, 5000);
+        }
+
+        if (window.location.hash === "#tf-reviews" && !hasParam("reviewFresh") && !hasParam("reset")) {
+          window.location.replace(reviewFreshUrl(true));
+          return;
+        }
+
+        if (hasParam("reset")) {
+          resetSiteCache();
+          return;
+        }
+
         window.addEventListener("error", function () {
           window.setTimeout(showBootFallback, 50);
         });
@@ -46,29 +160,11 @@
           window.setTimeout(showBootFallback, 50);
         });
         window.addEventListener("load", function () {
+          registerServiceWorker();
           window.setTimeout(showBootFallback, 2500);
         });
+        loadApp();
       })();
-    </script>
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          const params = new URLSearchParams(window.location.search);
-          if (params.get("reset") === "1") {
-            Promise.all([
-              navigator.serviceWorker.getRegistrations().then((registrations) => Promise.all(registrations.map((registration) => registration.unregister()))),
-              window.caches ? caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))) : Promise.resolve(),
-            ]).finally(() => {
-              params.delete("reset");
-              const nextQuery = params.toString();
-              const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}${window.location.hash || "#tf-reviews"}`;
-              window.location.replace(nextUrl);
-            });
-            return;
-          }
-          navigator.serviceWorker.register("./sw.js").catch(() => {});
-        });
-      }
     </script>
   </body>
 </html>
