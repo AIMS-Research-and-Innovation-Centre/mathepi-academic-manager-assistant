@@ -26,6 +26,19 @@
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get("reset") === "1") {
+            Promise.all([
+              navigator.serviceWorker.getRegistrations().then((registrations) => Promise.all(registrations.map((registration) => registration.unregister()))),
+              window.caches ? caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))) : Promise.resolve(),
+            ]).finally(() => {
+              params.delete("reset");
+              const nextQuery = params.toString();
+              const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}${window.location.hash || "#tf-reviews"}`;
+              window.location.replace(nextUrl);
+            });
+            return;
+          }
           navigator.serviceWorker.register("./sw.js").catch(() => {});
         });
       }
