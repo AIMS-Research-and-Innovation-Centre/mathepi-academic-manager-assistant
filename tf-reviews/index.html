@@ -744,6 +744,16 @@
         color: #fff;
       }
 
+      .stagepick button:disabled {
+        cursor: default;
+      }
+
+      .stagepick .stage-help {
+        align-self: center;
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
       .dbody {
         padding: 18px 20px;
       }
@@ -803,7 +813,6 @@
         gap: 12px;
       }
 
-      .analysis-grid label,
       .score-detail label {
         display: grid;
         gap: 4px;
@@ -812,18 +821,98 @@
         font-weight: 600;
       }
 
-      .analysis-grid textarea {
+      .analysis-section {
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--navy);
+        background: #fff;
+      }
+
+      .analysis-section .section-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 11px;
+        border-bottom: 1px solid #eee9df;
+        background: #fcfbf8;
+      }
+
+      .analysis-section h5 {
+        margin: 0;
+        color: var(--navy);
+        font-size: 13px;
+      }
+
+      .analysis-section .section-top button,
+      .analysis-section .section-actions button {
+        padding: 4px 8px;
+        border-color: var(--line);
+        color: var(--navy);
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+
+      .section-view {
+        padding: 10px 12px 12px;
+        color: var(--ink);
+        font-size: 13.5px;
+        line-height: 1.6;
+      }
+
+      .section-view h6 {
+        margin: 10px 0 3px;
+        color: var(--navy);
+        font-size: 12.5px;
+      }
+
+      .section-view h6:first-child {
+        margin-top: 0;
+      }
+
+      .section-view p {
+        margin: 0 0 9px;
+      }
+
+      .section-view p:last-child {
+        margin-bottom: 0;
+      }
+
+      .section-edit {
+        display: none;
         width: 100%;
-        min-height: 96px;
+        min-height: 128px;
         padding: 10px 11px;
+        border: 0;
+        border-top: 1px solid var(--line);
+        border-radius: 0;
         color: var(--ink);
         font-size: 14px;
         line-height: 1.55;
         resize: vertical;
       }
 
-      .analysis-grid textarea.tall {
-        min-height: 160px;
+      .section-edit.tall {
+        min-height: 210px;
+      }
+
+      .analysis-section.editing .section-view {
+        display: none;
+      }
+
+      .analysis-section.editing .section-edit {
+        display: block;
+      }
+
+      .section-actions {
+        display: none;
+        gap: 6px;
+        padding: 8px 11px;
+        border-top: 1px solid var(--line);
+        background: #f7f4ef;
+      }
+
+      .analysis-section.editing .section-actions {
+        display: flex;
       }
 
       .analysis-actions {
@@ -1058,6 +1147,91 @@
         background: #fff;
       }
 
+      .manager-stage {
+        margin-bottom: 12px;
+        padding: 10px 11px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--maroon);
+        background: #fff;
+      }
+
+      .manager-stage .rowline,
+      .note-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        align-items: end;
+      }
+
+      .manager-stage label,
+      .note-controls label {
+        display: grid;
+        gap: 4px;
+        color: var(--navy);
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+
+      .panel-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .panel-card {
+        min-height: 132px;
+        padding: 9px 10px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--navy);
+        background: #fff;
+      }
+
+      .panel-card.pending {
+        border-left-color: var(--line);
+        color: var(--muted);
+      }
+
+      .panel-card .panel-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .panel-card .name {
+        color: var(--navy);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .panel-card .role {
+        color: var(--muted);
+        font-size: 10.5px;
+        letter-spacing: 0.7px;
+        text-transform: uppercase;
+      }
+
+      .panel-card .verdict {
+        margin: 8px 0 5px;
+        color: var(--maroon);
+        font-size: 12.5px;
+        font-weight: 700;
+      }
+
+      .panel-card .stage-rec,
+      .panel-card .when {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+
+      .panel-card .comment {
+        margin-top: 8px;
+        color: var(--ink);
+        font-size: 12.5px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
+
       .note .who {
         color: var(--navy);
         font-size: 12px;
@@ -1097,7 +1271,7 @@
       }
 
       .noteform {
-        display: flex;
+        display: grid;
         gap: 8px;
         padding: 11px 20px;
         border-top: 1px solid var(--line);
@@ -1106,11 +1280,18 @@
 
       .noteform textarea {
         min-height: 50px;
-        flex: 1;
+        width: 100%;
         padding: 7px;
         font: inherit;
         font-size: 14px;
         resize: vertical;
+      }
+
+      .noteform .note-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
       }
 
       @media (max-width: 700px) {
@@ -1129,6 +1310,9 @@
         .row,
         .crow,
         .analysis-grid,
+        .panel-grid,
+        .manager-stage .rowline,
+        .note-controls,
         .score-summary,
         .score-detail,
         .ovr .r,
@@ -1235,8 +1419,21 @@
         <div class="dbody" id="dBody"></div>
         <div class="notes" id="dNotes"></div>
         <div class="noteform">
-          <textarea id="noteTxt" placeholder="Add a review note. Tagged with your name and the current stage."></textarea>
-          <button class="primary" id="addNote" type="button">Add note</button>
+          <div class="note-controls">
+            <label>
+              Your verdict
+              <select id="panelVerdict"></select>
+            </label>
+            <label>
+              Your stage recommendation
+              <select id="panelStageRec"></select>
+            </label>
+          </div>
+          <textarea id="noteTxt" placeholder="Write your panel comment. It will be tagged with your reviewer name and visible to the other reviewers."></textarea>
+          <div class="note-actions">
+            <button class="primary" id="addNote" type="button">Save panel comment</button>
+            <button id="cancelNoteEdit" type="button">Cancel edit</button>
+          </div>
         </div>
       </aside>
     </section>
@@ -1269,6 +1466,22 @@
           { id: "shortlist", label: "Shortlist", target: 70, rank: 2 },
           { id: "finalists", label: "Finalists", target: 30, rank: 3 },
           { id: "decision", label: "Decision", target: 10, rank: 4 }
+        ];
+
+        var REVIEW_VERDICTS = [
+          "Strongly support",
+          "Support",
+          "Maybe / discuss",
+          "Do not support"
+        ];
+
+        var STAGE_RECOMMENDATIONS = [
+          "Keep current stage",
+          "Screened",
+          "Shortlist",
+          "Finalists",
+          "Decision",
+          "Do not progress"
         ];
 
         var COURSES = [
@@ -1471,6 +1684,30 @@
           return reviewer.name || reviewer.email || (session && session.email) || "Reviewer";
         }
 
+        function reviewerEmail() {
+          var reviewer = session && session.reviewer ? session.reviewer : {};
+          return String(reviewer.email || (session && session.email) || "").toLowerCase();
+        }
+
+        function isReviewManager() {
+          var reviewer = session && session.reviewer ? session.reviewer : {};
+          var role = String(reviewer.role || "").toLowerCase();
+          var identity = [reviewer.name, reviewer.email, session && session.email].filter(Boolean).join(" ").toLowerCase();
+          return role === "academic manager" ||
+            role === "review manager" ||
+            role === "manager" ||
+            role === "admin" ||
+            role === "super admin" ||
+            role === "chair" ||
+            identity.indexOf("cecil") >= 0;
+        }
+
+        function optionsHtml(options, selected) {
+          return options.map(function (option) {
+            return '<option value="' + esc(option) + '" ' + (String(selected || "") === option ? "selected" : "") + '>' + esc(option) + "</option>";
+          }).join("");
+        }
+
         function loadApplications() {
           if (!session || !session.sessionToken) {
             showMessage("reviewMessageArea", "error", "Reviewer session missing. Please verify again.");
@@ -1586,6 +1823,20 @@
           ].join(" ");
         }
 
+        function teachingScoreCap(teachingText, delivery, depth, breadth) {
+          var text = String(teachingText || "");
+          if (!text.trim()) return 55;
+          if (delivery.score < 45) return 65;
+          if (delivery.score < 65 || breadth < 4) return 75;
+          if (delivery.score < 85 || breadth < 7) return 82;
+          var exceptional = delivery.score >= 95 &&
+            depth >= 85 &&
+            breadth >= 9 &&
+            /(mark|assess|feedback|course|lectur|semester|year|MSc|PhD|undergraduate|postgraduate|hands-on|tutorial|supervis)/i.test(text) &&
+            /\d+/.test(text);
+          return exceptional ? 100 : 85;
+        }
+
         function assess(app) {
           var teachingText = [app.teachingExperience, app.tutoringExperience, app.mentoringExperience, app.teachingSupport].join(" ");
           var researchText = [app.phdField, app.thesisTitleExplainer, app.researchArea, app.quantitativeBackground, app.appliedTrackRecord, app.researchExperience, app.researchPlan, app.careerGrowth].join(" ");
@@ -1607,7 +1858,8 @@
           }).sort(function (a, b) { return b.score - a.score; });
           var depth = components[0] ? components[0].score : 0;
           var breadth = components.filter(function (item) { return item.score >= 35; }).length;
-          var teachingScore = Math.min(100, Math.round(depth * 0.45 + delivery.score * 0.3 + Math.min(100, breadth * 12) * 0.25));
+          var teachingRaw = Math.round(depth * 0.45 + delivery.score * 0.3 + Math.min(100, breadth * 12) * 0.25);
+          var teachingScore = Math.min(teachingScoreCap(teachingText, delivery, depth, breadth), teachingRaw);
           var research = researchScore(app, researchText);
           var weighted = Math.round(teachingScore * 0.7 + research.score * 0.3);
           var eligibility = eligibilityGate(app);
@@ -1730,6 +1982,74 @@
           });
           rows.sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); });
           return rows[0] || null;
+        }
+
+        function firstName(value) {
+          return String(value || "").trim().split(/\s+/)[0].toLowerCase();
+        }
+
+        function latestScoreByReviewer(id, email, name) {
+          var targetEmail = String(email || "").toLowerCase();
+          var targetName = firstName(name);
+          var rows = state.scores.filter(function (row) {
+            var rowEmail = String(row.reviewer_email || "").toLowerCase();
+            var rowName = firstName(row.reviewer_name || row.reviewer_email);
+            return String(row.application_id || "") === String(id) &&
+              ((targetEmail && rowEmail === targetEmail) || (!targetEmail && targetName && rowName === targetName));
+          });
+          rows.sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); });
+          return rows[0] || null;
+        }
+
+        function latestNoteByReviewer(id, email, name) {
+          var targetEmail = String(email || "").toLowerCase();
+          var targetName = firstName(name);
+          var rows = notesFor(id).filter(function (row) {
+            var rowEmail = String(row.author_email || "").toLowerCase();
+            var rowName = firstName(row.author_name || row.author_email);
+            return (targetEmail && rowEmail === targetEmail) || (!targetEmail && targetName && rowName === targetName);
+          });
+          rows.sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
+          return rows[0] || null;
+        }
+
+        function addPanelReviewer(rows, reviewer) {
+          var email = String(reviewer.email || reviewer.reviewer_email || reviewer.author_email || reviewer.reviewerEmail || "").toLowerCase();
+          var name = reviewer.name || reviewer.reviewer_name || reviewer.author_name || email || "Reviewer";
+          var keyName = firstName(name);
+          var existing = rows.filter(function (row) {
+            return (email && row.email && row.email === email) || (keyName && firstName(row.name) === keyName);
+          })[0];
+          if (existing) {
+            existing.email = existing.email || email;
+            existing.name = existing.name || name;
+            existing.role = existing.role || reviewer.role || "Reviewer";
+            return;
+          }
+          rows.push({ email: email, name: name, role: reviewer.role || "Reviewer" });
+        }
+
+        function panelReviewersFor(id) {
+          var rows = [];
+          [
+            { name: "Cecil", role: "Review manager" },
+            { name: "Eva", role: "Reviewer" },
+            { name: "Wilfred", role: "Reviewer" }
+          ].forEach(function (reviewer) { addPanelReviewer(rows, reviewer); });
+          if (session && session.reviewer) addPanelReviewer(rows, session.reviewer);
+          state.reviewers.forEach(function (reviewer) { addPanelReviewer(rows, reviewer); });
+          state.scores.filter(function (row) { return String(row.application_id || "") === String(id); }).forEach(function (row) {
+            addPanelReviewer(rows, { email: row.reviewer_email, name: row.reviewer_name, role: "Reviewer" });
+          });
+          notesFor(id).forEach(function (note) {
+            addPanelReviewer(rows, { email: note.author_email, name: note.author_name, role: "Reviewer" });
+          });
+          return rows;
+        }
+
+        function canEditPanelNote(note) {
+          if (!note) return false;
+          return isReviewManager() || String(note.author_email || "").toLowerCase() === reviewerEmail();
         }
 
         function effective(app, assessment) {
@@ -1915,11 +2235,12 @@
           state.openId = id;
           $("dName").textContent = [app.title, app.applicant].filter(Boolean).join(" ");
           $("dMeta").textContent = [app.displayId || app.applicationId, app.gender || "gender not stated", app.phone || "no phone", app.phdField || "field not stated", app.nationality].filter(Boolean).join(" | ");
+          var manager = isReviewManager();
           $("stagepick").innerHTML = STAGES.map(function (stage) {
-            return '<button data-label="' + esc(stage.label) + '" class="' + (stageFor(id) === stage.label ? "sel" : "") + '" type="button">' + esc(stage.label) + "</button>";
-          }).join("");
+            return '<button data-label="' + esc(stage.label) + '" class="' + (stageFor(id) === stage.label ? "sel" : "") + '" type="button" ' + (manager ? "" : "disabled") + '>' + esc(stage.label) + "</button>";
+          }).join("") + '<span class="stage-help">' + (manager ? "Formal stage control" : "Formal stage view only; use your recommendation below") + "</span>";
           Array.prototype.forEach.call($("stagepick").querySelectorAll("button"), function (button) {
-            button.onclick = function () { updateStage(id, button.getAttribute("data-label")); };
+            if (manager) button.onclick = function () { updateStage(id, button.getAttribute("data-label")); };
           });
           $("dBody").innerHTML = state.tab === "app" ? appHtml(app) : evalHtml(app);
           drawNotes(id);
@@ -2110,8 +2431,30 @@
           };
         }
 
+        function formatSectionText(value) {
+          var blocks = String(value || "").split(/\n{2,}/).map(function (block) {
+            return block.trim();
+          }).filter(Boolean);
+          if (!blocks.length) return '<p class="was">No assessment text yet.</p>';
+          return blocks.map(function (block) {
+            var lines = block.split(/\n/).map(function (line) { return line.trim(); }).filter(Boolean);
+            if (lines.length > 1 && lines[0].length <= 72 && !/[.!?]$/.test(lines[0])) {
+              return '<h6>' + esc(lines[0]) + '</h6><p>' + esc(lines.slice(1).join("\n")).replace(/\n/g, "<br>") + "</p>";
+            }
+            if (lines.length === 1 && lines[0].length <= 72 && !/[.!?]$/.test(lines[0])) {
+              return '<h6>' + esc(lines[0]) + "</h6>";
+            }
+            return '<p>' + esc(block).replace(/\n/g, "<br>") + "</p>";
+          }).join("");
+        }
+
         function analysisFieldHtml(id, label, value, wide) {
-          return '<label>' + esc(label) + '<textarea id="' + id + '" class="' + (wide ? "tall" : "") + '">' + esc(value) + '</textarea></label>';
+          return '<section class="analysis-section" data-section="' + esc(id) + '">' +
+            '<div class="section-top"><h5>' + esc(label) + '</h5><button type="button" data-edit-section="' + esc(id) + '">Edit</button></div>' +
+            '<div class="section-view" id="' + esc(id) + 'View">' + formatSectionText(value) + '</div>' +
+            '<textarea id="' + id + '" class="section-edit ' + (wide ? "tall" : "") + '">' + esc(value) + '</textarea>' +
+            '<div class="section-actions"><button type="button" data-save-section="' + esc(id) + '">Save section</button><button type="button" data-cancel-section="' + esc(id) + '">Cancel</button></div>' +
+            '</section>';
         }
 
         function evalHtml(app) {
@@ -2200,20 +2543,57 @@
 
         function drawNotes(id) {
           var notes = notesFor(id);
-          var title = '<div class="notes-title">General reviewer comments, tagged by reviewer</div>';
-          $("dNotes").innerHTML = title + (notes.length ? notes.map(function (note) {
-            var noteId = note.note_id || "";
-            return '<div class="note"><span class="act"><button data-note="' + esc(noteId) + '" class="editNote" type="button">Edit</button><button data-note="' + esc(noteId) + '" class="withdrawNote" type="button">Withdraw</button></span>' +
-              '<div class="who">' + esc(note.author_name || note.author_email || "Reviewer") + '<span class="when">' + esc(note.created_at || "") + " | at " + esc(note.stage || "") + '</span></div>' +
-              '<div class="txt">' + esc(note.note || "") + '</div>' + (note.edited_at ? '<div class="was">Edited by ' + esc(note.edited_by || "") + ', ' + esc(note.edited_at) + '</div>' : "") + '</div>';
-          }).join("") : '<div class="empty" style="padding:12px">No general reviewer comments yet.</div>');
-          Array.prototype.forEach.call($("dNotes").querySelectorAll(".editNote"), function (button) {
+          var manager = isReviewManager();
+          var currentStage = stageFor(id);
+          var latest = latestScore(id);
+          var managerStage = manager
+            ? '<div class="manager-stage"><div class="notes-title">Cecil / review manager stage decision</div><div class="rowline"><label>Formal stage<select id="managerStageSelect">' + optionsHtml(STAGES.map(function (stage) { return stage.label; }), currentStage) + '</select></label><button class="primary" id="managerStageButton" type="button">Move official stage</button></div><div class="was" style="margin-top:7px">Panel reviewers recommend below; this control changes the official Google Sheets stage.</div></div>'
+            : '<div class="manager-stage"><div class="notes-title">Formal stage</div><div class="was">Current official stage: <b>' + esc(currentStage) + '</b>. Your recommendation below is visible to the panel; only Cecil or a review manager moves the official stage.</div></div>';
+          var cards = panelReviewersFor(id).map(function (reviewer) {
+            var score = latestScoreByReviewer(id, reviewer.email, reviewer.name);
+            var note = latestNoteByReviewer(id, reviewer.email, reviewer.name);
+            var verdict = score && score.recommendation ? score.recommendation : "No verdict yet";
+            var rec = score && score.eligibility_decision ? score.eligibility_decision : "No stage recommendation";
+            var comment = note && note.note ? note.note : "No comment saved yet.";
+            var editable = note && canEditPanelNote(note);
+            var count = notes.filter(function (item) {
+              return (reviewer.email && String(item.author_email || "").toLowerCase() === reviewer.email) ||
+                (!reviewer.email && firstName(item.author_name || item.author_email) === firstName(reviewer.name));
+            }).length;
+            return '<article class="panel-card ' + (note || score ? "" : "pending") + '">' +
+              '<div class="panel-top"><div><div class="name">' + esc(reviewer.name || reviewer.email || "Reviewer") + '</div><div class="role">' + esc(reviewer.role || "Reviewer") + '</div></div>' +
+              (editable ? '<button data-note="' + esc(note.note_id || "") + '" class="editPanelNote" type="button">Edit</button>' : "") + '</div>' +
+              '<div class="verdict">' + esc(verdict) + '</div>' +
+              '<div class="stage-rec">Recommended next step: ' + esc(rec) + '</div>' +
+              '<div class="comment">' + esc(comment) + '</div>' +
+              '<div class="when">' + (note ? esc(note.created_at || "Saved") + (count > 1 ? " | " + count + " comments" : "") : "Waiting for reviewer") + '</div>' +
+              (editable ? '<div style="margin-top:7px"><button data-note="' + esc(note.note_id || "") + '" class="withdrawNote" type="button">Withdraw comment</button></div>' : "") +
+              '</article>';
+          }).join("");
+          $("dNotes").innerHTML =
+            '<div class="notes-title">Panel recommendations and reviewer comments</div>' +
+            managerStage +
+            '<div class="panel-grid">' + cards + '</div>' +
+            '<div class="disc">Each reviewer can see the panel record. Regular reviewers save their own verdict and comment; Cecil or a review manager makes the formal stage decision after reading the panel.</div>';
+          if ($("panelVerdict")) $("panelVerdict").innerHTML = optionsHtml(REVIEW_VERDICTS, latest && latest.recommendation || "Maybe / discuss");
+          if ($("panelStageRec")) $("panelStageRec").innerHTML = optionsHtml(STAGE_RECOMMENDATIONS, latest && latest.eligibility_decision || "Keep current stage");
+          if (!state.editingNoteId && $("noteTxt")) {
+            $("noteTxt").value = "";
+            $("addNote").textContent = "Save panel comment";
+          }
+          if ($("managerStageButton")) $("managerStageButton").onclick = function () {
+            updateStage(id, $("managerStageSelect").value);
+          };
+          Array.prototype.forEach.call($("dNotes").querySelectorAll(".editPanelNote"), function (button) {
             button.onclick = function () {
               var note = notes.filter(function (item) { return String(item.note_id) === String(button.getAttribute("data-note")); })[0];
               if (!note) return;
+              var score = latestScoreByReviewer(id, note.author_email, note.author_name);
               state.editingNoteId = note.note_id;
               $("noteTxt").value = note.note || "";
-              $("addNote").textContent = "Save edit";
+              if ($("panelVerdict")) $("panelVerdict").value = score && score.recommendation || "Maybe / discuss";
+              if ($("panelStageRec")) $("panelStageRec").value = score && score.eligibility_decision || "Keep current stage";
+              $("addNote").textContent = "Save panel comment";
               $("noteTxt").focus();
             };
           });
@@ -2242,7 +2622,10 @@
             var track = Number($("scoreTrack") && $("scoreTrack").value || 0);
             var fit = Number($("scoreFit") && $("scoreFit").value || 0);
             var independence = Number($("scoreIndependence") && $("scoreIndependence").value || 0);
-            if (t) t.value = clamp(depth * 0.45 + delivery * 0.3 + breadth * 0.25);
+            var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+            var teachingText = app ? [app.teachingExperience, app.tutoringExperience, app.mentoringExperience, app.teachingSupport].join(" ") : "";
+            var cap = teachingScoreCap(teachingText, { score: delivery }, depth, Math.ceil(breadth / 12));
+            if (t) t.value = Math.min(cap, clamp(depth * 0.45 + delivery * 0.3 + breadth * 0.25));
             if (r) r.value = clamp((substance + feasibility + track + fit + independence) / 5);
             live();
           }
@@ -2257,6 +2640,44 @@
             var text = analysisTextsFor(app);
             $("noteTxt").value = text.generalComment;
             $("noteTxt").focus();
+          };
+          Array.prototype.forEach.call(document.querySelectorAll("[data-edit-section]"), function (button) {
+            button.onclick = function () {
+              var sectionId = button.getAttribute("data-edit-section");
+              var section = document.querySelector('[data-section="' + sectionId + '"]');
+              var textarea = $(sectionId);
+              if (!section || !textarea) return;
+              textarea.setAttribute("data-original", textarea.value || "");
+              section.classList.add("editing");
+              textarea.focus();
+            };
+          });
+          Array.prototype.forEach.call(document.querySelectorAll("[data-save-section]"), function (button) {
+            button.onclick = function () {
+              var sectionId = button.getAttribute("data-save-section");
+              var section = document.querySelector('[data-section="' + sectionId + '"]');
+              var textarea = $(sectionId);
+              var view = $(sectionId + "View");
+              if (!section || !textarea || !view) return;
+              view.innerHTML = formatSectionText(textarea.value);
+              section.classList.remove("editing");
+            };
+          });
+          Array.prototype.forEach.call(document.querySelectorAll("[data-cancel-section]"), function (button) {
+            button.onclick = function () {
+              var sectionId = button.getAttribute("data-cancel-section");
+              var section = document.querySelector('[data-section="' + sectionId + '"]');
+              var textarea = $(sectionId);
+              if (!section || !textarea) return;
+              textarea.value = textarea.getAttribute("data-original") || textarea.value || "";
+              section.classList.remove("editing");
+            };
+          });
+          if ($("cancelNoteEdit")) $("cancelNoteEdit").onclick = function () {
+            state.editingNoteId = "";
+            if ($("noteTxt")) $("noteTxt").value = "";
+            if ($("addNote")) $("addNote").textContent = "Save panel comment";
+            drawNotes(id);
           };
         }
 
@@ -2397,25 +2818,56 @@
           var id = state.openId;
           var note = ($("noteTxt").value || "").trim();
           if (!id || !note) return;
+          var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+          var current = effective(app, app.assessment);
+          var verdict = $("panelVerdict") && $("panelVerdict").value || "Maybe / discuss";
+          var stageRecommendation = $("panelStageRec") && $("panelStageRec").value || "Keep current stage";
+          var existingNote = state.editingNoteId ? state.notes.filter(function (item) { return String(item.note_id) === String(state.editingNoteId); })[0] : null;
+          var editingAnotherReviewer = existingNote &&
+            String(existingNote.author_email || "").toLowerCase() &&
+            String(existingNote.author_email || "").toLowerCase() !== reviewerEmail();
           var payload = {
             applicationId: id,
             noteId: state.editingNoteId || "",
             note: note,
             stage: stageFor(id)
           };
-          showMessage("reviewMessageArea", "status", state.editingNoteId ? "Saving note edit..." : "Saving review note...");
-          jsonp("saveReviewNote", reviewPayload(payload), 30000).then(function (result) {
+          var scorePayload = {
+            applicationId: id,
+            teachingScore: Number($("ovT") && $("ovT").value || current.t || 0),
+            researchScore: Number($("ovR") && $("ovR").value || current.r || 0),
+            eligibilityDecision: stageRecommendation,
+            recommendation: verdict,
+            courseVerdicts: collectCourseVerdicts(),
+            initialScore: {
+              teaching: app.assessment.teachingScore,
+              research: app.assessment.researchScore,
+              weighted: app.assessment.weightedScore,
+              bestFit: app.assessment.bestFit && app.assessment.bestFit.code
+            },
+            reason: "Panel recommendation: " + verdict + "; suggested next step: " + stageRecommendation + ". " + note.slice(0, 420)
+          };
+          showMessage("reviewMessageArea", "status", state.editingNoteId ? "Saving panel comment edit..." : "Saving panel recommendation...");
+          var scoreJob = editingAnotherReviewer ? Promise.resolve(null) : jsonp("saveReviewScore", reviewPayload(scorePayload), 30000).then(function (scoreResult) {
+            var scoreIndex = state.scores.findIndex(function (row) { return row.score_id === scoreResult.score.score_id; });
+            if (scoreIndex >= 0) state.scores[scoreIndex] = scoreResult.score;
+            else state.scores.push(scoreResult.score);
+            return scoreResult;
+          });
+          scoreJob.then(function () {
+            return jsonp("saveReviewNote", reviewPayload(payload), 30000);
+          }).then(function (result) {
             var index = state.notes.findIndex(function (row) { return row.note_id === result.note.note_id; });
             if (index >= 0) state.notes[index] = result.note;
             else state.notes.push(result.note);
             state.editingNoteId = "";
             $("noteTxt").value = "";
-            $("addNote").textContent = "Add note";
-            showMessage("reviewMessageArea", "success", "Review note saved.");
+            $("addNote").textContent = "Save panel comment";
+            showMessage("reviewMessageArea", "success", "Panel comment saved.");
             openApp(id);
             render();
           }).catch(function (error) {
-            showMessage("reviewMessageArea", "error", error.message || "Note save failed.");
+            showMessage("reviewMessageArea", "error", error.message || "Panel comment save failed.");
           });
         }
 
@@ -2434,8 +2886,12 @@
         }
 
         function updateStage(id, label) {
+          if (!isReviewManager()) {
+            showMessage("reviewMessageArea", "error", "Only Cecil or a review manager can move the official stage. Save your recommendation instead.");
+            return;
+          }
           showMessage("reviewMessageArea", "status", "Updating review stage...");
-          jsonp("updateReviewStage", reviewPayload({ applicationId: id, stage: label }), 30000).then(function (result) {
+          jsonp("updateReviewStage", reviewPayload({ applicationId: id, stage: label, reason: "Formal review stage moved from the review portal." }), 30000).then(function (result) {
             var index = state.stages.findIndex(function (row) { return String(row.application_id) === String(id); });
             if (index >= 0) state.stages[index] = result.stage;
             else state.stages.push(result.stage);
@@ -2451,7 +2907,7 @@
           $("drawer").classList.remove("open");
           $("scrim").classList.remove("open");
           state.editingNoteId = "";
-          $("addNote").textContent = "Add note";
+          $("addNote").textContent = "Save panel comment";
         }
 
         function exportJson() {
@@ -2568,12 +3024,18 @@
             session = {
               email: "preview@mathepi.org",
               sessionToken: "local-preview",
-              reviewer: { name: "Local preview reviewer", email: "preview@mathepi.org" },
+              reviewer: { name: "Cecil", email: "preview@mathepi.org", role: "Review manager" },
               expiresAt: Date.now() + 3600000
             };
             state.applications = localPreviewApps();
             state.stages = [{ application_id: "TF001", stage: "Shortlist" }, { application_id: "TF002", stage: "Screened" }];
-            state.notes = [{ note_id: "preview-note-1", application_id: "TF001", author_name: "Local preview reviewer", stage: "Shortlist", status: "Active", note: "Preview note showing the exact drawer style.", created_at: "2026-07-21 09:00" }];
+            state.scores = [
+              { score_id: "TF001::preview@mathepi.org", application_id: "TF001", reviewer_email: "preview@mathepi.org", reviewer_name: "Cecil", teaching_score: 84, research_score: 82, weighted_score: 83, eligibility_decision: "Shortlist", recommendation: "Support", reason: "Preview recommendation", updated_at: "2026-07-21 09:00" }
+            ];
+            state.notes = [
+              { note_id: "preview-note-1", application_id: "TF001", author_email: "preview@mathepi.org", author_name: "Cecil", stage: "Shortlist", status: "Active", note: "Concrete teaching evidence and a plausible Nairobi research home. I would shortlist, but ask for a tighter first-month work plan.", created_at: "2026-07-21 09:00" },
+              { note_id: "preview-note-2", application_id: "TF001", author_email: "", author_name: "Eva", stage: "Shortlist", status: "Active", note: "Agreed, with attention to whether the applicant can balance marking and research outputs during heavy teaching blocks.", created_at: "2026-07-21 09:15" }
+            ];
             openReviewWindow();
             showMessage("reviewMessageArea", "success", "Local visual preview. Live reviewers still need OTP verification.");
             render();

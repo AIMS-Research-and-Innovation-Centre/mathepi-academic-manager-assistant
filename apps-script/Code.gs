@@ -648,6 +648,15 @@ function saveReviewNote(payload) {
   const sheet = getSheet(spreadsheet, "ReviewNotes");
   const noteId = String(payload.noteId || Utilities.getUuid());
   const before = findSheetObject(sheet, noteId);
+  const beforeAuthorEmail = normalizeEmailAddress(before && before.author_email || "");
+  const beforeAuthorName = String(before && before.author_name || "");
+  if (
+    before &&
+    !reviewerCanManage(reviewer) &&
+    ((beforeAuthorEmail && beforeAuthorEmail !== reviewer.email) || (!beforeAuthorEmail && beforeAuthorName && beforeAuthorName !== reviewer.name))
+  ) {
+    throw new Error("Only the author or a review manager can edit this note.");
+  }
   const now = new Date().toISOString();
   const row = Object.assign(
     {
@@ -698,6 +707,9 @@ function withdrawReviewNote(payload) {
 function updateReviewStage(payload) {
   payload = payload || {};
   const reviewer = requireReviewerSession(payload);
+  if (!reviewerCanManage(reviewer)) {
+    throw new Error("Only Cecil or a review manager can update the formal review stage.");
+  }
   const spreadsheet = getOrCreateSpreadsheet();
   ensureSheets(spreadsheet);
   const applicationId = String(payload.applicationId || "").trim();
@@ -778,7 +790,14 @@ function findReviewerByEmail(email) {
 
 function reviewerCanManage(reviewer) {
   const role = String(reviewer && reviewer.role || "").toLowerCase();
-  return role === "academic manager" || role === "manager" || role === "admin" || role === "super admin" || role === "chair";
+  const identity = String([reviewer && reviewer.name, reviewer && reviewer.email].filter(Boolean).join(" ")).toLowerCase();
+  return role === "academic manager" ||
+    role === "review manager" ||
+    role === "manager" ||
+    role === "admin" ||
+    role === "super admin" ||
+    role === "chair" ||
+    identity.indexOf("cecil") >= 0;
 }
 
 function filterReviewApplicationsForReviewer(applications, assignments, reviewer) {
