@@ -255,36 +255,36 @@
       }
 
       .gate-card {
-        max-width: 1180px;
-        margin: 48px auto;
-        padding: 42px 52px;
+        max-width: 860px;
+        margin: 28px auto;
+        padding: 26px 30px;
         border: 1px solid var(--line);
-        border-left: 7px solid var(--maroon);
+        border-left: 5px solid var(--maroon);
         background: #fff;
-        box-shadow: 0 28px 70px rgba(12, 25, 64, 0.1);
+        box-shadow: 0 18px 44px rgba(12, 25, 64, 0.09);
       }
 
       .gate-card .eyebrow {
-        margin: 0 0 14px;
+        margin: 0 0 8px;
         color: var(--maroon);
-        font-size: 15px;
+        font-size: 12px;
         font-weight: 700;
-        letter-spacing: 4px;
+        letter-spacing: 2.6px;
         text-transform: uppercase;
       }
 
       .gate-card h2 {
-        max-width: 1060px;
-        margin: 0 0 28px;
+        max-width: 720px;
+        margin: 0 0 18px;
         color: var(--navy);
-        font-size: clamp(34px, 4vw, 56px);
-        line-height: 1.12;
+        font-size: clamp(24px, 2.6vw, 34px);
+        line-height: 1.18;
       }
 
       .gate-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 18px;
+        gap: 12px;
       }
 
       .gate-grid label {
@@ -295,23 +295,23 @@
       }
 
       .gate-grid input {
-        min-height: 62px;
-        padding: 13px 16px;
-        font-size: 20px;
+        min-height: 48px;
+        padding: 10px 12px;
+        font-size: 16px;
         font-weight: 600;
       }
 
       .gate-actions {
         display: flex;
         flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 22px;
+        gap: 10px;
+        margin-top: 16px;
       }
 
       .gate-actions button {
-        min-height: 58px;
-        padding: 12px 22px;
-        font-size: 18px;
+        min-height: 44px;
+        padding: 9px 16px;
+        font-size: 15px;
         font-weight: 700;
       }
 
@@ -662,12 +662,12 @@
         top: 0;
         right: 0;
         z-index: 21;
-        display: flex;
-        flex-direction: column;
-        width: min(720px, 100%);
+        display: block;
+        width: min(980px, 100%);
         height: 100%;
         border-left: 4px solid var(--maroon);
         background: #fff;
+        overflow-y: auto;
         transform: translateX(100%);
         transition: transform 0.22s;
       }
@@ -745,8 +745,6 @@
       }
 
       .dbody {
-        flex: 1;
-        overflow-y: auto;
         padding: 18px 20px;
       }
 
@@ -801,8 +799,8 @@
 
       .analysis-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        grid-template-columns: 1fr;
+        gap: 12px;
       }
 
       .analysis-grid label,
@@ -816,15 +814,16 @@
 
       .analysis-grid textarea {
         width: 100%;
-        min-height: 110px;
-        padding: 8px;
+        min-height: 96px;
+        padding: 10px 11px;
         color: var(--ink);
-        font-size: 13px;
+        font-size: 14px;
+        line-height: 1.55;
         resize: vertical;
       }
 
-      .analysis-grid label.wide {
-        grid-column: 1 / -1;
+      .analysis-grid textarea.tall {
+        min-height: 160px;
       }
 
       .analysis-actions {
@@ -837,7 +836,7 @@
 
       .score-detail {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
         margin: 9px 0 11px;
       }
@@ -845,6 +844,62 @@
       .score-detail input[type="number"] {
         width: 100%;
         padding: 5px 7px;
+      }
+
+      .score-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin: 10px 0 12px;
+      }
+
+      .score-card {
+        padding: 10px 11px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .score-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .score-card input,
+      .score-card b {
+        display: block;
+        width: 100%;
+        margin-top: 4px;
+        color: var(--navy);
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .score-card input {
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        border-radius: 0;
+        padding: 0 0 3px;
+      }
+
+      .score-basis {
+        margin: 10px 0;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .score-basis summary {
+        cursor: pointer;
+        padding: 9px 11px;
+        color: var(--navy);
+        font-weight: 700;
+      }
+
+      .score-basis .score-detail {
+        margin: 0;
+        padding: 0 11px 11px;
       }
 
       .disc {
@@ -979,8 +1034,8 @@
       }
 
       .notes {
-        max-height: 28vh;
-        overflow-y: auto;
+        max-height: none;
+        overflow: visible;
         padding: 13px 20px;
         border-top: 1px solid var(--line);
         background: #fbfaf7;
@@ -1074,6 +1129,7 @@
         .row,
         .crow,
         .analysis-grid,
+        .score-summary,
         .score-detail,
         .ovr .r,
         .rbars {
@@ -1935,6 +1991,62 @@
             ". Evidence terms: " + ((item.terms && item.terms.length) ? item.terms.join(", ") : "limited direct evidence") + ".";
         }
 
+        function compactEvidence(text, fallback) {
+          var clean = String(text || "").replace(/\s+/g, " ").trim();
+          if (!clean) return fallback || "not directly evidenced in the form";
+          return clean.length > 260 ? clean.slice(0, 257).replace(/\s+\S*$/, "") + "..." : clean;
+        }
+
+        function responseSource(label, text) {
+          return label + ": " + compactEvidence(text, "not directly evidenced in this answer") + ".";
+        }
+
+        function hasAny(text, pattern) {
+          return pattern.test(String(text || "").toLowerCase());
+        }
+
+        function possibleKemriHomes(app) {
+          var text = allText(app).toLowerCase();
+          var homes = [];
+          if (hasAny(text, /malaria|vector|mosquito|arbovirus|parasite|parasitic/)) homes.push("Centre for Vector Diseases Control, Centre for Global Health Research, Centre for Geographic Medicine Research Coast, or the Infectious and Parasitic Disease Programme");
+          if (hasAny(text, /hiv|tb|tuberculosis|respiratory|pneumonia|influenza|covid|mpox|virus|viral/)) homes.push("Centre for Virus Research, Centre for Respiratory Diseases Research, Centre for Disease Control and Surveillance, or relevant infectious-disease programmes");
+          if (hasAny(text, /surveillance|outbreak|epidemic|disease control|early warning|routine data|monitoring/)) homes.push("Centre for Disease Control and Surveillance, DESI, or Public Health and Health Research Systems Programme");
+          if (hasAny(text, /maternal|child|adolescent|reproductive|pregnancy|neonatal/)) homes.push("Sexual Reproductive, Adolescent and Child Health Programme, Centre for Public Health Research, or clinical/community health groups");
+          if (hasAny(text, /ncd|non-communicable|diabetes|cancer|hypertension|cardio/)) homes.push("Non-Communicable Diseases Programme, Centre for Clinical Research, or Centre for Public Health Research");
+          if (hasAny(text, /one health|zoonotic|animal|environment|climate|water|sanitation/)) homes.push("One Health Programme, Centre for Public Health Research, or a disease-specific field station");
+          if (hasAny(text, /model|statistics|statistical|data science|machine learning|informatics|bayesian|spatial|forecast|prediction|inference/)) homes.push("DESI as methodological co-host for epidemiology, statistics, informatics, data reuse, and quantitative methods");
+          if (!homes.length) homes.push("A KEMRI host would need brokering after the panel clarifies the disease, public-health, clinical, surveillance, systems, or implementation home");
+          return homes.filter(function (home, index) { return homes.indexOf(home) === index; }).slice(0, 4);
+        }
+
+        function aimsRicContribution(app) {
+          var text = allText(app).toLowerCase();
+          var strengths = [];
+          if (hasAny(text, /model|modelling|differential|simulation|dynamical|stochastic/)) strengths.push("mathematical modelling and simulation");
+          if (hasAny(text, /statistics|bayesian|inference|regression|survival|time series/)) strengths.push("statistics and inference");
+          if (hasAny(text, /data science|machine learning|python|r | r,|computational|algorithm|forecast|prediction/)) strengths.push("data science, computation, and reproducible analysis");
+          if (hasAny(text, /policy|intervention|resource allocation|decision|public health/)) strengths.push("translation of quantitative work into public-health decision support");
+          if (!strengths.length) return "AIMS RIC contribution is not yet clear because the response does not make the quantitative method explicit.";
+          return "AIMS RIC could add " + strengths.filter(function (item, index) { return strengths.indexOf(item) === index; }).join(", ") + ".";
+        }
+
+        function africaAnchor(app) {
+          var text = [app.researchPlan, app.researchArea, app.appliedTrackRecord, app.researchExperience, app.country, app.nationality].join(" ").toLowerCase();
+          if (hasAny(text, /kenya|nairobi|kemri|kisumu|kilifi|kwale|mombasa|busia|mandera/)) return "The plan has a Kenya or KEMRI-facing anchor in the application text.";
+          if (hasAny(text, /africa|east africa|sub-saharan|rwanda|cameroon|uganda|tanzania|ghana|senegal|south africa/)) return "The plan has an African or regional anchor, but the panel should check how it would be pointed toward Kenyan or KEMRI-held data.";
+          return "The plan is not yet clearly anchored to Kenya, East Africa, or an African public-health setting. The panel should ask whether it can be redirected toward KEMRI data or Kenyan priorities.";
+        }
+
+        function institutionalFitBand(app, a) {
+          var text = allText(app).toLowerCase();
+          var health = hasAny(text, /health|disease|epidem|surveillance|clinical|public health|malaria|hiv|tb|virus|vector|ncd|maternal|child|one health|outbreak/);
+          var method = hasAny(text, /model|statistics|statistical|data science|machine learning|inference|simulation|bayesian|forecast|prediction|computational/);
+          if (health && method) return "Clear fit";
+          if (health || method) return "Plausible fit";
+          if (a.researchScore >= 35) return "Fit would need brokering";
+          return "Weak fit";
+        }
+
         function analysisTextsFor(app) {
           var a = app.assessment;
           var saved = analysisFor(app);
@@ -1943,22 +2055,38 @@
           var researchDims = a.researchDimensions.slice(0, 5).map(function (d) {
             return d.label + ": " + d.score + "/100. Source: research plan, research experience, PhD field, thesis, and quantitative-background answers. Matched evidence: " + (d.matched.length ? d.matched.join(", ") : "not clearly evidenced") + ".";
           }).join("\n");
+          var homes = possibleKemriHomes(app);
+          var fitBand = institutionalFitBand(app, a);
           var defaults = {
-            eligibility: (a.eligibility.label === "Progress strong" ? "Pass. " : "Flags to check. ") +
-              a.eligibility.reasons.join("; ") +
-              ". Sources: documents, referees, PhD completion date, Nairobi residency answer, teaching-continuity answer, and substantive completeness of the form.",
-            bestFit: "Best fit: " + (a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "not yet clear") + ".\n" +
+            eligibility: "Assessment\n" + (a.eligibility.label === "Progress strong" ? "The deterministic eligibility screen is clear on the information currently available. " : "The deterministic eligibility screen has flags that should be checked before the panel treats the file as complete. ") +
+              a.eligibility.reasons.join("; ") + ".\n\nEvidence used\n" +
+              responseSource("Documents", "Passport " + (app.passport ? "confirmed" : "not confirmed") + "; PhD certificate " + (app.phdCertificate ? "confirmed" : "not confirmed")) + "\n" +
+              responseSource("PhD completion", app.phdCompletion) + "\n" +
+              responseSource("Residence and continuity", "Residence: " + (app.residenceReady || "not stated") + "; teaching continuity: " + (app.teachingGapReady || "not stated")),
+            bestFit: "Summary\nBest fit: " + (a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "not yet clear") + ". The ranking below should be read as an evidence map, not as a final allocation.\n\nTop five components\n" +
               topFive.map(function (item, index) { return componentVerdictLine(app, item, index); }).join("\n"),
-            delivery: "Delivery evidence tier: " + a.delivery.label + ". " + a.delivery.explanation +
-              " Source: teaching experience, tutoring and marking, mentoring, and teaching-support answers. Candid statements of limited formal lecturing should not be penalised where concrete training, mentoring, or hands-on teaching evidence follows.",
-            teaching: "Teaching judgement, 70 per cent: the score is " + a.teachingScore + "/100 before reviewer edits. It is driven by depth in " +
+            delivery: "Assessment\nDelivery evidence tier: " + a.delivery.label + ". " + a.delivery.explanation +
+              " For this fellowship, training, mentoring, supervision, practical sessions, coding support, and marking all count as relevant teaching evidence when the applicant gives concrete detail.\n\nEvidence used\n" +
+              responseSource("Teaching", app.teachingExperience) + "\n" +
+              responseSource("Tutoring and marking", app.tutoringExperience) + "\n" +
+              responseSource("Mentoring and student support", app.mentoringExperience),
+            teaching: "Assessment\nThe current teaching score is " + a.teachingScore + "/100 before reviewer edits. It is driven by depth in " +
               (a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "the strongest matched component") +
-              ", delivery evidence, and breadth across " + coverageCount(app) + " of the 20 assessable components. Adjust this if the application text gives stronger or weaker concrete evidence than the score suggests.",
-            research: "Research judgement, 30 per cent. Applicant's first sentence: \"" + firstSentence(app.researchPlan) + "\"\n" + researchDims,
-            institutionalFit: "KEMRI and AIMS RIC fit: " + a.institutionalFit.label + ". " + a.institutionalFit.explanation +
-              " DESI may be a methodological co-host, but a disease, surveillance, clinical, public-health, or systems home should be named before calling the match clear.",
-            gaps: "Gaps to verify: " + (gaps.length ? gaps.join("; ") : "no major curriculum gap identified by the first screen") +
-              ". Also check document evidence, two contactable referees, readiness for residence in Nairobi, and whether the applicant can support hands-on sessions at pace.",
+              ", delivery evidence, and breadth across " + coverageCount(app) + " of the 20 assessable components. The panel should raise or lower it according to the concrete examples in the form, especially evidence of hands-on sessions, feedback, marking, and ability to step in if a lecturer is unavailable.\n\nEvidence used\n" +
+              responseSource("Teaching experience", app.teachingExperience) + "\n" +
+              responseSource("Proposed teaching contribution", app.teachingSupport),
+            research: "Applicant's opening proposal\n\"" + firstSentence(app.researchPlan) + "\"\n\nAssessment\nThe current research score is " + a.researchScore + "/100 before reviewer edits. A strong 30 per cent project needs a question, method, data source, feasible output, and evidence that the applicant can finish work while carrying a heavy tutorial load.\n\nScore basis\n" + researchDims + "\n\nEvidence used\n" +
+              responseSource("Research plan", app.researchPlan) + "\n" +
+              responseSource("Research experience", app.researchExperience) + "\n" +
+              responseSource("Thesis and research area", [app.thesisTitleExplainer, app.researchArea].filter(Boolean).join(" ")),
+            institutionalFit: "Overall institutional fit\n" + fitBand + ". " + (a.institutionalFit.explanation || "The plan needs to be judged against both the health-research mandate and the quantitative contribution.") +
+              " KEMRI fit should be read holistically because the institute spans centres and programmes in infectious and parasitic diseases, clinical research, virus research, respiratory diseases, vector diseases, microbiology, public health, disease surveillance, non-communicable diseases, One Health, reproductive, adolescent and child health, biotechnology, and health research systems.\n\nPossible KEMRI home\n" +
+              homes.map(function (home, index) { return (index + 1) + ". " + home + "."; }).join("\n") +
+              "\n\nAIMS RIC contribution\n" + aimsRicContribution(app) +
+              " AIMS RIC fit is strongest where the applicant's plan needs mathematical modelling, statistics, computation, data science, inference, or translation of quantitative results into applied public-health insight.\n\nKenya, Nairobi, and African relevance\n" + africaAnchor(app) +
+              "\n\nPanel check\nThe interview should test whether the applicant can name a plausible dataset, KEMRI host or programme, quantitative method, and output achievable within the protected 30 per cent research time.",
+            gaps: "Curriculum and evidence gaps\n" + (gaps.length ? gaps.join("; ") : "No major curriculum gap was identified by the first screen") +
+              ".\n\nPanel verification\nCheck document evidence, two contactable referees, readiness for residence in Nairobi, ability to support hands-on sessions at pace, and whether any broad claims are backed by specific cohorts, tools, course names, duration, marking, or mentoring examples.",
             interviewQuestions: [
               "1. Which one Tutorial Fellow course component could you teach at short notice, and what would the first hands-on session look like?",
               "2. Give one concrete example of marking, feedback, tutorial delivery, or mentoring where you improved a learner's work.",
@@ -1966,7 +2094,7 @@
               "4. Which KEMRI disease, surveillance, clinical, public-health, or systems unit would be the natural home for the project, and why?",
               "5. What support would you need in the first month to fill any gaps in the course matrix?"
             ].join("\n"),
-            generalComment: "Initial evaluator comment: review the evidence above against the full application. The strongest case rests on concrete delivery evidence, depth in the best-fit components, feasibility of the 30 per cent research plan, and clear residency and teaching-continuity commitments."
+            generalComment: "Initial evaluator comment\nThis file should be judged on evidence rather than confidence of wording. The strongest case would rest on concrete delivery experience, depth in the best-fit components, a feasible 30 per cent research plan, a plausible KEMRI health-research home, and a clear AIMS RIC quantitative contribution. Where the form is thin, the interview should convert the gap into a specific question rather than an assumption."
           };
           if (!saved) return defaults;
           return {
@@ -1983,7 +2111,7 @@
         }
 
         function analysisFieldHtml(id, label, value, wide) {
-          return '<label class="' + (wide ? "wide" : "") + '">' + esc(label) + '<textarea id="' + id + '">' + esc(value) + '</textarea></label>';
+          return '<label>' + esc(label) + '<textarea id="' + id + '" class="' + (wide ? "tall" : "") + '">' + esc(value) + '</textarea></label>';
         }
 
         function evalHtml(app) {
@@ -2001,7 +2129,7 @@
             a.researchDimensions.map(function (d) { return '<div class="rbars"><span>' + esc(d.label) + '</span><span class="t"><i style="width:' + d.score + '%"></i></span><span>' + d.score + '</span></div>'; }).join("") +
             '<ul><li>' + esc(a.institutionalFit.explanation) + '</li></ul>' +
             '<h5>Gaps</h5><ul><li>Check ' + esc(gaps) + ', delivery evidence, documents, and whether the applicant can support hands-on sessions at pace.</li></ul>' +
-            '<h5>Ask at interview</h5><ul><li>Ask for one concrete tutorial plan, one marking or feedback example, and how the proposed 30 percent research plan would fit within protected research time.</li></ul>' +
+            '<h5>Ask at interview</h5><ul><li>Ask for one concrete tutorial plan, one marking or feedback example, and how the proposed 30 per cent research plan would fit within protected research time.</li></ul>' +
             '<button class="primary" id="insertDraft" type="button">Insert as general comment under your name</button>' +
             '<div class="disc">Built from this applicant\'s own answers and designed for reviewer correction. Treat every line as editable evidence, not as a panel decision.</div></div>' +
             '<div class="narr analysis-editor"><h4>First evaluator assessment, editable</h4>' +
@@ -2017,8 +2145,13 @@
             analysisFieldHtml("analysisGeneral", "General first evaluator comment", text.generalComment, true) +
             '</div>' +
             '<div class="disc">' + (savedAnalysis ? "Saved structured assessment found for " + esc(savedAnalysis.reviewer_name || savedAnalysis.reviewer_email || "this reviewer") + ", updated " + esc(savedAnalysis.updated_at || "") + "." : "Nothing here enters the structured review record until you save it.") + '</div></div>' +
-            '<div class="ovr"><div class="b">Revise the score</div>' +
-            '<div class="score-detail">' +
+            '<div class="ovr"><div class="b">Reviewer score</div>' +
+            '<div class="score-summary">' +
+            '<div class="score-card"><span>Teaching readiness, 70 per cent</span><input type="number" id="ovT" min="0" max="100" value="' + e.t + '"><em class="was">Initial ' + a.teachingScore + '</em></div>' +
+            '<div class="score-card"><span>Research potential, 30 per cent</span><input type="number" id="ovR" min="0" max="100" value="' + e.r + '"><em class="was">Initial ' + a.researchScore + '</em></div>' +
+            '<div class="score-card"><span>Weighted 70:30</span><b id="ovOut">' + e.ov + '</b><em class="was">Initial ' + a.weightedScore + ' &middot; ' + band(a.weightedScore) + '</em></div>' +
+            '</div>' +
+            '<details class="score-basis"><summary>Score basis, optional detail</summary><div class="score-detail">' +
             scoreDetailHtml("scoreDepth", "Teaching depth in best-fit component", details.teachingDepth) +
             scoreDetailHtml("scoreDelivery", "Delivery evidence", details.teachingDelivery) +
             scoreDetailHtml("scoreBreadth", "Teaching breadth across matrix", details.teachingBreadth) +
@@ -2027,10 +2160,7 @@
             scoreDetailHtml("scoreTrack", "Research track record", details.researchTrackRecord) +
             scoreDetailHtml("scoreFit", "Programme and place fit", details.researchProgrammeFit) +
             scoreDetailHtml("scoreIndependence", "Research independence", details.researchIndependence) +
-            '</div>' +
-            '<div class="r"><span>Teaching, weighted 70</span><input type="number" id="ovT" min="0" max="100" value="' + e.t + '"><span class="was">initial score ' + a.teachingScore + '</span></div>' +
-            '<div class="r"><span>Research, weighted 30</span><input type="number" id="ovR" min="0" max="100" value="' + e.r + '"><span class="was">initial score ' + a.researchScore + '</span></div>' +
-            '<div class="r"><span>Weighted 70:30</span><b id="ovOut">' + e.ov + '</b><span class="was">initial score ' + a.weightedScore + ' &middot; ' + band(a.weightedScore) + '</span></div>' +
+            '</div></details>' +
             '<div style="margin:7px 0 8px"><input type="text" id="ovWhy" placeholder="Reason for the revision or assessment update" value="' + esc(e.reason || "") + '"></div>' +
             '<div class="analysis-actions"><button class="primary" id="saveAnalysis" type="button">Save first evaluator assessment</button><button id="saveScore" type="button">Save score only</button></div>' + (latest ? '<div class="was" style="margin-top:7px">Last score saved by ' + esc(latest.reviewer_name || latest.reviewer_email || "") + '. Reason: ' + esc(latest.reason || "") + '</div>' : "") + '</div>' +
             '<div class="gate"><h4>Eligibility gate</h4><div class="rec ' + recClass(a.eligibility.label) + '">' + esc(a.eligibility.label) + '</div><ul>' + a.eligibility.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul></div>' +
@@ -2405,7 +2535,7 @@
               mentoringExperience: "Mentored postgraduate students on reproducible analysis and scientific computing.",
               researchExperience: "Two manuscripts and one conference presentation on infectious disease modelling.",
               teachingSupport: "Can support hands-on sessions, marking, and emergency lecture continuity in modelling and data analysis blocks.",
-              researchPlan: "A feasible 30 percent project using existing surveillance datasets to compare mechanistic and predictive nowcasting models.",
+              researchPlan: "A feasible 30 per cent project using existing surveillance datasets to compare mechanistic and predictive nowcasting models.",
               residenceReady: "Yes",
               teachingGapReady: "Yes",
               passport: "passport.pdf",
