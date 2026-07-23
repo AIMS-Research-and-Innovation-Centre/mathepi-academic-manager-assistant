@@ -1997,7 +1997,7 @@ const CFA_CALLS = [
     audience: "Course lecturers for the Mathematical Epidemiology programme.",
     deadline: "To be confirmed",
     owner: "Academic and Research Manager",
-    formUrl: "cfa/lecturer-application.html?v=20260723-lecturer-current",
+    formUrl: "cfa/lecturer-application.html?v=20260723-lecturer-sync",
     summary:
       "Incorporates the attached full lecturer application portal as the canonical CFA form, opening in a separate tab for completion.",
     requirements: [

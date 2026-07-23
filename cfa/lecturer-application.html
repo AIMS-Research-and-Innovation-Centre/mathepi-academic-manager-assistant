@@ -63,6 +63,9 @@
   .call-status.closed{background:rgba(128,0,0,.12);color:var(--maroon)}
   .call-notice{border:1.5px solid var(--line);border-left:5px solid var(--green);border-radius:14px;background:#fff;padding:14px 16px;margin:0 0 18px;color:var(--ink-soft);font-size:14.5px}
   .call-notice.closed{border-left-color:var(--maroon);background:#fff8f8;color:var(--ink)}
+  .sync-guidance{border:1.5px solid var(--line);border-left:5px solid var(--navy-bright);border-radius:14px;background:linear-gradient(135deg,#fff,#F7F8FA);padding:16px 18px;margin:0 0 24px;color:var(--ink-soft);font-size:15px}
+  .sync-guidance h2{margin:0 0 8px;color:var(--navy);font-size:18px}
+  .sync-guidance p{margin:0 0 14px;color:var(--ink-soft)}
   .recovery-banner{border:1.5px solid var(--line);border-left:5px solid var(--orange-deep);border-radius:14px;background:#fff;padding:16px 18px;margin:0 0 24px;color:var(--ink-soft);font-size:15px}
   .recovery-banner h2{margin:0 0 8px;color:var(--navy);font-size:18px}
   .recovery-banner p{margin:0 0 14px;color:var(--ink-soft)}
@@ -201,6 +204,7 @@
         <p class="eyebrow">Mathematical Epidemiology Programme</p>
         <h1 class="greeting">AIMS RIC Lecturer Application</h1>
         <p class="lead">Apply to teach an intensive MathEpi course block and join a residential academic team supporting mathematical epidemiology training across African public-health contexts.</p>
+        <div id="previousApplicantNotice"></div>
         <div id="recoveryBanner"></div>
         <div class="grid">
           <article class="opp">
@@ -1544,11 +1548,12 @@ let current = 0,
   submitted = false,
   pendingUpload = null;
 function show(view) {
-  if (view === "form" && !callIsOpen()) view = "details";
+  if (view === "form" && !callIsOpen() && !canUseRecoveryRoute()) view = "details";
   ["home", "details", "form", "dashboard"].forEach((v) => ($("view-" + v).hidden = v !== view));
   if (view === "form") renderForm();
   if (view === "dashboard") renderDashboard();
   syncCallStatusUi();
+  renderPreviousApplicantNotice();
   renderRecoveryBanner();
   window.scrollTo({ top: 0 });
 }
@@ -1565,7 +1570,11 @@ document.addEventListener("click", (e) => {
   }
   const n = e.target.closest("[data-nav]");
   if (n) {
-    if (n.dataset.nav === "form" && !callIsOpen()) {
+    if (n.dataset.nav === "form" && !callIsOpen() && canUseRecoveryRoute()) {
+      reviewRecoveredApplication();
+      return;
+    }
+    if (n.dataset.nav === "form" && !callIsOpen() && !canUseRecoveryRoute()) {
       show("details");
       return;
     }
@@ -1573,7 +1582,7 @@ document.addEventListener("click", (e) => {
   }
 });
 function syncCurrentCallState() {
-  if (!$("view-form").hidden && !callIsOpen()) {
+  if (!$("view-form").hidden && !callIsOpen() && !canUseRecoveryRoute()) {
     $("stepArea").innerHTML = closedMessageHtml();
   }
   syncCallStatusUi();
@@ -2429,6 +2438,7 @@ function callIsOpen() {
 }
 function syncCallStatusUi() {
   const open = callIsOpen();
+  const recoveryAllowed = canUseRecoveryRoute();
   const status = open ? "Open" : "Closed";
   document.querySelectorAll("[data-call-status]").forEach((el) => {
     el.textContent = status;
@@ -2442,12 +2452,12 @@ function syncCallStatusUi() {
     el.classList.toggle("closed", !open);
   });
   document.querySelectorAll('[data-nav="form"]').forEach((el) => {
-    el.disabled = !open;
-    if (open) el.removeAttribute("aria-disabled");
+    el.disabled = !open && !recoveryAllowed;
+    if (open || recoveryAllowed) el.removeAttribute("aria-disabled");
     else el.setAttribute("aria-disabled", "true");
   });
   const draftBtn = $("draftBtn");
-  if (draftBtn) draftBtn.disabled = !open;
+  if (draftBtn) draftBtn.disabled = !open && !recoveryAllowed;
 }
 function closedMessageHtml() {
   return (
@@ -2465,6 +2475,7 @@ function defaultSyncMeta() {
     driveUrl: "",
     driveFileId: "",
     sheetRow: "",
+    submissionTimestamp: "",
     alreadyExists: false,
     lastError: "",
   };
@@ -2525,6 +2536,24 @@ function hasCompletedDraftForRecovery() {
   );
 }
 
+function canUseRecoveryRoute() {
+  return recoveryMode || hasCompletedDraftForRecovery();
+}
+
+function renderPreviousApplicantNotice() {
+  const el = $("previousApplicantNotice");
+  if (!el) return;
+  if (hasCompletedDraftForRecovery()) {
+    el.innerHTML = "";
+    return;
+  }
+  el.innerHTML =
+    '<div class="sync-guidance"><h2>Previously completed a lecturer application?</h2>' +
+    "<p>If you applied before the Google Sheets repair, please open this page on the same phone or computer you used then. The portal will detect the preserved copy on that device and guide you to synchronise it with AIMS.</p>" +
+    '<div class="recovery-actions"><button type="button" class="btn-ghost" data-nav="dashboard">Check this device</button>' +
+    '<button type="button" class="btn-ghost" data-nav="details">Read the call details</button></div></div>';
+}
+
 function renderRecoveryBanner() {
   const el = $("recoveryBanner");
   if (!el) return;
@@ -2533,10 +2562,10 @@ function renderRecoveryBanner() {
     return;
   }
   el.innerHTML =
-    '<div class="recovery-banner"><h2>We found a previously completed lecturer application on this device.</h2>' +
-    "<p>Due to an earlier technical issue it may never have reached AIMS. Please review your application and synchronise it with our central database.</p>" +
+    '<div class="recovery-banner"><h2>Action needed: preserved lecturer application found on this device.</h2>' +
+    "<p>This looks like a completed application saved in your browser. It may not yet be in the AIMS Google Sheets database. Please review it, attach the passport biodata page again if requested, and synchronise it so AIMS can confirm receipt.</p>" +
     '<div class="recovery-actions"><button type="button" class="btn-ghost" data-review-recovery>Review Application</button>' +
-    '<button type="button" class="btn-primary" data-sync-recovery>Synchronise Now</button></div></div>';
+    '<button type="button" class="btn-primary" data-sync-recovery>Synchronise with AIMS</button></div></div>';
 }
 
 function setSyncMeta(update) {
@@ -2544,6 +2573,7 @@ function setSyncMeta(update) {
   syncMeta.syncStatus = normaliseSyncStatus(syncMeta.syncStatus);
   persistDraft();
   renderRecoveryBanner();
+  renderPreviousApplicantNotice();
 }
 
 // Copy only known keys from a saved object into the live state shape, so a
@@ -2616,6 +2646,7 @@ function loadDraft() {
       driveUrl: data.driveUrl || data.driveFileUrl || "",
       driveFileId: data.driveFileId || "",
       sheetRow: data.sheetRow || "",
+      submissionTimestamp: data.submissionTimestamp || data.submittedAt || "",
       alreadyExists: !!data.alreadyExists,
       lastError: data.lastError || "",
     });
@@ -3151,10 +3182,11 @@ function resetAll() {
 function applicationSnapshot() {
   syncSelectionStepFromDom();
   normalizeHostState();
+  if (!syncMeta.submissionTimestamp) syncMeta.submissionTimestamp = new Date().toISOString();
   const c = selectedCourse();
   const b = selectedBlock();
   return {
-    submittedAt: new Date().toISOString(),
+    submittedAt: syncMeta.submissionTimestamp,
     email: state.email,
     applicant: [state.lecturer.title, state.lecturer.name].filter(Boolean).join(" "),
     affiliation: state.lecturer.affiliation,
@@ -3219,7 +3251,7 @@ function transactionFailureHtml(message) {
     "<p>Your application has been safely preserved on this device. Please retry once the connection is restored.</p>" +
     (message ? '<p class="field-help">' + esc(message) + "</p>" : "") +
     '<div class="detail-actions" style="justify-content:center"><button class="btn-ghost" type="button" data-review-recovery>Review Application</button>' +
-    '<button class="btn-primary" type="button" data-sync-recovery>Synchronise Now</button></div></div>'
+    '<button class="btn-primary" type="button" data-sync-recovery>Synchronise with AIMS</button></div></div>'
   );
 }
 
@@ -3247,7 +3279,8 @@ function transactionSuccessHtml(snapshot, result, recovered) {
 }
 
 async function submit(options = {}) {
-  if (!callIsOpen()) {
+  const recoverySubmit = !!(options.recovery || recoveryMode || syncMeta.syncStatus === SYNC_FAILED);
+  if (!callIsOpen() && !recoverySubmit) {
     $("stepArea").innerHTML = closedMessageHtml();
     syncCallStatusUi();
     window.scrollTo({ top: 0 });
@@ -3255,7 +3288,6 @@ async function submit(options = {}) {
   }
   if (!validateAll()) return;
   const snapshot = applicationSnapshot();
-  const recoverySubmit = !!(options.recovery || recoveryMode || syncMeta.syncStatus === SYNC_FAILED);
   const action = recoverySubmit ? "recoverLecturerApplication" : "submitLecturerApplication";
   $("stepArea").innerHTML =
     '<div class="done-wrap"><div class="done-badge">...</div><h2>Submitting application</h2><p>Sending the lecturer application to AIMS Google Sheets and Drive. This page will only show success after AIMS confirms receipt.</p></div>';
@@ -3313,6 +3345,7 @@ async function submit(options = {}) {
     syncMeta = Object.assign({}, syncMeta, {
       syncStatus: finalStatus,
       lastSyncAttempt,
+      submissionTimestamp: snapshot.submittedAt,
       applicationReference: result.applicationId || syncMeta.applicationReference || "",
       driveUrl: result.driveUrl || result.driveFileUrl || syncMeta.driveUrl || "",
       driveFileId: result.driveFileId || syncMeta.driveFileId || "",
@@ -3446,7 +3479,7 @@ function renderDashboard() {
     html +=
       '<div class="detail-actions">' +
       (completedRecovery
-        ? '<button class="btn-ghost" type="button" data-review-recovery>Review Application</button><button class="btn-primary" type="button" data-sync-recovery>Synchronise Now</button>'
+        ? '<button class="btn-ghost" type="button" data-review-recovery>Review Application</button><button class="btn-primary" type="button" data-sync-recovery>Synchronise with AIMS</button>'
         : '<button class="btn-primary" data-nav="form">Continue application -></button>') +
       "</div>";
   }
@@ -3464,6 +3497,7 @@ const hadDraftOnLoad = loadDraft();
 if (hadDraftOnLoad) persistDraft();
 show("home");
 renderRecoveryBanner();
+renderPreviousApplicantNotice();
 syncCallStatusUi();
 refreshCallStatusFromGoogle();
 </script>
