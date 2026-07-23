@@ -1,4 +1,4 @@
-const CACHE_NAME = "mathepi-academic-manager-v29";
+const CACHE_NAME = "mathepi-academic-manager-v30";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -48,6 +48,8 @@ self.addEventListener("fetch", (event) => {
     request.mode === "navigate" ||
     url.pathname.endsWith("/") ||
     url.pathname.endsWith("/index.html") ||
+    url.pathname.endsWith("/cfa/lecturer-application.html") ||
+    url.pathname.endsWith("/cfa/tutorial-fellow-application.html") ||
     url.pathname.endsWith("/app.js") ||
     url.pathname.endsWith("/styles.css") ||
     url.pathname.endsWith("/sw.js");

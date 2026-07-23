@@ -53,6 +53,7 @@ function apiPost(request) {
   if (action === "saveEligibilityDecision") return saveEligibilityDecision(payload);
   if (action === "exportReviewAudit") return exportReviewAudit(payload);
   if (action === "submitLecturerApplication") return submitLecturerApplication(payload);
+  if (action === "recoverLecturerApplication") return recoverLecturerApplication(payload);
   if (action === "submitTutorialFellowApplication") return submitTutorialFellowApplication(payload);
   throw new Error("Unknown action: " + action);
 }
