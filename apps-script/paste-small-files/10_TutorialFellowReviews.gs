@@ -274,10 +274,42 @@ function findReviewerByEmail(email) {
   const spreadsheet = getOrCreateSpreadsheet();
   ensureSheets(spreadsheet);
   const target = normalizeEmailAddress(email);
-  return readReviewSheetObjects(spreadsheet, "Reviewers").find((row) => {
-    const rowEmail = row.reviewer_email || row.email;
-    return rowEmail && normalizeEmailAddress(rowEmail) === target;
-  });
+  const reviewer = findReviewerInSpreadsheet_(spreadsheet, target);
+  if (reviewer) return reviewer;
+
+  const discovered = findReviewerInNamedSpreadsheet_(target, spreadsheet.getId());
+  if (discovered) return discovered.reviewer;
+
+  return null;
+}
+
+function findReviewerInSpreadsheet_(spreadsheet, target) {
+  try {
+    return readReviewSheetObjects(spreadsheet, "Reviewers").find((row) => {
+      const rowEmail = row.reviewer_email || row.email;
+      return rowEmail && normalizeEmailAddress(rowEmail) === target;
+    }) || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function findReviewerInNamedSpreadsheet_(target, currentSpreadsheetId) {
+  const files = DriveApp.getFilesByName(MATHEPI.spreadsheetName);
+  while (files.hasNext()) {
+    const file = files.next();
+    if (String(file.getId()) === String(currentSpreadsheetId)) continue;
+    if (file.getMimeType && file.getMimeType() !== MimeType.GOOGLE_SHEETS) continue;
+    try {
+      const spreadsheet = SpreadsheetApp.openById(file.getId());
+      const reviewer = findReviewerInSpreadsheet_(spreadsheet, target);
+      if (reviewer) {
+        PropertiesService.getScriptProperties().setProperty(MATHEPI.properties.spreadsheetId, spreadsheet.getId());
+        return { spreadsheet, reviewer };
+      }
+    } catch (error) {}
+  }
+  return null;
 }
 
 function reviewerCanManage(reviewer) {
