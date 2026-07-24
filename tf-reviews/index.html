@@ -908,6 +908,46 @@
         margin-bottom: 0;
       }
 
+      .section-view .structured-lines {
+        display: grid;
+        gap: 6px;
+      }
+
+      .section-view .structured-line,
+      .evidence-card .structured-line {
+        margin: 0 0 7px;
+        padding: 7px 9px;
+        border-left: 3px solid #c9a44f;
+        background: #fffdf8;
+      }
+
+      .section-view .structured-line strong,
+      .evidence-card .structured-line strong {
+        color: var(--navy);
+        font-weight: 700;
+      }
+
+      .section-view .structured-line span,
+      .evidence-card .structured-line span {
+        color: var(--ink);
+      }
+
+      .section-view .section-note {
+        padding: 8px 10px;
+        border-left: 3px solid var(--navy);
+        background: #f8fafc;
+      }
+
+      .section-view ol.review-list {
+        margin: 0 0 8px 20px;
+        padding: 0;
+      }
+
+      .section-view ol.review-list li {
+        margin-bottom: 6px;
+        padding-left: 2px;
+      }
+
       .section-edit {
         display: none;
         width: 100%;
@@ -1578,13 +1618,29 @@
           $(targetId).innerHTML = text ? '<p class="' + type + '">' + esc(text) + "</p>" : "";
         }
 
+        var otpWaitTimer = 0;
+
+        function clearOtpWaitTimer() {
+          if (otpWaitTimer) clearTimeout(otpWaitTimer);
+          otpWaitTimer = 0;
+        }
+
         function setBusy(action, busy) {
-          $("sendCodeButton").disabled = busy;
-          $("verifyButton").disabled = busy;
-          $("refreshButton").disabled = busy;
-          $("sendCodeButton").textContent = action === "send" && busy ? "Sending code..." : "Send code";
-          $("verifyButton").textContent = action === "verify" && busy ? "Checking access..." : "Verify and open reviews";
-          $("refreshButton").textContent = action === "load" && busy ? "Loading..." : "Refresh from Sheets";
+          var sendButton = $("sendCodeButton");
+          var verifyButton = $("verifyButton");
+          var refreshButton = $("refreshButton");
+          if (sendButton) {
+            sendButton.disabled = busy && (action === "send" || action === "verify");
+            sendButton.textContent = action === "send" && busy ? "Sending code..." : "Send code";
+          }
+          if (verifyButton) {
+            verifyButton.disabled = busy && action === "verify";
+            verifyButton.textContent = action === "verify" && busy ? "Checking access..." : "Verify and open reviews";
+          }
+          if (refreshButton) {
+            refreshButton.disabled = busy && action === "load";
+            refreshButton.textContent = action === "load" && busy ? "Loading..." : "Refresh from Sheets";
+          }
         }
 
         function jsonp(action, payload, timeoutMs) {
@@ -1660,14 +1716,20 @@
             showMessage("messageArea", "error", "Enter reviewer email first.");
             return;
           }
+          clearOtpWaitTimer();
           setBusy("send", true);
-          showMessage("messageArea", "status", "Sending verification code through Google...");
-          jsonp("requestReviewerOtp", { email: email }, 30000)
+          showMessage("messageArea", "status", "Sending the code through Google. Keep this page open while Apps Script delivers the email.");
+          otpWaitTimer = setTimeout(function () {
+            showMessage("messageArea", "status", "Still waiting for Google to confirm the email. This can take up to one minute on a busy Apps Script deployment.");
+          }, 12000);
+          jsonp("requestReviewerOtp", { email: email }, 60000)
             .then(function () {
-              showMessage("messageArea", "success", "Verification code sent. Check your inbox, spam, Promotions, and Updates folders.");
+              clearOtpWaitTimer();
+              showMessage("messageArea", "success", "Verification code sent. Check your inbox, spam, Promotions, and Updates folders. The sender is the Google account that deployed the Apps Script Web App.");
               setBusy("", false);
             })
             .catch(function (error) {
+              clearOtpWaitTimer();
               showMessage("messageArea", "error", error.message || "Reviewer code could not be sent.");
               setBusy("", false);
             });
@@ -1861,6 +1923,13 @@
           return String(value == null ? "" : value).replace(/\s+/g, " ").trim();
         }
 
+        function shortEvidence(value, limit) {
+          var clean = cleanEvidence(value);
+          if (!clean) return "";
+          var words = clean.split(/\s+/);
+          return words.slice(0, limit || 34).join(" ") + (words.length > (limit || 34) ? "..." : "");
+        }
+
         function evidenceLength(value) {
           return cleanEvidence(value).split(/\s+/).filter(Boolean).length;
         }
@@ -1918,7 +1987,7 @@
 
         function criterion(label, source, checks) {
           var text = cleanEvidence(source);
-          if (!text) return { label: label, score: 0, matched: [], judgement: "Not evidenced in the application." };
+          if (!text) return { label: label, score: 0, matched: [], evidence: "", judgement: "Not evidenced in the application." };
           var matched = checks.filter(function (check) { return check.pattern.test(text); }).map(function (check) { return check.label; });
           var detail = evidenceLevel(text);
           var score = Math.min(85, Math.round((matched.length / Math.max(1, checks.length)) * 58 + detail * 7));
@@ -1926,7 +1995,7 @@
             : score >= 50 ? "Plausible, with some concrete support."
             : score >= 30 ? "Partly supported but requires clarification."
             : "Claimed or implied, but not adequately evidenced.";
-          return { label: label, score: score, matched: matched, judgement: judgement };
+          return { label: label, score: score, matched: matched, evidence: shortEvidence(text, 34), judgement: judgement };
         }
 
         function evidenceGapQuestions(app, a) {
@@ -2479,7 +2548,7 @@
 
         function responseSource(label, text) {
           var clean = compactEvidence(text, "not directly evidenced in this answer");
-          return "Application question: " + label + "\nApplicant response: \"" + clean + "\"";
+          return "Application question: " + label + "\nApplicant response: " + clean;
         }
 
         function hasAny(text, pattern) {
@@ -2545,7 +2614,32 @@
         }
 
         function evidenceFieldHtml(label, question, response) {
-          return '<section class="evidence-card"><h5>' + esc(label) + '</h5><div class="evidence-body"><b>Application question</b>\n' + esc(question) + '\n\n<b>Applicant response</b>\n' + esc(String(response || "No response provided.")) + '</div></section>';
+          return '<section class="evidence-card"><h5>' + esc(label) + '</h5><div class="evidence-body">' +
+            '<p class="structured-line"><strong>Application question:</strong> <span>' + esc(question) + '</span></p>' +
+            '<p class="structured-line"><strong>Applicant response:</strong> <span>' + esc(String(response || "No response provided.")) + '</span></p>' +
+            '</div></section>';
+        }
+
+        function generalEvaluationSummary(app, a, map, homes, fitBand, questions) {
+          var strengths = [];
+          var risks = [];
+          var gaps = [];
+          if (a.bestFit) strengths.push("The strongest course signal is " + a.bestFit.code + " " + a.bestFit.title + ", with additional immediate alignment to " + map.immediate + ".");
+          if (a.delivery.score >= 70) strengths.push("Teaching and student-support evidence is concrete enough to support a serious panel discussion of tutorial readiness.");
+          else risks.push("Teaching readiness remains below exceptional level until the reviewer confirms actual course level, delivery frequency, assessment responsibility, and hands-on session experience.");
+          if (a.researchScore >= 70) strengths.push("The research case gives a defined health or epidemiological problem, quantitative direction, and enough methodological detail to assess the protected research allocation.");
+          else risks.push("The research plan needs sharper evidence on the precise question, method, data route, output, ownership, or feasibility within the 30 per cent research allocation.");
+          strengths.push("The likely institutional fit is " + fitBand.toLowerCase() + ", with possible KEMRI homes including " + homes.slice(0, 2).join("; ") + ".");
+          if (a.eligibility.reasons.length && a.eligibility.reasons[0] !== "All deterministic gate checks passed.") {
+            gaps.push("Eligibility flags to resolve: " + a.eligibility.reasons.join("; ") + ".");
+          }
+          gaps = gaps.concat(questions.slice(0, 3));
+          if (!gaps.length) gaps.push("Record any interview questions that would confirm scale, responsibility, data access, and fit before final progression.");
+          return "Evaluation summary\n" +
+            "Strengths: " + strengths.join(" ") +
+            "\n\nWeaknesses or risks: " + (risks.length ? risks.join(" ") : "No major weakness is generated automatically, but the reviewer should still test the evidence against the full application and documents.") +
+            "\n\nEvidence gaps to test: " + gaps.join(" ") +
+            "\n\nOverall reviewer comment: This file should be read through verifiable evidence, not assumed promise. The best case for progression rests on the applicant's documented disciplinary background, direct delivery evidence, named MathEpi course alignment, feasible research plan, credible KEMRI-facing health-research home, and clear AIMS RIC quantitative contribution.";
         }
 
         function analysisTextsFor(app) {
@@ -2555,7 +2649,7 @@
           var homes = possibleKemriHomes(app);
           var fitBand = institutionalFitBand(app, a);
           var researchDims = a.researchDimensions.map(function (d) {
-            return d.label + ": " + d.judgement;
+            return d.label + ": " + d.judgement + " Applicant evidence: " + (d.evidence || "No supporting wording was located in the submitted response.") + (d.matched && d.matched.length ? " Evidence markers: " + d.matched.join(", ") + "." : "");
           }).join("\n");
           var questions = evidenceGapQuestions(app, a);
           var defaults = {
@@ -2589,14 +2683,14 @@
             research: "Research assessment\n" +
               "The assessment considers whether the application establishes a defined research problem, an appropriate method, an identifiable data source, a feasible scope, relevant prior work, intellectual ownership, and institutional fit.\n\nCriterion record\n" +
               researchDims +
-              "\n\nPanel judgement: Verify the proposed data-access route, the applicant's own methodological contribution, the intended output, and whether the work can be completed within the protected research allocation.",
+              "\n\nReviewer judgement: Verify the proposed data-access route, the applicant's own methodological contribution, the intended output, and whether the work can be completed within the protected research allocation.",
 
             institutionalFit: "Institutional-fit judgement\n" + fitBand + ". " +
               (a.institutionalFit.explanation || "The panel should judge both the health-research home and the quantitative contribution.") +
               "\n\nPossible KEMRI home\n" + homes.map(function (home, index) { return (index + 1) + ". " + home + "."; }).join("\n") +
               "\n\nAIMS RIC contribution\n" + aimsRicContribution(app) +
               "\n\nGeographic and public-health anchor\n" + africaAnchor(app) +
-              "\n\nPanel verification\nThe interview should identify a named data source or access route, a credible KEMRI host, the principal quantitative method, and an output achievable within the protected 30 per cent research time.",
+              "\n\nReviewer verification\nThe interview should identify a named data source or access route, a credible KEMRI host, the principal quantitative method, and an output achievable within the protected 30 per cent research time.",
 
             gaps: "Points for verification\nThe panel should verify the level and duration of teaching, assessment responsibility, computational-tool fluency, two contactable referees, residence readiness, and the feasibility of maintaining tutorial support during intensive teaching blocks.",
 
@@ -2604,7 +2698,7 @@
               return (index + 1) + ". " + question;
             }).join("\n"),
 
-            generalComment: "Starting point academic review\nThe file should be judged on verifiable evidence. The strongest case would combine a clearly described disciplinary background, direct evidence of teaching or tutorial delivery, defensible alignment to named MathEpi courses, a feasible 30 per cent research plan, a plausible KEMRI health-research home, and a clear AIMS RIC quantitative contribution. Missing evidence should be recorded as a question for interview rather than replaced by an assumption."
+            generalComment: generalEvaluationSummary(app, a, map, homes, fitBand, questions)
           };
           if (!saved) return defaults;
           return {
@@ -2620,20 +2714,69 @@
           };
         }
 
+        function displayLine(line) {
+          return String(line || "")
+            .replace(/^Panel judgement:/i, "Reviewer judgement:")
+            .replace(/^Panel verification:/i, "Reviewer verification:")
+            .trim();
+        }
+
+        function stripDisplayQuotes(value) {
+          return String(value || "").trim().replace(/^["“”]+/, "").replace(/["“”]+$/, "");
+        }
+
+        function labelledHtml(line) {
+          var value = displayLine(line);
+          var match = value.match(/^([^:\n]{2,92}):\s*(.*)$/);
+          if (!match) return "";
+          var label = match[1].trim();
+          var body = stripDisplayQuotes(match[2]);
+          return '<p class="structured-line"><strong>' + esc(label) + ':</strong>' +
+            (body ? ' <span>' + esc(body) + '</span>' : "") + "</p>";
+        }
+
+        function inlineFormattedLine(line) {
+          var value = displayLine(line);
+          var match = value.match(/^([^:\n]{2,92}):\s*(.*)$/);
+          if (!match) return esc(value);
+          return '<strong>' + esc(match[1].trim()) + ':</strong> <span>' + esc(stripDisplayQuotes(match[2])) + '</span>';
+        }
+
+        function isHeadingLine(line) {
+          var value = displayLine(line);
+          return value.length <= 88 && value.indexOf(":") === -1 && !/[.!?]$/.test(value);
+        }
+
+        function formatAssessmentLines(lines) {
+          if (!lines.length) return "";
+          var numbered = lines.every(function (line) { return /^\d+\.\s+/.test(line); });
+          if (numbered) {
+            return '<ol class="review-list">' + lines.map(function (line) {
+              return "<li>" + inlineFormattedLine(displayLine(line).replace(/^\d+\.\s+/, "")) + "</li>";
+            }).join("") + "</ol>";
+          }
+          return '<div class="structured-lines">' + lines.map(function (line) {
+            var labelled = labelledHtml(line);
+            if (labelled) return labelled;
+            return '<p class="section-note">' + esc(displayLine(line)) + "</p>";
+          }).join("") + "</div>";
+        }
+
         function formatSectionText(value) {
           var blocks = String(value || "").split(/\n{2,}/).map(function (block) {
             return block.trim();
           }).filter(Boolean);
           if (!blocks.length) return '<p class="was">No assessment text yet.</p>';
           return blocks.map(function (block) {
-            var lines = block.split(/\n/).map(function (line) { return line.trim(); }).filter(Boolean);
-            if (lines.length > 1 && lines[0].length <= 72 && !/[.!?]$/.test(lines[0])) {
-              return '<h6>' + esc(lines[0]) + '</h6><p>' + esc(lines.slice(1).join("\n")).replace(/\n/g, "<br>") + "</p>";
+            var lines = block.split(/\n/).map(function (line) { return displayLine(line); }).filter(Boolean);
+            if (!lines.length) return "";
+            if (lines.length > 1 && isHeadingLine(lines[0])) {
+              return '<h6>' + esc(lines[0]) + '</h6>' + formatAssessmentLines(lines.slice(1));
             }
-            if (lines.length === 1 && lines[0].length <= 72 && !/[.!?]$/.test(lines[0])) {
+            if (lines.length === 1 && isHeadingLine(lines[0])) {
               return '<h6>' + esc(lines[0]) + "</h6>";
             }
-            return '<p>' + esc(block).replace(/\n/g, "<br>") + "</p>";
+            return formatAssessmentLines(lines);
           }).join("");
         }
 
@@ -2658,7 +2801,7 @@
           return '<div class="narr"><h4>Review orientation</h4>' +
             '<p>This section organises the application for panel review. Applicant responses remain unchanged; all assessment text and scores below are editable by the reviewer.</p>' +
             '<h5>Indicative curriculum alignment</h5><p>' + esc(a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "No single component is prioritised") + '</p>' +
-            '<h5>Research commitment</h5><p>Review the proposed question, method, data route, feasibility, track record, ownership, and institutional relevance. Record the panel judgement in the editable assessment and score fields.</p>' +
+            '<h5>Research commitment</h5><p>Review the proposed question, method, data route, feasibility, track record, ownership, and institutional relevance. Record the reviewer judgement in the editable assessment and score fields.</p>' +
             '<button class="primary" id="insertDraft" type="button">Insert review note under your name</button>' +
             '</div>' +
             '<div class="narr analysis-editor"><h4>Panel assessment</h4>' +
