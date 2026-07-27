@@ -1365,6 +1365,28 @@
         align-items: center;
       }
 
+      .noteform .note-help {
+        color: var(--muted);
+        font-size: 11.5px;
+        line-height: 1.45;
+      }
+
+      .noteform .submit-review {
+        border-color: var(--navy);
+        background: var(--navy);
+        color: #fff;
+      }
+
+      .noteform .submit-review:hover {
+        background: #051538;
+      }
+
+      .noteform #noteMessageArea .status,
+      .noteform #noteMessageArea .error,
+      .noteform #noteMessageArea .success {
+        margin: 0;
+      }
+
       @media (max-width: 700px) {
         header.masthead,
         .toolbar,
@@ -1500,9 +1522,12 @@
               <select id="panelStageRec"></select>
             </label>
           </div>
+          <div class="note-help">Save draft keeps a working comment visible to the panel. Submit review records your verdict and recommended next step; Cecil or a review manager can also move the official stage.</div>
           <textarea id="noteTxt" placeholder="Write your panel comment. It will be tagged with your reviewer name and visible to the other reviewers."></textarea>
+          <div id="noteMessageArea"></div>
           <div class="note-actions">
-            <button class="primary" id="addNote" type="button">Save panel comment</button>
+            <button class="primary" id="addNote" type="button">Save draft comment</button>
+            <button class="submit-review" id="submitReview" type="button">Submit review</button>
             <button id="cancelNoteEdit" type="button">Cancel edit</button>
           </div>
         </div>
@@ -1615,7 +1640,28 @@
         }
 
         function showMessage(targetId, type, text) {
-          $(targetId).innerHTML = text ? '<p class="' + type + '">' + esc(text) + "</p>" : "";
+          var target = $(targetId);
+          if (target) target.innerHTML = text ? '<p class="' + type + '">' + esc(text) + "</p>" : "";
+        }
+
+        function showNoteMessage(type, text) {
+          showMessage("noteMessageArea", type, text);
+          if (text) showMessage("reviewMessageArea", type, text);
+        }
+
+        function setPanelBusy(action, busy) {
+          var draft = $("addNote");
+          var submit = $("submitReview");
+          var cancel = $("cancelNoteEdit");
+          if (draft) {
+            draft.disabled = busy;
+            draft.textContent = action === "draft" && busy ? "Saving draft..." : "Save draft comment";
+          }
+          if (submit) {
+            submit.disabled = busy;
+            submit.textContent = action === "submit" && busy ? "Submitting review..." : "Submit review";
+          }
+          if (cancel) cancel.disabled = busy;
         }
 
         var otpWaitTimer = 0;
@@ -2916,7 +2962,9 @@
           if ($("panelStageRec")) $("panelStageRec").innerHTML = optionsHtml(STAGE_RECOMMENDATIONS, latest && latest.eligibility_decision || "Keep current stage");
           if (!state.editingNoteId && $("noteTxt")) {
             $("noteTxt").value = "";
-            $("addNote").textContent = "Save panel comment";
+            $("addNote").textContent = "Save draft comment";
+            if ($("submitReview")) $("submitReview").textContent = "Submit review";
+            showMessage("noteMessageArea", "", "");
           }
           if ($("managerStageButton")) $("managerStageButton").onclick = function () {
             updateStage(id, $("managerStageSelect").value);
@@ -2930,7 +2978,7 @@
               $("noteTxt").value = note.note || "";
               if ($("panelVerdict")) $("panelVerdict").value = score && score.recommendation || "Maybe / discuss";
               if ($("panelStageRec")) $("panelStageRec").value = score && score.eligibility_decision || "Keep current stage";
-              $("addNote").textContent = "Save panel comment";
+              $("addNote").textContent = "Save draft comment";
               $("noteTxt").focus();
             };
           });
@@ -3016,7 +3064,9 @@
           if ($("cancelNoteEdit")) $("cancelNoteEdit").onclick = function () {
             state.editingNoteId = "";
             if ($("noteTxt")) $("noteTxt").value = "";
-            if ($("addNote")) $("addNote").textContent = "Save panel comment";
+            if ($("addNote")) $("addNote").textContent = "Save draft comment";
+            if ($("submitReview")) $("submitReview").textContent = "Submit review";
+            showMessage("noteMessageArea", "", "");
             drawNotes(id);
           };
         }
@@ -3157,23 +3207,57 @@
             });
         }
 
-        function saveNote() {
+        function officialStageFromRecommendation(value) {
+          var wanted = String(value || "").trim();
+          if (!wanted || wanted === "Keep current stage" || wanted === "Do not progress") return "";
+          return STAGES.some(function (stage) { return stage.label === wanted; }) ? wanted : "";
+        }
+
+        function defaultSubmittedNote(verdict, stageRecommendation) {
+          return "Review submitted. Verdict: " + verdict + ". Recommended next step: " + stageRecommendation + ".";
+        }
+
+        function resetPanelForm(id, successMessage) {
+          state.editingNoteId = "";
+          if ($("noteTxt")) $("noteTxt").value = "";
+          setPanelBusy("", false);
+          openApp(id);
+          render();
+          showNoteMessage("success", successMessage);
+        }
+
+        function savePanelReview(options) {
+          options = options || {};
+          var final = !!options.final;
           var id = state.openId;
           var note = ($("noteTxt").value || "").trim();
-          if (!id || !note) return;
+          if (!id) {
+            showNoteMessage("error", "Open an applicant before saving a panel comment.");
+            return;
+          }
           var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+          if (!app) {
+            showNoteMessage("error", "This applicant could not be found. Refresh from Sheets and try again.");
+            return;
+          }
           var current = effective(app, app.assessment);
           var verdict = $("panelVerdict") && $("panelVerdict").value || "Maybe / discuss";
           var stageRecommendation = $("panelStageRec") && $("panelStageRec").value || "Keep current stage";
+          if (!note && !final) {
+            showNoteMessage("error", "Write a short panel comment before saving a draft. Use Submit review if you want to record the verdict now.");
+            return;
+          }
+          if (!note && final) note = defaultSubmittedNote(verdict, stageRecommendation);
           var existingNote = state.editingNoteId ? state.notes.filter(function (item) { return String(item.note_id) === String(state.editingNoteId); })[0] : null;
           var editingAnotherReviewer = existingNote &&
             String(existingNote.author_email || "").toLowerCase() &&
             String(existingNote.author_email || "").toLowerCase() !== reviewerEmail();
+          var stageToMove = final && isReviewManager() ? officialStageFromRecommendation(stageRecommendation) : "";
           var payload = {
             applicationId: id,
             noteId: state.editingNoteId || "",
             note: note,
-            stage: stageFor(id)
+            stage: stageToMove || stageFor(id)
           };
           var scorePayload = {
             applicationId: id,
@@ -3188,30 +3272,52 @@
               weighted: app.assessment.weightedScore,
               bestFit: app.assessment.bestFit && app.assessment.bestFit.code
             },
-            reason: "Panel recommendation: " + verdict + "; suggested next step: " + stageRecommendation + ". " + note.slice(0, 420)
+            reason: (final ? "Submitted review: " : "Panel recommendation: ") + verdict + "; suggested next step: " + stageRecommendation + ". " + note.slice(0, 420)
           };
-          showMessage("reviewMessageArea", "status", state.editingNoteId ? "Saving panel comment edit..." : "Saving panel recommendation...");
-          var scoreJob = editingAnotherReviewer ? Promise.resolve(null) : jsonp("saveReviewScore", reviewPayload(scorePayload), 30000).then(function (scoreResult) {
-            var scoreIndex = state.scores.findIndex(function (row) { return row.score_id === scoreResult.score.score_id; });
-            if (scoreIndex >= 0) state.scores[scoreIndex] = scoreResult.score;
-            else state.scores.push(scoreResult.score);
-            return scoreResult;
-          });
+          setPanelBusy(final ? "submit" : "draft", true);
+          showNoteMessage("status", final ? "Submitting review to Google Sheets..." : (state.editingNoteId ? "Saving panel comment edit..." : "Saving draft panel comment..."));
+          var scoreJob = final && !editingAnotherReviewer
+            ? jsonp("saveReviewScore", reviewPayload(scorePayload), 30000).then(function (scoreResult) {
+              var scoreIndex = state.scores.findIndex(function (row) { return row.score_id === scoreResult.score.score_id; });
+              if (scoreIndex >= 0) state.scores[scoreIndex] = scoreResult.score;
+              else state.scores.push(scoreResult.score);
+              return scoreResult;
+            })
+            : Promise.resolve(null);
           scoreJob.then(function () {
             return jsonp("saveReviewNote", reviewPayload(payload), 30000);
           }).then(function (result) {
             var index = state.notes.findIndex(function (row) { return row.note_id === result.note.note_id; });
             if (index >= 0) state.notes[index] = result.note;
             else state.notes.push(result.note);
-            state.editingNoteId = "";
-            $("noteTxt").value = "";
-            $("addNote").textContent = "Save panel comment";
-            showMessage("reviewMessageArea", "success", "Panel comment saved.");
-            openApp(id);
-            render();
+            if (!stageToMove) return { stageMoved: false };
+            return jsonp("updateReviewStage", reviewPayload({
+              applicationId: id,
+              stage: stageToMove,
+              reason: "Review manager submitted review and moved official stage to " + stageToMove + "."
+            }), 30000).then(function (stageResult) {
+              var stageIndex = state.stages.findIndex(function (row) { return String(row.application_id) === String(id); });
+              if (stageIndex >= 0) state.stages[stageIndex] = stageResult.stage;
+              else state.stages.push(stageResult.stage);
+              return { stageMoved: true, stage: stageToMove };
+            });
+          }).then(function (result) {
+            var message = final
+              ? "Review submitted. " + (result && result.stageMoved ? "Official stage moved to " + result.stage + "." : "The reviewer recommendation is saved; the official stage is unchanged.")
+              : "Draft panel comment saved.";
+            resetPanelForm(id, message);
           }).catch(function (error) {
-            showMessage("reviewMessageArea", "error", error.message || "Panel comment save failed.");
+            setPanelBusy("", false);
+            showNoteMessage("error", error.message || (final ? "Review submission failed." : "Panel comment save failed."));
           });
+        }
+
+        function saveNote() {
+          savePanelReview({ final: false });
+        }
+
+        function submitReview() {
+          savePanelReview({ final: true });
         }
 
         function withdrawNote(noteId) {
@@ -3250,7 +3356,9 @@
           $("drawer").classList.remove("open");
           $("scrim").classList.remove("open");
           state.editingNoteId = "";
-          $("addNote").textContent = "Save panel comment";
+          $("addNote").textContent = "Save draft comment";
+          if ($("submitReview")) $("submitReview").textContent = "Submit review";
+          showMessage("noteMessageArea", "", "");
         }
 
         function exportJson() {
@@ -3455,6 +3563,7 @@
         $("closeBtn").addEventListener("click", closeDrawer);
         $("scrim").addEventListener("click", closeDrawer);
         $("addNote").addEventListener("click", saveNote);
+        $("submitReview").addEventListener("click", submitReview);
         Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (button) {
           button.addEventListener("click", function () {
             Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (item) { item.classList.remove("on"); });
