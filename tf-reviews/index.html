@@ -1632,7 +1632,7 @@
           },
           epidemiologyHealth: {
             label: "epidemiology or health application",
-            patterns: [/epidemiolog|infectious|transmission|pathogen|outbreak|epidemic|pandemic|disease|public health|health system|health policy|healthcare|health care|community health|surveillance|clinical|patient|hospital|registry|case data|routine health|health records|biology|biological|biomedical|bioinformatics|genomic|immunology|virology|parasite|vector|malaria|hiv|tuberculosis|\btb\b|yellow fever|cholera|measles|covid|influenza|cancer|diabetes|maternal|neonatal|\bncd\b|kemri|kenya|nairobi|africa|east africa|sub-saharan|ministry of health/i]
+            patterns: [/epidemiolog|infectious|transmission|pathogen|outbreak|epidemic|pandemic|disease|public health|health system|health policy|healthcare|health care|community health|surveillance|clinical|patient|hospital|registry|case data|routine health|health records|biology|biological|biomedical|bioinformatics|genomic|immunology|virology|parasite|vector-borne|disease vector|mosquito|malaria|hiv|tuberculosis|\btb\b|yellow fever|cholera|measles|covid|influenza|cancer|diabetes|maternal|neonatal|\bncd\b|kemri|ministry of health/i]
           },
           mathematicalModelling: {
             label: "mathematical modelling",
@@ -2070,7 +2070,58 @@
           var clean = cleanEvidence(value);
           if (!clean) return "";
           var words = clean.split(/\s+/);
-          return words.slice(0, limit || 34).join(" ") + (words.length > (limit || 34) ? "..." : "");
+          return words.slice(0, limit || 34).join(" ").replace(/[;,:\s]+$/, "");
+        }
+
+        function sentenceEvidence(value, limit) {
+          var clean = cleanEvidence(value);
+          if (!clean) return "";
+          var first = clean.match(/^(.{1,260}?)([.!?]|$)/);
+          var text = first && first[1] ? first[1].trim() : clean;
+          return shortEvidence(text, limit || 38);
+        }
+
+        function hasTextSignal(text, pattern) {
+          return pattern.test(cleanEvidence(text));
+        }
+
+        function joinOrFallback(rows, fallback) {
+          var unique = rows.filter(Boolean).filter(function (item, index, list) {
+            return list.indexOf(item) === index;
+          });
+          return unique.length ? unique.join("; ") : fallback;
+        }
+
+        function methodProfile(app) {
+          var text = allText(app);
+          var methods = [];
+          if (hasTextSignal(text, /bayesian|prior|posterior|mcmc|probabilistic/i)) methods.push("Bayesian inference");
+          if (hasTextSignal(text, /time series|autoregressive|forecast|temporal|longitudinal/i)) methods.push("time-series modelling");
+          if (hasTextSignal(text, /machine learning|artificial intelligence|\bAI\b|data science|classification|clustering/i)) methods.push("machine learning or data science");
+          if (hasTextSignal(text, /regression|statistics|statistical|biostatistics|likelihood|inference/i)) methods.push("statistical modelling");
+          if (hasTextSignal(text, /differential equation|dynamical|compartmental|mathematical model|simulation/i)) methods.push("mathematical modelling");
+          if (hasTextSignal(text, /survival|hazard|cox|time-to-event|time to event/i)) methods.push("survival or event-history analysis");
+          if (hasTextSignal(text, /programming|python|\bR\b|stata|spss|matlab|julia|sql|computational/i)) methods.push("computational implementation");
+          return joinOrFallback(methods, "no specific quantitative method is clearly named");
+        }
+
+        function applicationDomainProfile(app) {
+          var text = allText(app);
+          var domains = [];
+          if (hasTextSignal(text, /epidemiolog|infectious|transmission|outbreak|surveillance|malaria|hiv|tuberculosis|\btb\b|yellow fever|cholera|vector-borne|disease vector|mosquito|public health/i)) domains.push("epidemiology and infectious-disease or surveillance settings");
+          if (hasTextSignal(text, /maternal|child|neonatal|reproductive|clinical|patient|hospital|health system|healthcare|health care/i)) domains.push("clinical, health-systems, or maternal and child health settings");
+          if (hasTextSignal(text, /biology|biological|biomedical|bioinformatics|genomic|immunology|virology|parasite/i)) domains.push("biological or biomedical applications");
+          if (hasTextSignal(text, /energy|petroleum|macroeconomic|econometric|market dynamics|financial|finance|economic/i)) domains.push("economics, markets, energy, or other non-health systems");
+          if (hasTextSignal(text, /climate|ecological|environment|one health|water|sanitation/i)) domains.push("environment, climate, or One Health settings");
+          return joinOrFallback(domains, "the application domain is not yet explicit");
+        }
+
+        function nonHealthFocus(app) {
+          return hasTextSignal([app.researchPlan, app.researchArea, app.thesisTitleExplainer, app.researchExperience].join(" "), /energy|petroleum|macroeconomic|econometric|market dynamics|financial|finance|economic/i);
+        }
+
+        function healthFocus(app) {
+          return hasTextSignal(allText(app), /epidemiolog|health|disease|surveillance|clinical|malaria|hiv|tuberculosis|\btb\b|maternal|child|public health|hospital|patient|vector-borne|disease vector|mosquito|outbreak|biology|biomedical|bioinformatics|one health/i);
         }
 
         function evidenceLength(value) {
@@ -2189,30 +2240,56 @@
         }
 
         function actualBackground(app) {
-          var parts = [];
-          if (cleanEvidence(app.phdField)) parts.push("PhD field: " + cleanEvidence(app.phdField));
-          if (cleanEvidence(app.thesisTitleExplainer)) parts.push("Doctoral work: " + cleanEvidence(app.thesisTitleExplainer));
-          if (cleanEvidence(app.researchArea)) parts.push("Research area: " + cleanEvidence(app.researchArea));
-          if (cleanEvidence(app.quantitativeBackground)) parts.push("Quantitative preparation: " + cleanEvidence(app.quantitativeBackground));
-          if (cleanEvidence(app.appliedTrackRecord)) parts.push("Applied record: " + cleanEvidence(app.appliedTrackRecord));
-          return parts.length ? parts.join("\n") : "The form does not provide enough detail to describe the applicant's disciplinary background reliably.";
+          var field = cleanEvidence(app.phdField);
+          var thesis = sentenceEvidence(app.thesisTitleExplainer, 46);
+          var area = cleanEvidence(app.researchArea);
+          var methods = methodProfile(app);
+          var domains = applicationDomainProfile(app);
+          var applied = sentenceEvidence(app.appliedTrackRecord || app.researchExperience, 44);
+          var interpretation = "";
+          if (healthFocus(app) && nonHealthFocus(app)) {
+            interpretation = "The record shows a mixed profile: relevant quantitative methods and some health-facing language, but also a visible non-health research strand. The reviewer should separate method readiness from direct epidemiology or public-health readiness.";
+          } else if (healthFocus(app)) {
+            interpretation = "The background is plausibly aligned to MathEpi because the applicant connects quantitative methods to health, epidemiology, biological, clinical, or public-health problems.";
+          } else if (nonHealthFocus(app)) {
+            interpretation = "The quantitative background may be useful, but the application does not yet establish a direct MathEpi or KEMRI health-research home. Treat health-course fit as something to verify rather than assume.";
+          } else {
+            interpretation = "The disciplinary base is visible, but the application needs a clearer bridge to the specific MathEpi teaching and health-research context.";
+          }
+          return [
+            "Disciplinary base: " + (field || "not clearly stated in the form"),
+            "Doctoral work: " + (thesis || "not clearly stated in the form"),
+            "Research area: " + (area || "not clearly stated in the form"),
+            "Methods signalled: " + methods,
+            "Application domains signalled: " + domains,
+            "Applied record: " + (applied || "not enough detail provided to assess applied work"),
+            "Reviewer reading: " + interpretation
+          ].join("\n");
         }
 
         function courseJudgement(a) {
           var immediate = a.components.filter(function (item) {
-            return item.verdict === "lecture" && item.confidence === "high";
+            return item.verdict === "lecture" && item.confidence === "high" && !item.caveat;
           }).slice(0, 4);
           var orientation = a.components.filter(function (item) {
-            return item.verdict === "tutor" || (item.verdict === "lecture" && item.confidence !== "high");
+            return item.verdict === "tutor" || item.caveat || (item.verdict === "lecture" && item.confidence !== "high");
           }).slice(0, 5);
-          var unsupported = [];
+          var unsupported = a.components.filter(function (item) {
+            return item.verdict === "gap" && item.caveat;
+          }).slice(0, 5);
+          var cautions = a.components.filter(function (item) {
+            return item.caveat;
+          }).slice(0, 4);
           function names(rows) {
             return rows.length ? rows.map(function (item) { return item.code + " " + item.title; }).join("; ") : "none established from the form";
           }
           return {
             immediate: names(immediate),
             orientation: names(orientation),
-            unsupported: names(unsupported)
+            unsupported: names(unsupported),
+            cautions: cautions.length ? cautions.map(function (item) {
+              return item.code + ": " + item.caveat;
+            }).join(" ") : "No major course-domain caution generated from the current evidence."
           };
         }
 
@@ -2226,7 +2303,7 @@
             : score >= 50 ? "Plausible, with some concrete support."
             : score >= 30 ? "Partly supported but requires clarification."
             : "Claimed or implied, but not adequately evidenced.";
-          return { label: label, score: score, matched: matched, evidence: shortEvidence(text, 34), judgement: judgement };
+          return { label: label, score: score, matched: matched, evidence: sentenceEvidence(text, 38), judgement: judgement };
         }
 
         function evidenceGapQuestions(app, a) {
@@ -2357,7 +2434,7 @@
               { label: "defined next step", pattern: /(next step|workplan|timeline|milestone|deliverable|submit|complete|develop)/i }
             ]),
             criterion("KEMRI, AIMS RIC and African relevance", fitText, [
-              { label: "health or epidemiological problem", pattern: /(health|disease|epidem|surveillance|clinical|malaria|hiv|tb|vector|maternal|child|ncd|one health|outbreak)/i },
+              { label: "health or epidemiological problem", pattern: /(health|disease|epidem|surveillance|clinical|malaria|hiv|tb|vector-borne|disease vector|mosquito|maternal|child|ncd|one health|outbreak)/i },
               { label: "African or Kenyan anchor", pattern: /(africa|kenya|nairobi|kemri|east africa|rwanda|cameroon|uganda|tanzania|ghana|senegal)/i },
               { label: "quantitative AIMS RIC contribution", pattern: /(model|statistics|data science|machine learning|inference|simulation|bayesian|forecast|prediction|computational)/i }
             ])
@@ -2374,7 +2451,7 @@
 
         function institutionalFit(text) {
           var value = cleanEvidence(text);
-          var disease = /(malaria|hiv|tuberculosis|tb|infectious|vector|maternal|child|ncd|one health|vaccine|clinical|surveillance|outbreak|public health)/i.test(value);
+          var disease = /(malaria|hiv|tuberculosis|tb|infectious|vector-borne|disease vector|mosquito|maternal|child|ncd|one health|vaccine|clinical|surveillance|outbreak|public health)/i.test(value);
           var method = /(model|statistics|informatics|machine learning|data science|bayesian|spatial|epidemiology|predictive|simulation|inference)/i.test(value);
           var anchor = /(kemri|kenya|nairobi|africa|east africa)/i.test(value);
           if (disease && method && anchor) return { label: "clear home", explanation: "The application links a health problem, a quantitative method, and an African or Kenyan institutional setting." };
@@ -2795,7 +2872,7 @@
         function possibleKemriHomes(app) {
           var text = allText(app).toLowerCase();
           var homes = [];
-          if (hasAny(text, /malaria|vector|mosquito|arbovirus|parasite|parasitic/)) homes.push("Centre for Vector Diseases Control, Centre for Global Health Research, Centre for Geographic Medicine Research Coast, or the Infectious and Parasitic Disease Programme");
+          if (hasAny(text, /malaria|vector-borne|disease vector|mosquito|arbovirus|parasite|parasitic/)) homes.push("Centre for Vector Diseases Control, Centre for Global Health Research, Centre for Geographic Medicine Research Coast, or the Infectious and Parasitic Disease Programme");
           if (hasAny(text, /hiv|tb|tuberculosis|respiratory|pneumonia|influenza|covid|mpox|virus|viral/)) homes.push("Centre for Virus Research, Centre for Respiratory Diseases Research, Centre for Disease Control and Surveillance, or relevant infectious-disease programmes");
           if (hasAny(text, /surveillance|outbreak|epidemic|disease control|early warning|routine data|monitoring/)) homes.push("Centre for Disease Control and Surveillance, DESI, or Public Health and Health Research Systems Programme");
           if (hasAny(text, /maternal|child|adolescent|reproductive|pregnancy|neonatal/)) homes.push("Sexual Reproductive, Adolescent and Child Health Programme, Centre for Public Health Research, or clinical/community health groups");
@@ -2826,8 +2903,9 @@
 
         function institutionalFitBand(app, a) {
           var text = allText(app).toLowerCase();
-          var health = hasAny(text, /health|disease|epidem|surveillance|clinical|public health|malaria|hiv|tb|virus|vector|ncd|maternal|child|one health|outbreak/);
+          var health = hasAny(text, /health|disease|epidem|surveillance|clinical|public health|malaria|hiv|tb|virus|vector-borne|disease vector|mosquito|ncd|maternal|child|one health|outbreak/);
           var method = hasAny(text, /model|statistics|statistical|data science|machine learning|inference|simulation|bayesian|forecast|prediction|computational/);
+          if (planHasNonHealthFocus(app) && !planHasHealthFocus(app)) return health ? "Fit would need brokering" : "Weak fit";
           if (health && method) return "Clear fit";
           if (health || method) return "Plausible fit";
           if (a.researchScore >= 35) return "Fit would need brokering";
@@ -2857,14 +2935,107 @@
             '</div></section>';
         }
 
+        function dimensionByLabel(a, label) {
+          return (a.researchDimensions || []).filter(function (item) { return item.label === label; })[0] || { score: 0, judgement: "Not evidenced in the application.", matched: [], evidence: "" };
+        }
+
+        function dimensionReading(item) {
+          var marker = item.matched && item.matched.length ? " Evidence markers: " + item.matched.join(", ") + "." : "";
+          var evidence = item.evidence ? " Applicant evidence: " + item.evidence + "." : "";
+          return item.judgement + evidence + marker;
+        }
+
+        function planHasHealthFocus(app) {
+          return hasTextSignal(app.researchPlan, /epidemiolog|health|disease|surveillance|clinical|malaria|hiv|tuberculosis|\btb\b|maternal|child|public health|hospital|patient|vector-borne|disease vector|mosquito|outbreak|biology|biomedical|bioinformatics|one health/i);
+        }
+
+        function planHasNonHealthFocus(app) {
+          return hasTextSignal(app.researchPlan, /energy|petroleum|macroeconomic|econometric|market dynamics|financial|finance|economic/i);
+        }
+
+        function researchAssessmentNarrative(app, a) {
+          var question = dimensionByLabel(a, "Research question and contribution");
+          var method = dimensionByLabel(a, "Methodological specification");
+          var data = dimensionByLabel(a, "Data and feasibility at 30 per cent");
+          var track = dimensionByLabel(a, "Relevant research track record");
+          var ownership = dimensionByLabel(a, "Independence and ownership");
+          var fit = dimensionByLabel(a, "KEMRI, AIMS RIC and African relevance");
+          var plan = sentenceEvidence(app.researchPlan, 58);
+          var experience = sentenceEvidence(app.researchExperience || app.appliedTrackRecord || app.thesisTitleExplainer, 54);
+          var broaderHealthEvidence = sentenceEvidence([app.researchArea, app.researchExperience, app.appliedTrackRecord, app.thesisTitleExplainer].join(" "), 54);
+          var methods = methodProfile(app);
+          var domains = applicationDomainProfile(app);
+          var healthInPlan = planHasHealthFocus(app);
+          var nonHealthInPlan = planHasNonHealthFocus(app);
+          var healthSomewhere = healthFocus(app);
+          var fitReading;
+          if (nonHealthInPlan && !healthInPlan) {
+            fitReading = "The current research plan appears centred on a non-health quantitative problem. That may still be methodologically valuable, but it should not be treated as a KEMRI-facing project unless the applicant shows a credible route into health, epidemiology, surveillance, clinical, biological, or health-systems data.";
+          } else if (nonHealthInPlan && healthInPlan) {
+            fitReading = "The plan mixes a non-health quantitative strand with a health-facing strand. The reviewer should identify which strand would actually be pursued during the fellowship and whether the health strand is substantial enough for the MathEpi setting.";
+          } else if (healthInPlan) {
+            fitReading = "The proposed work is health-facing in the application text. The reviewer should still verify the named data source, KEMRI host or collaborator, and feasible output within the protected research time.";
+          } else if (healthSomewhere) {
+            fitReading = "The broader profile contains health-related experience, but the proposed project needs a clearer health or epidemiological anchor before it is counted as a strong KEMRI fit.";
+          } else {
+            fitReading = "The application shows quantitative ability, but the research fit to MathEpi, KEMRI, and AIMS RIC is not yet established from the submitted text.";
+          }
+          var fitJudgement;
+          if (nonHealthInPlan && !healthInPlan) {
+            fitJudgement = "Institutional fit is unresolved. The proposed research title and first description point to a non-health quantitative problem. " +
+              (healthSomewhere ? "Health relevance appears elsewhere in the profile, for example: " + broaderHealthEvidence + "." : "No separate health-facing evidence is strong enough to bridge the plan by itself.");
+          } else if (healthInPlan) {
+            fitJudgement = dimensionReading(fit);
+          } else if (healthSomewhere) {
+            fitJudgement = "Plausible but indirect. The broader profile contains health-facing evidence, but the proposed project should name the health problem, dataset, and likely KEMRI home more clearly.";
+          } else {
+            fitJudgement = "Weakly evidenced. The response does not yet identify the health, epidemiological, clinical, biological, or health-systems setting needed for a strong KEMRI fit.";
+          }
+          return "Research direction\n" +
+            "Proposed focus: " + (plan || "No clear proposed research plan is visible in the form.") + "\n" +
+            "Application domains: " + domains + "\n\n" +
+            "Methods and technical strength\n" +
+            "Methods signalled: " + methods + "\n" +
+            "Method judgement: " + dimensionReading(method) + "\n\n" +
+            "Data route and feasibility\n" +
+            "Feasibility judgement: " + dimensionReading(data) + "\n" +
+            "Reviewer reading: A strong score here requires a named or realistically accessible dataset, a bounded analysis plan, and an output that can be completed within the 30 per cent research allocation.\n\n" +
+            "Track record and ownership\n" +
+            "Relevant prior work: " + (experience || "The form does not provide a concise prior-work example.") + "\n" +
+            "Track-record judgement: " + dimensionReading(track) + "\n" +
+            "Ownership judgement: " + dimensionReading(ownership) + "\n\n" +
+            "Programme and institutional fit\n" +
+            "Fit judgement: " + fitJudgement + "\n" +
+            "Reviewer reading: " + fitReading + "\n\n" +
+            "Overall research judgement\n" +
+            "Research question and contribution: " + dimensionReading(question) + "\n" +
+            "Reviewer judgement: Verify the proposed data-access route, the applicant's own methodological contribution, the intended output, and whether the work can become a productive MathEpi research project rather than only a technically strong but off-domain exercise.";
+        }
+
+        function savedTextOrDefault(value, fallback) {
+          var text = String(value || "").trim();
+          if (!text) return fallback;
+          var oldGenerated = /\.\.\./.test(text) ||
+            /Strongest immediate contribution:/i.test(text) ||
+            /The assessment considers whether the application establishes/i.test(text) ||
+            /Applicant evidence:[\s\S]*Evidence markers:/i.test(text);
+          return oldGenerated ? fallback : text;
+        }
+
         function generalEvaluationSummary(app, a, map, homes, fitBand, questions) {
           var strengths = [];
           var risks = [];
           var gaps = [];
-          if (a.bestFit) strengths.push("The strongest course signal is " + a.bestFit.code + " " + a.bestFit.title + ", with additional immediate alignment to " + map.immediate + ".");
+          if (a.bestFit) {
+            strengths.push("The strongest course signal is " + a.bestFit.code + " " + a.bestFit.title +
+              (map.immediate === "none established from the form"
+                ? ". No component is automatically treated as ready for direct teaching without panel verification."
+                : ", with direct support for " + map.immediate + "."));
+          }
           if (a.delivery.score >= 70) strengths.push("Teaching and student-support evidence is concrete enough to support a serious panel discussion of tutorial readiness.");
           else risks.push("Teaching readiness remains below exceptional level until the reviewer confirms actual course level, delivery frequency, assessment responsibility, and hands-on session experience.");
-          if (a.researchScore >= 70) strengths.push("The research case gives a defined health or epidemiological problem, quantitative direction, and enough methodological detail to assess the protected research allocation.");
+          if (a.researchScore >= 70 && healthFocus(app) && !planHasNonHealthFocus(app)) strengths.push("The research case gives a defined health or epidemiological problem, quantitative direction, and enough methodological detail to assess the protected research allocation.");
+          else if (a.researchScore >= 70) risks.push("The research score is methodologically strong, but the panel should check whether the proposed project is genuinely health-facing and not mainly an adjacent non-health quantitative exercise.");
           else risks.push("The research plan needs sharper evidence on the precise question, method, data route, output, ownership, or feasibility within the 30 per cent research allocation.");
           strengths.push("The likely institutional fit is " + fitBand.toLowerCase() + ", with possible KEMRI homes including " + homes.slice(0, 2).join("; ") + ".");
           if (a.eligibility.reasons.length && a.eligibility.reasons[0] !== "All deterministic gate checks passed.") {
@@ -2885,9 +3056,6 @@
           var map = courseJudgement(a);
           var homes = possibleKemriHomes(app);
           var fitBand = institutionalFitBand(app, a);
-          var researchDims = a.researchDimensions.map(function (d) {
-            return d.label + ": " + d.judgement + " Applicant evidence: " + (d.evidence || "No supporting wording was located in the submitted response.") + (d.matched && d.matched.length ? " Evidence markers: " + d.matched.join(", ") + "." : "");
-          }).join("\n");
           var questions = evidenceGapQuestions(app, a);
           var defaults = {
             eligibility: "Eligibility judgement\n" +
@@ -2900,9 +3068,10 @@
               responseSource("Residence and teaching-continuity readiness", "Residence: " + (app.residenceReady || "not stated") + "; continuity duty: " + (app.teachingGapReady || "not stated")),
 
             bestFit: "Academic and professional background\n" + actualBackground(app) +
-              "\n\nCurriculum alignment\nStrongest immediate contribution: " + map.immediate +
-              ".\nPotential contribution after programme orientation: " + map.orientation +
-              ".\n\nReviewer commentary\nThe applicant's strongest curriculum alignment is summarised above. The reviewer should confirm the level of responsibility, depth of subject mastery, and readiness to deliver the named components.",
+              "\n\nCurriculum alignment\nDirectly supported from the form: " + map.immediate +
+              ".\nPossible after programme orientation or at tutorial-support level: " + map.orientation +
+              ".\nCourse-fit cautions: " + map.cautions +
+              "\n\nReviewer commentary\nRead the course list as an evidence map, not a final allocation. Strong quantitative methods can support data, statistics, and modelling components, but health-facing courses require evidence that the applicant can work with epidemiological, clinical, biological, surveillance, or public-health material.",
 
             delivery: "Delivery assessment\n" +
               deliveryQuestionAssessment("1. Teaching experience", app.teachingExperience, "teaching") + "\n\n" +
@@ -2913,14 +3082,12 @@
             teaching: "Teaching assessment\n" +
               "The application currently supports the strongest contribution in " +
               (a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "no clearly established course area") + ".\n\n" +
-              "Can contribute immediately: " + map.immediate + ".\n" +
-              "Could contribute after orientation: " + map.orientation + ".\n\n" +
-              "Reviewer judgement: Confirm course level, actual responsibility, frequency of delivery, assessment experience, and ability to support practical sessions.",
+              "Direct teaching signal: " + map.immediate + ".\n" +
+              "Tutorial, marking, or orientation-dependent signal: " + map.orientation + ".\n" +
+              "Course-domain caution: " + map.cautions + "\n\n" +
+              "Reviewer judgement: Confirm course level, actual responsibility, frequency of delivery, assessment experience, and ability to support hands-on sessions. Do not treat a methods match as epidemiology readiness unless the health-domain evidence is also present.",
 
-            research: "Research assessment\n" +
-              "The assessment considers whether the application establishes a defined research problem, an appropriate method, an identifiable data source, a feasible scope, relevant prior work, intellectual ownership, and institutional fit.\n\nCriterion record\n" +
-              researchDims +
-              "\n\nReviewer judgement: Verify the proposed data-access route, the applicant's own methodological contribution, the intended output, and whether the work can be completed within the protected research allocation.",
+            research: researchAssessmentNarrative(app, a),
 
             institutionalFit: "Institutional-fit judgement\n" + fitBand + ". " +
               (a.institutionalFit.explanation || "The panel should judge both the health-research home and the quantitative contribution.") +
@@ -2939,15 +3106,15 @@
           };
           if (!saved) return defaults;
           return {
-            eligibility: saved.eligibility_text || defaults.eligibility,
-            bestFit: saved.best_fit_text || defaults.bestFit,
-            delivery: saved.delivery_text || defaults.delivery,
-            teaching: saved.teaching_text || defaults.teaching,
-            research: saved.research_text || defaults.research,
-            institutionalFit: saved.kemri_aims_text || defaults.institutionalFit,
-            gaps: saved.gaps_text || defaults.gaps,
-            interviewQuestions: saved.interview_questions_text || defaults.interviewQuestions,
-            generalComment: saved.general_comment || defaults.generalComment
+            eligibility: savedTextOrDefault(saved.eligibility_text, defaults.eligibility),
+            bestFit: savedTextOrDefault(saved.best_fit_text, defaults.bestFit),
+            delivery: savedTextOrDefault(saved.delivery_text, defaults.delivery),
+            teaching: savedTextOrDefault(saved.teaching_text, defaults.teaching),
+            research: savedTextOrDefault(saved.research_text, defaults.research),
+            institutionalFit: savedTextOrDefault(saved.kemri_aims_text, defaults.institutionalFit),
+            gaps: savedTextOrDefault(saved.gaps_text, defaults.gaps),
+            interviewQuestions: savedTextOrDefault(saved.interview_questions_text, defaults.interviewQuestions),
+            generalComment: savedTextOrDefault(saved.general_comment, defaults.generalComment)
           };
         }
 
