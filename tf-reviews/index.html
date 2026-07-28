@@ -1605,24 +1605,99 @@
           return { code: row[0], title: row[1], text: row.join(" ") };
         });
 
-        var EPIDEMIOLOGY_GATED_COURSES = {
-          MEC01: true,
-          MEC02: true,
-          MEC04: true,
-          MEC10: true,
-          MEE01: true,
-          MEE02: true
+        var DOMAIN_MARKERS = {
+          mathFoundations: {
+            label: "mathematical foundations",
+            patterns: [/pure mathematics|applied mathematics|mathematical|math\b|algebra|analysis|proof|logic|linear algebra|abstract algebra|number theory|topology|geometry|calculus|optimisation|optimization/i]
+          },
+          differentialModelling: {
+            label: "differential equations and dynamical systems",
+            patterns: [/differential equation|ordinary differential|partial differential|\bode\b|\bpde\b|dynamical system|compartmental|systems biology/i]
+          },
+          physicalSystems: {
+            label: "physical problem solving",
+            patterns: [/physics|mechanics|physical system|fluid|mechanical|thermodynamic|engineering|chemistry|biophysics/i]
+          },
+          probabilityStatistics: {
+            label: "probability and statistics",
+            patterns: [/probability|statistics|statistical|inference|regression|estimation|variance|likelihood|biostatistics|sampling|experimental design/i]
+          },
+          programmingComputing: {
+            label: "programming and scientific computing",
+            patterns: [/\bR\b|python|programming|coding|software|algorithm|sql|stata|spss|matlab|julia|sage|computational|reproducible/i]
+          },
+          scientificWriting: {
+            label: "scientific reporting and LaTeX",
+            patterns: [/latex|scientific writing|technical writing|manuscript|report|reproducible report|quarto|markdown|publication writing/i]
+          },
+          epidemiologyHealth: {
+            label: "epidemiology or health application",
+            patterns: [/epidemiolog|infectious|transmission|pathogen|outbreak|epidemic|pandemic|disease|public health|health system|health policy|healthcare|health care|community health|surveillance|clinical|patient|hospital|registry|case data|routine health|health records|biology|biological|biomedical|bioinformatics|genomic|immunology|virology|parasite|vector|malaria|hiv|tuberculosis|\btb\b|yellow fever|cholera|measles|covid|influenza|cancer|diabetes|maternal|neonatal|\bncd\b|kemri|kenya|nairobi|africa|east africa|sub-saharan|ministry of health/i]
+          },
+          mathematicalModelling: {
+            label: "mathematical modelling",
+            patterns: [/mathematical model|modelling|modeling|model development|mechanistic model|simulation|compartmental|agent-based|systems model|optimisation|optimization/i]
+          },
+          modelFitting: {
+            label: "model fitting and validation",
+            patterns: [/model fitting|calibration|validation|parameter estimation|maximum likelihood|likelihood|bayesian inference|mcmc|sensitivity|uncertainty|inverse problem/i]
+          },
+          numericalMethods: {
+            label: "numerical methods",
+            patterns: [/numerical|finite difference|finite element|computational method|solver|stability|convergence|simulation|iterative|optimisation|optimization/i]
+          },
+          dataAnalysis: {
+            label: "data analysis",
+            patterns: [/data analysis|data analytics|visuali[sz]ation|exploratory|regression|statistical learning|dataset|data wrangling|data cleaning|predictive|classification|clustering/i]
+          },
+          advancedDataScience: {
+            label: "advanced data science",
+            patterns: [/machine learning|artificial intelligence|\bAI\b|deep learning|neural|random forest|support vector|predictive modelling|data science|classification|clustering|forecast|algorithmic/i]
+          },
+          professionalDevelopment: {
+            label: "professional development",
+            patterns: [/entrepreneurship|professional development|leadership|communication|project management|innovation|stakeholder|policy|career development|grant|mentoring|team|management/i]
+          },
+          survivalAnalysis: {
+            label: "survival analysis",
+            patterns: [/survival analysis|time-to-event|time to event|hazard|kaplan|cox model|censoring|event history/i]
+          },
+          timeSeries: {
+            label: "time series analysis",
+            patterns: [/time series|forecasting|temporal|longitudinal|autoregressive|arima|seasonality|sequential|dynamic data/i]
+          },
+          bayesianStats: {
+            label: "Bayesian statistics",
+            patterns: [/bayesian|prior|posterior|mcmc|markov chain monte carlo|hierarchical model|stan|jags|probabilistic programming/i]
+          },
+          stochasticModels: {
+            label: "stochastic modelling",
+            patterns: [/stochastic|random process|markov|queue|branching process|monte carlo|probabilistic model|birth-death|random walk/i]
+          }
         };
 
-        var HEALTH_DOMAIN_MARKERS = [
-          { label: "epidemiology", pattern: /epidemiolog/i },
-          { label: "infectious disease or transmission", pattern: /(infectious|transmission|pathogen|outbreak|epidemic|pandemic|disease)/i },
-          { label: "public health", pattern: /(public health|health system|health policy|healthcare|health care|community health)/i },
-          { label: "surveillance or clinical data", pattern: /(surveillance|clinical|patient|hospital|registry|case data|routine health|health records)/i },
-          { label: "biology or biomedical application", pattern: /(biology|biological|biomedical|bioinformatics|genomic|immunology|virology|parasite|vector)/i },
-          { label: "named health condition", pattern: /(malaria|hiv|tuberculosis|tb|yellow fever|cholera|measles|covid|influenza|cancer|diabetes|maternal|neonatal|ncd)/i },
-          { label: "African health setting", pattern: /(kemri|kenya|nairobi|africa|east africa|sub-saharan|ministry of health)/i }
-        ];
+        var COURSE_DOMAIN_GATES = {
+          MES01: { label: "mathematical problem solving", primary: ["mathFoundations"], cross: ["differentialModelling", "probabilityStatistics", "mathematicalModelling"] },
+          MES02: { label: "differential equations and modelling", primary: ["differentialModelling"], cross: ["mathFoundations", "mathematicalModelling", "stochasticModels"] },
+          MES03: { label: "physical problem solving", primary: ["physicalSystems"], cross: ["differentialModelling", "mathFoundations", "numericalMethods"] },
+          MES04: { label: "probability and statistics", primary: ["probabilityStatistics"], cross: ["dataAnalysis", "bayesianStats", "stochasticModels"] },
+          MES05: { label: "R and Python", primary: ["programmingComputing"], cross: ["dataAnalysis", "advancedDataScience", "scientificWriting"] },
+          MES06: { label: "scientific computing and LaTeX", primary: ["programmingComputing", "scientificWriting"], cross: ["numericalMethods", "dataAnalysis"] },
+          MEC01: { label: "introductory epidemiology", required: ["epidemiologyHealth"], primary: ["epidemiologyHealth"], cross: ["probabilityStatistics", "dataAnalysis"] },
+          MEC02: { label: "epidemiology for disease modelling", required: ["epidemiologyHealth"], primary: ["mathematicalModelling", "differentialModelling"], cross: ["modelFitting", "stochasticModels", "probabilityStatistics"] },
+          MEC03: { label: "introductory mathematical modelling", primary: ["mathematicalModelling"], cross: ["differentialModelling", "mathFoundations", "stochasticModels", "epidemiologyHealth"] },
+          MEC04: { label: "models in public health", required: ["epidemiologyHealth"], primary: ["mathematicalModelling"], cross: ["dataAnalysis", "modelFitting", "professionalDevelopment"] },
+          MEC05: { label: "model fitting and validation", primary: ["modelFitting", "probabilityStatistics"], cross: ["dataAnalysis", "bayesianStats", "programmingComputing"] },
+          MEC06: { label: "numerical methods", primary: ["numericalMethods"], cross: ["programmingComputing", "differentialModelling", "mathematicalModelling"] },
+          MEC07: { label: "introductory data analysis", primary: ["dataAnalysis", "probabilityStatistics"], cross: ["programmingComputing", "epidemiologyHealth"] },
+          MEC08: { label: "advanced data analysis", primary: ["dataAnalysis", "advancedDataScience"], cross: ["probabilityStatistics", "programmingComputing", "modelFitting"] },
+          MEC09: { label: "professional and entrepreneurship development", primary: ["professionalDevelopment"], cross: ["scientificWriting", "epidemiologyHealth"] },
+          MEC10: { label: "advanced data science for epidemiology", required: ["epidemiologyHealth"], primary: ["advancedDataScience", "dataAnalysis"], cross: ["programmingComputing", "modelFitting", "probabilityStatistics"] },
+          MEE01: { label: "survival analysis", required: ["epidemiologyHealth"], primary: ["survivalAnalysis"], cross: ["probabilityStatistics", "modelFitting", "dataAnalysis"] },
+          MEE02: { label: "time series analysis", required: ["epidemiologyHealth"], primary: ["timeSeries"], cross: ["dataAnalysis", "advancedDataScience", "stochasticModels"] },
+          MEE03: { label: "Bayesian statistics", primary: ["bayesianStats"], cross: ["probabilityStatistics", "modelFitting", "stochasticModels", "dataAnalysis"] },
+          MEE04: { label: "stochastic models", primary: ["stochasticModels"], cross: ["probabilityStatistics", "differentialModelling", "mathematicalModelling"] }
+        };
 
         function $(id) {
           return document.getElementById(id);
@@ -2006,46 +2081,91 @@
           return patterns.filter(function (pattern) { return pattern.test(String(value || "")); }).length;
         }
 
-        function healthDomainMatches(text) {
+        function domainMatches(text, domainKeys) {
           var value = cleanEvidence(text);
-          return HEALTH_DOMAIN_MARKERS.filter(function (marker) {
-            return marker.pattern.test(value);
-          }).map(function (marker) { return marker.label; }).filter(function (label, index, rows) {
+          var matches = [];
+          (domainKeys || []).forEach(function (key) {
+            var domain = DOMAIN_MARKERS[key];
+            if (!domain) return;
+            var found = domain.patterns.some(function (pattern) { return pattern.test(value); });
+            if (found && !matches.some(function (item) { return item.key === key; })) {
+              matches.push({ key: key, label: domain.label });
+            }
+          });
+          return matches;
+        }
+
+        function domainLabels(matches) {
+          return (matches || []).map(function (item) { return item.label; }).filter(function (label, index, rows) {
             return rows.indexOf(label) === index;
           });
         }
 
-        function needsEpidemiologyDomain(course) {
-          return !!EPIDEMIOLOGY_GATED_COURSES[course.code];
+        function mergeDomainMatches() {
+          var out = [];
+          Array.prototype.forEach.call(arguments, function (rows) {
+            (rows || []).forEach(function (item) {
+              if (!out.some(function (existing) { return existing.key === item.key; })) out.push(item);
+            });
+          });
+          return out;
         }
 
         function courseDomainGuard(course, evidenceText) {
-          var matches = healthDomainMatches(evidenceText);
-          if (!needsEpidemiologyDomain(course)) {
+          var gate = COURSE_DOMAIN_GATES[course.code] || { label: course.title, primary: [], cross: [] };
+          var required = domainMatches(evidenceText, gate.required || []);
+          var primary = domainMatches(evidenceText, gate.primary || []);
+          var cross = domainMatches(evidenceText, gate.cross || []);
+          var matched = mergeDomainMatches(required, primary, cross);
+          var missingRequired = (gate.required || []).filter(function (key) {
+            return !required.some(function (item) { return item.key === key; });
+          });
+          var matchedText = domainLabels(matched).join(", ");
+          if (missingRequired.length) {
+            if (primary.length || cross.length) {
+              return {
+                scoreCap: 34,
+                scoreBoost: 16,
+                domainMatches: domainLabels(matched),
+                caveat: "Related quantitative evidence is present (" + matchedText + "), but the application does not make the required applied health or epidemiology setting explicit. Treat this as possible support after orientation, not course leadership."
+              };
+            }
+            return {
+              scoreCap: 28,
+              scoreBoost: 0,
+              domainMatches: [],
+              caveat: "The application does not show the core evidence needed for " + gate.label + "."
+            };
+          }
+          if (primary.length) {
             return {
               scoreCap: 85,
-              domainMatches: matches,
+              scoreBoost: 34,
+              domainMatches: domainLabels(matched),
               caveat: ""
             };
           }
-          if (!matches.length) {
-            return {
-              scoreCap: 28,
-              domainMatches: matches,
-              caveat: "No explicit epidemiology, public-health, disease, biology, clinical, surveillance, or African health-system evidence was found. General mathematics, algebra, modelling, or data-science wording is not enough for this epidemiology course."
-            };
-          }
-          if (matches.length === 1) {
+          if (required.length && !primary.length) {
             return {
               scoreCap: 55,
-              domainMatches: matches,
-              caveat: "Only thin health-domain evidence was found (" + matches.join(", ") + "). Verify before treating this as epidemiology teaching readiness."
+              scoreBoost: 20,
+              domainMatches: domainLabels(matched),
+              caveat: "The required applied setting is present, but the course method itself is thinly evidenced. Verify before treating this as more than tutorial support."
+            };
+          }
+          if (cross.length) {
+            return {
+              scoreCap: 55,
+              scoreBoost: 20,
+              domainMatches: domainLabels(matched),
+              caveat: "Adjacent evidence is present (" + matchedText + "), but direct evidence for " + gate.label + " is limited. Treat as possible tutorial support or preparation."
             };
           }
           return {
-            scoreCap: 85,
-            domainMatches: matches,
-            caveat: "Health-domain evidence found: " + matches.slice(0, 4).join(", ") + "."
+            scoreCap: 28,
+            scoreBoost: 0,
+            domainMatches: [],
+            caveat: "The application does not show clear evidence for " + gate.label + "."
           };
         }
 
@@ -2153,7 +2273,7 @@
             var terms = Object.keys(tokenSet(course.text)).filter(function (term) { return appTokens[term]; }).slice(0, 8);
             var direct = terms.length;
             var guard = courseDomainGuard(course, teachingText + " " + researchText);
-            var baseScore = Math.round(direct * 10 + Math.min(25, evidenceLevel(teachingText) * 6));
+            var baseScore = Math.round(direct * 8 + (guard.scoreBoost || 0) + Math.min(25, evidenceLevel(teachingText) * 6));
             var score = Math.min(85, guard.scoreCap, baseScore);
             var verdict = score >= 62 && delivery.score >= 55 ? "lecture" : score >= 35 ? "tutor" : "gap";
             return {
@@ -2653,7 +2773,8 @@
           return (index + 1) + ". " + item.code + " " + item.title + ": " + item.label +
             ", " + item.confidence + " confidence. Source: " + sourceForComponent(app, item) +
             ". Evidence terms: " + ((item.terms && item.terms.length) ? item.terms.join(", ") : "limited direct evidence") +
-            (item.caveat ? ". Domain caution: " + item.caveat : ".");
+            (item.domainMatches && item.domainMatches.length ? ". Course evidence: " + item.domainMatches.join(", ") : "") +
+            (item.caveat ? ". Course fit note: " + item.caveat : ".");
         }
 
         function compactEvidence(text, fallback) {
@@ -2964,7 +3085,7 @@
             a.components.slice(0, 5).map(function (item, index) { return '<div class="unit"><b>' + (index + 1) + '. ' + item.code + ' ' + esc(item.title) + '</b><span> ' + item.label + '</span></div>'; }).join("") + '</div>' +
             '<div class="inst">' + a.components.map(function (item) {
               var value = verdicts[item.code] || item.label;
-              return '<div class="crow"><code>' + item.code + '</code><div>' + esc(item.title) + (item.terms.length ? '<span class="ev">Matched on ' + item.terms.map(esc).join(", ") + '</span>' : "") + (item.caveat ? '<span class="ev">Domain gate: ' + esc(item.caveat) + '</span>' : "") + '</div><select class="lv" data-course-verdict="' + item.code + '">' +
+              return '<div class="crow"><code>' + item.code + '</code><div>' + esc(item.title) + (item.terms.length ? '<span class="ev">Matched on ' + item.terms.map(esc).join(", ") + '</span>' : "") + (item.domainMatches && item.domainMatches.length ? '<span class="ev">Course evidence: ' + item.domainMatches.map(esc).join(", ") + '</span>' : "") + (item.caveat ? '<span class="ev">Course fit note: ' + esc(item.caveat) + '</span>' : "") + '</div><select class="lv" data-course-verdict="' + item.code + '">' +
                 ["Can lecture", "Can tutor", "Not prioritised", "Would need preparation"].map(function (option) { return '<option ' + (value === option ? "selected" : "") + '>' + option + '</option>'; }).join("") +
                 '</select></div>';
             }).join("") + '</div>';
