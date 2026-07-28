@@ -1605,6 +1605,25 @@
           return { code: row[0], title: row[1], text: row.join(" ") };
         });
 
+        var EPIDEMIOLOGY_GATED_COURSES = {
+          MEC01: true,
+          MEC02: true,
+          MEC04: true,
+          MEC10: true,
+          MEE01: true,
+          MEE02: true
+        };
+
+        var HEALTH_DOMAIN_MARKERS = [
+          { label: "epidemiology", pattern: /epidemiolog/i },
+          { label: "infectious disease or transmission", pattern: /(infectious|transmission|pathogen|outbreak|epidemic|pandemic|disease)/i },
+          { label: "public health", pattern: /(public health|health system|health policy|healthcare|health care|community health)/i },
+          { label: "surveillance or clinical data", pattern: /(surveillance|clinical|patient|hospital|registry|case data|routine health|health records)/i },
+          { label: "biology or biomedical application", pattern: /(biology|biological|biomedical|bioinformatics|genomic|immunology|virology|parasite|vector)/i },
+          { label: "named health condition", pattern: /(malaria|hiv|tuberculosis|tb|yellow fever|cholera|measles|covid|influenza|cancer|diabetes|maternal|neonatal|ncd)/i },
+          { label: "African health setting", pattern: /(kemri|kenya|nairobi|africa|east africa|sub-saharan|ministry of health)/i }
+        ];
+
         function $(id) {
           return document.getElementById(id);
         }
@@ -1946,7 +1965,7 @@
           return out;
         }
 
-        function allText(app) {
+        function applicantEvidenceText(app) {
           return [
             app.phdField,
             app.thesisTitleExplainer,
@@ -1959,9 +1978,12 @@
             app.researchExperience,
             app.teachingSupport,
             app.researchPlan,
-            app.careerGrowth,
-            textOf(app.fullApplication)
+            app.careerGrowth
           ].join(" ");
+        }
+
+        function allText(app) {
+          return applicantEvidenceText(app);
         }
 
         
@@ -1982,6 +2004,49 @@
 
         function countMatches(value, patterns) {
           return patterns.filter(function (pattern) { return pattern.test(String(value || "")); }).length;
+        }
+
+        function healthDomainMatches(text) {
+          var value = cleanEvidence(text);
+          return HEALTH_DOMAIN_MARKERS.filter(function (marker) {
+            return marker.pattern.test(value);
+          }).map(function (marker) { return marker.label; }).filter(function (label, index, rows) {
+            return rows.indexOf(label) === index;
+          });
+        }
+
+        function needsEpidemiologyDomain(course) {
+          return !!EPIDEMIOLOGY_GATED_COURSES[course.code];
+        }
+
+        function courseDomainGuard(course, evidenceText) {
+          var matches = healthDomainMatches(evidenceText);
+          if (!needsEpidemiologyDomain(course)) {
+            return {
+              scoreCap: 85,
+              domainMatches: matches,
+              caveat: ""
+            };
+          }
+          if (!matches.length) {
+            return {
+              scoreCap: 28,
+              domainMatches: matches,
+              caveat: "No explicit epidemiology, public-health, disease, biology, clinical, surveillance, or African health-system evidence was found. General mathematics, algebra, modelling, or data-science wording is not enough for this epidemiology course."
+            };
+          }
+          if (matches.length === 1) {
+            return {
+              scoreCap: 55,
+              domainMatches: matches,
+              caveat: "Only thin health-domain evidence was found (" + matches.join(", ") + "). Verify before treating this as epidemiology teaching readiness."
+            };
+          }
+          return {
+            scoreCap: 85,
+            domainMatches: matches,
+            caveat: "Health-domain evidence found: " + matches.slice(0, 4).join(", ") + "."
+          };
         }
 
         function evidenceLevel(value) {
@@ -2087,12 +2152,16 @@
           var components = COURSES.map(function (course) {
             var terms = Object.keys(tokenSet(course.text)).filter(function (term) { return appTokens[term]; }).slice(0, 8);
             var direct = terms.length;
-            var score = Math.min(85, Math.round(direct * 10 + Math.min(25, evidenceLevel(teachingText) * 6)));
+            var guard = courseDomainGuard(course, teachingText + " " + researchText);
+            var baseScore = Math.round(direct * 10 + Math.min(25, evidenceLevel(teachingText) * 6));
+            var score = Math.min(85, guard.scoreCap, baseScore);
             var verdict = score >= 62 && delivery.score >= 55 ? "lecture" : score >= 35 ? "tutor" : "gap";
             return {
               code: course.code,
               title: course.title,
               terms: terms,
+              domainMatches: guard.domainMatches,
+              caveat: guard.caveat,
               score: score,
               verdict: verdict,
               label: verdict === "lecture" ? "Immediate contribution" : verdict === "tutor" ? "Contribution after orientation" : "Not prioritised",
@@ -2583,7 +2652,8 @@
         function componentVerdictLine(app, item, index) {
           return (index + 1) + ". " + item.code + " " + item.title + ": " + item.label +
             ", " + item.confidence + " confidence. Source: " + sourceForComponent(app, item) +
-            ". Evidence terms: " + ((item.terms && item.terms.length) ? item.terms.join(", ") : "limited direct evidence") + ".";
+            ". Evidence terms: " + ((item.terms && item.terms.length) ? item.terms.join(", ") : "limited direct evidence") +
+            (item.caveat ? ". Domain caution: " + item.caveat : ".");
         }
 
         function compactEvidence(text, fallback) {
@@ -2894,7 +2964,7 @@
             a.components.slice(0, 5).map(function (item, index) { return '<div class="unit"><b>' + (index + 1) + '. ' + item.code + ' ' + esc(item.title) + '</b><span> ' + item.label + '</span></div>'; }).join("") + '</div>' +
             '<div class="inst">' + a.components.map(function (item) {
               var value = verdicts[item.code] || item.label;
-              return '<div class="crow"><code>' + item.code + '</code><div>' + esc(item.title) + (item.terms.length ? '<span class="ev">Matched on ' + item.terms.map(esc).join(", ") + '</span>' : "") + '</div><select class="lv" data-course-verdict="' + item.code + '">' +
+              return '<div class="crow"><code>' + item.code + '</code><div>' + esc(item.title) + (item.terms.length ? '<span class="ev">Matched on ' + item.terms.map(esc).join(", ") + '</span>' : "") + (item.caveat ? '<span class="ev">Domain gate: ' + esc(item.caveat) + '</span>' : "") + '</div><select class="lv" data-course-verdict="' + item.code + '">' +
                 ["Can lecture", "Can tutor", "Not prioritised", "Would need preparation"].map(function (option) { return '<option ' + (value === option ? "selected" : "") + '>' + option + '</option>'; }).join("") +
                 '</select></div>';
             }).join("") + '</div>';
