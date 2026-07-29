@@ -1977,7 +1977,7 @@
             var done = false;
             var timer = setTimeout(function () {
               finish();
-              reject(new Error("Google Apps Script is taking too long to respond. Please try again."));
+              reject(new Error("Google Apps Script is taking too long to respond. It may still be writing to Google Sheets. Wait a moment, click Refresh from Sheets, then retry only if the review is not shown."));
             }, timeoutMs || 30000);
 
             function finish() {
@@ -4112,9 +4112,10 @@
             String(existingNote.author_email || "").toLowerCase() &&
             String(existingNote.author_email || "").toLowerCase() !== reviewerEmail();
           var stageToMove = final && isReviewManager() ? officialStageFromRecommendation(stageRecommendation) : "";
+          var stableNoteId = state.editingNoteId || id + "::" + reviewerPayloadEmail() + "::panel-note";
           var payload = {
             applicationId: id,
-            noteId: state.editingNoteId || "",
+            noteId: stableNoteId,
             note: note,
             stage: stageToMove || stageFor(id)
           };
@@ -4178,7 +4179,7 @@
             return jsonp("submitPanelReview", reviewPayload(Object.assign({}, payload, scorePayload, {
               formalStage: stageToMove,
               stageReason: "Review manager submitted review and moved official stage to " + stageToMove + "."
-            })), 45000).then(function (result) {
+            })), 90000).then(function (result) {
               updateLocalScore(result.score);
               updateLocalNote(result.note);
               updateLocalStage(result.stage);

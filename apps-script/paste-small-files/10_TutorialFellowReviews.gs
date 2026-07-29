@@ -130,23 +130,126 @@ function saveEligibilityDecision(payload) {
 
 function submitPanelReview(payload) {
   payload = payload || {};
-  const scoreResult = saveReviewScore(payload);
-  const noteResult = saveReviewNote(payload);
-  const formalStage = String(payload.formalStage || payload.stageToMove || "").trim();
-  let stageResult = null;
-  if (formalStage) {
-    stageResult = updateReviewStage(
-      Object.assign({}, payload, {
-        stage: formalStage,
-        reason: String(payload.stageReason || "Review manager submitted review and moved official stage to " + formalStage + "."),
-      }),
-    );
+  const reviewer = requireReviewerSession(payload);
+  const spreadsheet = getOrCreateSpreadsheet();
+  ensureSheets(spreadsheet);
+  const applicationId = String(payload.applicationId || "").trim();
+  if (!applicationId) throw new Error("Application id is required.");
+  const reason = String(payload.reason || "").trim();
+  if (!reason) throw new Error("A reason is required before submitting a review.");
+  const now = new Date().toISOString();
+  const auditRows = [];
+
+  const scoreId = applicationId + "::" + reviewer.email;
+  const scoreSheet = getSheet(spreadsheet, "ReviewScores");
+  const beforeScore = findSheetObject(scoreSheet, scoreId);
+  const teaching = clampScore(payload.teachingScore);
+  const research = clampScore(payload.researchScore);
+  const scoreRow = {
+    score_id: scoreId,
+    application_id: applicationId,
+    reviewer_email: reviewer.email,
+    reviewer_name: reviewer.name || reviewer.email,
+    teaching_score: teaching,
+    research_score: research,
+    weighted_score: Math.round(teaching * 0.7 + research * 0.3),
+    eligibility_decision: String(payload.eligibilityDecision || ""),
+    recommendation: String(payload.recommendation || ""),
+    course_verdicts_json: JSON.stringify(payload.courseVerdicts || {}),
+    machine_score_json: JSON.stringify(payload.initialScore || payload.machineScore || {}),
+    reason,
+    updated_at: now,
+  };
+  upsertRows(scoreSheet, [scoreRow]);
+  auditRows.push({
+    audit_id: Utilities.getUuid(),
+    timestamp: now,
+    reviewer_email: reviewer.email,
+    reviewer_name: reviewer.name || reviewer.email,
+    action: "saveReviewScore",
+    application_id: applicationId,
+    old_value_json: JSON.stringify(beforeScore || {}),
+    new_value_json: JSON.stringify(scoreRow),
+    reason,
+  });
+
+  const noteText = String(payload.note || "").trim();
+  if (!noteText) throw new Error("A note cannot be empty.");
+  const noteSheet = getSheet(spreadsheet, "ReviewNotes");
+  const noteId = String(payload.noteId || applicationId + "::" + reviewer.email + "::panel-note");
+  const beforeNote = findSheetObject(noteSheet, noteId);
+  const beforeAuthorEmail = beforeNote && beforeNote.author_email ? normalizeEmailAddress(beforeNote.author_email) : "";
+  const beforeAuthorName = String(beforeNote && beforeNote.author_name || "");
+  if (
+    beforeNote &&
+    !reviewerCanManage(reviewer) &&
+    ((beforeAuthorEmail && beforeAuthorEmail !== reviewer.email) || (!beforeAuthorEmail && beforeAuthorName && beforeAuthorName !== reviewer.name))
+  ) {
+    throw new Error("Only the author or a review manager can edit this note.");
   }
+  const noteRow = Object.assign(
+    {
+      note_id: noteId,
+      application_id: applicationId,
+      author_email: reviewer.email,
+      author_name: reviewer.name || reviewer.email,
+      stage: String(payload.stage || "All applicants"),
+      status: "Active",
+      created_at: now,
+      withdrawn_at: "",
+    },
+    beforeNote || {},
+    {
+      note: noteText,
+      edited_at: beforeNote ? now : "",
+      edited_by: beforeNote ? reviewer.email : "",
+    },
+  );
+  upsertRows(noteSheet, [noteRow]);
+  auditRows.push({
+    audit_id: Utilities.getUuid(),
+    timestamp: now,
+    reviewer_email: reviewer.email,
+    reviewer_name: reviewer.name || reviewer.email,
+    action: beforeNote ? "editReviewNote" : "saveReviewNote",
+    application_id: applicationId,
+    old_value_json: JSON.stringify(beforeNote || {}),
+    new_value_json: JSON.stringify(noteRow),
+    reason: "",
+  });
+
+  const formalStage = String(payload.formalStage || payload.stageToMove || "").trim();
+  let stageRow = null;
+  if (formalStage) {
+    if (!reviewerCanManage(reviewer)) throw new Error("Only Cecil or a review manager can update the formal review stage.");
+    const stageSheet = getSheet(spreadsheet, "ReviewStages");
+    const beforeStage = findSheetObject(stageSheet, applicationId);
+    stageRow = {
+      application_id: applicationId,
+      stage: reviewStageLabel(formalStage),
+      decision: String(payload.decision || ""),
+      updated_by: reviewer.email,
+      updated_at: now,
+    };
+    upsertRows(stageSheet, [stageRow]);
+    auditRows.push({
+      audit_id: Utilities.getUuid(),
+      timestamp: now,
+      reviewer_email: reviewer.email,
+      reviewer_name: reviewer.name || reviewer.email,
+      action: "updateReviewStage",
+      application_id: applicationId,
+      old_value_json: JSON.stringify(beforeStage || {}),
+      new_value_json: JSON.stringify(stageRow),
+      reason: String(payload.stageReason || "Review manager submitted review and moved official stage to " + formalStage + "."),
+    });
+  }
+  appendRows(getSheet(spreadsheet, "ReviewAudit"), auditRows);
   return {
     ok: true,
-    score: scoreResult.score,
-    note: noteResult.note,
-    stage: stageResult ? stageResult.stage : null,
+    score: scoreRow,
+    note: noteRow,
+    stage: stageRow,
   };
 }
 
