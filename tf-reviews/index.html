@@ -369,10 +369,26 @@
       }
 
       .cell {
+        width: 100%;
         padding: 6px 7px;
         border: 1px solid var(--line);
         background: #f7f5f1;
+        color: var(--ink);
+        cursor: pointer;
+        font-family: inherit;
         font-size: 11px;
+        text-align: left;
+      }
+
+      .cell:hover,
+      .cell:focus {
+        outline: 2px solid rgba(10, 25, 64, 0.2);
+        outline-offset: 1px;
+      }
+
+      .cell.active {
+        border-color: var(--navy);
+        box-shadow: inset 0 0 0 1px var(--navy);
       }
 
       .cell b {
@@ -455,9 +471,21 @@
       }
 
       .nm2 {
+        padding: 0;
+        border: 0;
+        background: transparent;
         color: var(--navy);
+        cursor: pointer;
+        font-family: inherit;
         font-size: 16px;
         font-weight: 600;
+        text-align: left;
+      }
+
+      .nm2:hover,
+      .nm2:focus {
+        color: var(--maroon);
+        text-decoration: underline;
       }
 
       .ident {
@@ -585,6 +613,16 @@
         border-color: var(--navy);
         background: var(--navy);
         color: #fff;
+      }
+
+      button.chip {
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      button.chip:hover,
+      button.chip:focus {
+        border-color: var(--maroon);
       }
 
       .actions {
@@ -800,6 +838,56 @@
 
       .narr li {
         margin-bottom: 4px;
+      }
+
+      .snapshot-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+
+      .snapshot-top h4 {
+        margin: 0;
+      }
+
+      .snapshot-top button,
+      .course-link {
+        border-color: var(--line);
+        color: var(--navy);
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+
+      .snapshot-view p {
+        margin: 0 0 10px;
+      }
+
+      .course-link {
+        display: inline-block;
+        margin: 0 4px 5px 0;
+        padding: 3px 7px;
+        background: #f2f4f9;
+        cursor: pointer;
+      }
+
+      .course-link:hover,
+      .course-link:focus {
+        border-color: var(--maroon);
+        color: var(--maroon);
+      }
+
+      .narr.editing .snapshot-view {
+        display: none;
+      }
+
+      .narr.editing .section-edit {
+        display: block;
+      }
+
+      .narr.editing .section-actions {
+        display: flex;
       }
 
       .analysis-editor {
@@ -2732,6 +2820,31 @@
           return app.assessment.components.filter(function (item) { return item.verdict !== "gap"; }).length;
         }
 
+        function courseByCode(code) {
+          return COURSES.filter(function (course) { return course.code === code; })[0] || null;
+        }
+
+        function setCourseFilter(code, closeReview) {
+          var course = courseByCode(code);
+          if (code && !course) return;
+          state.course = code || "";
+          if (closeReview && $("drawer").classList.contains("open")) closeDrawer();
+          render();
+          if ($("crs")) $("crs").value = state.course;
+          if (course) showMessage("reviewMessageArea", "status", "Showing applicants suited for " + course.code + " " + course.title + ".");
+          else showMessage("reviewMessageArea", "status", "Course filter cleared.");
+          if ($("list") && $("list").scrollIntoView) $("list").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        function wireCourseFilters(root) {
+          Array.prototype.forEach.call((root || document).querySelectorAll("[data-course-filter]"), function (button) {
+            button.onclick = function (event) {
+              event.preventDefault();
+              setCourseFilter(button.getAttribute("data-course-filter"), button.getAttribute("data-close-review") === "1");
+            };
+          });
+        }
+
         function drawGender(apps) {
           var pool = apps.filter(function (app) { return stageRank(stageFor(app.applicationId)) >= 2; });
           var set = pool.length ? pool : apps;
@@ -2780,7 +2893,7 @@
             if (klass === "l") nL += 1;
             else if (klass === "t") nT += 1;
             else nN += 1;
-            return '<div class="cell ' + klass + '" title="' + esc(course.title) + '"><b>' + course.code + '</b><span>' + (lectures ? lectures + " can lecture" : tutors ? tutors + " can tutor" : "no cover") + "</span></div>";
+            return '<button class="cell ' + klass + (state.course === course.code ? " active" : "") + '" type="button" data-course-filter="' + esc(course.code) + '" title="Show applicants suited for ' + esc(course.code + " " + course.title) + '"><b>' + course.code + '</b><span>' + (lectures ? lectures + " can lecture" : tutors ? tutors + " can tutor" : "no cover") + "</span></button>";
           }).join("");
           $("cov").innerHTML =
             "<h3>Curriculum cover across " + esc(label) + "</h3>" +
@@ -2790,6 +2903,7 @@
             '<div class="legend"><span><i class="sw" style="background:#E6EFE9;border-color:#A8C6B4"></i>Someone can step in and lecture</span>' +
             '<span><i class="sw" style="background:#FAF2DE;border-color:#E0CB99"></i>Tutorial and marking cover only</span>' +
             '<span><i class="sw" style="background:#F8E7E7;border-color:#DDB3B3"></i>No cover in this group</span></div>';
+          wireCourseFilters($("cov"));
         }
 
         function rowStageClass(app) {
@@ -2820,7 +2934,7 @@
             var tutor = a.components.filter(function (item) { return item.verdict === "tutor"; });
             return '<div class="row" data-s="' + rowStageClass(app) + '" data-id="' + esc(app.applicationId) + '">' +
               '<div class="idtag">' + esc(app.displayId || app.applicationId) + '</div>' +
-              '<div><div class="nm2">' + esc([app.title, app.applicant].filter(Boolean).join(" ")) + '</div>' +
+              '<div><button class="nm2 applicant-link" type="button">' + esc([app.title, app.applicant].filter(Boolean).join(" ")) + '</button>' +
               '<div class="ident"><div><span class="k">Gender</span><span class="v ' + genderClass + '">' + esc(app.gender || "Not stated") + '</span></div>' +
               '<div><span class="k">Phone</span><span class="v">' + esc(app.phone || "Not given") + '</span></div>' +
               '<div><span class="k">PhD field</span><span class="v">' + esc(app.phdField || "Not stated") + '</span></div></div>' +
@@ -2833,8 +2947,8 @@
               '<span class="chip">' + coverageCount(app) + " of " + a.components.length + " components</span>" +
               '<span class="chip ' + (a.delivery.score >= 65 ? "good" : "flag") + '">Delivery: ' + esc(a.delivery.label) + '</span>' +
               (a.eligibility.reasons.length > 1 ? '<span class="chip flag">' + a.eligibility.reasons.length + " eligibility flags</span>" : "") + '</div>' +
-              '<div class="chips"><span class="chip crs bf" title="' + esc(a.bestFit.title) + '">Best fit ' + esc(a.bestFit.code) + '</span>' +
-              lecture.filter(function (item) { return item.code !== a.bestFit.code; }).slice(0, 3).map(function (item) { return '<span class="chip crs" title="' + esc(item.title) + '">Can lecture ' + item.code + '</span>'; }).join("") +
+              '<div class="chips"><button class="chip crs bf" type="button" data-course-filter="' + esc(a.bestFit.code) + '" title="Show applicants suited for ' + esc(a.bestFit.title) + '">Best fit ' + esc(a.bestFit.code) + '</button>' +
+              lecture.filter(function (item) { return item.code !== a.bestFit.code; }).slice(0, 3).map(function (item) { return '<button class="chip crs" type="button" data-course-filter="' + esc(item.code) + '" title="Show applicants suited for ' + esc(item.title) + '">Can lecture ' + item.code + '</button>'; }).join("") +
               (tutor.length ? '<span class="chip">plus ' + tutor.length + ' at tutor level</span>' : "") +
               (e.edited ? '<span class="chip flag">Score revised</span>' : "") + '</div></div>' +
               '<div class="actions"><div class="rec ' + recClass(recommendation) + '">' + esc(recommendation) + '</div>' +
@@ -2843,14 +2957,20 @@
               (noteCount ? '<span class="notecount">' + noteCount + " note" + (noteCount === 1 ? "" : "s") + '</span>' : "") + '</div></div>';
           }).join("");
           Array.prototype.forEach.call(document.querySelectorAll(".row"), function (row) {
-            row.querySelector(".openBtn").onclick = function () { openApp(row.getAttribute("data-id")); };
+            row.querySelector(".openBtn").onclick = function () { openApp(row.getAttribute("data-id"), "eval"); };
+            row.querySelector(".applicant-link").onclick = function () { openApp(row.getAttribute("data-id"), "app"); };
           });
+          wireCourseFilters($("list"));
         }
 
-        function openApp(id) {
+        function openApp(id, tab) {
           var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
           if (!app) return;
           state.openId = id;
+          if (tab) state.tab = tab;
+          Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (button) {
+            button.classList.toggle("on", button.getAttribute("data-t") === state.tab);
+          });
           $("dName").textContent = [app.title, app.applicant].filter(Boolean).join(" ");
           $("dMeta").textContent = [app.displayId || app.applicationId, app.gender || "gender not stated", app.phone || "no phone", app.phdField || "field not stated", app.nationality].filter(Boolean).join(" | ");
           var manager = isReviewManager();
@@ -3279,7 +3399,50 @@
           return rows.length ? rows.map(function (item) { return item.code + " " + item.title; }).join("; ") : fallback;
         }
 
-        function reviewOrientationHtml(app, a, e, verdicts) {
+        function savedAnalysisJson(app) {
+          var saved = analysisFor(app);
+          return parseJson(saved && saved.analysis_json, {});
+        }
+
+        function courseCodeInText(text) {
+          var value = String(text || "");
+          for (var i = 0; i < COURSES.length; i += 1) {
+            if (new RegExp("\\b" + COURSES[i].code + "\\b").test(value)) return COURSES[i].code;
+          }
+          return "";
+        }
+
+        function courseLinkButton(code, label, closeReview) {
+          var course = courseByCode(code);
+          return '<button class="course-link" type="button" data-course-filter="' + esc(code) + '" data-close-review="' + (closeReview ? "1" : "0") + '" title="Show applicants suited for ' + esc(course ? course.code + " " + course.title : code) + '">' + esc(label || code) + '</button>';
+        }
+
+        function courseLinkedLine(line) {
+          var value = displayLine(line);
+          if (!courseCodeInText(value)) return esc(value);
+          return value.split(/;\s*/).map(function (part) {
+            var code = courseCodeInText(part);
+            return code ? courseLinkButton(code, part.trim(), true) : esc(part.trim());
+          }).join(" ");
+        }
+
+        function formatSnapshotText(value) {
+          var blocks = String(value || "").split(/\n{2,}/).map(function (block) {
+            return block.trim();
+          }).filter(Boolean);
+          if (!blocks.length) return '<p class="was">No snapshot text yet.</p>';
+          return blocks.map(function (block) {
+            var lines = block.split(/\n/).map(function (line) { return displayLine(line); }).filter(Boolean);
+            if (!lines.length) return "";
+            if (lines.length > 1 && isHeadingLine(lines[0])) {
+              return '<h5>' + esc(lines[0]) + '</h5><p>' + lines.slice(1).map(courseLinkedLine).join("<br>") + '</p>';
+            }
+            if (lines.length === 1 && isHeadingLine(lines[0])) return '<h5>' + esc(lines[0]) + "</h5>";
+            return '<p>' + lines.map(courseLinkedLine).join("<br>") + "</p>";
+          }).join("");
+        }
+
+        function defaultSnapshotText(app, a, e, verdicts) {
           var dayOne = a.components.filter(function (item) {
             return verdicts[item.code] === "Can lecture" || (!verdicts[item.code] && item.verdict === "lecture" && item.confidence === "high" && !item.caveat);
           }).slice(0, 7);
@@ -3299,12 +3462,27 @@
             return reason.indexOf("Progress strong requires") !== 0;
           }).slice(0, 3).forEach(function (reason) { risks.push(reason); });
           if (!risks.length) risks.push("No major automatic weakness is shown, but panel verification is still required.");
-          return '<div class="narr"><h4>Applicant review snapshot</h4>' +
-            '<h5>Current role and affiliation</h5><p>' + esc([app.designation || "Current role not stated", app.affiliation || "affiliation not stated"].join(", ")) + '</p>' +
-            '<h5>Strengths to test</h5><p>' + esc(strengths.join(" ")) + '</p>' +
-            '<h5>Weaknesses or risks</h5><p>' + esc(risks.join(" ")) + '</p>' +
-            '<h5>Can step in and lecture from day one</h5><p>' + esc(courseListText(dayOne, "No day-one lecture course is established without reviewer override.")) + '</p>' +
-            '<h5>Good or excellent possible fits after orientation</h5><p>' + esc(courseListText(possible, "No additional course fit is established from the current evidence.")) + '</p>' +
+          return "Current role and affiliation\n" +
+            [app.designation || "Current role not stated", app.affiliation || "affiliation not stated"].join(", ") +
+            "\n\nStrengths to test\n" + strengths.join(" ") +
+            "\n\nWeaknesses or risks\n" + risks.join(" ") +
+            "\n\nCan step in and lecture from day one\n" + courseListText(dayOne, "No day-one lecture course is established without reviewer override.") +
+            "\n\nGood or excellent possible fits after orientation\n" + courseListText(possible, "No additional course fit is established from the current evidence.");
+        }
+
+        function reviewSnapshotText(app, a, e, verdicts) {
+          var saved = savedAnalysisJson(app);
+          var text = String(saved.reviewSnapshot || saved.snapshotText || "").trim();
+          return text || defaultSnapshotText(app, a, e, verdicts);
+        }
+
+        function reviewOrientationHtml(app, a, e, verdicts) {
+          var snapshot = reviewSnapshotText(app, a, e, verdicts);
+          return '<div class="narr analysis-section snapshot-editor" data-section="reviewSnapshot">' +
+            '<div class="snapshot-top"><h4>Applicant review snapshot</h4><button type="button" data-edit-section="reviewSnapshot">Edit snapshot</button></div>' +
+            '<div class="snapshot-view" id="reviewSnapshotView">' + formatSnapshotText(snapshot) + '</div>' +
+            '<textarea id="reviewSnapshot" class="section-edit tall">' + esc(snapshot) + '</textarea>' +
+            '<div class="section-actions"><button type="button" data-save-section="reviewSnapshot">Save section</button><button type="button" data-cancel-section="reviewSnapshot">Cancel</button></div>' +
             '<button class="primary" id="insertDraft" type="button">Insert review note under your name</button>' +
             '</div>';
         }
@@ -3517,6 +3695,7 @@
             $("noteTxt").value = text.generalComment;
             $("noteTxt").focus();
           };
+          wireCourseFilters($("dBody"));
           Array.prototype.forEach.call(document.querySelectorAll("[data-edit-section]"), function (button) {
             button.onclick = function () {
               var sectionId = button.getAttribute("data-edit-section");
@@ -3535,8 +3714,9 @@
               var textarea = $(sectionId);
               var view = $(sectionId + "View");
               if (!section || !textarea || !view) return;
-              view.innerHTML = formatSectionText(textarea.value);
+              view.innerHTML = sectionId === "reviewSnapshot" ? formatSnapshotText(textarea.value) : formatSectionText(textarea.value);
               section.classList.remove("editing");
+              wireCourseFilters(view);
             };
           });
           Array.prototype.forEach.call(document.querySelectorAll("[data-cancel-section]"), function (button) {
@@ -3621,11 +3801,13 @@
             kemriAimsText: fieldValue("analysisInstitutional"),
             gapsText: fieldValue("analysisGaps"),
             interviewQuestionsText: fieldValue("analysisQuestions"),
+            reviewSnapshotText: fieldValue("reviewSnapshot"),
             generalComment: fieldValue("analysisGeneral"),
             analysis: {
               applicantCode: app.displayId || id,
               applicant: app.applicant,
               generatedFrom: "TutorialFellowApplications",
+              reviewSnapshot: fieldValue("reviewSnapshot"),
               eligibility: fieldValue("analysisEligibility"),
               bestFit: fieldValue("analysisBestFit"),
               delivery: fieldValue("analysisDelivery"),
