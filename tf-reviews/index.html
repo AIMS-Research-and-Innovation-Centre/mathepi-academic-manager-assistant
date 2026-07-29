@@ -362,6 +362,86 @@
         font-size: 12.5px;
       }
 
+      .course-panel {
+        margin-top: 12px;
+        padding: 11px 12px;
+        border: 1px solid #d8cfbf;
+        border-left: 3px solid var(--maroon);
+        background: #fcfbf8;
+      }
+
+      .course-panel-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      .course-panel h4 {
+        margin: 0;
+        color: var(--navy);
+        font-size: 13px;
+      }
+
+      .course-panel .hint {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .course-panel .course-columns {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .course-group {
+        padding: 9px 10px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .course-group h5 {
+        margin: 0 0 6px;
+        color: var(--maroon);
+        font-size: 11px;
+        letter-spacing: 0.7px;
+        text-transform: uppercase;
+      }
+
+      .course-person {
+        display: block;
+        width: 100%;
+        margin: 0 0 5px;
+        padding: 6px 7px;
+        border-color: #d8cfbf;
+        background: #f8fafc;
+        color: var(--navy);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12.5px;
+        font-weight: 700;
+        text-align: left;
+      }
+
+      .course-person:hover,
+      .course-person:focus {
+        border-color: var(--maroon);
+        color: var(--maroon);
+      }
+
+      .course-person span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 400;
+      }
+
+      .course-clear {
+        white-space: nowrap;
+      }
+
       .grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
@@ -2794,8 +2874,8 @@
           }
           if (state.course) {
             rows = rows.filter(function (app) {
-              var found = app.assessment.components.filter(function (item) { return item.code === state.course; })[0];
-              return found && found.verdict !== "gap";
+              var verdict = courseFitVerdict(app, state.course);
+              return verdict === "lecture" || verdict === "tutor";
             });
           }
           rows.sort(sorter);
@@ -2820,8 +2900,35 @@
           return app.assessment.components.filter(function (item) { return item.verdict !== "gap"; }).length;
         }
 
+        function currentStageApps(apps) {
+          if (state.stage === "all") return apps.slice();
+          var minRank = stageRank(state.stage);
+          return apps.filter(function (app) { return stageRank(stageFor(app.applicationId)) >= minRank; });
+        }
+
+        function currentStageLabel() {
+          if (state.stage === "all") return "the full applicant pool";
+          var found = STAGES.filter(function (stage) { return stage.id === state.stage; })[0];
+          return (found ? found.label : "selected stage") + " and beyond";
+        }
+
         function courseByCode(code) {
           return COURSES.filter(function (course) { return course.code === code; })[0] || null;
+        }
+
+        function courseFitVerdict(app, code) {
+          var latest = latestScore(app.applicationId);
+          var verdicts = parseJson(latest && latest.course_verdicts_json, {});
+          var edited = verdicts[code];
+          if (edited === "Can lecture") return "lecture";
+          if (edited === "Can tutor") return "tutor";
+          if (edited === "Not prioritised" || edited === "Would need preparation") return "gap";
+          var found = app.assessment.components.filter(function (item) { return item.code === code; })[0];
+          return found ? found.verdict : "gap";
+        }
+
+        function courseFitComponent(app, code) {
+          return app.assessment.components.filter(function (item) { return item.code === code; })[0] || null;
         }
 
         function setCourseFilter(code, closeReview) {
@@ -2842,6 +2949,55 @@
               event.preventDefault();
               setCourseFilter(button.getAttribute("data-course-filter"), button.getAttribute("data-close-review") === "1");
             };
+          });
+        }
+
+        function courseFitRows(apps, code) {
+          return apps.map(function (app) {
+            var verdict = courseFitVerdict(app, code);
+            var component = courseFitComponent(app, code);
+            return {
+              app: app,
+              verdict: verdict,
+              score: component ? Number(component.score || 0) : 0,
+              label: component ? component.label : ""
+            };
+          }).filter(function (row) {
+            return row.verdict === "lecture" || row.verdict === "tutor";
+          }).sort(function (a, b) {
+            var order = { lecture: 0, tutor: 1 };
+            return order[a.verdict] - order[b.verdict] || b.score - a.score || String(a.app.applicant || "").localeCompare(String(b.app.applicant || ""));
+          });
+        }
+
+        function coursePeopleHtml(rows, verdict, emptyText) {
+          var people = rows.filter(function (row) { return row.verdict === verdict; });
+          if (!people.length) return '<div class="was">' + esc(emptyText) + '</div>';
+          return people.map(function (row) {
+            var app = row.app;
+            var meta = [app.displayId || app.applicationId, app.phdField || app.researchArea || "field not stated", row.score ? "depth " + row.score : ""].filter(Boolean).join(" | ");
+            return '<button class="course-person" type="button" data-open-app="' + esc(app.applicationId) + '">' + esc([app.title, app.applicant].filter(Boolean).join(" ")) + '<span>' + esc(meta) + '</span></button>';
+          }).join("");
+        }
+
+        function selectedCoursePanelHtml(apps) {
+          var course = courseByCode(state.course);
+          if (!course) return "";
+          var rows = courseFitRows(apps, course.code);
+          return '<div class="course-panel">' +
+            '<div class="course-panel-head"><div><h4>' + esc(course.code + " " + course.title) + '</h4><div class="hint">' + rows.length + " matching " + (rows.length === 1 ? "applicant" : "applicants") + " in " + esc(currentStageLabel()) + ". Click a name to open the application." + '</div></div>' +
+            '<button type="button" class="course-clear" data-course-clear="1">Clear course</button></div>' +
+            '<div class="course-columns"><div class="course-group"><h5>Can lecture</h5>' + coursePeopleHtml(rows, "lecture", "No applicant is currently marked ready to lecture this course.") + '</div>' +
+            '<div class="course-group"><h5>Can tutor or support</h5>' + coursePeopleHtml(rows, "tutor", "No applicant is currently marked at tutor level for this course.") + '</div></div>' +
+            '</div>';
+        }
+
+        function wireCoursePeople(root) {
+          Array.prototype.forEach.call((root || document).querySelectorAll("[data-open-app]"), function (button) {
+            button.onclick = function () { openApp(button.getAttribute("data-open-app"), "app"); };
+          });
+          Array.prototype.forEach.call((root || document).querySelectorAll("[data-course-clear]"), function (button) {
+            button.onclick = function () { setCourseFilter("", false); };
           });
         }
 
@@ -2876,16 +3032,14 @@
         }
 
         function drawCoverage(apps) {
-          var pool = apps.filter(function (app) { return stageRank(stageFor(app.applicationId)) >= 2; });
-          var using = pool.length ? pool : apps;
-          var label = pool.length ? "your current shortlist and beyond" : "the full applicant pool";
+          var using = currentStageApps(apps);
+          var label = currentStageLabel();
           var nL = 0;
           var nT = 0;
           var nN = 0;
           var cells = COURSES.map(function (course) {
             var verdicts = using.map(function (app) {
-              var found = app.assessment.components.filter(function (item) { return item.code === course.code; })[0];
-              return found ? found.verdict : "gap";
+              return courseFitVerdict(app, course.code);
             });
             var lectures = verdicts.filter(function (v) { return v === "lecture"; }).length;
             var tutors = verdicts.filter(function (v) { return v === "tutor"; }).length;
@@ -2898,12 +3052,14 @@
           $("cov").innerHTML =
             "<h3>Curriculum cover across " + esc(label) + "</h3>" +
             '<div class="cs">' + using.length + " " + (using.length === 1 ? "person" : "people") + " covering the 20 assessable components (MEI01 excluded, it applies to every fellow). " +
-            nL + " with lecture cover, " + nT + " tutor cover only, " + nN + " with nobody. Move people into Shortlist and this recalculates, so you can select a set that covers the programme rather than several people with the same strengths.</div>" +
+            nL + " with lecture cover, " + nT + " tutor cover only, " + nN + " with nobody. Use the funnel above to inspect a stage; click any course tile to see the matching applicants.</div>" +
             '<div class="grid">' + cells + "</div>" +
             '<div class="legend"><span><i class="sw" style="background:#E6EFE9;border-color:#A8C6B4"></i>Someone can step in and lecture</span>' +
             '<span><i class="sw" style="background:#FAF2DE;border-color:#E0CB99"></i>Tutorial and marking cover only</span>' +
-            '<span><i class="sw" style="background:#F8E7E7;border-color:#DDB3B3"></i>No cover in this group</span></div>';
+            '<span><i class="sw" style="background:#F8E7E7;border-color:#DDB3B3"></i>No cover in this group</span></div>' +
+            selectedCoursePanelHtml(using);
           wireCourseFilters($("cov"));
+          wireCoursePeople($("cov"));
         }
 
         function rowStageClass(app) {
@@ -4290,8 +4446,7 @@
           drawList();
         });
         $("crs").addEventListener("change", function (event) {
-          state.course = event.target.value;
-          drawList();
+          setCourseFilter(event.target.value, false);
         });
         $("refreshButton").addEventListener("click", loadApplications);
         $("signOutButton").addEventListener("click", clearSession);
