@@ -256,6 +256,7 @@ function apiPost(request) {
   if (action === "listReviewApplicants") return listReviewApplicants(payload);
   if (action === "saveReviewScore") return saveReviewScore(payload);
   if (action === "saveReviewAnalysis") return saveReviewAnalysis(payload);
+  if (action === "submitPanelReview") return submitPanelReview(payload);
   if (action === "saveReviewNote") return saveReviewNote(payload);
   if (action === "withdrawReviewNote") return withdrawReviewNote(payload);
   if (action === "updateReviewStage") return updateReviewStage(payload);
@@ -636,6 +637,28 @@ function saveEligibilityDecision(payload) {
   return saveReviewScore(payload);
 }
 
+function submitPanelReview(payload) {
+  payload = payload || {};
+  const scoreResult = saveReviewScore(payload);
+  const noteResult = saveReviewNote(payload);
+  const formalStage = String(payload.formalStage || payload.stageToMove || "").trim();
+  let stageResult = null;
+  if (formalStage) {
+    stageResult = updateReviewStage(
+      Object.assign({}, payload, {
+        stage: formalStage,
+        reason: String(payload.stageReason || "Review manager submitted review and moved official stage to " + formalStage + "."),
+      }),
+    );
+  }
+  return {
+    ok: true,
+    score: scoreResult.score,
+    note: noteResult.note,
+    stage: stageResult ? stageResult.stage : null,
+  };
+}
+
 function saveReviewNote(payload) {
   payload = payload || {};
   const reviewer = requireReviewerSession(payload);
@@ -648,7 +671,7 @@ function saveReviewNote(payload) {
   const sheet = getSheet(spreadsheet, "ReviewNotes");
   const noteId = String(payload.noteId || Utilities.getUuid());
   const before = findSheetObject(sheet, noteId);
-  const beforeAuthorEmail = normalizeEmailAddress(before && before.author_email || "");
+  const beforeAuthorEmail = before && before.author_email ? normalizeEmailAddress(before.author_email) : "";
   const beforeAuthorName = String(before && before.author_name || "");
   if (
     before &&

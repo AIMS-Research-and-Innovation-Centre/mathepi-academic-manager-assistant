@@ -2016,10 +2016,36 @@
           });
         }
 
+        function looksLikeEmail(value) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+        }
+
+        function reviewerPayloadEmail() {
+          var reviewer = session && session.reviewer ? session.reviewer : {};
+          var candidates = [
+            session && session.email,
+            reviewer.email,
+            reviewer.reviewer_email,
+            $("reviewerEmail") && $("reviewerEmail").value
+          ];
+          for (var i = 0; i < candidates.length; i += 1) {
+            var value = String(candidates[i] || "").trim().toLowerCase();
+            if (looksLikeEmail(value)) return value;
+          }
+          return "";
+        }
+
+        function reviewerSessionIssue() {
+          if (!session || !session.sessionToken) return "Reviewer verification has expired. Click Clear session, verify your email again, then submit the review.";
+          if (!reviewerPayloadEmail()) return "Your reviewer session is missing an email address. Click Clear session, verify your email again, then submit the review.";
+          return "";
+        }
+
         function reviewPayload(extra) {
+          var email = reviewerPayloadEmail();
           var payload = {
-            email: session && session.email || "",
-            reviewerEmail: session && session.email || "",
+            email: email,
+            reviewerEmail: email,
             sessionToken: session && session.sessionToken || ""
           };
           extra = extra || {};
@@ -4076,6 +4102,11 @@
             return;
           }
           if (!note && final) note = defaultSubmittedNote(verdict, stageRecommendation);
+          var sessionIssue = reviewerSessionIssue();
+          if (sessionIssue) {
+            showNoteMessage("error", sessionIssue);
+            return;
+          }
           var existingNote = state.editingNoteId ? state.notes.filter(function (item) { return String(item.note_id) === String(state.editingNoteId); })[0] : null;
           var editingAnotherReviewer = existingNote &&
             String(existingNote.author_email || "").toLowerCase() &&
@@ -4102,34 +4133,64 @@
             },
             reason: (final ? "Submitted review: " : "Panel recommendation: ") + verdict + "; suggested next step: " + stageRecommendation + ". " + note.slice(0, 420)
           };
+          function updateLocalScore(score) {
+            if (!score) return;
+            var scoreIndex = state.scores.findIndex(function (row) { return row.score_id === score.score_id; });
+            if (scoreIndex >= 0) state.scores[scoreIndex] = score;
+            else state.scores.push(score);
+          }
+          function updateLocalNote(savedNote) {
+            if (!savedNote) return;
+            var index = state.notes.findIndex(function (row) { return row.note_id === savedNote.note_id; });
+            if (index >= 0) state.notes[index] = savedNote;
+            else state.notes.push(savedNote);
+          }
+          function updateLocalStage(stage) {
+            if (!stage) return;
+            var stageIndex = state.stages.findIndex(function (row) { return String(row.application_id) === String(id); });
+            if (stageIndex >= 0) state.stages[stageIndex] = stage;
+            else state.stages.push(stage);
+          }
+          function savePanelReviewSeparate() {
+            var scoreJob = final && !editingAnotherReviewer
+              ? jsonp("saveReviewScore", reviewPayload(scorePayload), 30000).then(function (scoreResult) {
+                updateLocalScore(scoreResult.score);
+                return scoreResult;
+              })
+              : Promise.resolve(null);
+            return scoreJob.then(function () {
+              return jsonp("saveReviewNote", reviewPayload(payload), 30000);
+            }).then(function (result) {
+              updateLocalNote(result.note);
+              if (!stageToMove) return { stageMoved: false };
+              return jsonp("updateReviewStage", reviewPayload({
+                applicationId: id,
+                stage: stageToMove,
+                reason: "Review manager submitted review and moved official stage to " + stageToMove + "."
+              }), 30000).then(function (stageResult) {
+                updateLocalStage(stageResult.stage);
+                return { stageMoved: true, stage: stageToMove };
+              });
+            });
+          }
+          function submitPanelReviewCombined() {
+            if (!final || editingAnotherReviewer) return savePanelReviewSeparate();
+            return jsonp("submitPanelReview", reviewPayload(Object.assign({}, payload, scorePayload, {
+              formalStage: stageToMove,
+              stageReason: "Review manager submitted review and moved official stage to " + stageToMove + "."
+            })), 45000).then(function (result) {
+              updateLocalScore(result.score);
+              updateLocalNote(result.note);
+              updateLocalStage(result.stage);
+              return { stageMoved: !!result.stage, stage: result.stage && result.stage.stage || stageToMove };
+            }).catch(function (error) {
+              if (/Unknown action:\s*submitPanelReview/i.test(error.message || "")) return savePanelReviewSeparate();
+              throw error;
+            });
+          }
           setPanelBusy(final ? "submit" : "draft", true);
           showNoteMessage("status", final ? "Submitting review to Google Sheets..." : (state.editingNoteId ? "Saving panel comment edit..." : "Saving draft panel comment..."));
-          var scoreJob = final && !editingAnotherReviewer
-            ? jsonp("saveReviewScore", reviewPayload(scorePayload), 30000).then(function (scoreResult) {
-              var scoreIndex = state.scores.findIndex(function (row) { return row.score_id === scoreResult.score.score_id; });
-              if (scoreIndex >= 0) state.scores[scoreIndex] = scoreResult.score;
-              else state.scores.push(scoreResult.score);
-              return scoreResult;
-            })
-            : Promise.resolve(null);
-          scoreJob.then(function () {
-            return jsonp("saveReviewNote", reviewPayload(payload), 30000);
-          }).then(function (result) {
-            var index = state.notes.findIndex(function (row) { return row.note_id === result.note.note_id; });
-            if (index >= 0) state.notes[index] = result.note;
-            else state.notes.push(result.note);
-            if (!stageToMove) return { stageMoved: false };
-            return jsonp("updateReviewStage", reviewPayload({
-              applicationId: id,
-              stage: stageToMove,
-              reason: "Review manager submitted review and moved official stage to " + stageToMove + "."
-            }), 30000).then(function (stageResult) {
-              var stageIndex = state.stages.findIndex(function (row) { return String(row.application_id) === String(id); });
-              if (stageIndex >= 0) state.stages[stageIndex] = stageResult.stage;
-              else state.stages.push(stageResult.stage);
-              return { stageMoved: true, stage: stageToMove };
-            });
-          }).then(function (result) {
+          submitPanelReviewCombined().then(function (result) {
             var message = final
               ? "Review submitted. " + (result && result.stageMoved ? "Official stage moved to " + result.stage + "." : "The reviewer recommendation is saved; the official stage is unchanged.")
               : "Draft panel comment saved.";

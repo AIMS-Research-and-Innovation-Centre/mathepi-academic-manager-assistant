@@ -47,6 +47,7 @@ function apiPost(request) {
   if (action === "listReviewApplicants") return listReviewApplicants(payload);
   if (action === "saveReviewScore") return saveReviewScore(payload);
   if (action === "saveReviewAnalysis") return saveReviewAnalysis(payload);
+  if (action === "submitPanelReview") return submitPanelReview(payload);
   if (action === "saveReviewNote") return saveReviewNote(payload);
   if (action === "withdrawReviewNote") return withdrawReviewNote(payload);
   if (action === "updateReviewStage") return updateReviewStage(payload);
