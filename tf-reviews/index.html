@@ -1008,7 +1008,7 @@
 
       .score-summary {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 8px;
         margin: 10px 0 12px;
       }
@@ -1028,6 +1028,7 @@
       }
 
       .score-card input,
+      .score-card select,
       .score-card b {
         display: block;
         width: 100%;
@@ -1042,6 +1043,15 @@
         border-bottom: 1px solid var(--line);
         border-radius: 0;
         padding: 0 0 3px;
+      }
+
+      .score-card select {
+        min-height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        padding: 3px 5px;
+        background: #fff;
+        font-size: 14px;
       }
 
       .score-basis {
@@ -1487,6 +1497,7 @@
         <select id="crs"><option value="">Filter: any course</option></select>
         <button id="exportBtn" type="button">Export review JSON</button>
         <button id="refreshButton" type="button">Refresh from Sheets</button>
+        <button id="resetStagesButton" type="button" hidden>Reset to first stage</button>
         <button id="signOutButton" type="button">Clear session</button>
         <div class="reviewer">Reviewing as <b id="reviewerName">Reviewer</b></div>
       </div>
@@ -1553,7 +1564,8 @@
           course: "",
           openId: "",
           tab: "eval",
-          editingNoteId: ""
+          editingNoteId: "",
+          resetConfirm: false
         };
 
         var STAGES = [
@@ -1569,6 +1581,13 @@
           "Support",
           "Maybe / discuss",
           "Do not support"
+        ];
+
+        var REVIEW_RECOMMENDATIONS = [
+          "Progress strong",
+          "Progress",
+          "Review",
+          "Do not progress"
         ];
 
         var STAGE_RECOMMENDATIONS = [
@@ -1908,6 +1927,7 @@
           $("loginScreen").hidden = true;
           $("reviewScreen").hidden = false;
           $("reviewerName").textContent = reviewerName();
+          if ($("resetStagesButton")) $("resetStagesButton").hidden = !isReviewManager();
           setBusy("", false);
           render();
         }
@@ -2293,6 +2313,48 @@
           };
         }
 
+        function strongCourseThreshold() {
+          return Math.ceil(COURSES.length / 3);
+        }
+
+        function strongCourseCount(components, courseVerdicts) {
+          courseVerdicts = courseVerdicts || {};
+          return (components || []).filter(function (item) {
+            var edited = courseVerdicts[item.code];
+            if (edited) return edited === "Can lecture";
+            return item.verdict === "lecture" && item.confidence === "high" && !item.caveat;
+          }).length;
+        }
+
+        function automaticRecommendation(app, metrics) {
+          metrics = metrics || {};
+          var weighted = Number(metrics.weightedScore || 0);
+          var strongCourses = strongCourseCount(metrics.components || [], metrics.courseVerdicts || {});
+          var threshold = strongCourseThreshold();
+          var deterministic = [];
+          var refs = referenceCount(app);
+          var completion = Date.parse(app.phdCompletion || "");
+          var start = Date.parse("2026-10-01");
+          var earliest = Date.parse("2024-10-01");
+          if (!app.passport) deterministic.push("passport not confirmed");
+          if (!app.phdCertificate) deterministic.push("PhD certificate not confirmed");
+          if (refs < 2) deterministic.push("fewer than two referees");
+          if (!(completion && completion >= earliest && completion <= start)) deterministic.push("PhD completion is outside the two-year window or unclear");
+          if (!/yes|ready|accept|available|commit/i.test(String(app.residenceReady || ""))) deterministic.push("Nairobi residency not clearly accepted");
+          if (!/yes|ready|accept|available|commit/i.test(String(app.teachingGapReady || ""))) deterministic.push("teaching-continuity duty not clearly accepted");
+          var reasons = deterministic.slice();
+          if (weighted < 75 || strongCourses < threshold) {
+            reasons.push("Progress strong requires a weighted score of at least 75 and at least " + threshold + " day-one lecture-strength course fits; current record is " + weighted + " and " + strongCourses + ".");
+          }
+          var label;
+          if (deterministic.length > 4 || weighted < 30) label = "Do not progress";
+          else if (deterministic.length > 2 || weighted < 55) label = "Review";
+          else if (!deterministic.length && weighted >= 75 && strongCourses >= threshold) label = "Progress strong";
+          else label = "Progress";
+          if (!reasons.length) reasons.push("All deterministic gate checks passed; weighted score and day-one course strength meet the strong-progress threshold.");
+          return { label: label, reasons: reasons, strongCourses: strongCourses, threshold: threshold, weightedScore: weighted };
+        }
+
         function criterion(label, source, checks) {
           var text = cleanEvidence(source);
           if (!text) return { label: label, score: 0, matched: [], evidence: "", judgement: "Not evidenced in the application." };
@@ -2371,7 +2433,10 @@
           var teachingScore = Math.min(85, teachingScoreCap(teachingText, delivery, depth, breadth), teachingRaw);
           var research = researchScore(app, researchText);
           var weighted = Math.min(85, Math.round(teachingScore * 0.7 + research.score * 0.3));
-          var eligibility = eligibilityGate(app);
+          var eligibility = eligibilityGate(app, {
+            weightedScore: weighted,
+            components: components
+          });
           return {
             delivery: delivery,
             components: components,
@@ -2466,20 +2531,8 @@
           }).length;
         }
 
-        function eligibilityGate(app) {
-          var reasons = [];
-          var refs = referenceCount(app);
-          var completion = Date.parse(app.phdCompletion || "");
-          var start = Date.parse("2026-10-01");
-          var earliest = Date.parse("2024-10-01");
-          if (!app.passport) reasons.push("passport not confirmed");
-          if (!app.phdCertificate) reasons.push("PhD certificate not confirmed");
-          if (refs < 2) reasons.push("fewer than two referees");
-          if (!(completion && completion >= earliest && completion <= start)) reasons.push("PhD completion is outside the two-year window or unclear");
-          if (!/yes|ready|accept|available|commit/i.test(String(app.residenceReady || ""))) reasons.push("Nairobi residency not clearly accepted");
-          if (!/yes|ready|accept|available|commit/i.test(String(app.teachingGapReady || ""))) reasons.push("teaching-continuity duty not clearly accepted");
-          var label = reasons.length === 0 ? "Progress strong" : reasons.length <= 2 ? "Progress" : reasons.length <= 4 ? "Review" : "Do not progress";
-          return { label: label, reasons: reasons.length ? reasons : ["All deterministic gate checks passed."] };
+        function eligibilityGate(app, metrics) {
+          return automaticRecommendation(app, metrics || {});
         }
 
         function band(score) {
@@ -2597,10 +2650,36 @@
               r: Number(score.research_score || 0),
               ov: Number(score.weighted_score || 0),
               edited: true,
+              decision: isReviewRecommendation(score.eligibility_decision) ? score.eligibility_decision : "",
               reason: score.reason || ""
             };
           }
-          return { t: assessment.teachingScore, r: assessment.researchScore, ov: assessment.weightedScore, edited: false, reason: "" };
+          return { t: assessment.teachingScore, r: assessment.researchScore, ov: assessment.weightedScore, edited: false, decision: "", reason: "" };
+        }
+
+        function isReviewRecommendation(value) {
+          return REVIEW_RECOMMENDATIONS.indexOf(String(value || "")) >= 0;
+        }
+
+        function savedReviewRecommendation(app) {
+          var score = latestScore(app.applicationId);
+          return score && isReviewRecommendation(score.eligibility_decision) ? score.eligibility_decision : "";
+        }
+
+        function displayRecommendation(app) {
+          return savedReviewRecommendation(app) || app.assessment.eligibility.label;
+        }
+
+        function recommendationFromEditedReview(app, teaching, research, courseVerdicts) {
+          var weighted = Math.round((Number(teaching || 0) * 0.7) + (Number(research || 0) * 0.3));
+          var auto = automaticRecommendation(app, {
+            weightedScore: weighted,
+            components: app.assessment.components,
+            courseVerdicts: courseVerdicts || {}
+          });
+          var select = $("ovRecommendation");
+          var manual = select && select.value && select.value !== "Auto" ? select.value : "";
+          return manual || auto.label;
         }
 
         function notesFor(id) {
@@ -2641,7 +2720,7 @@
           var ea = effective(a, aa);
           var eb = effective(b, bb);
           var rank = { "Progress strong": 0, Progress: 1, Review: 2, "Do not progress": 3 };
-          if (state.sort === "rec") return (rank[aa.eligibility.label] || 9) - (rank[bb.eligibility.label] || 9) || eb.ov - ea.ov;
+          if (state.sort === "rec") return (rank[displayRecommendation(a)] || 9) - (rank[displayRecommendation(b)] || 9) || eb.ov - ea.ov;
           if (state.sort === "cov") return coverageCount(b) - coverageCount(a) || eb.ov - ea.ov;
           if (state.sort === "res") return bb.researchScore - aa.researchScore || eb.ov - ea.ov;
           if (state.sort === "name") return String(a.applicant || "").localeCompare(String(b.applicant || ""));
@@ -2715,10 +2794,11 @@
 
         function rowStageClass(app) {
           var stage = stageFor(app.applicationId);
+          var recommendation = displayRecommendation(app);
           if (stage === "Shortlist") return "shortlist";
           if (stage === "Finalists") return "final";
-          if (stage === "Decision" && app.assessment.eligibility.label !== "Do not progress") return "award";
-          if (app.assessment.eligibility.label === "Do not progress") return "reject";
+          if (stage === "Decision" && recommendation !== "Do not progress") return "award";
+          if (recommendation === "Do not progress") return "reject";
           return "";
         }
 
@@ -2731,6 +2811,7 @@
           $("list").innerHTML = rows.map(function (app) {
             var a = app.assessment;
             var e = effective(app, a);
+            var recommendation = displayRecommendation(app);
             var refs = referenceCount(app);
             var stage = stageFor(app.applicationId);
             var noteCount = notesFor(app.applicationId).length;
@@ -2756,7 +2837,7 @@
               lecture.filter(function (item) { return item.code !== a.bestFit.code; }).slice(0, 3).map(function (item) { return '<span class="chip crs" title="' + esc(item.title) + '">Can lecture ' + item.code + '</span>'; }).join("") +
               (tutor.length ? '<span class="chip">plus ' + tutor.length + ' at tutor level</span>' : "") +
               (e.edited ? '<span class="chip flag">Score revised</span>' : "") + '</div></div>' +
-              '<div class="actions"><div class="rec ' + recClass(a.eligibility.label) + '">' + esc(a.eligibility.label) + '</div>' +
+              '<div class="actions"><div class="rec ' + recClass(recommendation) + '">' + esc(recommendation) + '</div>' +
               '<span class="covnum">' + Math.round(coverageCount(app) / Math.max(1, a.components.length) * 100) + '% of the matrix &middot; depth ' + (a.bestFit.score || 0) + '</span>' +
               '<button class="openBtn" type="button">Open and review</button>' +
               (noteCount ? '<span class="notecount">' + noteCount + " note" + (noteCount === 1 ? "" : "s") + '</span>' : "") + '</div></div>';
@@ -3060,8 +3141,8 @@
           var defaults = {
             eligibility: "Eligibility judgement\n" +
               (a.eligibility.label === "Progress strong"
-                ? "The deterministic eligibility checks are clear on the information currently available."
-                : "The file contains eligibility points that require verification before progression.") +
+                ? "The eligibility checks, weighted score, and day-one course-strength threshold are clear on the information currently available."
+                : "The file contains eligibility, score, or course-strength points that require verification before progression.") +
               "\n" + a.eligibility.reasons.join("; ") + ".\n\n" +
               responseSource("Required documents", "Passport " + (app.passport ? "confirmed" : "not confirmed") + "; PhD certificate " + (app.phdCertificate ? "confirmed" : "not confirmed")) + "\n\n" +
               responseSource("PhD completion date", app.phdCompletion) + "\n\n" +
@@ -3193,6 +3274,41 @@
             '</section>';
         }
 
+        function courseListText(rows, fallback) {
+          rows = rows || [];
+          return rows.length ? rows.map(function (item) { return item.code + " " + item.title; }).join("; ") : fallback;
+        }
+
+        function reviewOrientationHtml(app, a, e, verdicts) {
+          var dayOne = a.components.filter(function (item) {
+            return verdicts[item.code] === "Can lecture" || (!verdicts[item.code] && item.verdict === "lecture" && item.confidence === "high" && !item.caveat);
+          }).slice(0, 7);
+          var possible = a.components.filter(function (item) {
+            return dayOne.indexOf(item) < 0 && (item.verdict !== "gap" || verdicts[item.code] === "Can tutor" || verdicts[item.code] === "Can lecture");
+          }).slice(0, 7);
+          var strengths = [];
+          if (a.delivery.score >= 70) strengths.push("Concrete teaching, tutorial, mentoring, or hands-on support evidence is present.");
+          if (a.researchScore >= 65) strengths.push("Research method and direction are credible enough for panel discussion.");
+          if (methodProfile(app) !== "no specific quantitative method is clearly named") strengths.push("Quantitative profile: " + methodProfile(app) + ".");
+          if (!strengths.length) strengths.push("The record needs reviewer interpretation before a strong panel case can be made.");
+          var risks = [];
+          if (Number(e.ov || 0) < 75) risks.push("Weighted score is below the 75 threshold for Progress strong.");
+          var strongCount = strongCourseCount(a.components, verdicts);
+          if (strongCount < strongCourseThreshold()) risks.push("Day-one lecture-strength coverage is " + strongCount + " of " + strongCourseThreshold() + " required for Progress strong.");
+          a.eligibility.reasons.filter(function (reason) {
+            return reason.indexOf("Progress strong requires") !== 0;
+          }).slice(0, 3).forEach(function (reason) { risks.push(reason); });
+          if (!risks.length) risks.push("No major automatic weakness is shown, but panel verification is still required.");
+          return '<div class="narr"><h4>Applicant review snapshot</h4>' +
+            '<h5>Current role and affiliation</h5><p>' + esc([app.designation || "Current role not stated", app.affiliation || "affiliation not stated"].join(", ")) + '</p>' +
+            '<h5>Strengths to test</h5><p>' + esc(strengths.join(" ")) + '</p>' +
+            '<h5>Weaknesses or risks</h5><p>' + esc(risks.join(" ")) + '</p>' +
+            '<h5>Can step in and lecture from day one</h5><p>' + esc(courseListText(dayOne, "No day-one lecture course is established without reviewer override.")) + '</p>' +
+            '<h5>Good or excellent possible fits after orientation</h5><p>' + esc(courseListText(possible, "No additional course fit is established from the current evidence.")) + '</p>' +
+            '<button class="primary" id="insertDraft" type="button">Insert review note under your name</button>' +
+            '</div>';
+        }
+
         function evalHtml(app) {
           var a = app.assessment;
           var e = effective(app, a);
@@ -3202,12 +3318,10 @@
           var text = analysisTextsFor(app);
           var verdicts = parseJson(latest && latest.course_verdicts_json, {});
           var gaps = a.components.filter(function (item) { return item.verdict === "gap"; }).slice(0, 4).map(function (item) { return item.code; }).join(", ") || "no major matrix gap";
-          return '<div class="narr"><h4>Review orientation</h4>' +
-            '<p>This section organises the application for panel review. Applicant responses remain unchanged; all assessment text and scores below are editable by the reviewer.</p>' +
-            '<h5>Indicative curriculum alignment</h5><p>' + esc(a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "No single component is prioritised") + '</p>' +
-            '<h5>Research commitment</h5><p>Review the proposed question, method, data route, feasibility, track record, ownership, and institutional relevance. Record the reviewer judgement in the editable assessment and score fields.</p>' +
-            '<button class="primary" id="insertDraft" type="button">Insert review note under your name</button>' +
-            '</div>' +
+          var autoDecision = automaticRecommendation(app, { weightedScore: e.ov, components: a.components, courseVerdicts: verdicts }).label;
+          var savedDecision = savedReviewRecommendation(app);
+          var recommendation = savedDecision || a.eligibility.label;
+          return reviewOrientationHtml(app, a, e, verdicts) +
             '<div class="narr analysis-editor"><h4>Panel assessment</h4>' +
             '<div class="analysis-grid">' +
             analysisFieldHtml("analysisEligibility", "Eligibility", text.eligibility, false) +
@@ -3232,6 +3346,7 @@
             '<div class="score-card"><span>Teaching readiness, 70 per cent</span><input type="number" id="ovT" min="0" max="100" value="' + e.t + '"><em class="was">Starting point ' + a.teachingScore + '</em></div>' +
             '<div class="score-card"><span>Research potential, 30 per cent</span><input type="number" id="ovR" min="0" max="100" value="' + e.r + '"><em class="was">Starting point ' + a.researchScore + '</em></div>' +
             '<div class="score-card"><span>Weighted 70:30</span><b id="ovOut">' + e.ov + '</b><em class="was">Starting point ' + a.weightedScore + ' &middot; ' + band(a.weightedScore) + '</em></div>' +
+            '<div class="score-card"><span>First evaluator recommendation</span><select id="ovRecommendation">' + optionsHtml(["Auto"].concat(REVIEW_RECOMMENDATIONS), savedDecision || "Auto") + '</select><em class="was" id="ovAutoRecommendation">Auto: ' + esc(autoDecision) + '</em></div>' +
             '</div>' +
             '<details class="score-basis"><summary>Criterion scores (editable)</summary><div class="score-detail">' +
             scoreDetailHtml("scoreDepth", "Teaching depth in best-fit component", details.teachingDepth) +
@@ -3247,7 +3362,7 @@
             '</div></details>' +
             '<div style="margin:7px 0 8px"><input type="text" id="ovWhy" placeholder="Reason for the revision or assessment update" value="' + esc(e.reason || "") + '"></div>' +
             '<div class="analysis-actions"><button class="primary" id="saveAnalysis" type="button">Save first evaluator assessment</button><button id="saveScore" type="button">Save score only</button></div>' + (latest ? '<div class="was" style="margin-top:7px">Last score saved by ' + esc(latest.reviewer_name || latest.reviewer_email || "") + '. Reason: ' + esc(latest.reason || "") + '</div>' : "") + '</div>' +
-            '<div class="gate"><h4>Eligibility gate</h4><div class="rec ' + recClass(a.eligibility.label) + '">' + esc(a.eligibility.label) + '</div><ul>' + a.eligibility.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul></div>' +
+            '<div class="gate"><h4>Eligibility and strength gate</h4><div class="rec ' + recClass(recommendation) + '">' + esc(recommendation) + '</div><ul>' + a.eligibility.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul></div>' +
             '<div class="best"><div class="b">Where they fit best, five strongest components</div>' +
             a.components.slice(0, 5).map(function (item, index) { return '<div class="unit"><b>' + (index + 1) + '. ' + item.code + ' ' + esc(item.title) + '</b><span> ' + item.label + '</span></div>'; }).join("") + '</div>' +
             '<div class="inst">' + a.components.map(function (item) {
@@ -3350,12 +3465,27 @@
           var t = $("ovT");
           var r = $("ovR");
           var out = $("ovOut");
+          var autoRec = $("ovAutoRecommendation");
           function live() {
             if (!t || !r || !out) return;
-            out.textContent = Math.round(((Number(t.value) || 0) * 0.7 + (Number(r.value) || 0) * 0.3) * 10) / 10;
+            var weighted = Math.round(((Number(t.value) || 0) * 0.7 + (Number(r.value) || 0) * 0.3) * 10) / 10;
+            out.textContent = weighted;
+            if (autoRec) {
+              var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
+              if (app) {
+                autoRec.textContent = "Auto: " + automaticRecommendation(app, {
+                  weightedScore: weighted,
+                  components: app.assessment.components,
+                  courseVerdicts: collectCourseVerdicts()
+                }).label;
+              }
+            }
           }
           if (t) t.oninput = live;
           if (r) r.oninput = live;
+          Array.prototype.forEach.call(document.querySelectorAll("[data-course-verdict]"), function (select) {
+            select.onchange = live;
+          });
           function detailLive() {
             var depth = Number($("scoreDepth") && $("scoreDepth").value || 0);
             var deliveryTeaching = Number($("scoreDeliveryTeaching") && $("scoreDeliveryTeaching").value || 0);
@@ -3464,6 +3594,7 @@
           var reason = fieldValue("ovWhy") || "First evaluator assessment updated.";
           var scoreDetails = collectScoreDetails();
           var courseVerdicts = collectCourseVerdicts();
+          var decision = recommendationFromEditedReview(app, teaching, research, courseVerdicts);
           return {
             applicationId: id,
             applicantCode: app.displayId || id,
@@ -3471,8 +3602,8 @@
             teachingScore: teaching,
             researchScore: research,
             weightedScore: Math.round(teaching * 0.7 + research * 0.3),
-            eligibilityDecision: app.assessment.eligibility.label,
-            recommendation: app.assessment.eligibility.label,
+            eligibilityDecision: decision,
+            recommendation: decision,
             courseVerdicts: courseVerdicts,
             initialScore: {
               teaching: app.assessment.teachingScore,
@@ -3515,13 +3646,14 @@
           var reason = ($("ovWhy") && $("ovWhy").value || "").trim() || "Score revised by reviewer.";
           var app = assessedApps().filter(function (item) { return item.applicationId === id; })[0];
           var verdicts = collectCourseVerdicts();
+          var decision = recommendationFromEditedReview(app, teaching, research, verdicts);
           showMessage("reviewMessageArea", "status", "Saving score revision...");
           jsonp("saveReviewScore", reviewPayload({
             applicationId: id,
             teachingScore: teaching,
             researchScore: research,
-            eligibilityDecision: app.assessment.eligibility.label,
-            recommendation: app.assessment.eligibility.label,
+            eligibilityDecision: decision,
+            recommendation: decision,
             courseVerdicts: verdicts,
             initialScore: {
               teaching: app.assessment.teachingScore,
@@ -3710,6 +3842,70 @@
           });
         }
 
+        function resetAllStagesToFirstStage() {
+          if (!isReviewManager()) {
+            showMessage("reviewMessageArea", "error", "Only Cecil or a review manager can reset official stages.");
+            return;
+          }
+          var button = $("resetStagesButton");
+          if (!state.resetConfirm) {
+            state.resetConfirm = true;
+            if (button) button.textContent = "Confirm reset to first stage";
+            showMessage("reviewMessageArea", "status", "This will move every visible application back to All applicants. Click Confirm reset to first stage to continue.");
+            window.setTimeout(function () {
+              state.resetConfirm = false;
+              if (button) button.textContent = "Reset to first stage";
+            }, 12000);
+            return;
+          }
+          state.resetConfirm = false;
+          if (button) {
+            button.disabled = true;
+            button.textContent = "Resetting stages...";
+          }
+          var apps = assessedApps();
+          var targets = apps.filter(function (app) { return stageFor(app.applicationId) !== "All applicants"; });
+          if (!targets.length) {
+            if (button) {
+              button.disabled = false;
+              button.textContent = "Reset to first stage";
+            }
+            showMessage("reviewMessageArea", "success", "All applications are already at the first stage.");
+            return;
+          }
+          showMessage("reviewMessageArea", "status", "Resetting " + targets.length + " application stage record" + (targets.length === 1 ? "" : "s") + " to All applicants...");
+          var chain = Promise.resolve();
+          targets.forEach(function (app) {
+            chain = chain.then(function () {
+              return jsonp("updateReviewStage", reviewPayload({
+                applicationId: app.applicationId,
+                stage: "All applicants",
+                reason: "Bulk reset to first review stage from the review portal."
+              }), 30000).then(function (result) {
+                var index = state.stages.findIndex(function (row) { return String(row.application_id) === String(app.applicationId); });
+                if (index >= 0) state.stages[index] = result.stage;
+                else state.stages.push(result.stage);
+              });
+            });
+          });
+          chain.then(function () {
+            if (button) {
+              button.disabled = false;
+              button.textContent = "Reset to first stage";
+            }
+            state.stage = "all";
+            showMessage("reviewMessageArea", "success", "All formal review stages have been reset to All applicants.");
+            render();
+          }).catch(function (error) {
+            if (button) {
+              button.disabled = false;
+              button.textContent = "Reset to first stage";
+            }
+            showMessage("reviewMessageArea", "error", error.message || "Bulk stage reset failed. Refresh from Sheets and try again.");
+            render();
+          });
+        }
+
         function closeDrawer() {
           $("drawer").classList.remove("open");
           $("scrim").classList.remove("open");
@@ -3726,7 +3922,7 @@
               applicantCode: app.displayId || app.applicationId,
               applicant: app.applicant,
               stage: stageFor(app.applicationId),
-              recommendation: app.assessment.eligibility.label,
+              recommendation: displayRecommendation(app),
               initialScores: {
                 teaching: app.assessment.teachingScore,
                 research: app.assessment.researchScore,
@@ -3918,6 +4114,7 @@
         $("refreshButton").addEventListener("click", loadApplications);
         $("signOutButton").addEventListener("click", clearSession);
         $("exportBtn").addEventListener("click", exportJson);
+        $("resetStagesButton").addEventListener("click", resetAllStagesToFirstStage);
         $("closeBtn").addEventListener("click", closeDrawer);
         $("scrim").addEventListener("click", closeDrawer);
         $("addNote").addEventListener("click", saveNote);
