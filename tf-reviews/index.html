@@ -2566,24 +2566,24 @@
           var questions = [];
           var teaching = cleanEvidence(app.teachingExperience + " " + app.tutoringExperience + " " + app.mentoringExperience);
           if (evidenceLevel(teaching) < 3) {
-            questions.push("Describe one specific course or cohort you taught or supported, including your role, class level, duration, and how you assessed or gave feedback to learners.");
+            questions.push("The panel should test teaching evidence by asking the applicant to describe one specific course or cohort they taught or supported, including role, class level, duration, assessment, and feedback responsibility.");
           }
           if (!/(mark|assess|feedback|grade|rubric)/i.test(teaching)) {
-            questions.push("Give one concrete example of marking or feedback you provided and explain how it changed a learner's work.");
+            questions.push("Assessment responsibility should be clarified through one concrete example of marking or feedback and how it changed a learner's work.");
           }
           if (!/(R|Python|Matlab|Stata|SPSS|Julia|Sage|LaTeX|Quarto|coding|programming)/i.test(teaching + " " + app.quantitativeBackground)) {
-            questions.push("Which computational tools can you support confidently in a live practical session, and what task have you completed with each?");
+            questions.push("Computational teaching readiness should be confirmed by naming the tools the applicant can support confidently in a live hands-on session and the task completed with each tool.");
           }
           var fit = courseJudgement(a);
-          questions.push("The current evidence maps most strongly to " + (a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "no single course") + ". What 90-minute tutorial would you deliver first, and what would students produce by the end?");
+          questions.push("The current evidence maps most strongly to " + (a.bestFit ? a.bestFit.code + " " + a.bestFit.title : "no single course") + ". The panel should ask the applicant to describe the first 90-minute tutorial they would deliver and the concrete student output expected by the end.");
           if (a.researchScore < 60) {
-            questions.push("State the research question, named dataset or data-access route, principal method, and one publication-ready output achievable within the protected 30 per cent research time.");
+            questions.push("The research plan should be tested for a clear research question, named dataset or data-access route, principal method, and one publication-ready output achievable within the protected 30 per cent research time.");
           }
           if (!/(kemri|kenya|nairobi)/i.test(allText(app))) {
-            questions.push("Which KEMRI centre, programme, dataset, or investigator would provide the most credible home for the proposed work, and why?");
+            questions.push("Institutional fit should be tested by identifying the KEMRI centre, programme, dataset, or investigator that would provide the most credible home for the proposed work.");
           }
           if (fit.unsupported !== "none established from the form") {
-            questions.push("Which of these presently unsupported areas could you cover after orientation, and what preparation would be required: " + fit.unsupported + "?");
+            questions.push("The panel should ask which presently unsupported areas the applicant could cover after orientation and what preparation would be required: " + fit.unsupported + ".");
           }
           return questions.slice(0, 6);
         }
@@ -3421,8 +3421,13 @@
           else if (a.researchScore >= 70) risks.push("The research score is methodologically strong, but the panel should check whether the proposed project is genuinely health-facing and not mainly an adjacent non-health quantitative exercise.");
           else risks.push("The research plan needs sharper evidence on the precise question, method, data route, output, ownership, or feasibility within the 30 per cent research allocation.");
           strengths.push("The likely institutional fit is " + fitBand.toLowerCase() + ", with possible KEMRI homes including " + homes.slice(0, 2).join("; ") + ".");
-          if (a.eligibility.reasons.length && a.eligibility.reasons[0] !== "All deterministic gate checks passed.") {
-            gaps.push("Eligibility flags to resolve: " + a.eligibility.reasons.join("; ") + ".");
+          var eligibilityFlags = a.eligibility.reasons.filter(function (reason) {
+            return reason.indexOf("Progress strong requires") !== 0 && reason !== "All deterministic gate checks passed.";
+          }).map(function (reason) {
+            return String(reason || "").trim().replace(/[.;:!?]+$/g, "");
+          }).filter(Boolean);
+          if (eligibilityFlags.length) {
+            gaps.push("Eligibility points for reviewer judgement: " + eligibilityFlags.join("; ") + ".");
           }
           gaps = gaps.concat(questions.slice(0, 3));
           if (!gaps.length) gaps.push("Record any interview questions that would confirm scale, responsibility, data access, and fit before final progression.");
