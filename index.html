@@ -22,7 +22,7 @@
     <div id="app"></div>
     <script>
       (function () {
-        var APP_SCRIPT = "app.js?v=28";
+        var APP_SCRIPT = "app.js?v=29";
         var AUTH_BRIDGE = "auth/auth-bridge.js?v=17";
         var booted = false;
         var resetDone = false;
@@ -147,6 +147,13 @@
 
         if (window.location.hash === "#tf-reviews" && !hasParam("reset")) {
           window.location.replace(reviewPortalUrl(false));
+          return;
+        }
+
+        if (window.location.hash === "#lecturer-reviews" && !hasParam("reset")) {
+          var lecturerReviewUrl = new URL("./lecturer-reviews/", window.location.href);
+          lecturerReviewUrl.searchParams.set("t", String(Date.now()));
+          window.location.replace(lecturerReviewUrl.toString());
           return;
         }
 

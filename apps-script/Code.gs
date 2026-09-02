@@ -52,134 +52,47 @@ const TAB_HEADERS = {
     "alumni_program", "alumni_year", "heard_about_aims", "heard_other",
     "certified_true", "accepted_terms", "full_application_json",
   ],
+  LecturerReviewDecisions: [
+    "decision_id", "application_id", "email", "applicant", "course_id", "course_title",
+    "decision", "notes", "decided_by", "updated_at",
+  ],
   TutorialFellowApplications: [
-    "application_id",
-    "submitted_at",
-    "title",
-    "email",
-    "applicant",
-    "gender",
-    "phone",
-    "has_whatsapp",
-    "contact_whatsapp",
-    "nationality",
-    "country_of_residence",
-    "address",
-    "affiliation",
-    "designation",
-    "phd_field",
-    "phd_completion",
-    "thesis_title_explainer",
-    "research_area",
-    "teaching_experience",
-    "tutoring_experience",
-    "mentoring_experience",
-    "research_experience",
-    "research_plan",
-    "availability",
-    "residence_ready",
-    "teaching_gap_ready",
-    "english_communication",
-    "aims_alumni",
-    "aims_centre",
-    "aims_programme_year",
-    "passport_file_name",
-    "passport_drive_url",
-    "phd_certificate_file_name",
-    "phd_certificate_drive_url",
-    "reference_1_json",
-    "reference_2_json",
-    "reference_3_json",
-    "full_application_json",
+    "application_id", "submitted_at", "title", "email", "applicant", "gender", "phone",
+    "has_whatsapp", "contact_whatsapp", "nationality", "country_of_residence", "address",
+    "affiliation", "designation", "phd_field", "phd_completion", "thesis_title_explainer",
+    "research_area", "teaching_experience", "tutoring_experience", "mentoring_experience",
+    "research_experience", "research_plan", "availability", "residence_ready", "teaching_gap_ready",
+    "english_communication", "aims_alumni", "aims_centre", "aims_programme_year",
+    "passport_file_name", "passport_drive_url", "phd_certificate_file_name", "phd_certificate_drive_url",
+    "reference_1_json", "reference_2_json", "reference_3_json", "full_application_json",
   ],
   Reviewers: [
-    "reviewer_email",
-    "name",
-    "role",
-    "status",
-    "assigned_call",
-    "created_at",
-    "updated_at",
+    "reviewer_email", "name", "role", "status", "assigned_call", "created_at", "updated_at",
   ],
   ReviewAssignments: [
-    "assignment_id",
-    "application_id",
-    "reviewer_email",
-    "call_id",
-    "status",
-    "created_at",
-    "updated_at",
+    "assignment_id", "application_id", "reviewer_email", "call_id", "status", "created_at", "updated_at",
   ],
   ReviewScores: [
-    "score_id",
-    "application_id",
-    "reviewer_email",
-    "reviewer_name",
-    "teaching_score",
-    "research_score",
-    "weighted_score",
-    "eligibility_decision",
-    "recommendation",
-    "course_verdicts_json",
-    "machine_score_json",
-    "reason",
-    "updated_at",
+    "score_id", "application_id", "reviewer_email", "reviewer_name", "teaching_score",
+    "research_score", "weighted_score", "eligibility_decision", "recommendation",
+    "course_verdicts_json", "machine_score_json", "reason", "updated_at",
   ],
   ReviewAnalyses: [
-    "analysis_id",
-    "application_id",
-    "applicant_code",
-    "reviewer_email",
-    "reviewer_name",
-    "stage",
-    "teaching_score",
-    "research_score",
-    "weighted_score",
-    "score_details_json",
-    "component_verdicts_json",
-    "eligibility_text",
-    "best_fit_text",
-    "delivery_text",
-    "teaching_text",
-    "research_text",
-    "kemri_aims_text",
-    "gaps_text",
-    "interview_questions_text",
-    "general_comment",
-    "analysis_json",
-    "updated_at",
+    "analysis_id", "application_id", "applicant_code", "reviewer_email", "reviewer_name", "stage",
+    "teaching_score", "research_score", "weighted_score", "score_details_json",
+    "component_verdicts_json", "eligibility_text", "best_fit_text", "delivery_text",
+    "teaching_text", "research_text", "kemri_aims_text", "gaps_text",
+    "interview_questions_text", "general_comment", "analysis_json", "updated_at",
   ],
   ReviewNotes: [
-    "note_id",
-    "application_id",
-    "author_email",
-    "author_name",
-    "stage",
-    "note",
-    "status",
-    "created_at",
-    "edited_at",
-    "edited_by",
-    "withdrawn_at",
+    "note_id", "application_id", "author_email", "author_name", "stage", "note",
+    "status", "created_at", "edited_at", "edited_by", "withdrawn_at",
   ],
-  ReviewStages: [
-    "application_id",
-    "stage",
-    "decision",
-    "updated_by",
-    "updated_at",
-  ],
+  ReviewStages: ["application_id", "stage", "decision", "updated_by", "updated_at"],
   ReviewConfig: ["key", "json", "updated_at"],
   ReviewAudit: [
-    "audit_id",
-    "timestamp",
-    "reviewer_email",
-    "reviewer_name",
-    "action",
-    "application_id",
-    "old_value_json",
-    "new_value_json",
-    "reason",
+    "audit_id", "timestamp", "reviewer_email", "reviewer_name", "action",
+    "application_id", "old_value_json", "new_value_json", "reason",
   ],
   DriveDocuments: ["document_id", "type", "related_id", "file_name", "drive_file_id", "url", "created_at"],
 };
@@ -220,25 +133,6 @@ function parseRouteRequestBody(body) {
   }
 }
 
-function routeErrorResponse(error) {
-  return { ok: false, error: error && error.message ? error.message : String(error || "Unknown Apps Script error.") };
-}
-
-function routeResponse(data, e) {
-  const callback = e && e.parameter && e.parameter.callback;
-  if (callback) return jsonpResponse(callback, data);
-  return jsonResponse(data);
-}
-
-function jsonpResponse(callback, data) {
-  const name = String(callback || "");
-  if (!/^[A-Za-z_$][0-9A-Za-z_$]*(\.[A-Za-z_$][0-9A-Za-z_$]*)*$/.test(name)) {
-    return jsonResponse({ ok: false, error: "Invalid callback name." });
-  }
-  const body = `${name}(${JSON.stringify(data).replace(/</g, "\\u003c")});`;
-  return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JAVASCRIPT);
-}
-
 function apiPost(request) {
   const action = request && request.action;
   const payload = (request && request.payload) || {};
@@ -262,11 +156,36 @@ function apiPost(request) {
   if (action === "updateReviewStage") return updateReviewStage(payload);
   if (action === "saveEligibilityDecision") return saveEligibilityDecision(payload);
   if (action === "exportReviewAudit") return exportReviewAudit(payload);
+  if (action === "listLecturerReviewData") return listLecturerReviewData(payload);
+  if (action === "saveLecturerReviewDecision") return saveLecturerReviewDecision(payload);
   if (action === "submitLecturerApplication") return submitLecturerApplication(payload);
   if (action === "recoverLecturerApplication") return recoverLecturerApplication(payload);
   if (action === "backfillLecturerApplicationColumns") return backfillLecturerApplicationColumns(payload);
   if (action === "submitTutorialFellowApplication") return submitTutorialFellowApplication(payload);
   throw new Error("Unknown action: " + action);
+}
+
+function jsonResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function routeErrorResponse(error) {
+  return { ok: false, error: error && error.message ? error.message : String(error || "Unknown Apps Script error.") };
+}
+
+function routeResponse(data, e) {
+  const callback = e && e.parameter && e.parameter.callback;
+  if (callback) return jsonpResponse(callback, data);
+  return jsonResponse(data);
+}
+
+function jsonpResponse(callback, data) {
+  const name = String(callback || "");
+  if (!/^[A-Za-z_$][0-9A-Za-z_$]*(\.[A-Za-z_$][0-9A-Za-z_$]*)*$/.test(name)) {
+    return jsonResponse({ ok: false, error: "Invalid callback name." });
+  }
+  const body = `${name}(${JSON.stringify(data).replace(/</g, "\\u003c")});`;
+  return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
 function setupWorkspace(payload) {
@@ -341,6 +260,666 @@ function getCfaStatus(payload) {
   return { ok: true, id, status: statuses[id] || MATHEPI.defaultCfaStatuses[id] || "Closed" };
 }
 
+function writeDefaultCfaStatuses(spreadsheet) {
+  const existing = readCfaStatuses(spreadsheet);
+  const merged = Object.assign({}, MATHEPI.defaultCfaStatuses, existing);
+  writeCfaStatuses(spreadsheet, merged);
+}
+
+function writeCfaStatuses(spreadsheet, statuses) {
+  const rows = Object.keys(statuses || {}).map((id) => ({
+    id,
+    status: statuses[id] === "Open" ? "Open" : "Closed",
+    updated_at: new Date().toISOString(),
+  }));
+  upsertRows(getSheet(spreadsheet, "CfaStatuses"), rows);
+}
+
+function readCfaStatuses(spreadsheet) {
+  const sheet = getSheet(spreadsheet, "CfaStatuses");
+  const lastRow = sheet.getLastRow();
+  const statuses = Object.assign({}, MATHEPI.defaultCfaStatuses);
+  if (lastRow < 2) return statuses;
+  sheet.getRange(2, 1, lastRow - 1, 3).getValues().forEach((row) => {
+    if (row[0]) statuses[row[0]] = row[1] === "Open" ? "Open" : "Closed";
+  });
+  return statuses;
+}
+
+function submitLecturerApplication(payload) {
+  return saveLecturerApplication_(payload || {}, false);
+}
+
+function recoverLecturerApplication(payload) {
+  return saveLecturerApplication_(payload || {}, true);
+}
+
+function listLecturerReviewData(payload) {
+  const spreadsheet = getOrCreateSpreadsheet();
+  ensureSheets(spreadsheet);
+  const applications = readSheetObjects(getSheet(spreadsheet, "LecturerApplications")).filter((row) => {
+    return row.application_id || row.email || row.applicant || row.course || row.selected_course_id;
+  });
+  return {
+    ok: true,
+    applications,
+    decisions: readSheetObjects(getSheet(spreadsheet, "LecturerReviewDecisions")),
+    courses: readJsonRecords(getSheet(spreadsheet, "Courses")),
+    blocks: readJsonRecords(getSheet(spreadsheet, "CalendarBlocks")),
+    cfaStatuses: readCfaStatuses(spreadsheet),
+    syncedAt: new Date().toISOString(),
+  };
+}
+
+function saveLecturerReviewDecision(payload) {
+  payload = payload || {};
+  const spreadsheet = getOrCreateSpreadsheet();
+  ensureSheets(spreadsheet);
+  const applicationId = String(payload.applicationId || "").trim();
+  const email = String(payload.email || "").trim();
+  const courseId = String(payload.courseId || "").trim();
+  if (!applicationId && !email) throw new Error("Application id or applicant email is required.");
+  if (!courseId) throw new Error("Course id is required.");
+  const decision = normalizeLecturerReviewDecision_(payload.decision);
+  const row = {
+    decision_id: lecturerReviewDecisionId_(applicationId, email, courseId),
+    application_id: applicationId,
+    email,
+    applicant: String(payload.applicant || "").trim(),
+    course_id: courseId,
+    course_title: String(payload.courseTitle || "").trim(),
+    decision,
+    notes: String(payload.notes || "").trim(),
+    decided_by: String(payload.decidedBy || "").trim(),
+    updated_at: new Date().toISOString(),
+  };
+  upsertRows(getSheet(spreadsheet, "LecturerReviewDecisions"), [row]);
+  return { ok: true, decision: row };
+}
+
+function normalizeLecturerReviewDecision_(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (text === "approved" || text === "approve") return "Approved";
+  if (text === "rejected" || text === "reject") return "Rejected";
+  if (text === "consider") return "Consider";
+  return "Pending";
+}
+
+function lecturerReviewDecisionId_(applicationId, email, courseId) {
+  return [applicationId || email, courseId].map((part) => String(part || "").trim().toLowerCase()).join("::");
+}
+
+function saveLecturerApplication_(payload, recovered) {
+  const spreadsheet = getOrCreateSpreadsheet();
+  const rootFolder = getOrCreateRootFolder();
+  ensureSheets(spreadsheet);
+  ensureDriveFolders(rootFolder);
+
+  const application = payload.application || {};
+  const submittedAt = application.submittedAt || new Date().toISOString();
+  const duplicate = findDuplicateLecturerApplication_(spreadsheet, application);
+  if (duplicate) {
+    return {
+      ok: true,
+      success: true,
+      alreadyExists: true,
+      recovered: !!recovered,
+      applicationId: duplicate.application_id || "",
+      driveUrl: duplicate.passport_drive_url || "",
+      driveFileUrl: duplicate.passport_drive_url || "",
+      sheetRow: duplicate.sheetRow || "",
+    };
+  }
+
+  const passport = payload.passportFile;
+  if (!passport || !passport.dataBase64) {
+    throw new Error("Passport biodata page upload is required before the lecturer application can be received by AIMS.");
+  }
+
+  const applicationId = makeLecturerApplicationReference_(submittedAt);
+  const folder = getOrCreateNestedFolder(rootFolder, ["CFA", "Lecturer Applications", applicationId]);
+  const bytes = Utilities.base64Decode(passport.dataBase64);
+  const blob = Utilities.newBlob(bytes, passport.mimeType || "application/octet-stream", passport.name || "passport");
+  const file = folder.createFile(blob);
+  const driveFileUrl = file.getUrl();
+  const driveFileId = file.getId();
+
+  appendRows(getSheet(spreadsheet, "DriveDocuments"), [
+    {
+      document_id: Utilities.getUuid(),
+      type: "Lecturer passport biodata page",
+      related_id: applicationId,
+      file_name: passport.name || application.passport || "",
+      drive_file_id: driveFileId,
+      url: driveFileUrl,
+      created_at: submittedAt,
+    },
+  ]);
+
+  const sheet = getSheet(spreadsheet, "LecturerApplications");
+  const row = lecturerApplicationRow_(payload, application, passport, {
+    applicationId,
+    submittedAt,
+    recovered,
+    driveFileUrl,
+  });
+  const sheetRow = appendLecturerApplicationRow_(sheet, row);
+
+  return {
+    ok: true,
+    success: true,
+    alreadyExists: false,
+    recovered: !!recovered,
+    applicationId,
+    driveUrl: driveFileUrl,
+    driveFileUrl,
+    driveFileId,
+    sheetRow,
+  };
+}
+
+function appendLecturerApplicationRow_(sheet, row) {
+  const headers = getHeaders(sheet);
+  if (!headers.length) throw new Error("LecturerApplications is missing its header row.");
+  sheet.appendRow(headers.map((header) => row[header] || ""));
+  return sheet.getLastRow();
+}
+
+function lecturerApplicationRow_(payload, application, passport, saved) {
+  const state = payload.state || {};
+  const lecturer = state.lecturer || {};
+  const academic = state.academic || {};
+  const host = state.host || {};
+  const selection = state.selection || {};
+  const plan = state.plan || {};
+  const experience = state.experience || {};
+  const confirm = state.confirm || {};
+  const courseParts = splitLecturerCourse_(application.course || selection.courseId || "");
+  const planRows = Array.isArray(plan.rows) ? plan.rows : [];
+  const teachingRows = Array.isArray(experience.items) ? experience.items : [];
+  const heard = Array.isArray(confirm.heard) ? confirm.heard.join("; ") : String(confirm.heard || "");
+  const phone = lecturer.phone || application.phone || "";
+  const dialCode = lecturer.dialCode || "";
+  return {
+    application_id: saved.applicationId,
+    submitted_at: saved.submittedAt,
+    recovery_status: saved.recovered ? "Recovered" : "Submitted",
+    email: application.email || state.email || "",
+    title: lecturer.title || "",
+    applicant: application.applicant || [lecturer.title, lecturer.name].filter(Boolean).join(" "),
+    gender: lecturer.gender || "",
+    affiliation: application.affiliation || lecturer.affiliation || "",
+    designation: application.designation || lecturer.designation || "",
+    address: lecturer.address || "",
+    country_of_residence: lecturer.countryResidence || "",
+    nationality: lecturer.nationality || "",
+    dial_code: dialCode,
+    phone,
+    phone_full: [dialCode, phone].filter(Boolean).join(" "),
+    whatsapp_registered: lecturer.whatsapp || "",
+    whatsapp_contact_consent: lecturer.whatsappConsent || "",
+    applying_with_contact: lecturer.coLecturer || "",
+    contact_details: lecturer.coDetails || "",
+    highest_qualification: academic.highest || "",
+    awarding_institution: academic.institution || "",
+    year_awarded: academic.year || "",
+    publication_count: academic.publicationCount || "",
+    orcid: academic.orcid || "",
+    google_scholar: academic.scholar || "",
+    scopus_author_id: academic.scopus || "",
+    research_areas: academic.researchAreas || "",
+    first_host: application.firstHost || host.firstHost || "",
+    second_host: application.secondHost || host.secondHost || "",
+    selected_course_id: courseParts.id,
+    selected_course_title: courseParts.title,
+    course: application.course || selection.courseId || "",
+    block: application.block || "",
+    availability: application.availability || lecturerApplicationAvailability_(selection, application),
+    course_plan_text: lecturerPlanText_(planRows),
+    course_plan_json: JSON.stringify(planRows),
+    taught_similar_course: experience.taught || "",
+    teaching_records_text: lecturerTeachingRecordsText_(teachingRows),
+    teaching_records_json: JSON.stringify(teachingRows),
+    passport_file_name: passport.name || application.passport || "",
+    passport_drive_url: saved.driveFileUrl || "",
+    additional_comments: confirm.comments || "",
+    alumni: application.alumni || confirm.alumni || "",
+    alumni_centre: confirm.alumniCentre || "",
+    alumni_program: confirm.alumniProgram || "",
+    alumni_year: confirm.alumniYear || "",
+    heard_about_aims: heard,
+    heard_other: confirm.heardOther || "",
+    certified_true: lecturerYesNo_(confirm.certify),
+    accepted_terms: lecturerYesNo_(confirm.terms),
+    full_application_json: JSON.stringify(state),
+  };
+}
+
+function lecturerApplicationAvailability_(selection, application) {
+  if (application.availability) return application.availability;
+  const availability = selection && selection.availability;
+  if (!availability || typeof availability !== "object") return "";
+  const keys = Object.keys(availability);
+  return keys.length ? availability[keys[0]] : "";
+}
+
+function splitLecturerCourse_(value) {
+  const text = String(value || "");
+  const match = text.match(/^([A-Z]{2,4}\d{1,3})\s*-\s*(.+)$/);
+  return { id: match ? match[1] : text, title: match ? match[2] : "" };
+}
+
+function lecturerPlanText_(rows) {
+  if (!rows || !rows.length) return "";
+  return rows.map((row, index) => {
+    row = Array.isArray(row) ? row : [];
+    return [
+      "Module " + (index + 1) + ": " + (row[0] || ""),
+      "Topic / focus: " + (row[1] || ""),
+      "Learning objectives: " + (row[2] || ""),
+      "Practical activities: " + (row[3] || ""),
+      "Assessment strategy / notes: " + (row[4] || ""),
+    ].join("\n");
+  }).join("\n\n");
+}
+
+function lecturerTeachingRecordsText_(items) {
+  if (!items || !items.length) return "";
+  return items.map((item, index) => [
+    "Record " + (index + 1) + ": " + (item.courseTitle || ""),
+    "Institution: " + (item.institution || ""),
+    "Level: " + (item.level || ""),
+    "Year: " + (item.year || ""),
+    "Mode: " + (item.mode || ""),
+    "Times delivered: " + (item.times || ""),
+  ].join("\n")).join("\n\n");
+}
+
+function lecturerYesNo_(value) {
+  if (value === true) return "Yes";
+  if (value === false) return "No";
+  return String(value || "");
+}
+
+function backfillLecturerApplicationColumns() {
+  const spreadsheet = getOrCreateSpreadsheet();
+  ensureSheets(spreadsheet);
+  const sheet = getSheet(spreadsheet, "LecturerApplications");
+  ensureSheetHeaders(sheet, TAB_HEADERS.LecturerApplications);
+  const headers = getHeaders(sheet);
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { ok: true, updatedRows: 0 };
+  const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+  let updatedRows = 0;
+  const updated = values.map((rowValues) => {
+    const existing = {};
+    headers.forEach((header, index) => {
+      existing[header] = rowValues[index];
+    });
+    const state = parseLecturerJsonSafe_(existing.full_application_json, {});
+    const lecturer = state.lecturer || {};
+    const application = {
+      email: existing.email || state.email || "",
+      applicant: existing.applicant || [lecturer.title, lecturer.name].filter(Boolean).join(" "),
+      affiliation: existing.affiliation || lecturer.affiliation || "",
+      designation: existing.designation || lecturer.designation || "",
+      firstHost: existing.first_host || (state.host && state.host.firstHost) || "",
+      secondHost: existing.second_host || (state.host && state.host.secondHost) || "",
+      course: existing.course || (state.selection && state.selection.courseId) || "",
+      block: existing.block || "",
+      availability: existing.availability || "",
+      passport: existing.passport_file_name || "",
+      alumni: existing.alumni || (state.confirm && state.confirm.alumni) || "",
+    };
+    const enriched = lecturerApplicationRow_(
+      { state },
+      application,
+      { name: existing.passport_file_name || "" },
+      {
+        applicationId: existing.application_id || "",
+        submittedAt: existing.submitted_at || "",
+        recovered: String(existing.recovery_status || "").toLowerCase() === "recovered",
+        driveFileUrl: existing.passport_drive_url || "",
+      },
+    );
+    const next = headers.map((header) => {
+      const value = enriched[header];
+      return value === undefined || value === "" ? existing[header] || "" : value;
+    });
+    if (JSON.stringify(next) !== JSON.stringify(rowValues)) updatedRows += 1;
+    return next;
+  });
+  sheet.getRange(2, 1, updated.length, headers.length).setValues(updated);
+  return { ok: true, updatedRows };
+}
+
+function parseLecturerJsonSafe_(value, fallback) {
+  try {
+    return value ? JSON.parse(value) : fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function findDuplicateLecturerApplication_(spreadsheet, application) {
+  const email = normalizeLecturerDuplicateValue_(application.email);
+  const course = normalizeLecturerDuplicateValue_(application.course);
+  const submittedAt = normalizeLecturerDuplicateValue_(application.submittedAt);
+  if (!email || !course || !submittedAt) return null;
+  const sheet = getSheet(spreadsheet, "LecturerApplications");
+  const headers = getHeaders(sheet);
+  if (!headers.length || sheet.getLastRow() < 2) return null;
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, headers.length).getValues();
+  for (let i = 0; i < rows.length; i += 1) {
+    const object = { sheetRow: i + 2 };
+    headers.forEach((header, index) => {
+      object[header] = rows[i][index];
+    });
+    if (
+      normalizeLecturerDuplicateValue_(object.email) === email &&
+      normalizeLecturerDuplicateValue_(object.course) === course &&
+      normalizeLecturerDuplicateValue_(object.submitted_at) === submittedAt
+    ) {
+      return object;
+    }
+  }
+  return null;
+}
+
+function normalizeLecturerDuplicateValue_(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function makeLecturerApplicationReference_(submittedAt) {
+  const date = new Date(submittedAt || new Date().toISOString());
+  const year = Number.isFinite(date.getTime()) ? date.getFullYear() : new Date().getFullYear();
+  const number = String(Math.floor(Math.random() * 100000)).padStart(5, "0");
+  return "MATHEPI-" + year + "-" + number;
+}
+
+function getOrCreateSpreadsheet() {
+  const props = PropertiesService.getScriptProperties();
+  const rootFolder = getOrCreateRootFolder();
+  const existingId = props.getProperty(MATHEPI.properties.spreadsheetId);
+  if (existingId) {
+    try {
+      const spreadsheet = SpreadsheetApp.openById(existingId);
+      try {
+        DriveApp.getFileById(existingId).moveTo(rootFolder);
+      } catch (moveError) {}
+      return spreadsheet;
+    } catch (e) {
+      props.deleteProperty(MATHEPI.properties.spreadsheetId);
+    }
+  }
+  const spreadsheet = SpreadsheetApp.create(MATHEPI.spreadsheetName);
+  try {
+    DriveApp.getFileById(spreadsheet.getId()).moveTo(rootFolder);
+  } catch (moveError) {}
+  props.setProperty(MATHEPI.properties.spreadsheetId, spreadsheet.getId());
+  return spreadsheet;
+}
+
+function getOrCreateRootFolder() {
+  const props = PropertiesService.getScriptProperties();
+  const existingId = props.getProperty(MATHEPI.properties.driveRootFolderId);
+  if (existingId) {
+    try {
+      return DriveApp.getFolderById(existingId);
+    } catch (e) {
+      props.deleteProperty(MATHEPI.properties.driveRootFolderId);
+    }
+  }
+  const folder = DriveApp.createFolder(MATHEPI.rootFolderName);
+  props.setProperty(MATHEPI.properties.driveRootFolderId, folder.getId());
+  return folder;
+}
+
+function ensureSheets(spreadsheet) {
+  Object.keys(TAB_HEADERS).forEach((name) => {
+    const sheet = getSheet(spreadsheet, name);
+    const headers = TAB_HEADERS[name];
+    ensureSheetHeaders(sheet, headers);
+  });
+}
+
+function ensureSheetHeaders(sheet, headers) {
+  const expectedHeaders = (headers && headers.length ? headers : ["record_id"]).map(String);
+  const lastColumn = sheet.getLastColumn();
+  if (lastColumn < 1) {
+    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
+    sheet.setFrozenRows(1);
+    return expectedHeaders;
+  }
+
+  const width = Math.max(lastColumn, expectedHeaders.length);
+  const current = sheet.getRange(1, 1, 1, width).getValues()[0].map((value) => String(value || "").trim());
+  const hasHeaderRow = current.some(Boolean);
+  if (!hasHeaderRow) {
+    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
+    sheet.setFrozenRows(1);
+    return expectedHeaders;
+  }
+
+  const present = {};
+  current.forEach((header) => {
+    if (header) present[header] = true;
+  });
+  const missing = expectedHeaders.filter((header) => !present[header]);
+  if (missing.length) {
+    sheet.getRange(1, lastColumn + 1, 1, missing.length).setValues([missing]);
+  }
+  if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
+  return getHeaders(sheet);
+}
+
+function ensureDriveFolders(rootFolder) {
+  [
+    ["CFA", "Lecturer Applications"],
+    ["CFA", "Tutorial Fellow Applications"],
+    ["CFA", "Head Tutor Applications"],
+    ["Courses"],
+    ["Lecturer CVs"],
+    ["Course Outlines"],
+    ["Teaching Materials"],
+    ["Assessments"],
+    ["Meeting Notes"],
+    ["Internship & Thesis"],
+  ].forEach((path) => getOrCreateNestedFolder(rootFolder, path));
+}
+
+function getSheet(spreadsheet, name) {
+  return spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
+}
+
+function getOrCreateNestedFolder(root, path) {
+  return path.reduce((folder, name) => {
+    const matches = folder.getFoldersByName(name);
+    return matches.hasNext() ? matches.next() : folder.createFolder(name);
+  }, root);
+}
+
+function writeDatasets(spreadsheet, datasets) {
+  let count = 0;
+  DATASET_TABS.forEach((tab) => {
+    if (Array.isArray(datasets[tab])) {
+      writeJsonRecords(getSheet(spreadsheet, tab), datasets[tab]);
+      count += 1;
+    }
+  });
+  return count;
+}
+
+function writeJsonRecords(sheet, records) {
+  clearBody(sheet);
+  if (!records.length) return;
+  const now = new Date().toISOString();
+  const values = records.map((record, index) => [
+    record.id || record.code || record.application_id || String(index + 1),
+    JSON.stringify(record),
+    now,
+  ]);
+  sheet.getRange(2, 1, values.length, 3).setValues(values);
+}
+
+function readJsonRecords(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  return sheet
+    .getRange(2, 1, lastRow - 1, 3)
+    .getValues()
+    .map((row) => {
+      try {
+        return JSON.parse(row[1] || "{}");
+      } catch (e) {
+        return null;
+      }
+    })
+    .filter(Boolean);
+}
+
+function upsertRows(sheet, objects) {
+  if (!objects || !objects.length) return;
+  const headers = getHeaders(sheet);
+  if (!headers.length) throw new Error("Sheet " + sheet.getName() + " is missing its header row.");
+  const lastRow = sheet.getLastRow();
+  const existing = {};
+  if (lastRow >= 2) {
+    sheet.getRange(2, 1, lastRow - 1, 1).getValues().forEach((row, index) => {
+      existing[row[0]] = index + 2;
+    });
+  }
+  objects.forEach((object) => {
+    const key = object[headers[0]];
+    const values = headers.map((header) => object[header] || "");
+    if (key && existing[key]) sheet.getRange(existing[key], 1, 1, headers.length).setValues([values]);
+    else sheet.appendRow(values);
+  });
+}
+
+function appendRows(sheet, objects) {
+  if (!objects || !objects.length) return;
+  const headers = getHeaders(sheet);
+  if (!headers.length) throw new Error("Sheet " + sheet.getName() + " is missing its header row.");
+  objects.forEach((object) => sheet.appendRow(headers.map((header) => object[header] || "")));
+}
+
+function getHeaders(sheet) {
+  const expected = TAB_HEADERS[sheet.getName()] || ["record_id"];
+  if (sheet.getLastColumn() < 1) {
+    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+    sheet.setFrozenRows(1);
+    return expected.slice();
+  }
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map((value, index) => {
+    const header = String(value || "").trim();
+    return header || "column_" + (index + 1);
+  });
+  if (!headers.some((header) => header.indexOf("column_") !== 0)) {
+    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+    sheet.setFrozenRows(1);
+    return expected.slice();
+  }
+  return headers;
+}
+
+function clearBody(sheet) {
+  const lastRow = sheet.getLastRow();
+  const lastColumn = Math.max(sheet.getLastColumn(), 1);
+  if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, lastColumn).clearContent();
+}
+
+function submitTutorialFellowApplication(payload) {
+  const spreadsheet = getOrCreateSpreadsheet();
+  const rootFolder = getOrCreateRootFolder();
+  ensureSheets(spreadsheet);
+  ensureDriveFolders(rootFolder);
+
+  const application = payload.application || {};
+  requireEmailVerification(payload.emailVerification, application.email, "tutorial-fellow");
+  const applicationId = Utilities.getUuid();
+  const submittedAt = application.submittedAt || new Date().toISOString();
+  const folder = getOrCreateNestedFolder(rootFolder, ["CFA", "Tutorial Fellow Applications", applicationId]);
+  const passport = saveApplicationFile(spreadsheet, folder, payload.passportFile, applicationId, "Tutorial Fellow passport biodata page", submittedAt);
+  const phdCertificate = saveApplicationFile(spreadsheet, folder, payload.phdCertificateFile, applicationId, "Tutorial Fellow PhD certificate", submittedAt);
+
+  appendRows(getSheet(spreadsheet, "TutorialFellowApplications"), [
+    {
+      application_id: applicationId,
+      submitted_at: submittedAt,
+      title: application.title || "",
+      email: application.email || "",
+      applicant: application.applicant || "",
+      gender: application.gender || "",
+      phone: application.phone || "",
+      has_whatsapp: application.hasWhatsApp || "",
+      contact_whatsapp: application.contactWhatsApp || "",
+      nationality: application.nationality || "",
+      country_of_residence: application.country || "",
+      address: application.address || "",
+      affiliation: application.affiliation || "",
+      designation: application.designation || "",
+      phd_field: application.phdField || "",
+      phd_completion: application.phdCompletion || "",
+      thesis_title_explainer: application.thesisTitleExplainer || "",
+      research_area: application.researchArea || "",
+      teaching_experience: application.teachingExperience || "",
+      tutoring_experience: application.tutoringExperience || "",
+      mentoring_experience: application.mentoringExperience || "",
+      research_experience: application.researchExperience || "",
+      research_plan: application.researchPlan || "",
+      availability: application.availability || "",
+      residence_ready: application.residenceReady || "",
+      teaching_gap_ready: application.teachingGapReady || "",
+      english_communication: application.englishCommunication || "",
+      aims_alumni: application.aimsAlumni || "",
+      aims_centre: application.aimsCentre || "",
+      aims_programme_year: application.aimsProgrammeYear || "",
+      passport_file_name: application.passport || "",
+      passport_drive_url: passport.url || "",
+      phd_certificate_file_name: application.phdCertificate || "",
+      phd_certificate_drive_url: phdCertificate.url || "",
+      reference_1_json: JSON.stringify(referencePayload(application, 1)),
+      reference_2_json: JSON.stringify(referencePayload(application, 2)),
+      reference_3_json: JSON.stringify(referencePayload(application, 3)),
+      full_application_json: JSON.stringify(payload.state || {}),
+    },
+  ]);
+
+  return { ok: true, applicationId, passportDriveUrl: passport.url || "", phdCertificateDriveUrl: phdCertificate.url || "" };
+}
+
+function referencePayload(application, index) {
+  return {
+    title: application["ref" + index + "Title"] || "",
+    name: application["ref" + index + "Name"] || "",
+    affiliation: application["ref" + index + "Affiliation"] || "",
+    designation: application["ref" + index + "Designation"] || "",
+    role: application["ref" + index + "Role"] || "",
+    email: application["ref" + index + "Email"] || "",
+    phone: application["ref" + index + "Phone"] || "",
+  };
+}
+
+function saveApplicationFile(spreadsheet, folder, filePayload, applicationId, type, submittedAt) {
+  if (!filePayload || !filePayload.dataBase64) return {};
+  const bytes = Utilities.base64Decode(filePayload.dataBase64);
+  const blob = Utilities.newBlob(bytes, filePayload.mimeType || "application/octet-stream", filePayload.name || type);
+  const file = folder.createFile(blob);
+  appendRows(getSheet(spreadsheet, "DriveDocuments"), [
+    {
+      document_id: Utilities.getUuid(),
+      type,
+      related_id: applicationId,
+      file_name: filePayload.name || "",
+      drive_file_id: file.getId(),
+      url: file.getUrl(),
+      created_at: submittedAt,
+    },
+  ]);
+  return { id: file.getId(), url: file.getUrl() };
+}
+
 function authorizeEmailOtp() {
   return MailApp.getRemainingDailyQuota();
 }
@@ -366,9 +945,7 @@ function sendEmailOtpMessage(email, code) {
     to: email,
     name: "MathEpi Academic Operations",
     subject: "Your MathEpi application verification code",
-    body:
-      "Your MathEpi application verification code is: " +
-      code +
+    body: "Your MathEpi application verification code is: " + code +
       "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email.",
     htmlBody:
       "<p>Your MathEpi application verification code is:</p>" +
@@ -541,15 +1118,16 @@ function listReviewApplicants(payload) {
   const applications = readTutorialReviewApplications(spreadsheet);
   const assignments = readReviewSheetObjects(spreadsheet, "ReviewAssignments");
   const visibleApplications = filterReviewApplicationsForReviewer(applications, assignments, reviewer);
+  const visibleApplicationIds = reviewApplicationIdSet_(visibleApplications);
   return {
     ok: true,
     reviewer,
     applications: visibleApplications,
-    scores: readReviewSheetObjects(spreadsheet, "ReviewScores"),
-    analyses: readReviewSheetObjects(spreadsheet, "ReviewAnalyses"),
-    notes: readReviewSheetObjects(spreadsheet, "ReviewNotes"),
-    stages: readReviewSheetObjects(spreadsheet, "ReviewStages"),
-    assignments,
+    scores: filterReviewRowsForApplications_(readReviewSheetObjects(spreadsheet, "ReviewScores"), visibleApplicationIds),
+    analyses: filterReviewRowsForApplications_(readReviewSheetObjects(spreadsheet, "ReviewAnalyses"), visibleApplicationIds),
+    notes: filterReviewRowsForApplications_(readReviewSheetObjects(spreadsheet, "ReviewNotes"), visibleApplicationIds),
+    stages: filterReviewRowsForApplications_(readReviewSheetObjects(spreadsheet, "ReviewStages"), visibleApplicationIds),
+    assignments: filterReviewRowsForApplications_(assignments, visibleApplicationIds),
     config: reviewConfig(spreadsheet),
     reviewers: reviewerCanManage(reviewer) ? readReviewSheetObjects(spreadsheet, "Reviewers") : [],
     syncedAt: new Date().toISOString(),
@@ -973,6 +1551,23 @@ function filterReviewApplicationsForReviewer(applications, assignments, reviewer
   return applications.filter((app) => assignedIds[app.applicationId]);
 }
 
+function reviewApplicationIdSet_(applications) {
+  const ids = {};
+  (applications || []).forEach((app) => {
+    const id = String(app.applicationId || app.application_id || "").trim();
+    if (id) ids[id] = true;
+  });
+  return ids;
+}
+
+function filterReviewRowsForApplications_(rows, applicationIds) {
+  if (!Object.keys(applicationIds || {}).length) return [];
+  return (rows || []).filter((row) => {
+    const id = String(row.application_id || row.applicationId || "").trim();
+    return id && applicationIds[id];
+  });
+}
+
 function readTutorialReviewApplications(spreadsheet) {
   const rows = readReviewSheetObjects(spreadsheet, "TutorialFellowApplications");
   return rows
@@ -1144,613 +1739,4 @@ function appendReviewAudit(spreadsheet, reviewer, action, applicationId, before,
 function clampScore(value) {
   const number = Math.round(Number(value || 0));
   return Math.max(0, Math.min(100, number));
-}
-
-function submitLecturerApplication(payload) {
-  return saveLecturerApplication_(payload || {}, false);
-}
-
-function recoverLecturerApplication(payload) {
-  return saveLecturerApplication_(payload || {}, true);
-}
-
-function saveLecturerApplication_(payload, recovered) {
-  const spreadsheet = getOrCreateSpreadsheet();
-  const rootFolder = getOrCreateRootFolder();
-  ensureSheets(spreadsheet);
-  ensureDriveFolders(rootFolder);
-
-  const application = payload.application || {};
-  const submittedAt = application.submittedAt || new Date().toISOString();
-  const duplicate = findDuplicateLecturerApplication_(spreadsheet, application);
-  if (duplicate) {
-    return {
-      ok: true,
-      success: true,
-      alreadyExists: true,
-      recovered: !!recovered,
-      applicationId: duplicate.application_id || "",
-      driveUrl: duplicate.passport_drive_url || "",
-      driveFileUrl: duplicate.passport_drive_url || "",
-      sheetRow: duplicate.sheetRow || "",
-    };
-  }
-
-  const passport = payload.passportFile;
-  if (!passport || !passport.dataBase64) {
-    throw new Error("Passport biodata page upload is required before the lecturer application can be received by AIMS.");
-  }
-
-  const applicationId = makeLecturerApplicationReference_(submittedAt);
-  const folder = getOrCreateNestedFolder(rootFolder, ["CFA", "Lecturer Applications", applicationId]);
-  const bytes = Utilities.base64Decode(passport.dataBase64);
-  const blob = Utilities.newBlob(bytes, passport.mimeType || "application/octet-stream", passport.name || "passport");
-  const file = folder.createFile(blob);
-  const driveFileUrl = file.getUrl();
-  const driveFileId = file.getId();
-
-  appendRows(getSheet(spreadsheet, "DriveDocuments"), [
-    {
-      document_id: Utilities.getUuid(),
-      type: "Lecturer passport biodata page",
-      related_id: applicationId,
-      file_name: passport.name || application.passport || "",
-      drive_file_id: driveFileId,
-      url: driveFileUrl,
-      created_at: submittedAt,
-    },
-  ]);
-
-  const sheet = getSheet(spreadsheet, "LecturerApplications");
-  const row = lecturerApplicationRow_(payload, application, passport, {
-    applicationId,
-    submittedAt,
-    recovered,
-    driveFileUrl,
-  });
-  const sheetRow = appendLecturerApplicationRow_(sheet, row);
-
-  return {
-    ok: true,
-    success: true,
-    alreadyExists: false,
-    recovered: !!recovered,
-    applicationId,
-    driveUrl: driveFileUrl,
-    driveFileUrl,
-    driveFileId,
-    sheetRow,
-  };
-}
-
-function appendLecturerApplicationRow_(sheet, row) {
-  const headers = getHeaders(sheet);
-  if (!headers.length) throw new Error("LecturerApplications is missing its header row.");
-  sheet.appendRow(headers.map((header) => row[header] || ""));
-  return sheet.getLastRow();
-}
-
-function lecturerApplicationRow_(payload, application, passport, saved) {
-  const state = payload.state || {};
-  const lecturer = state.lecturer || {};
-  const academic = state.academic || {};
-  const host = state.host || {};
-  const selection = state.selection || {};
-  const plan = state.plan || {};
-  const experience = state.experience || {};
-  const confirm = state.confirm || {};
-  const courseParts = splitLecturerCourse_(application.course || selection.courseId || "");
-  const planRows = Array.isArray(plan.rows) ? plan.rows : [];
-  const teachingRows = Array.isArray(experience.items) ? experience.items : [];
-  const heard = Array.isArray(confirm.heard) ? confirm.heard.join("; ") : String(confirm.heard || "");
-  const phone = lecturer.phone || application.phone || "";
-  const dialCode = lecturer.dialCode || "";
-  return {
-    application_id: saved.applicationId,
-    submitted_at: saved.submittedAt,
-    recovery_status: saved.recovered ? "Recovered" : "Submitted",
-    email: application.email || state.email || "",
-    title: lecturer.title || "",
-    applicant: application.applicant || [lecturer.title, lecturer.name].filter(Boolean).join(" "),
-    gender: lecturer.gender || "",
-    affiliation: application.affiliation || lecturer.affiliation || "",
-    designation: application.designation || lecturer.designation || "",
-    address: lecturer.address || "",
-    country_of_residence: lecturer.countryResidence || "",
-    nationality: lecturer.nationality || "",
-    dial_code: dialCode,
-    phone,
-    phone_full: [dialCode, phone].filter(Boolean).join(" "),
-    whatsapp_registered: lecturer.whatsapp || "",
-    whatsapp_contact_consent: lecturer.whatsappConsent || "",
-    applying_with_contact: lecturer.coLecturer || "",
-    contact_details: lecturer.coDetails || "",
-    highest_qualification: academic.highest || "",
-    awarding_institution: academic.institution || "",
-    year_awarded: academic.year || "",
-    publication_count: academic.publicationCount || "",
-    orcid: academic.orcid || "",
-    google_scholar: academic.scholar || "",
-    scopus_author_id: academic.scopus || "",
-    research_areas: academic.researchAreas || "",
-    first_host: application.firstHost || host.firstHost || "",
-    second_host: application.secondHost || host.secondHost || "",
-    selected_course_id: courseParts.id,
-    selected_course_title: courseParts.title,
-    course: application.course || selection.courseId || "",
-    block: application.block || "",
-    availability: application.availability || lecturerApplicationAvailability_(selection, application),
-    course_plan_text: lecturerPlanText_(planRows),
-    course_plan_json: JSON.stringify(planRows),
-    taught_similar_course: experience.taught || "",
-    teaching_records_text: lecturerTeachingRecordsText_(teachingRows),
-    teaching_records_json: JSON.stringify(teachingRows),
-    passport_file_name: passport.name || application.passport || "",
-    passport_drive_url: saved.driveFileUrl || "",
-    additional_comments: confirm.comments || "",
-    alumni: application.alumni || confirm.alumni || "",
-    alumni_centre: confirm.alumniCentre || "",
-    alumni_program: confirm.alumniProgram || "",
-    alumni_year: confirm.alumniYear || "",
-    heard_about_aims: heard,
-    heard_other: confirm.heardOther || "",
-    certified_true: lecturerYesNo_(confirm.certify),
-    accepted_terms: lecturerYesNo_(confirm.terms),
-    full_application_json: JSON.stringify(state),
-  };
-}
-
-function lecturerApplicationAvailability_(selection, application) {
-  if (application.availability) return application.availability;
-  const availability = selection && selection.availability;
-  if (!availability || typeof availability !== "object") return "";
-  const keys = Object.keys(availability);
-  return keys.length ? availability[keys[0]] : "";
-}
-
-function splitLecturerCourse_(value) {
-  const text = String(value || "");
-  const match = text.match(/^([A-Z]{2,4}\d{1,3})\s*-\s*(.+)$/);
-  return { id: match ? match[1] : text, title: match ? match[2] : "" };
-}
-
-function lecturerPlanText_(rows) {
-  if (!rows || !rows.length) return "";
-  return rows.map((row, index) => {
-    row = Array.isArray(row) ? row : [];
-    return [
-      "Module " + (index + 1) + ": " + (row[0] || ""),
-      "Topic / focus: " + (row[1] || ""),
-      "Learning objectives: " + (row[2] || ""),
-      "Practical activities: " + (row[3] || ""),
-      "Assessment strategy / notes: " + (row[4] || ""),
-    ].join("\n");
-  }).join("\n\n");
-}
-
-function lecturerTeachingRecordsText_(items) {
-  if (!items || !items.length) return "";
-  return items.map((item, index) => [
-    "Record " + (index + 1) + ": " + (item.courseTitle || ""),
-    "Institution: " + (item.institution || ""),
-    "Level: " + (item.level || ""),
-    "Year: " + (item.year || ""),
-    "Mode: " + (item.mode || ""),
-    "Times delivered: " + (item.times || ""),
-  ].join("\n")).join("\n\n");
-}
-
-function lecturerYesNo_(value) {
-  if (value === true) return "Yes";
-  if (value === false) return "No";
-  return String(value || "");
-}
-
-function backfillLecturerApplicationColumns() {
-  const spreadsheet = getOrCreateSpreadsheet();
-  ensureSheets(spreadsheet);
-  const sheet = getSheet(spreadsheet, "LecturerApplications");
-  ensureSheetHeaders(sheet, TAB_HEADERS.LecturerApplications);
-  const headers = getHeaders(sheet);
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return { ok: true, updatedRows: 0 };
-  const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
-  let updatedRows = 0;
-  const updated = values.map((rowValues) => {
-    const existing = {};
-    headers.forEach((header, index) => {
-      existing[header] = rowValues[index];
-    });
-    const state = parseLecturerJsonSafe_(existing.full_application_json, {});
-    const lecturer = state.lecturer || {};
-    const application = {
-      email: existing.email || state.email || "",
-      applicant: existing.applicant || [lecturer.title, lecturer.name].filter(Boolean).join(" "),
-      affiliation: existing.affiliation || lecturer.affiliation || "",
-      designation: existing.designation || lecturer.designation || "",
-      firstHost: existing.first_host || (state.host && state.host.firstHost) || "",
-      secondHost: existing.second_host || (state.host && state.host.secondHost) || "",
-      course: existing.course || (state.selection && state.selection.courseId) || "",
-      block: existing.block || "",
-      availability: existing.availability || "",
-      passport: existing.passport_file_name || "",
-      alumni: existing.alumni || (state.confirm && state.confirm.alumni) || "",
-    };
-    const enriched = lecturerApplicationRow_(
-      { state },
-      application,
-      { name: existing.passport_file_name || "" },
-      {
-        applicationId: existing.application_id || "",
-        submittedAt: existing.submitted_at || "",
-        recovered: String(existing.recovery_status || "").toLowerCase() === "recovered",
-        driveFileUrl: existing.passport_drive_url || "",
-      },
-    );
-    const next = headers.map((header) => {
-      const value = enriched[header];
-      return value === undefined || value === "" ? existing[header] || "" : value;
-    });
-    if (JSON.stringify(next) !== JSON.stringify(rowValues)) updatedRows += 1;
-    return next;
-  });
-  sheet.getRange(2, 1, updated.length, headers.length).setValues(updated);
-  return { ok: true, updatedRows };
-}
-
-function parseLecturerJsonSafe_(value, fallback) {
-  try {
-    return value ? JSON.parse(value) : fallback;
-  } catch (error) {
-    return fallback;
-  }
-}
-
-function findDuplicateLecturerApplication_(spreadsheet, application) {
-  const email = normalizeLecturerDuplicateValue_(application.email);
-  const course = normalizeLecturerDuplicateValue_(application.course);
-  const submittedAt = normalizeLecturerDuplicateValue_(application.submittedAt);
-  if (!email || !course || !submittedAt) return null;
-  const sheet = getSheet(spreadsheet, "LecturerApplications");
-  const headers = getHeaders(sheet);
-  if (!headers.length || sheet.getLastRow() < 2) return null;
-  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, headers.length).getValues();
-  for (let i = 0; i < rows.length; i += 1) {
-    const object = { sheetRow: i + 2 };
-    headers.forEach((header, index) => {
-      object[header] = rows[i][index];
-    });
-    if (
-      normalizeLecturerDuplicateValue_(object.email) === email &&
-      normalizeLecturerDuplicateValue_(object.course) === course &&
-      normalizeLecturerDuplicateValue_(object.submitted_at) === submittedAt
-    ) {
-      return object;
-    }
-  }
-  return null;
-}
-
-function normalizeLecturerDuplicateValue_(value) {
-  return String(value || "").trim().toLowerCase();
-}
-
-function makeLecturerApplicationReference_(submittedAt) {
-  const date = new Date(submittedAt || new Date().toISOString());
-  const year = Number.isFinite(date.getTime()) ? date.getFullYear() : new Date().getFullYear();
-  const number = String(Math.floor(Math.random() * 100000)).padStart(5, "0");
-  return "MATHEPI-" + year + "-" + number;
-}
-
-function submitTutorialFellowApplication(payload) {
-  const spreadsheet = getOrCreateSpreadsheet();
-  const rootFolder = getOrCreateRootFolder();
-  ensureSheets(spreadsheet);
-  ensureDriveFolders(rootFolder);
-
-  const application = payload.application || {};
-  requireEmailVerification(payload.emailVerification, application.email, "tutorial-fellow");
-  const applicationId = Utilities.getUuid();
-  const submittedAt = application.submittedAt || new Date().toISOString();
-  const folder = getOrCreateNestedFolder(rootFolder, ["CFA", "Tutorial Fellow Applications", applicationId]);
-  const passport = saveApplicationFile(spreadsheet, folder, payload.passportFile, applicationId, "Tutorial Fellow passport biodata page", submittedAt);
-  const phdCertificate = saveApplicationFile(spreadsheet, folder, payload.phdCertificateFile, applicationId, "Tutorial Fellow PhD certificate", submittedAt);
-
-  appendRows(getSheet(spreadsheet, "TutorialFellowApplications"), [
-    {
-      application_id: applicationId,
-      submitted_at: submittedAt,
-      title: application.title || "",
-      email: application.email || "",
-      applicant: application.applicant || "",
-      gender: application.gender || "",
-      phone: application.phone || "",
-      has_whatsapp: application.hasWhatsApp || "",
-      contact_whatsapp: application.contactWhatsApp || "",
-      nationality: application.nationality || "",
-      country_of_residence: application.country || "",
-      address: application.address || "",
-      affiliation: application.affiliation || "",
-      designation: application.designation || "",
-      phd_field: application.phdField || "",
-      phd_completion: application.phdCompletion || "",
-      thesis_title_explainer: application.thesisTitleExplainer || "",
-      research_area: application.researchArea || "",
-      teaching_experience: application.teachingExperience || "",
-      tutoring_experience: application.tutoringExperience || "",
-      mentoring_experience: application.mentoringExperience || "",
-      research_experience: application.researchExperience || "",
-      research_plan: application.researchPlan || "",
-      availability: application.availability || "",
-      residence_ready: application.residenceReady || "",
-      teaching_gap_ready: application.teachingGapReady || "",
-      english_communication: application.englishCommunication || "",
-      aims_alumni: application.aimsAlumni || "",
-      aims_centre: application.aimsCentre || "",
-      aims_programme_year: application.aimsProgrammeYear || "",
-      passport_file_name: application.passport || "",
-      passport_drive_url: passport.url || "",
-      phd_certificate_file_name: application.phdCertificate || "",
-      phd_certificate_drive_url: phdCertificate.url || "",
-      reference_1_json: JSON.stringify(referencePayload(application, 1)),
-      reference_2_json: JSON.stringify(referencePayload(application, 2)),
-      reference_3_json: JSON.stringify(referencePayload(application, 3)),
-      full_application_json: JSON.stringify(payload.state || {}),
-    },
-  ]);
-
-  return { ok: true, applicationId, passportDriveUrl: passport.url || "", phdCertificateDriveUrl: phdCertificate.url || "" };
-}
-
-function referencePayload(application, index) {
-  return {
-    title: application["ref" + index + "Title"] || "",
-    name: application["ref" + index + "Name"] || "",
-    affiliation: application["ref" + index + "Affiliation"] || "",
-    designation: application["ref" + index + "Designation"] || "",
-    role: application["ref" + index + "Role"] || "",
-    email: application["ref" + index + "Email"] || "",
-    phone: application["ref" + index + "Phone"] || "",
-  };
-}
-
-function saveApplicationFile(spreadsheet, folder, filePayload, applicationId, type, submittedAt) {
-  if (!filePayload || !filePayload.dataBase64) return {};
-  const bytes = Utilities.base64Decode(filePayload.dataBase64);
-  const blob = Utilities.newBlob(bytes, filePayload.mimeType || "application/octet-stream", filePayload.name || type);
-  const file = folder.createFile(blob);
-  appendRows(getSheet(spreadsheet, "DriveDocuments"), [
-    {
-      document_id: Utilities.getUuid(),
-      type,
-      related_id: applicationId,
-      file_name: filePayload.name || "",
-      drive_file_id: file.getId(),
-      url: file.getUrl(),
-      created_at: submittedAt,
-    },
-  ]);
-  return { id: file.getId(), url: file.getUrl() };
-}
-
-function getOrCreateSpreadsheet() {
-  const props = PropertiesService.getScriptProperties();
-  const rootFolder = getOrCreateRootFolder();
-  const existingId = props.getProperty(MATHEPI.properties.spreadsheetId);
-  if (existingId) {
-    try {
-      const spreadsheet = SpreadsheetApp.openById(existingId);
-      try {
-        DriveApp.getFileById(existingId).moveTo(rootFolder);
-      } catch (moveError) {}
-      return spreadsheet;
-    } catch (e) {
-      props.deleteProperty(MATHEPI.properties.spreadsheetId);
-    }
-  }
-  const spreadsheet = SpreadsheetApp.create(MATHEPI.spreadsheetName);
-  try {
-    DriveApp.getFileById(spreadsheet.getId()).moveTo(rootFolder);
-  } catch (moveError) {}
-  props.setProperty(MATHEPI.properties.spreadsheetId, spreadsheet.getId());
-  return spreadsheet;
-}
-
-function getOrCreateRootFolder() {
-  const props = PropertiesService.getScriptProperties();
-  const existingId = props.getProperty(MATHEPI.properties.driveRootFolderId);
-  if (existingId) {
-    try {
-      return DriveApp.getFolderById(existingId);
-    } catch (e) {
-      props.deleteProperty(MATHEPI.properties.driveRootFolderId);
-    }
-  }
-  const folder = DriveApp.createFolder(MATHEPI.rootFolderName);
-  props.setProperty(MATHEPI.properties.driveRootFolderId, folder.getId());
-  return folder;
-}
-
-function ensureSheets(spreadsheet) {
-  Object.keys(TAB_HEADERS).forEach((name) => {
-    const sheet = getSheet(spreadsheet, name);
-    const headers = TAB_HEADERS[name];
-    ensureSheetHeaders(sheet, headers);
-  });
-}
-
-function ensureSheetHeaders(sheet, headers) {
-  const expectedHeaders = (headers && headers.length ? headers : ["record_id"]).map(String);
-  const lastColumn = sheet.getLastColumn();
-  if (lastColumn < 1) {
-    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
-    sheet.setFrozenRows(1);
-    return expectedHeaders;
-  }
-
-  const width = Math.max(lastColumn, expectedHeaders.length);
-  const current = sheet.getRange(1, 1, 1, width).getValues()[0].map((value) => String(value || "").trim());
-  const hasHeaderRow = current.some(Boolean);
-  if (!hasHeaderRow) {
-    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
-    sheet.setFrozenRows(1);
-    return expectedHeaders;
-  }
-
-  const present = {};
-  current.forEach((header) => {
-    if (header) present[header] = true;
-  });
-  const missing = expectedHeaders.filter((header) => !present[header]);
-  if (missing.length) {
-    sheet.getRange(1, lastColumn + 1, 1, missing.length).setValues([missing]);
-  }
-  if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
-  return getHeaders(sheet);
-}
-
-function ensureDriveFolders(rootFolder) {
-  [
-    ["CFA", "Lecturer Applications"],
-    ["CFA", "Tutorial Fellow Applications"],
-    ["CFA", "Head Tutor Applications"],
-    ["Courses"],
-    ["Lecturer CVs"],
-    ["Course Outlines"],
-    ["Teaching Materials"],
-    ["Assessments"],
-    ["Meeting Notes"],
-    ["Internship & Thesis"],
-  ].forEach((path) => getOrCreateNestedFolder(rootFolder, path));
-}
-
-function getSheet(spreadsheet, name) {
-  return spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
-}
-
-function getOrCreateNestedFolder(root, path) {
-  return path.reduce((folder, name) => {
-    const matches = folder.getFoldersByName(name);
-    return matches.hasNext() ? matches.next() : folder.createFolder(name);
-  }, root);
-}
-
-function writeDatasets(spreadsheet, datasets) {
-  let count = 0;
-  DATASET_TABS.forEach((tab) => {
-    if (Array.isArray(datasets[tab])) {
-      writeJsonRecords(getSheet(spreadsheet, tab), datasets[tab]);
-      count += 1;
-    }
-  });
-  return count;
-}
-
-function writeJsonRecords(sheet, records) {
-  clearBody(sheet);
-  if (!records.length) return;
-  const now = new Date().toISOString();
-  const values = records.map((record, index) => [
-    record.id || record.code || record.application_id || String(index + 1),
-    JSON.stringify(record),
-    now,
-  ]);
-  sheet.getRange(2, 1, values.length, 3).setValues(values);
-}
-
-function readJsonRecords(sheet) {
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return [];
-  return sheet
-    .getRange(2, 1, lastRow - 1, 3)
-    .getValues()
-    .map((row) => {
-      try {
-        return JSON.parse(row[1] || "{}");
-      } catch (e) {
-        return null;
-      }
-    })
-    .filter(Boolean);
-}
-
-function writeDefaultCfaStatuses(spreadsheet) {
-  const existing = readCfaStatuses(spreadsheet);
-  const merged = Object.assign({}, MATHEPI.defaultCfaStatuses, existing);
-  writeCfaStatuses(spreadsheet, merged);
-}
-
-function writeCfaStatuses(spreadsheet, statuses) {
-  const rows = Object.keys(statuses || {}).map((id) => ({
-    id,
-    status: statuses[id] === "Open" ? "Open" : "Closed",
-    updated_at: new Date().toISOString(),
-  }));
-  upsertRows(getSheet(spreadsheet, "CfaStatuses"), rows);
-}
-
-function readCfaStatuses(spreadsheet) {
-  const sheet = getSheet(spreadsheet, "CfaStatuses");
-  const lastRow = sheet.getLastRow();
-  const statuses = Object.assign({}, MATHEPI.defaultCfaStatuses);
-  if (lastRow < 2) return statuses;
-  sheet.getRange(2, 1, lastRow - 1, 3).getValues().forEach((row) => {
-    if (row[0]) statuses[row[0]] = row[1] === "Open" ? "Open" : "Closed";
-  });
-  return statuses;
-}
-
-function upsertRows(sheet, objects) {
-  if (!objects || !objects.length) return;
-  const headers = getHeaders(sheet);
-  if (!headers.length) throw new Error("Sheet " + sheet.getName() + " is missing its header row.");
-  const lastRow = sheet.getLastRow();
-  const existing = {};
-  if (lastRow >= 2) {
-    sheet.getRange(2, 1, lastRow - 1, 1).getValues().forEach((row, index) => {
-      existing[row[0]] = index + 2;
-    });
-  }
-  objects.forEach((object) => {
-    const key = object[headers[0]];
-    const values = headers.map((header) => object[header] || "");
-    if (key && existing[key]) sheet.getRange(existing[key], 1, 1, headers.length).setValues([values]);
-    else sheet.appendRow(values);
-  });
-}
-
-function appendRows(sheet, objects) {
-  if (!objects || !objects.length) return;
-  const headers = getHeaders(sheet);
-  if (!headers.length) throw new Error("Sheet " + sheet.getName() + " is missing its header row.");
-  objects.forEach((object) => sheet.appendRow(headers.map((header) => object[header] || "")));
-}
-
-function getHeaders(sheet) {
-  const expected = TAB_HEADERS[sheet.getName()] || ["record_id"];
-  if (sheet.getLastColumn() < 1) {
-    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
-    sheet.setFrozenRows(1);
-    return expected.slice();
-  }
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map((value, index) => {
-    const header = String(value || "").trim();
-    return header || "column_" + (index + 1);
-  });
-  if (!headers.some((header) => header.indexOf("column_") !== 0)) {
-    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
-    sheet.setFrozenRows(1);
-    return expected.slice();
-  }
-  return headers;
-}
-
-function clearBody(sheet) {
-  const lastRow = sheet.getLastRow();
-  const lastColumn = Math.max(sheet.getLastColumn(), 1);
-  if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, lastColumn).clearContent();
-}
-
-function jsonResponse(data) {
-  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }

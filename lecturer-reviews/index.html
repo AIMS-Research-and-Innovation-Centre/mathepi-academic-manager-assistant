@@ -1,0 +1,2007 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lecturer Applications Review - MathEpi</title>
+    <meta name="theme-color" content="#0c1940" />
+    <style>
+      :root {
+        --navy: #0c1940;
+        --navy-soft: #172a5a;
+        --maroon: #8d111c;
+        --gold: #b08c3a;
+        --green: #2f6b4f;
+        --teal: #0f6b78;
+        --paper: #f7f5ef;
+        --surface: #ffffff;
+        --line: #ded9cf;
+        --ink: #171b26;
+        --muted: #6f6a60;
+        --soft: #ece7dc;
+        --danger: #a33131;
+        --shadow: 0 18px 45px rgba(12, 25, 64, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Myriad Pro", "Segoe UI", Frutiger, "Helvetica Neue", Arial, sans-serif;
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button,
+      a.button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 36px;
+        border: 1px solid var(--navy);
+        border-radius: 6px;
+        background: var(--surface);
+        color: var(--navy);
+        padding: 7px 12px;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      button:hover,
+      a.button:hover {
+        background: var(--navy);
+        color: #fff;
+      }
+
+      button.primary,
+      a.button.primary {
+        border-color: var(--maroon);
+        background: var(--maroon);
+        color: #fff;
+      }
+
+      button.active {
+        border-color: var(--maroon);
+        background: #f3e8e7;
+        color: var(--maroon);
+        font-weight: 700;
+      }
+
+      .shell {
+        min-height: 100vh;
+      }
+
+      .masthead {
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) auto;
+        gap: 22px;
+        padding: 22px 28px;
+        background: var(--navy);
+        color: #fff;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        font-weight: 900;
+        letter-spacing: 0.04em;
+      }
+
+      .brand p,
+      .brand h1 {
+        margin: 0;
+      }
+
+      .brand p {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .brand h1 {
+        font-size: clamp(23px, 3vw, 36px);
+        line-height: 1.08;
+      }
+
+      .masthead-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .masthead-actions a,
+      .masthead-actions button {
+        border-color: rgba(255, 255, 255, 0.38);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+
+      .kpi-strip {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(130px, 1fr));
+        gap: 1px;
+        border-bottom: 1px solid var(--line);
+        background: var(--line);
+      }
+
+      .kpi {
+        min-height: 88px;
+        padding: 16px 22px;
+        background: #fff;
+      }
+
+      .kpi span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      .kpi strong {
+        display: block;
+        margin-top: 5px;
+        color: var(--navy);
+        font-size: 30px;
+        line-height: 1;
+      }
+
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        padding: 14px 22px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(247, 245, 239, 0.96);
+        backdrop-filter: blur(12px);
+      }
+
+      .search {
+        flex: 1 1 280px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        padding: 0 12px;
+      }
+
+      .search input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+      }
+
+      select {
+        min-height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--ink);
+        padding: 0 10px;
+      }
+
+      .tabs {
+        display: inline-flex;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .tabs button {
+        border: 0;
+        border-radius: 0;
+        min-width: 142px;
+      }
+
+      .main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
+        align-items: start;
+        gap: 18px;
+        padding: 20px 22px 34px;
+      }
+
+      .workspace {
+        min-width: 0;
+      }
+
+      .status {
+        margin-bottom: 14px;
+        border: 1px solid var(--line);
+        border-left: 5px solid var(--gold);
+        border-radius: 8px;
+        background: #fffaf0;
+        padding: 13px 15px;
+        color: var(--muted);
+      }
+
+      .status.error {
+        border-left-color: var(--danger);
+        background: #fff5f5;
+        color: #633;
+      }
+
+      .status.warning {
+        border-left-color: var(--maroon);
+        background: #fff8e9;
+        color: #624610;
+      }
+
+      .view-back {
+        width: fit-content;
+        min-height: 32px;
+        padding: 5px 10px;
+        font-size: 13px;
+      }
+
+      .section-head .view-back {
+        margin-bottom: 8px;
+      }
+
+      .profile-back {
+        margin-bottom: 10px;
+      }
+
+      .schedule {
+        display: grid;
+        gap: 12px;
+      }
+
+      .block-row {
+        display: grid;
+        grid-template-columns: 190px minmax(0, 1fr);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .block-meta {
+        padding: 16px;
+        background: #fbfaf7;
+        border-right: 1px solid var(--line);
+      }
+
+      .block-meta strong {
+        display: block;
+        color: var(--navy);
+        font-size: 17px;
+      }
+
+      .block-meta span {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .course-lane {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .course-pill {
+        display: grid;
+        gap: 6px;
+        min-height: 108px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        padding: 14px;
+        text-align: left;
+      }
+
+      .course-pill:hover,
+      .course-pill.active {
+        border-color: var(--maroon);
+        background: #fff;
+        color: var(--ink);
+        box-shadow: 0 0 0 3px rgba(141, 17, 28, 0.08);
+      }
+
+      .course-pill > * {
+        min-width: 0;
+      }
+
+      .course-pill .code {
+        color: var(--maroon);
+        font-weight: 800;
+        letter-spacing: 0.03em;
+      }
+
+      .course-pill strong {
+        color: var(--navy);
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+
+      .course-pill small {
+        color: var(--muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .course-pill:hover .code,
+      .course-pill:hover strong,
+      .course-pill.active .code,
+      .course-pill.active strong {
+        color: var(--navy);
+      }
+
+      .course-pill:hover small,
+      .course-pill.active small {
+        color: var(--muted);
+      }
+
+      .course-detail {
+        margin-top: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .section-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfaf7;
+      }
+
+      .section-head h2,
+      .section-head p {
+        margin: 0;
+      }
+
+      .section-head h2 {
+        color: var(--navy);
+        font-size: 22px;
+      }
+
+      .section-head p {
+        margin-top: 4px;
+        color: var(--muted);
+      }
+
+      .applicant-list {
+        display: grid;
+        gap: 1px;
+        background: var(--line);
+      }
+
+      .applicant-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(180px, 260px);
+        gap: 16px;
+        align-items: center;
+        border: 0;
+        border-radius: 0;
+        background: #fff;
+        color: var(--ink);
+        padding: 16px 18px;
+        text-align: left;
+      }
+
+      .applicant-row:hover,
+      .applicant-row.active {
+        background: #f7fbfb;
+        color: var(--ink);
+      }
+
+      .applicant-row h3 {
+        margin: 0 0 5px;
+        color: var(--navy);
+        font-size: 18px;
+      }
+
+      .applicant-row p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 9px;
+      }
+
+      .chip,
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        border-radius: 999px;
+        padding: 4px 9px;
+        font-size: 12px;
+        line-height: 1.2;
+      }
+
+      .chip {
+        background: var(--soft);
+        color: var(--muted);
+      }
+
+      .chip.green,
+      .badge.green {
+        background: #e6f2ec;
+        color: var(--green);
+      }
+
+      .chip.blue,
+      .badge.blue {
+        background: #e9eefb;
+        color: var(--navy-soft);
+      }
+
+      .chip.gold,
+      .badge.gold {
+        background: #fbf2df;
+        color: #7b5615;
+      }
+
+      .chip.maroon,
+      .badge.maroon {
+        background: #f6e8e9;
+        color: var(--maroon);
+      }
+
+      .count-pill {
+        display: grid;
+        place-items: center;
+        min-width: 48px;
+        min-height: 48px;
+        border-radius: 8px;
+        background: var(--navy);
+        color: #fff;
+        font-size: 19px;
+        font-weight: 800;
+      }
+
+      .applicant-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .applicant-tile,
+      .applicant-strip {
+        display: grid;
+        grid-template-columns: minmax(240px, 1.15fr) minmax(260px, 1fr);
+        gap: 18px;
+        align-items: start;
+        width: 100%;
+        min-height: 112px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        padding: 16px;
+        text-align: left;
+      }
+
+      .applicant-tile:hover,
+      .applicant-tile.active,
+      .applicant-strip:hover,
+      .applicant-strip.active {
+        border-color: var(--teal);
+        background: #f7fbfb;
+        color: var(--ink);
+        box-shadow: 0 0 0 3px rgba(15, 107, 120, 0.08);
+      }
+
+      .applicant-tile h3,
+      .applicant-strip h3 {
+        margin: 0 0 6px;
+        color: var(--navy);
+        font-size: 18px;
+        line-height: 1.2;
+      }
+
+      .applicant-tile p,
+      .applicant-strip p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .applicant-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+        gap: 7px;
+        margin-top: 10px;
+      }
+
+      .meta-pill {
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #fbfaf7;
+        padding: 7px 9px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .meta-pill b {
+        display: block;
+        overflow: hidden;
+        color: var(--navy);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .course-decision-list {
+        display: grid;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .course-decision {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        padding: 9px 10px;
+        color: var(--ink);
+      }
+
+      .course-decision strong,
+      .course-decision span {
+        min-width: 0;
+      }
+
+      .course-decision strong {
+        display: block;
+        overflow: hidden;
+        color: var(--navy);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .course-decision small {
+        display: block;
+        overflow: hidden;
+        color: var(--muted);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .decision-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 82px;
+        min-height: 26px;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+
+      .decision-pending {
+        background: #eee9dc;
+        color: #605a4d;
+      }
+
+      .decision-approved {
+        background: #e4f2eb;
+        color: var(--green);
+      }
+
+      .decision-consider {
+        background: #fbf2df;
+        color: #7b5615;
+      }
+
+      .decision-rejected {
+        background: #f7e4e6;
+        color: var(--maroon);
+      }
+
+      .decision-panel {
+        display: grid;
+        gap: 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfaf7;
+        padding: 12px;
+      }
+
+      .decision-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .decision-actions button {
+        min-width: 0;
+        min-height: 34px;
+        padding: 6px 8px;
+        font-size: 13px;
+      }
+
+      .decision-actions button.active {
+        background: var(--navy);
+        color: #fff;
+      }
+
+      .decision-panel textarea {
+        width: 100%;
+        min-height: 78px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #fff;
+        padding: 9px 10px;
+        color: var(--ink);
+      }
+
+      .decision-footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .profile-panel {
+        position: sticky;
+        top: 82px;
+        max-height: calc(100vh - 104px);
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: var(--shadow);
+      }
+
+      .profile-head {
+        padding: 18px;
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(135deg, #fff, #f2eee5);
+      }
+
+      .profile-head h2 {
+        margin: 0;
+        color: var(--navy);
+        font-size: 24px;
+      }
+
+      .profile-head p {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+
+      .profile-body {
+        display: grid;
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .mini {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #fbfaf7;
+        padding: 10px;
+      }
+
+      .mini span {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .mini strong {
+        display: block;
+        margin-top: 4px;
+        color: var(--navy);
+        overflow-wrap: anywhere;
+      }
+
+      .profile-section {
+        border-top: 1px solid var(--line);
+        padding-top: 14px;
+      }
+
+      .profile-section h3 {
+        margin: 0 0 8px;
+        color: var(--navy);
+        font-size: 16px;
+      }
+
+      .application-block {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .application-block + .application-block {
+        margin-top: 12px;
+      }
+
+      .application-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px;
+        background: #fbfaf7;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .application-title strong {
+        color: var(--maroon);
+      }
+
+      .application-content {
+        display: grid;
+        gap: 12px;
+        padding: 12px;
+      }
+
+      .plain-list {
+        display: grid;
+        gap: 9px;
+      }
+
+      .plain-list div {
+        border-left: 3px solid var(--gold);
+        padding-left: 10px;
+      }
+
+      .plain-list b {
+        display: block;
+        color: var(--navy);
+      }
+
+      .plain-list span,
+      .text-block {
+        color: var(--muted);
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .empty {
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        padding: 24px;
+        color: var(--muted);
+        text-align: center;
+        background: #fff;
+      }
+
+      @media (max-width: 1020px) {
+        .masthead,
+        .main {
+          grid-template-columns: 1fr;
+        }
+
+        .profile-panel {
+          position: static;
+          max-height: none;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .masthead {
+          padding: 18px;
+        }
+
+        .kpi-strip {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .main,
+        .toolbar {
+          padding-right: 14px;
+          padding-left: 14px;
+        }
+
+        .block-row {
+          grid-template-columns: 1fr;
+        }
+
+        .block-meta {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .mini-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .applicant-row,
+        .applicant-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .tabs {
+          width: 100%;
+        }
+
+        .tabs button {
+          flex: 1 1 0;
+          min-width: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <div class="brand">
+          <div class="brand-mark">LEC</div>
+          <div>
+            <p>MathEpi screening</p>
+            <h1>Lecturer Applications Review</h1>
+          </div>
+        </div>
+        <div class="masthead-actions">
+          <button class="button" id="backButton" type="button">Back</button>
+          <a class="button" href="../">Main app</a>
+          <a class="button" href="../cfa/lecturer-application.html" target="_blank" rel="noopener noreferrer">Lecturer form</a>
+          <a class="button" href="https://docs.google.com/spreadsheets/d/1GRzkfRBNzCY3baZP2X4JTcL3FuQAonykQ320URDFXU0/edit" target="_blank" rel="noopener noreferrer">Source sheet</a>
+          <button class="primary" id="refreshButton">Refresh data</button>
+        </div>
+      </header>
+
+      <section class="kpi-strip" id="kpis"></section>
+
+      <section class="toolbar">
+        <div class="tabs" role="tablist" aria-label="Review screens">
+          <button id="courseTab" class="active" type="button">Course schedule</button>
+          <button id="applicantTab" type="button">Applicants</button>
+        </div>
+        <div class="search">
+          <span>Search</span>
+          <input id="searchInput" type="search" placeholder="Name, course, research area, institution..." />
+        </div>
+        <select id="decisionFilter" aria-label="Filter by decision">
+          <option value="">All decisions</option>
+        </select>
+        <select id="courseFilter" aria-label="Filter by course">
+          <option value="">All courses</option>
+        </select>
+        <select id="blockFilter" aria-label="Filter by block">
+          <option value="">All blocks</option>
+        </select>
+        <select id="nationalityFilter" aria-label="Filter by nationality">
+          <option value="">All nationalities</option>
+        </select>
+        <select id="genderFilter" aria-label="Filter by gender">
+          <option value="">All genders</option>
+        </select>
+      </section>
+
+      <main class="main">
+        <section class="workspace">
+          <div id="message"></div>
+          <div id="screen"></div>
+        </section>
+        <aside class="profile-panel" id="profile"></aside>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        var PUBLIC_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrBseE_6REWP5D4zySf-Z6j_x9nUofWvT426M_HG5FoPllMDOZEcEa-f_Of4zryTQ9/exec";
+        var SOURCE_SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GRzkfRBNzCY3baZP2X4JTcL3FuQAonykQ320URDFXU0/edit";
+        var STORAGE_KEY = "mathepi-apps-script-url";
+        var state = {
+          loading: true,
+          error: "",
+          view: "course",
+          query: "",
+          blockFilter: "",
+          decisionFilter: "",
+          courseFilter: "",
+          nationalityFilter: "",
+          genderFilter: "",
+          selectedCourse: "",
+          selectedApplicantKey: "",
+          applications: [],
+          courses: [],
+          blocks: [],
+          decisions: {},
+          saving: {},
+          notice: "",
+          syncedAt: "",
+        };
+
+        var demoData = {
+          ok: true,
+          syncedAt: new Date().toISOString(),
+          blocks: [
+            { id: "block-1", title: "Block 1", start: "2026-10-05", end: "2026-10-23", kind: "teaching", courses: ["MES01", "MES05"] },
+            { id: "block-8", title: "Block 8", start: "2027-04-05", end: "2027-04-23", kind: "teaching", courses: ["MEC08", "MEC10"] },
+          ],
+          courses: [
+            { code: "MES05", title: "Introduction to R and Python", type: "skills", hours: 60, block: "Block 1", outcomes: "Programming and reproducible data analysis." },
+            { code: "MEC10", title: "Advanced Data Science for Epidemiology", type: "specialization", hours: 60, block: "Block 8", outcomes: "AI and data science for epidemiology." },
+          ],
+          applications: [
+            {
+              application_id: "demo-1",
+              submitted_at: "2026-07-23T10:47:42.366Z",
+              email: "demo@example.org",
+              applicant: "Demo Applicant",
+              affiliation: "AIMS Rwanda",
+              designation: "Lecturer",
+              gender: "Female",
+              nationality: "Rwanda",
+              highest_qualification: "PhD",
+              research_areas: "Data science, epidemiology",
+              selected_course_id: "MES05",
+              selected_course_title: "Introduction to R and Python",
+              block: "Block 1 - 2026-10-05 - 2026-10-23",
+              availability: "Available",
+              course_plan_text: "Module 1: Data workflows",
+              taught_similar_course: "Yes",
+              teaching_records_text: "Record 1: R programming",
+            },
+            {
+              application_id: "demo-2",
+              submitted_at: "2026-07-23T10:48:00.000Z",
+              email: "demo@example.org",
+              applicant: "Demo Applicant",
+              affiliation: "AIMS Rwanda",
+              designation: "Lecturer",
+              gender: "Female",
+              nationality: "Rwanda",
+              highest_qualification: "PhD",
+              research_areas: "Data science, epidemiology",
+              selected_course_id: "MEC10",
+              selected_course_title: "Advanced Data Science for Epidemiology",
+              block: "Block 8 - 2027-04-05 - 2027-04-23",
+              availability: "Available",
+              course_plan_text: "Module 1: Outbreak prediction",
+              taught_similar_course: "Yes",
+              teaching_records_text: "Record 1: Machine learning",
+            },
+          ],
+          decisions: [
+            {
+              decision_id: "demo-1::MES05",
+              application_id: "demo-1",
+              email: "demo@example.org",
+              applicant: "Demo Applicant",
+              course_id: "MES05",
+              course_title: "Introduction to R and Python",
+              decision: "Consider",
+              notes: "Strong fit; confirm availability.",
+              updated_at: new Date().toISOString(),
+            },
+          ],
+        };
+
+        function $(id) {
+          return document.getElementById(id);
+        }
+
+        function esc(value) {
+          return String(value == null ? "" : value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        }
+
+        function clean(value) {
+          return String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+        }
+
+        function parseJson(value, fallback) {
+          try {
+            return value ? JSON.parse(value) : fallback;
+          } catch (error) {
+            return fallback;
+          }
+        }
+
+        function uniq(rows) {
+          return rows.filter(Boolean).filter(function (item, index, list) {
+            return list.indexOf(item) === index;
+          });
+        }
+
+        function dateLabel(value) {
+          if (!value) return "";
+          var date = new Date(value);
+          if (!Number.isFinite(date.getTime())) return String(value);
+          return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+        }
+
+        function apiEndpoint() {
+          try {
+            return (window.MATHEPI_APPS_SCRIPT_URL || localStorage.getItem(STORAGE_KEY) || PUBLIC_APPS_SCRIPT_URL || "").trim();
+          } catch (error) {
+            return PUBLIC_APPS_SCRIPT_URL;
+          }
+        }
+
+        function jsonp(action, payload) {
+          return new Promise(function (resolve, reject) {
+            var endpoint = apiEndpoint();
+            if (!endpoint) {
+              reject(new Error("Apps Script Web App URL is not configured."));
+              return;
+            }
+            var callback = "mathepiLecturerReview_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+            var script = document.createElement("script");
+            var separator = endpoint.indexOf("?") >= 0 ? "&" : "?";
+            var timer = setTimeout(function () {
+              cleanup();
+              reject(new Error("Apps Script did not respond. Redeploy the Apps Script backend, then refresh this page."));
+            }, 30000);
+
+            function cleanup() {
+              clearTimeout(timer);
+              delete window[callback];
+              if (script.parentNode) script.parentNode.removeChild(script);
+            }
+
+            window[callback] = function (result) {
+              cleanup();
+              if (result && result.ok === false) reject(new Error(result.error || "Apps Script request failed."));
+              else resolve(result || {});
+            };
+
+            script.onerror = function () {
+              cleanup();
+              reject(new Error("Could not reach Apps Script. Check the deployment URL and access settings."));
+            };
+            script.src = endpoint + separator + new URLSearchParams({
+              action: action,
+              payload: JSON.stringify(payload || {}),
+              callback: callback,
+              _: String(Date.now()),
+            }).toString();
+            document.head.appendChild(script);
+          });
+        }
+
+        function loadData() {
+          state.loading = true;
+          state.error = "";
+          state.notice = "";
+          render();
+          var params = new URLSearchParams(location.search);
+          if (params.get("demo") === "1") {
+            setTimeout(function () {
+              applyData(demoData);
+            }, 120);
+            return;
+          }
+          if (params.get("mock") === "1") {
+            params.delete("mock");
+            var next = location.pathname + (params.toString() ? "?" + params.toString() : "") + location.hash;
+            history.replaceState(null, "", next);
+          }
+          jsonp("listLecturerReviewData", {})
+            .then(applyData)
+            .catch(function (error) {
+              return recoverLiveDataError(error);
+            });
+        }
+
+        function recoverLiveDataError(error) {
+          var message = error && error.message ? error.message : "Could not load lecturer review data.";
+          if (!/Unknown action:\s*listLecturerReviewData/i.test(message)) {
+            state.loading = false;
+            state.error = message;
+            render();
+            return;
+          }
+          jsonp("backfillLecturerApplicationColumns", {})
+            .then(function (result) {
+              var updated = Number(result && result.updatedRows);
+              state.loading = false;
+              state.error = "The real LecturerApplications sheet is reachable" +
+                (Number.isFinite(updated) ? " and " + updated + " application row(s) were checked/backfilled" : "") +
+                ", but this Apps Script Web App deployment is still missing listLecturerReviewData. Redeploy apps-script/Code.gs, then refresh this page. Source spreadsheet: " + SOURCE_SPREADSHEET_URL;
+              render();
+            })
+            .catch(function () {
+              state.loading = false;
+              state.error = "This page is in live mode, but the deployed Apps Script backend is missing listLecturerReviewData. Redeploy apps-script/Code.gs, then refresh this page. Source spreadsheet: " + SOURCE_SPREADSHEET_URL;
+              render();
+            });
+        }
+
+        function applyData(result) {
+          state.decisions = {};
+          (result.decisions || []).map(normalizeDecision).forEach(function (decision) {
+            if (decision.id) state.decisions[decision.id] = decision;
+          });
+          state.courses = (result.courses || []).map(normalizeCourse).filter(function (course) { return course.code; });
+          state.blocks = (result.blocks || []).map(normalizeBlock).filter(function (block) { return block.id; });
+          state.applications = (result.applications || []).map(normalizeApplication).filter(function (app) {
+            return app.applicationId || app.applicant || app.email || app.courseId;
+          });
+          enrichApplications();
+          state.syncedAt = result.syncedAt || "";
+          state.loading = false;
+          state.error = "";
+          var firstCourse = coursesWithApplications()[0] || state.courses[0];
+          if (!state.selectedCourse && firstCourse) state.selectedCourse = firstCourse.code;
+          var firstApplicant = applicantGroups()[0];
+          if (!state.selectedApplicantKey && firstApplicant) state.selectedApplicantKey = firstApplicant.key;
+          populateFilters();
+          render();
+        }
+
+        function normalizeDecision(row) {
+          var applicationId = clean(row.application_id || row.applicationId);
+          var email = clean(row.email);
+          var courseId = clean(row.course_id || row.courseId);
+          var id = clean(row.decision_id || row.decisionId || decisionKeyFromParts(applicationId, email, courseId));
+          return {
+            id: id,
+            applicationId: applicationId,
+            email: email,
+            applicant: clean(row.applicant),
+            courseId: courseId,
+            courseTitle: clean(row.course_title || row.courseTitle),
+            decision: normalizeDecisionStatus(row.decision),
+            notes: String(row.notes || ""),
+            decidedBy: clean(row.decided_by || row.decidedBy),
+            updatedAt: clean(row.updated_at || row.updatedAt),
+          };
+        }
+
+        function normalizeDecisionStatus(value) {
+          var text = clean(value).toLowerCase();
+          if (text === "approve" || text === "approved") return "Approved";
+          if (text === "reject" || text === "rejected") return "Rejected";
+          if (text === "consider") return "Consider";
+          return "Pending";
+        }
+
+        function decisionKeyFromParts(applicationId, email, courseId) {
+          return [applicationId || email, courseId].map(function (part) {
+            return clean(part).toLowerCase();
+          }).join("::");
+        }
+
+        function decisionKey(app) {
+          return decisionKeyFromParts(app.applicationId, app.email, app.courseId);
+        }
+
+        function defaultDecision(app) {
+          return {
+            id: decisionKey(app),
+            applicationId: app.applicationId,
+            email: app.email,
+            applicant: app.applicant,
+            courseId: app.courseId,
+            courseTitle: app.courseTitle,
+            decision: "Pending",
+            notes: "",
+            decidedBy: "",
+            updatedAt: "",
+          };
+        }
+
+        function normalizeCourse(row) {
+          if (row && row.json) row = parseJson(row.json, row);
+          return {
+            code: clean(row.code || row.id || row.record_id),
+            title: clean(row.title),
+            type: clean(row.type),
+            hours: clean(row.hours),
+            units: clean(row.units),
+            block: clean(row.block),
+            software: clean(row.software),
+            prerequisites: clean(row.prerequisites),
+            outcomes: clean(row.outcomes),
+          };
+        }
+
+        function normalizeBlock(row) {
+          if (row && row.json) row = parseJson(row.json, row);
+          return {
+            id: clean(row.id || row.record_id),
+            title: clean(row.title),
+            start: clean(row.start || row.start_date),
+            end: clean(row.end || row.end_date),
+            kind: clean(row.kind),
+            note: clean(row.note || row.notes),
+            courses: Array.isArray(row.courses) ? row.courses.map(clean) : [],
+          };
+        }
+
+        function parseCourseCode(value) {
+          var match = String(value || "").match(/\b([A-Z]{2,4}\d{1,3})\b/);
+          return match ? match[1] : "";
+        }
+
+        function parseBlockId(value) {
+          var match = String(value || "").match(/Block\s*(\d+)/i);
+          return match ? "block-" + match[1] : "";
+        }
+
+        function normalizeApplication(row, index) {
+          var full = parseJson(row.full_application_json, {});
+          var lecturer = full.lecturer || {};
+          var academic = full.academic || {};
+          var selection = full.selection || {};
+          var courseId = clean(row.selected_course_id || selection.courseId || parseCourseCode(row.course));
+          var planRows = parseJson(row.course_plan_json, []);
+          var teachingRows = parseJson(row.teaching_records_json, []);
+          return {
+            raw: row,
+            full: full,
+            applicationId: clean(row.application_id || ("lec-" + (index + 1))),
+            submittedAt: clean(row.submitted_at),
+            email: clean(row.email || full.email),
+            title: clean(row.title || lecturer.title),
+            applicant: clean(row.applicant || lecturer.name || "Unnamed applicant"),
+            gender: clean(row.gender || lecturer.gender),
+            affiliation: clean(row.affiliation || lecturer.affiliation),
+            designation: clean(row.designation || lecturer.designation),
+            address: clean(row.address || lecturer.address),
+            country: clean(row.country_of_residence || lecturer.countryResidence),
+            nationality: clean(row.nationality || lecturer.nationality),
+            phone: clean(row.phone_full || [row.dial_code, row.phone].filter(Boolean).join(" ") || lecturer.phone),
+            whatsapp: clean(row.whatsapp_registered || lecturer.whatsapp),
+            contactDetails: clean(row.contact_details || lecturer.coDetails),
+            qualification: clean(row.highest_qualification || academic.highest),
+            institution: clean(row.awarding_institution || academic.institution),
+            yearAwarded: clean(row.year_awarded || academic.year),
+            publications: clean(row.publication_count || academic.publicationCount),
+            orcid: clean(row.orcid || academic.orcid),
+            scholar: clean(row.google_scholar || academic.scholar),
+            scopus: clean(row.scopus_author_id || academic.scopus),
+            researchAreas: clean(row.research_areas || academic.researchAreas),
+            firstHost: clean(row.first_host),
+            secondHost: clean(row.second_host),
+            courseId: courseId,
+            courseTitle: clean(row.selected_course_title || String(row.course || "").replace(courseId, "").replace(/^\s*-\s*/, "")),
+            courseText: clean(row.course),
+            blockText: clean(row.block),
+            blockId: parseBlockId(row.block),
+            availability: clean(row.availability),
+            coursePlanText: String(row.course_plan_text || ""),
+            coursePlanRows: Array.isArray(planRows) ? planRows : [],
+            taughtSimilar: clean(row.taught_similar_course),
+            teachingRecordsText: String(row.teaching_records_text || ""),
+            teachingRecords: Array.isArray(teachingRows) ? teachingRows : [],
+            passportName: clean(row.passport_file_name),
+            passportUrl: clean(row.passport_drive_url),
+            comments: clean(row.additional_comments),
+            alumni: clean(row.alumni),
+            alumniCentre: clean(row.alumni_centre),
+            alumniProgram: clean(row.alumni_program),
+            alumniYear: clean(row.alumni_year),
+            heardAbout: clean(row.heard_about_aims),
+            certified: clean(row.certified_true),
+            acceptedTerms: clean(row.accepted_terms),
+          };
+        }
+
+        function enrichApplications() {
+          state.applications.forEach(function (app) {
+            var course = courseByCode(app.courseId);
+            if (!app.courseTitle && course) app.courseTitle = course.title;
+            var block = blockForCourse(app.courseId) || blockById(app.blockId);
+            if (block) {
+              app.blockId = block.id;
+              app.blockTitle = block.title;
+              app.blockStart = block.start;
+              app.blockEnd = block.end;
+            }
+            app.decisionRow = state.decisions[decisionKey(app)] || defaultDecision(app);
+            app.decision = app.decisionRow.decision;
+            app.decisionNotes = app.decisionRow.notes;
+            app.decisionUpdatedAt = app.decisionRow.updatedAt;
+          });
+        }
+
+        function courseByCode(code) {
+          return state.courses.find(function (course) { return course.code === code; }) || null;
+        }
+
+        function blockById(id) {
+          return state.blocks.find(function (block) { return block.id === id; }) || null;
+        }
+
+        function blockForCourse(code) {
+          return state.blocks.find(function (block) {
+            return (block.courses || []).indexOf(code) >= 0;
+          }) || null;
+        }
+
+        function applicationText(app) {
+          return [
+            app.applicant,
+            app.email,
+            app.affiliation,
+            app.designation,
+            app.nationality,
+            app.qualification,
+            app.institution,
+            app.researchAreas,
+            app.courseId,
+            app.courseTitle,
+            app.blockTitle,
+            app.decision,
+            app.decisionNotes,
+            app.coursePlanText,
+            app.teachingRecordsText,
+            app.comments,
+          ].join(" ").toLowerCase();
+        }
+
+        function matchesQuery(app) {
+          var q = state.query.trim().toLowerCase();
+          if (!q) return true;
+          return applicationText(app).indexOf(q) >= 0;
+        }
+
+        function matchesBlock(app) {
+          return !state.blockFilter || app.blockId === state.blockFilter;
+        }
+
+        function matchesDecision(app) {
+          return !state.decisionFilter || normalizeDecisionStatus(app.decision) === state.decisionFilter;
+        }
+
+        function matchesCourse(app) {
+          return !state.courseFilter || app.courseId === state.courseFilter;
+        }
+
+        function matchesNationality(app) {
+          return !state.nationalityFilter || clean(app.nationality) === state.nationalityFilter;
+        }
+
+        function matchesGender(app) {
+          return !state.genderFilter || clean(app.gender) === state.genderFilter;
+        }
+
+        function visibleApplications() {
+          return state.applications.filter(function (app) {
+            return matchesQuery(app) && matchesBlock(app) && matchesDecision(app) && matchesCourse(app) && matchesNationality(app) && matchesGender(app);
+          });
+        }
+
+        function applicationsForCourse(code) {
+          return visibleApplications().filter(function (app) { return app.courseId === code; });
+        }
+
+        function coursesWithApplications() {
+          var ids = uniq(state.applications.map(function (app) { return app.courseId; }));
+          return ids.map(courseByCode).filter(Boolean);
+        }
+
+        function applicantKey(app) {
+          return (app.email || app.applicant || app.applicationId).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        }
+
+        function applicantGroups() {
+          var map = {};
+          visibleApplications().forEach(function (app) {
+            var key = applicantKey(app);
+            if (!map[key]) {
+              map[key] = {
+                key: key,
+                applicant: app.applicant,
+                email: app.email,
+                affiliation: app.affiliation,
+                designation: app.designation,
+                gender: app.gender,
+                nationality: app.nationality,
+                qualification: app.qualification,
+                publications: app.publications,
+                researchAreas: app.researchAreas,
+                applications: [],
+              };
+            }
+            map[key].applications.push(app);
+          });
+          return Object.keys(map).map(function (key) {
+            var group = map[key];
+            group.applications.sort(function (a, b) {
+              return String(a.blockStart || a.blockText).localeCompare(String(b.blockStart || b.blockText));
+            });
+            group.courseIds = uniq(group.applications.map(function (app) { return app.courseId; }));
+            return group;
+          }).sort(function (a, b) {
+            return a.applicant.localeCompare(b.applicant);
+          });
+        }
+
+        function selectedGroup() {
+          var groups = applicantGroups();
+          return groups.find(function (group) { return group.key === state.selectedApplicantKey; }) || groups[0] || null;
+        }
+
+        function selectedCourse() {
+          return courseByCode(state.selectedCourse) || coursesWithApplications()[0] || state.courses[0] || null;
+        }
+
+        function countForCourse(code) {
+          return state.applications.filter(function (app) { return app.courseId === code; }).length;
+        }
+
+        function multiCourseCount() {
+          return applicantGroupsAll().filter(function (group) { return group.courseIds.length > 1; }).length;
+        }
+
+        function applicantGroupsAll() {
+          var savedQuery = state.query;
+          var savedBlock = state.blockFilter;
+          state.query = "";
+          state.blockFilter = "";
+          var groups = applicantGroups();
+          state.query = savedQuery;
+          state.blockFilter = savedBlock;
+          return groups;
+        }
+
+        function populateBlockFilter() {
+          var select = $("blockFilter");
+          var current = state.blockFilter;
+          select.innerHTML = '<option value="">All blocks</option>' + state.blocks
+            .filter(function (block) { return (block.courses || []).length; })
+            .map(function (block) {
+              return '<option value="' + esc(block.id) + '">' + esc(block.title) + " - " + esc(dateLabel(block.start)) + "</option>";
+            }).join("");
+          select.value = current;
+        }
+
+        function populateFilters() {
+          populateBlockFilter();
+          populateDecisionFilter();
+          populateCourseFilter();
+          populateValueFilter("nationalityFilter", "All nationalities", uniq(state.applications.map(function (app) { return clean(app.nationality); })).sort());
+          populateValueFilter("genderFilter", "All genders", uniq(state.applications.map(function (app) { return clean(app.gender); })).sort());
+        }
+
+        function populateDecisionFilter() {
+          var select = $("decisionFilter");
+          var current = state.decisionFilter;
+          select.innerHTML = '<option value="">All decisions</option>' + ["Pending", "Approved", "Consider", "Rejected"].map(function (decision) {
+            return '<option value="' + esc(decision) + '">' + esc(decision) + "</option>";
+          }).join("");
+          select.value = current;
+        }
+
+        function populateCourseFilter() {
+          var select = $("courseFilter");
+          var current = state.courseFilter;
+          var courses = state.courses.filter(function (course) {
+            return countForCourse(course.code) > 0;
+          });
+          select.innerHTML = '<option value="">All courses</option>' + courses.map(function (course) {
+            return '<option value="' + esc(course.code) + '">' + esc(course.code + " - " + course.title) + "</option>";
+          }).join("");
+          select.value = current;
+        }
+
+        function populateValueFilter(id, label, values) {
+          var select = $(id);
+          var current = select.value;
+          select.innerHTML = '<option value="">' + esc(label) + '</option>' + values.filter(Boolean).map(function (value) {
+            return '<option value="' + esc(value) + '">' + esc(value) + "</option>";
+          }).join("");
+          select.value = values.indexOf(current) >= 0 ? current : "";
+          if (id === "nationalityFilter") state.nationalityFilter = select.value;
+          if (id === "genderFilter") state.genderFilter = select.value;
+        }
+
+        function renderKpis() {
+          var groups = applicantGroupsAll();
+          var courseInterestCount = uniq(state.applications.map(function (app) { return app.courseId; })).length;
+          var counts = decisionCounts(state.applications);
+          $("kpis").innerHTML = [
+            kpi("Applicants", groups.length),
+            kpi("Application rows", state.applications.length),
+            kpi("Courses with interest", courseInterestCount),
+            kpi("Approved", counts.Approved),
+            kpi("Consider", counts.Consider),
+            kpi("Rejected", counts.Rejected),
+            kpi("Pending", counts.Pending),
+          ].join("");
+        }
+
+        function decisionCounts(applications) {
+          return applications.reduce(function (counts, app) {
+            var decision = normalizeDecisionStatus(app.decision);
+            counts[decision] = (counts[decision] || 0) + 1;
+            return counts;
+          }, { Approved: 0, Consider: 0, Rejected: 0, Pending: 0 });
+        }
+
+        function kpi(label, value) {
+          return '<div class="kpi"><span>' + esc(label) + '</span><strong>' + esc(value) + '</strong></div>';
+        }
+
+        function renderMessage() {
+          var target = $("message");
+          if (state.loading) {
+            target.innerHTML = '<div class="status">Loading lecturer applications from Google Sheets...</div>';
+          } else if (state.error) {
+            target.innerHTML = '<div class="status error">' + esc(state.error) + '<br><br>After deploying the updated Apps Script, refresh this page. For local layout testing, add <code>?demo=1</code> to the URL.</div>';
+          } else if (state.notice) {
+            target.innerHTML = '<div class="status warning">' + esc(state.notice) + '</div>';
+          } else {
+            target.innerHTML = state.syncedAt
+              ? '<div class="status">Live Sheet data loaded. Synced at ' + esc(dateLabel(state.syncedAt)) + '.</div>'
+              : "";
+          }
+        }
+
+        function render() {
+          renderKpis();
+          renderMessage();
+          $("courseTab").classList.toggle("active", state.view === "course");
+          $("applicantTab").classList.toggle("active", state.view === "applicant");
+          $("screen").innerHTML = state.loading || state.error
+            ? ""
+            : state.view === "course"
+              ? renderCourseScreen()
+              : renderApplicantScreen();
+          $("profile").innerHTML = state.loading || state.error ? renderEmptyProfile() : renderProfile();
+        }
+
+        function renderCourseScreen() {
+          var blocks = state.blocks.filter(function (block) {
+            if (!block.courses || !block.courses.length) return false;
+            return !state.blockFilter || block.id === state.blockFilter;
+          });
+          var schedule = blocks.map(renderBlock).join("");
+          var course = selectedCourse();
+          return '<div class="schedule">' + schedule + '</div>' + renderSelectedCourse(course);
+        }
+
+        function renderBlock(block) {
+          var courses = (block.courses || []).map(courseByCode).filter(Boolean).filter(function (course) {
+            if (state.courseFilter && course.code !== state.courseFilter) return false;
+            if (!state.query) return true;
+            var apps = applicationsForCourse(course.code);
+            return apps.length || [course.code, course.title, course.outcomes].join(" ").toLowerCase().indexOf(state.query.toLowerCase()) >= 0;
+          });
+          if (!courses.length && state.blockFilter) return "";
+          return '<section class="block-row">' +
+            '<div class="block-meta"><strong>' + esc(block.title) + '</strong><span>' + esc(dateLabel(block.start)) + ' to ' + esc(dateLabel(block.end)) + '</span><span>' + esc(block.note || block.kind) + '</span></div>' +
+            '<div class="course-lane">' + (courses.length ? courses.map(renderCoursePill).join("") : '<div class="empty">No courses match the current filter.</div>') + '</div>' +
+            '</section>';
+        }
+
+        function renderCoursePill(course) {
+          var count = countForCourse(course.code);
+          var isActive = selectedCourse() && selectedCourse().code === course.code;
+          return '<button class="course-pill ' + (isActive ? "active" : "") + '" title="' + esc(course.code + " - " + course.title) + '" onclick=\'selectCourse(' + JSON.stringify(course.code) + ')\'>' +
+            '<span class="code">' + esc(course.code) + '</span>' +
+            '<strong>' + esc(course.title) + '</strong>' +
+            '<small>' + esc(course.type || "course") + ' &middot; ' + esc(course.hours || "") + ' hours</small>' +
+            '<span class="badge ' + (count ? "green" : "gold") + '">' + count + ' applicant' + (count === 1 ? "" : "s") + '</span>' +
+            '</button>';
+        }
+
+        function renderSelectedCourse(course) {
+          if (!course) return '<div class="empty">No course selected.</div>';
+          var block = blockForCourse(course.code);
+          var apps = applicationsForCourse(course.code);
+          return '<section class="course-detail">' +
+            '<div class="section-head"><div><button class="view-back" type="button" onclick="backToCourseSchedule()">Back to courses</button><h2>' + esc(course.code) + ' ' + esc(course.title) + '</h2><p>' + esc(block ? block.title + " - " + dateLabel(block.start) + " to " + dateLabel(block.end) : course.block || "Schedule pending") + '</p></div><span class="count-pill">' + apps.length + '</span></div>' +
+            '<div class="applicant-list">' + (apps.length ? apps.map(renderApplicantRow).join("") : '<div class="empty">No applicants match this course and filter.</div>') + '</div>' +
+            '</section>';
+        }
+
+        function renderApplicantRow(app) {
+          var groupKey = applicantKey(app);
+          var active = groupKey === state.selectedApplicantKey;
+          return '<button class="applicant-row ' + (active ? "active" : "") + '" onclick=\'selectApplicant(' + JSON.stringify(groupKey) + ')\'>' +
+            '<div><h3>' + esc(app.applicant) + '</h3><p>' + esc([app.designation, app.affiliation, app.email].filter(Boolean).join(" | ")) + '</p>' +
+            '<div class="applicant-meta">' + metaPill("Gender", app.gender) + metaPill("Nationality", app.nationality) + metaPill("Qualification", app.qualification) + metaPill("Publications", app.publications) + '</div></div>' +
+            '<div class="course-decision-list">' + renderCourseDecisionStrip(app) + '</div>' +
+            '</button>';
+        }
+
+        function renderApplicantScreen() {
+          var groups = applicantGroups();
+          return '<div class="applicant-grid">' + (groups.length ? groups.map(renderApplicantTile).join("") : '<div class="empty">No applicants match the current filters.</div>') + '</div>';
+        }
+
+        function renderApplicantTile(group) {
+          var active = group.key === state.selectedApplicantKey;
+          return '<button class="applicant-strip ' + (active ? "active" : "") + '" onclick=\'selectApplicant(' + JSON.stringify(group.key) + ')\'>' +
+            '<div><h3>' + esc(group.applicant) + '</h3>' +
+            '<p>' + esc([group.designation, group.affiliation, group.email].filter(Boolean).join(" | ")) + '</p>' +
+            '<div class="applicant-meta">' +
+            metaPill("Gender", group.gender) +
+            metaPill("Nationality", group.nationality) +
+            metaPill("Qualification", group.qualification) +
+            metaPill("Publications", group.publications) +
+            metaPill("Applications", group.applications.length) +
+            '</div>' +
+            '<p style="margin-top:10px" title="' + esc(group.researchAreas || "") + '">' + esc(shortText(group.researchAreas, 180)) + '</p></div>' +
+            '<div class="course-decision-list">' + group.applications.map(renderCourseDecisionStrip).join("") + '</div>' +
+            '</button>';
+        }
+
+        function renderCourseDecisionStrip(app) {
+          var title = [app.courseId, app.courseTitle].filter(Boolean).join(" - ");
+          return '<div class="course-decision" title="' + esc(title) + '">' +
+            '<span><strong>' + esc(app.courseId || "Course") + '</strong><small>' + esc(app.courseTitle || app.blockTitle || "Course title pending") + '</small></span>' +
+            decisionBadge(app.decision) +
+            '</div>';
+        }
+
+        function decisionBadge(decision) {
+          var status = normalizeDecisionStatus(decision);
+          return '<span class="decision-badge ' + esc(decisionClass(status)) + '">' + esc(status) + '</span>';
+        }
+
+        function decisionClass(decision) {
+          return "decision-" + normalizeDecisionStatus(decision).toLowerCase();
+        }
+
+        function metaPill(label, value) {
+          return '<span class="meta-pill">' + esc(label) + '<b>' + esc(value || "Not provided") + '</b></span>';
+        }
+
+        function renderEmptyProfile() {
+          return '<div class="profile-head"><h2>Applicant profile</h2><p>Select a course or applicant after data loads.</p></div>';
+        }
+
+        function renderProfile() {
+          var group = selectedGroup();
+          if (!group) return renderEmptyProfile();
+          var primary = group.applications[0] || {};
+          return '<div class="profile-head">' +
+            '<button class="view-back profile-back" type="button" onclick="backFromProfile()">Back to review list</button>' +
+            '<h2>' + esc(group.applicant) + '</h2>' +
+            '<p>' + esc([group.designation, group.affiliation].filter(Boolean).join(" | ")) + '</p>' +
+            '<div class="chips">' + chip(group.applications.length + " application" + (group.applications.length === 1 ? "" : "s"), "gold") + chip(group.courseIds.join(", "), "maroon") + '</div>' +
+            '</div>' +
+            '<div class="profile-body">' +
+            '<div class="mini-grid">' +
+            mini("Email", group.email || primary.email) +
+            mini("Nationality", group.nationality || primary.nationality) +
+            mini("Gender", group.gender || primary.gender) +
+            mini("Qualification", group.qualification || primary.qualification) +
+            mini("Phone", primary.phone) +
+            mini("Publications", primary.publications) +
+            '</div>' +
+            profileSection("Research areas", textBlock(group.researchAreas || primary.researchAreas || "Not provided")) +
+            profileSection("Applications by course", group.applications.map(renderApplicationBlock).join("")) +
+            '</div>';
+        }
+
+        function renderApplicationBlock(app) {
+          return '<article class="application-block">' +
+            '<div class="application-title"><strong>' + esc(app.courseId) + ' ' + esc(app.courseTitle) + '</strong><span>' + decisionBadge(app.decision) + '</span></div>' +
+            '<div class="application-content">' +
+            renderDecisionEditor(app) +
+            '<div class="mini-grid">' +
+            mini("Dates", [dateLabel(app.blockStart), dateLabel(app.blockEnd)].filter(Boolean).join(" to ") || app.blockText) +
+            mini("Availability", app.availability) +
+            mini("Host pathway", app.firstHost) +
+            mini("Taught similar course", app.taughtSimilar) +
+            '</div>' +
+            detailList(app) +
+            profileSection("Course plan", renderPlan(app)) +
+            profileSection("Teaching records", renderTeaching(app)) +
+            '</div>' +
+            '</article>';
+        }
+
+        function renderDecisionEditor(app) {
+          var key = decisionKey(app);
+          var status = normalizeDecisionStatus(app.decision);
+          var saving = !!state.saving[key];
+          return '<section class="decision-panel">' +
+            '<div class="decision-actions">' + ["Approved", "Consider", "Rejected"].map(function (decision) {
+              return '<button type="button" class="' + (status === decision ? "active" : "") + '" onclick=\'setApplicationDecision(' + JSON.stringify(key) + ", " + JSON.stringify(decision) + ')\'>' + esc(decision === "Rejected" ? "Reject" : decision === "Approved" ? "Approve" : "Consider") + '</button>';
+            }).join("") + '</div>' +
+            '<textarea id="' + esc(decisionNoteId(key)) + '" placeholder="Decision notes or screening comments..." oninput=\'cacheDecisionNotes(' + JSON.stringify(key) + ', this.value)\'>' + esc(app.decisionNotes || "") + '</textarea>' +
+            '<div class="decision-footer"><span>' + esc(app.decisionUpdatedAt ? "Updated " + dateLabel(app.decisionUpdatedAt) : "No decision saved yet") + '</span>' +
+            '<button type="button" class="primary" onclick=\'saveApplicationDecision(' + JSON.stringify(key) + ')\'>' + esc(saving ? "Saving..." : "Save decision") + '</button></div>' +
+            '</section>';
+        }
+
+        function decisionNoteId(key) {
+          return "decision-note-" + String(key || "").replace(/[^a-z0-9_-]+/gi, "-");
+        }
+
+        function detailList(app) {
+          var passport = app.passportUrl
+            ? '<a href="' + esc(app.passportUrl) + '" target="_blank" rel="noopener noreferrer">' + esc(app.passportName || "Open uploaded passport") + '</a>'
+            : esc(app.passportName || "Not provided");
+          var rows = [
+            ["Awarding institution", app.institution, false],
+            ["Year awarded", app.yearAwarded, false],
+            ["ORCID", linkOrText(app.orcid), true],
+            ["Google Scholar", linkOrText(app.scholar), true],
+            ["Scopus", linkOrText(app.scopus), true],
+            ["Collaborator/contact", app.contactDetails, false],
+            ["Additional comments", app.comments, false],
+            ["AIMS alumni", [app.alumni, app.alumniCentre, app.alumniProgram, app.alumniYear].filter(Boolean).join(" | "), false],
+            ["Passport file", passport, true],
+            ["Submitted", app.submittedAt, false],
+          ];
+          return '<div class="plain-list">' + rows.map(function (row) {
+            var value = row[2] ? row[1] : esc(row[1] || "Not provided");
+            return '<div><b>' + esc(row[0]) + '</b><span>' + value + '</span></div>';
+          }).join("") + '</div>';
+        }
+
+        function renderPlan(app) {
+          if (app.coursePlanRows && app.coursePlanRows.length) {
+            return '<div class="plain-list">' + app.coursePlanRows.map(function (row, index) {
+              row = Array.isArray(row) ? row : [];
+              return '<div><b>Module ' + (index + 1) + ': ' + esc(row[0] || "Untitled") + '</b><span>' + esc([row[1], row[2], row[3], row[4]].filter(Boolean).join("\n\n")) + '</span></div>';
+            }).join("") + '</div>';
+          }
+          return textBlock(app.coursePlanText || "No course plan saved.");
+        }
+
+        function renderTeaching(app) {
+          if (app.teachingRecords && app.teachingRecords.length) {
+            return '<div class="plain-list">' + app.teachingRecords.map(function (item, index) {
+              item = item || {};
+              var body = [
+                item.institution,
+                item.level,
+                item.year,
+                item.mode,
+                item.times ? item.times + " time(s)" : "",
+              ].filter(Boolean).join(" | ");
+              return '<div><b>Record ' + (index + 1) + ': ' + esc(item.courseTitle || "Untitled") + '</b><span>' + esc(body || "No detail provided") + '</span></div>';
+            }).join("") + '</div>';
+          }
+          return textBlock(app.teachingRecordsText || "No teaching record saved.");
+        }
+
+        function profileSection(title, body) {
+          return '<section class="profile-section"><h3>' + esc(title) + '</h3>' + body + '</section>';
+        }
+
+        function textBlock(value) {
+          return '<div class="text-block">' + esc(value || "") + '</div>';
+        }
+
+        function mini(label, value) {
+          return '<div class="mini"><span>' + esc(label) + '</span><strong>' + (value ? esc(value) : "Not provided") + '</strong></div>';
+        }
+
+        function chip(value, color) {
+          var text = shortText(value, 80);
+          if (!text) return "";
+          return '<span class="chip ' + esc(color || "") + '">' + esc(text) + '</span>';
+        }
+
+        function shortText(value, limit) {
+          var text = clean(value);
+          if (!text) return "";
+          return text.length > limit ? text.slice(0, limit - 1).trim() + "..." : text;
+        }
+
+        function linkOrText(value) {
+          var text = clean(value);
+          if (!text) return "Not provided";
+          if (/^https?:\/\//i.test(text)) {
+            return '<a href="' + esc(text) + '" target="_blank" rel="noopener noreferrer">' + esc(shortText(text, 70)) + '</a>';
+          }
+          return esc(text);
+        }
+
+        function appByDecisionKey(key) {
+          return state.applications.find(function (app) { return decisionKey(app) === key; }) || null;
+        }
+
+        function applyDecisionRow(app, row) {
+          if (!app || !row) return;
+          state.decisions[row.id] = row;
+          app.decisionRow = row;
+          app.decision = row.decision;
+          app.decisionNotes = row.notes;
+          app.decisionUpdatedAt = row.updatedAt;
+        }
+
+        function localDecisionRow(app) {
+          var existing = state.decisions[decisionKey(app)] || defaultDecision(app);
+          return {
+            id: existing.id || decisionKey(app),
+            applicationId: app.applicationId,
+            email: app.email,
+            applicant: app.applicant,
+            courseId: app.courseId,
+            courseTitle: app.courseTitle,
+            decision: normalizeDecisionStatus(app.decision || existing.decision),
+            notes: String(app.decisionNotes != null ? app.decisionNotes : existing.notes || ""),
+            decidedBy: existing.decidedBy || "Lecturer review desk",
+            updatedAt: existing.updatedAt || "",
+          };
+        }
+
+        function buildDecisionPayload(app) {
+          return {
+            applicationId: app.applicationId,
+            email: app.email,
+            applicant: app.applicant,
+            courseId: app.courseId,
+            courseTitle: app.courseTitle,
+            decision: normalizeDecisionStatus(app.decision),
+            notes: String(app.decisionNotes || ""),
+            decidedBy: "Lecturer review desk",
+          };
+        }
+
+        function deploymentSaveMessage(error) {
+          var message = error && error.message ? error.message : "Could not save the lecturer decision.";
+          if (/Unknown action:\s*saveLecturerReviewDecision/i.test(message)) {
+            return "Decision not saved to Google Sheets yet: the deployed Apps Script is missing saveLecturerReviewDecision. Paste/deploy apps-script/paste-small-files/00_Config.gs, 01_Routes.gs, and 04_LecturerApplications.gs, then refresh and save again.";
+          }
+          return message;
+        }
+
+        function scrollToReviewTarget(selector) {
+          var target = document.querySelector(selector);
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        window.selectCourse = function (code) {
+          state.selectedCourse = code;
+          var app = applicationsForCourse(code)[0] || state.applications.find(function (item) { return item.courseId === code; });
+          if (app) state.selectedApplicantKey = applicantKey(app);
+          render();
+          document.querySelector(".course-detail")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+
+        window.selectApplicant = function (key) {
+          state.selectedApplicantKey = key;
+          render();
+        };
+
+        window.backToCourseSchedule = function () {
+          scrollToReviewTarget(".schedule");
+        };
+
+        window.backFromProfile = function () {
+          scrollToReviewTarget(state.view === "applicant" ? ".applicant-grid" : ".course-detail");
+        };
+
+        window.setApplicationDecision = function (key, decision) {
+          var app = appByDecisionKey(key);
+          if (!app) return;
+          app.decision = normalizeDecisionStatus(decision);
+          applyDecisionRow(app, localDecisionRow(app));
+          render();
+          window.saveApplicationDecision(key);
+        };
+
+        window.cacheDecisionNotes = function (key, value) {
+          var app = appByDecisionKey(key);
+          if (!app) return;
+          app.decisionNotes = String(value || "");
+          applyDecisionRow(app, localDecisionRow(app));
+        };
+
+        window.saveApplicationDecision = function (key) {
+          var app = appByDecisionKey(key);
+          if (!app || state.saving[key]) return;
+          var textarea = $(decisionNoteId(key));
+          if (textarea) app.decisionNotes = textarea.value;
+          state.saving[key] = true;
+          render();
+          jsonp("saveLecturerReviewDecision", buildDecisionPayload(app))
+            .then(function (result) {
+              state.saving[key] = false;
+              state.notice = "";
+              var row = normalizeDecision((result && result.decision) || buildDecisionPayload(app));
+              if (!row.id) row.id = decisionKey(app);
+              applyDecisionRow(app, row);
+              render();
+            })
+            .catch(function (error) {
+              state.saving[key] = false;
+              state.notice = deploymentSaveMessage(error);
+              render();
+            });
+        };
+
+        $("courseTab").addEventListener("click", function () {
+          state.view = "course";
+          render();
+        });
+        $("applicantTab").addEventListener("click", function () {
+          state.view = "applicant";
+          render();
+        });
+        $("searchInput").addEventListener("input", function (event) {
+          state.query = event.target.value || "";
+          render();
+        });
+        $("blockFilter").addEventListener("change", function (event) {
+          state.blockFilter = event.target.value || "";
+          render();
+        });
+        $("decisionFilter").addEventListener("change", function (event) {
+          state.decisionFilter = event.target.value || "";
+          render();
+        });
+        $("courseFilter").addEventListener("change", function (event) {
+          state.courseFilter = event.target.value || "";
+          if (state.courseFilter) state.selectedCourse = state.courseFilter;
+          render();
+        });
+        $("nationalityFilter").addEventListener("change", function (event) {
+          state.nationalityFilter = event.target.value || "";
+          render();
+        });
+        $("genderFilter").addEventListener("change", function (event) {
+          state.genderFilter = event.target.value || "";
+          render();
+        });
+        $("backButton").addEventListener("click", function () {
+          if (history.length > 1) history.back();
+          else window.location.href = "../";
+        });
+        $("refreshButton").addEventListener("click", loadData);
+
+        loadData();
+      })();
+    </script>
+  </body>
+</html>

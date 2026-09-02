@@ -1,9 +1,9 @@
-const CACHE_NAME = "mathepi-academic-manager-v32";
+const CACHE_NAME = "mathepi-academic-manager-v33";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css?v=20",
-  "./app.js?v=28",
+  "./app.js?v=29",
   "./auth/firebase-config.js",
   "./auth/auth-bridge.js?v=17",
   "./manifest.webmanifest",
@@ -12,7 +12,9 @@ const APP_SHELL = [
   "./assets/icon-512.png",
   "./assets/apple-touch-icon.png",
   "./cfa/lecturer-application.html?v=20260723-lecturer-sync",
-  "./cfa/tutorial-fellow-application.html"
+  "./cfa/tutorial-fellow-application.html",
+  "./lecturer-reviews.html",
+  "./lecturer-reviews/index.html"
 ];
 
 self.addEventListener("install", (event) => {
@@ -37,7 +39,10 @@ self.addEventListener("fetch", (event) => {
   const isReviewPortal =
     url.pathname.endsWith("/tf-reviews/") ||
     url.pathname.endsWith("/tf-reviews/index.html") ||
-    url.pathname.endsWith("/tf-reviews.html");
+    url.pathname.endsWith("/tf-reviews.html") ||
+    url.pathname.endsWith("/lecturer-reviews/") ||
+    url.pathname.endsWith("/lecturer-reviews/index.html") ||
+    url.pathname.endsWith("/lecturer-reviews.html");
 
   if (isReviewPortal) {
     event.respondWith(fetch(request, { cache: "no-store" }));
@@ -50,6 +55,8 @@ self.addEventListener("fetch", (event) => {
     url.pathname.endsWith("/index.html") ||
     url.pathname.endsWith("/cfa/lecturer-application.html") ||
     url.pathname.endsWith("/cfa/tutorial-fellow-application.html") ||
+    url.pathname.endsWith("/lecturer-reviews/") ||
+    url.pathname.endsWith("/lecturer-reviews/index.html") ||
     url.pathname.endsWith("/app.js") ||
     url.pathname.endsWith("/styles.css") ||
     url.pathname.endsWith("/sw.js");

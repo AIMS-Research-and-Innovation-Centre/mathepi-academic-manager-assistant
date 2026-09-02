@@ -52,6 +52,10 @@ const TAB_HEADERS = {
     "alumni_program", "alumni_year", "heard_about_aims", "heard_other",
     "certified_true", "accepted_terms", "full_application_json",
   ],
+  LecturerReviewDecisions: [
+    "decision_id", "application_id", "email", "applicant", "course_id", "course_title",
+    "decision", "notes", "decided_by", "updated_at",
+  ],
   TutorialFellowApplications: [
     "application_id", "submitted_at", "title", "email", "applicant", "gender", "phone",
     "has_whatsapp", "contact_whatsapp", "nationality", "country_of_residence", "address",

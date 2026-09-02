@@ -1837,6 +1837,7 @@ const ROLES = {
       "courses",
       "people",
       "cfa",
+      "lecturer-reviews",
       "appointments",
       "support",
       "contact",
@@ -1852,14 +1853,14 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "cfa", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
     hint: "Manager-level visibility for coordination, without write access",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "cfa", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
   },
   reviewer: {
     label: "TF Reviewer",
@@ -1927,6 +1928,7 @@ const NAV = [
   { id: "courses", label: "Courses", icon: "book" },
   { id: "people", label: "Lecturers & Tutors", short: "People", icon: "users" },
   { id: "cfa", label: "CFA", short: "CFA", icon: "megaphone" },
+  { id: "lecturer-reviews", label: "Lecturer Review", short: "Lecturers", icon: "graduation" },
   { id: "tf-reviews", label: "TF Reviews", short: "Reviews", icon: "shield" },
   { id: "appointments", label: "Appointments", icon: "appointment" },
   { id: "support", label: "Support & Wellness", short: "Support", icon: "support" },
@@ -3304,6 +3306,12 @@ function setView(view) {
     window.location.href = reviewUrl.toString();
     return;
   }
+  if (view === "lecturer-reviews") {
+    const lecturerReviewUrl = new URL("./lecturer-reviews/", window.location.href);
+    lecturerReviewUrl.searchParams.set("t", String(Date.now()));
+    window.location.href = lecturerReviewUrl.toString();
+    return;
+  }
   state.view = canView(view) ? view : "dashboard";
   state.drawer = null;
   if (window.location.hash !== `#${state.view}`) {
@@ -3579,7 +3587,7 @@ function mobileNav(nav) {
       : state.role === "reviewer"
         ? ["dashboard", "tf-reviews"]
         : canView("tf-reviews")
-          ? ["dashboard", "tf-reviews", "cfa", "calendar", "google"]
+          ? ["dashboard", "lecturer-reviews", "tf-reviews", "cfa", "calendar"]
           : ["dashboard", "calendar", "courses", "groups", "support"];
   const priority = priorityIds.map((id) => nav.find((item) => item.id === id)).filter(Boolean);
   const first = priority.length >= 5 ? priority.slice(0, 5) : nav.slice(0, 5);
@@ -4196,6 +4204,7 @@ function renderCfa() {
           <p>Manage application calls for lecturers, Tutorial Fellows, and head tutor roles. Lecturer and Tutorial Fellows calls now open as full standalone forms with Google Sheets and Drive capture.</p>
           <div class="hero-actions">
             ${cfaFormLink(lecturerCall, "Open lecturer form", "primary")}
+            ${lecturerReviewLink("Lecturer review", "ghost")}
             ${cfaFormLink(fellowCall, "Open Tutorial Fellows form", "ghost")}
             <button class="button ghost" onclick="openDrawer('cfaCall', 'lecturers')">${icon("edit", 17)}Lecturer brief</button>
             <button class="button ghost" onclick="openDrawer('cfaCall', 'tutors')">${icon("users", 17)}Tutorial Fellows brief</button>
@@ -4306,6 +4315,7 @@ function renderCfaCard(item) {
             ? cfaFormLink(item, "Full form", "ghost")
             : ""
         }
+        ${item.id === "lecturers" ? lecturerReviewLink("Review desk", "ghost") : ""}
       </div>
     </article>
   `;
@@ -4314,6 +4324,10 @@ function renderCfaCard(item) {
 function cfaFormLink(item, label, variant = "ghost") {
   if (!item?.formUrl) return "";
   return `<a class="button ${variant}" href="${item.formUrl}" target="_blank" rel="noopener noreferrer">${icon("external", 17)}${label}</a>`;
+}
+
+function lecturerReviewLink(label, variant = "ghost") {
+  return `<a class="button ${variant}" href="lecturer-reviews/" target="_blank" rel="noopener noreferrer">${icon("external", 17)}${label}</a>`;
 }
 
 function jsString(value) {
@@ -7919,6 +7933,10 @@ window.addEventListener("hashchange", () => {
   const nextView = window.location.hash ? window.location.hash.slice(1) : "dashboard";
   if (nextView === "tf-reviews") {
     setView("tf-reviews");
+    return;
+  }
+  if (nextView === "lecturer-reviews") {
+    setView("lecturer-reviews");
     return;
   }
   if (NAV.some((item) => item.id === nextView) && nextView !== state.view) {

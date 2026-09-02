@@ -6,6 +6,61 @@ function recoverLecturerApplication(payload) {
   return saveLecturerApplication_(payload || {}, true);
 }
 
+function listLecturerReviewData(payload) {
+  const spreadsheet = getOrCreateSpreadsheet();
+  ensureSheets(spreadsheet);
+  const applications = readSheetObjects(getSheet(spreadsheet, "LecturerApplications")).filter((row) => {
+    return row.application_id || row.email || row.applicant || row.course || row.selected_course_id;
+  });
+  return {
+    ok: true,
+    applications,
+    decisions: readSheetObjects(getSheet(spreadsheet, "LecturerReviewDecisions")),
+    courses: readJsonRecords(getSheet(spreadsheet, "Courses")),
+    blocks: readJsonRecords(getSheet(spreadsheet, "CalendarBlocks")),
+    cfaStatuses: readCfaStatuses(spreadsheet),
+    syncedAt: new Date().toISOString(),
+  };
+}
+
+function saveLecturerReviewDecision(payload) {
+  payload = payload || {};
+  const spreadsheet = getOrCreateSpreadsheet();
+  ensureSheets(spreadsheet);
+  const applicationId = String(payload.applicationId || "").trim();
+  const email = String(payload.email || "").trim();
+  const courseId = String(payload.courseId || "").trim();
+  if (!applicationId && !email) throw new Error("Application id or applicant email is required.");
+  if (!courseId) throw new Error("Course id is required.");
+  const decision = normalizeLecturerReviewDecision_(payload.decision);
+  const row = {
+    decision_id: lecturerReviewDecisionId_(applicationId, email, courseId),
+    application_id: applicationId,
+    email,
+    applicant: String(payload.applicant || "").trim(),
+    course_id: courseId,
+    course_title: String(payload.courseTitle || "").trim(),
+    decision,
+    notes: String(payload.notes || "").trim(),
+    decided_by: String(payload.decidedBy || "").trim(),
+    updated_at: new Date().toISOString(),
+  };
+  upsertRows(getSheet(spreadsheet, "LecturerReviewDecisions"), [row]);
+  return { ok: true, decision: row };
+}
+
+function normalizeLecturerReviewDecision_(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (text === "approved" || text === "approve") return "Approved";
+  if (text === "rejected" || text === "reject") return "Rejected";
+  if (text === "consider") return "Consider";
+  return "Pending";
+}
+
+function lecturerReviewDecisionId_(applicationId, email, courseId) {
+  return [applicationId || email, courseId].map((part) => String(part || "").trim().toLowerCase()).join("::");
+}
+
 function saveLecturerApplication_(payload, recovered) {
   const spreadsheet = getOrCreateSpreadsheet();
   const rootFolder = getOrCreateRootFolder();

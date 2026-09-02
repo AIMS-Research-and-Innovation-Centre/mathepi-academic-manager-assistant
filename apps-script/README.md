@@ -32,6 +32,9 @@ If the Apps Script editor or browser only lets you paste a small number of lines
 - Main app edits can be pushed manually or synced automatically when `Autosync app edits to Google Sheets` is enabled.
 - CFA open/closed status writes to the `CfaStatuses` tab.
 - Lecturer application submissions write to `LecturerApplications`.
+- Lecturer review dashboard data is served by `listLecturerReviewData`, which returns `LecturerApplications`, `Courses`, and `CalendarBlocks`.
+  If the lecturer review dashboard reports `Unknown action: listLecturerReviewData`, the web app deployment is still running an older Apps Script version. Paste/deploy the current `Code.gs` and refresh the dashboard.
+- Lecturer screening decisions write to `LecturerReviewDecisions`, preserving the original application rows while storing one decision and notes field per applicant-course application.
 - Tutorial Fellow application submissions write to `TutorialFellowApplications`.
 - Tutorial Fellow public submissions require email OTP verification. Apps Script sends the code with `MailApp`, so the manifest includes the `script.send_mail` scope.
 - Tutorial Fellow review access requires an active reviewer row in `Reviewers`, then a reviewer OTP session. Scores, notes, stage changes, and exports are written with reasons and an audit trail.

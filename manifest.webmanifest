@@ -37,6 +37,13 @@
       "description": "Open the academic calendar.",
       "url": "./index.html#calendar",
       "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Lecturer Review",
+      "short_name": "Lecturers",
+      "description": "Open lecturer application screening.",
+      "url": "./lecturer-reviews/",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

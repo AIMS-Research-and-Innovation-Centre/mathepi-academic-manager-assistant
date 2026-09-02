@@ -53,6 +53,8 @@ function apiPost(request) {
   if (action === "updateReviewStage") return updateReviewStage(payload);
   if (action === "saveEligibilityDecision") return saveEligibilityDecision(payload);
   if (action === "exportReviewAudit") return exportReviewAudit(payload);
+  if (action === "listLecturerReviewData") return listLecturerReviewData(payload);
+  if (action === "saveLecturerReviewDecision") return saveLecturerReviewDecision(payload);
   if (action === "submitLecturerApplication") return submitLecturerApplication(payload);
   if (action === "recoverLecturerApplication") return recoverLecturerApplication(payload);
   if (action === "backfillLecturerApplicationColumns") return backfillLecturerApplicationColumns(payload);
