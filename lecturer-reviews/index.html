@@ -443,6 +443,31 @@
         color: var(--muted);
       }
 
+      .applicant-open {
+        display: block;
+        min-width: 0;
+        width: 100%;
+        min-height: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: inherit;
+        padding: 0;
+        text-align: left;
+      }
+
+      .applicant-open:hover,
+      .applicant-open:focus-visible {
+        background: transparent;
+        color: inherit;
+        outline: none;
+      }
+
+      .applicant-open:focus-visible h3 {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
       .chips {
         display: flex;
         flex-wrap: wrap;
@@ -625,6 +650,29 @@
         white-space: nowrap;
       }
 
+      .course-decision.with-action {
+        grid-template-columns: minmax(0, 1fr) auto auto;
+      }
+
+      .decision-jump {
+        min-height: 28px;
+        min-width: 0;
+        border-color: var(--teal);
+        border-radius: 999px;
+        background: #eef7f6;
+        color: var(--teal);
+        padding: 4px 9px;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .decision-jump:hover,
+      .decision-jump:focus-visible {
+        background: var(--teal);
+        color: #fff;
+      }
+
       .decision-pending {
         background: #eee9dc;
         color: #605a4d;
@@ -773,6 +821,11 @@
         overflow: hidden;
       }
 
+      .application-block.focused {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(15, 107, 120, 0.12);
+      }
+
       .application-block + .application-block {
         margin-top: 12px;
       }
@@ -827,6 +880,18 @@
         background: #fff;
       }
 
+      .back-top {
+        display: none;
+        min-height: 38px;
+        border-color: var(--maroon);
+        background: var(--maroon);
+        color: #fff;
+      }
+
+      .back-top.visible {
+        display: inline-flex;
+      }
+
       @media (max-width: 1020px) {
         .masthead,
         .main {
@@ -870,6 +935,15 @@
         .applicant-row,
         .applicant-strip {
           grid-template-columns: 1fr;
+        }
+
+        .course-decision.with-action {
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        .course-decision.with-action .decision-jump {
+          grid-column: 1 / -1;
+          width: 100%;
         }
 
         .tabs {
@@ -928,6 +1002,7 @@
         <select id="genderFilter" aria-label="Filter by gender">
           <option value="">All genders</option>
         </select>
+        <button class="back-top" id="backTopButton" type="button">Back to top</button>
       </section>
 
       <main class="main">
@@ -956,6 +1031,7 @@
           genderFilter: "",
           selectedCourse: "",
           selectedApplicantKey: "",
+          focusDecisionKey: "",
           applications: [],
           courses: [],
           blocks: [],
@@ -1650,11 +1726,13 @@
         function renderApplicantRow(app) {
           var groupKey = applicantKey(app);
           var active = groupKey === state.selectedApplicantKey;
-          return '<button class="applicant-row ' + (active ? "active" : "") + '" onclick=\'selectApplicant(' + JSON.stringify(groupKey) + ')\'>' +
-            '<div><h3>' + esc(app.applicant) + '</h3><p>' + esc([app.designation, app.affiliation, app.email].filter(Boolean).join(" | ")) + '</p>' +
-            '<div class="applicant-meta">' + metaPill("Gender", app.gender) + metaPill("Nationality", app.nationality) + metaPill("Qualification", app.qualification) + metaPill("Publications", app.publications) + '</div></div>' +
-            '<div class="course-decision-list">' + renderCourseDecisionStrip(app) + '</div>' +
-            '</button>';
+          return '<article class="applicant-row ' + (active ? "active" : "") + '">' +
+            '<button class="applicant-open" type="button" onclick=\'selectApplicant(' + JSON.stringify(groupKey) + ')\'>' +
+            '<h3>' + esc(app.applicant) + '</h3><p>' + esc([app.designation, app.affiliation, app.email].filter(Boolean).join(" | ")) + '</p>' +
+            '<div class="applicant-meta">' + metaPill("Gender", app.gender) + metaPill("Nationality", app.nationality) + metaPill("Qualification", app.qualification) + metaPill("Publications", app.publications) + '</div>' +
+            '</button>' +
+            '<div class="course-decision-list">' + renderCourseDecisionStrip(app, groupKey, true) + '</div>' +
+            '</article>';
         }
 
         function renderApplicantScreen() {
@@ -1664,8 +1742,9 @@
 
         function renderApplicantTile(group) {
           var active = group.key === state.selectedApplicantKey;
-          return '<button class="applicant-strip ' + (active ? "active" : "") + '" onclick=\'selectApplicant(' + JSON.stringify(group.key) + ')\'>' +
-            '<div><h3>' + esc(group.applicant) + '</h3>' +
+          return '<article class="applicant-strip ' + (active ? "active" : "") + '">' +
+            '<button class="applicant-open" type="button" onclick=\'selectApplicant(' + JSON.stringify(group.key) + ')\'>' +
+            '<h3>' + esc(group.applicant) + '</h3>' +
             '<p>' + esc([group.designation, group.affiliation, group.email].filter(Boolean).join(" | ")) + '</p>' +
             '<div class="applicant-meta">' +
             metaPill("Gender", group.gender) +
@@ -1674,16 +1753,24 @@
             metaPill("Publications", group.publications) +
             metaPill("Applications", group.applications.length) +
             '</div>' +
-            '<p style="margin-top:10px" title="' + esc(group.researchAreas || "") + '">' + esc(shortText(group.researchAreas, 180)) + '</p></div>' +
-            '<div class="course-decision-list">' + group.applications.map(renderCourseDecisionStrip).join("") + '</div>' +
-            '</button>';
+            '<p style="margin-top:10px" title="' + esc(group.researchAreas || "") + '">' + esc(shortText(group.researchAreas, 180)) + '</p>' +
+            '</button>' +
+            '<div class="course-decision-list">' + group.applications.map(function (app) {
+              return renderCourseDecisionStrip(app, group.key, true);
+            }).join("") + '</div>' +
+            '</article>';
         }
 
-        function renderCourseDecisionStrip(app) {
+        function renderCourseDecisionStrip(app, groupKey, showAction) {
           var title = [app.courseId, app.courseTitle].filter(Boolean).join(" - ");
-          return '<div class="course-decision" title="' + esc(title) + '">' +
+          var key = decisionKey(app);
+          var action = showAction
+            ? '<button class="decision-jump" type="button" onclick=\'focusApplicationDecision(event, ' + JSON.stringify(groupKey || applicantKey(app)) + ", " + JSON.stringify(key) + ')\'>Screening decision</button>'
+            : "";
+          return '<div class="course-decision ' + (showAction ? "with-action" : "") + '" title="' + esc(title) + '">' +
             '<span><strong>' + esc(app.courseId || "Course") + '</strong><small>' + esc(app.courseTitle || app.blockTitle || "Course title pending") + '</small></span>' +
             decisionBadge(app.decision) +
+            action +
             '</div>';
         }
 
@@ -1729,7 +1816,8 @@
         }
 
         function renderApplicationBlock(app) {
-          return '<article class="application-block">' +
+          var key = decisionKey(app);
+          return '<article class="application-block ' + (state.focusDecisionKey === key ? "focused" : "") + '" id="' + esc(applicationBlockId(key)) + '">' +
             '<div class="application-title"><strong>' + esc(app.courseId) + ' ' + esc(app.courseTitle) + '</strong><span>' + decisionBadge(app.decision) + '</span></div>' +
             '<div class="application-content">' +
             renderDecisionEditor(app) +
@@ -1762,6 +1850,14 @@
 
         function decisionNoteId(key) {
           return "decision-note-" + String(key || "").replace(/[^a-z0-9_-]+/gi, "-");
+        }
+
+        function applicationBlockId(key) {
+          return "application-decision-" + safeDomId(key);
+        }
+
+        function safeDomId(value) {
+          return String(value || "").replace(/[^a-z0-9_-]+/gi, "-");
         }
 
         function detailList(app) {
@@ -1901,17 +1997,47 @@
           if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
         }
 
+        function focusDecisionEditor(key) {
+          window.setTimeout(function () {
+            var block = document.getElementById(applicationBlockId(key));
+            if (block) block.scrollIntoView({ behavior: "smooth", block: "center" });
+            var note = $(decisionNoteId(key));
+            if (note) note.focus();
+          }, 40);
+        }
+
+        function updateBackTopButton() {
+          $("backTopButton").classList.toggle("visible", window.scrollY > 420);
+        }
+
         window.selectCourse = function (code) {
           state.selectedCourse = code;
           var app = applicationsForCourse(code)[0] || state.applications.find(function (item) { return item.courseId === code; });
           if (app) state.selectedApplicantKey = applicantKey(app);
+          state.focusDecisionKey = "";
           render();
           document.querySelector(".course-detail")?.scrollIntoView({ behavior: "smooth", block: "start" });
         };
 
         window.selectApplicant = function (key) {
           state.selectedApplicantKey = key;
+          state.focusDecisionKey = "";
           render();
+        };
+
+        window.focusApplicationDecision = function (event, groupKey, key) {
+          if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          state.selectedApplicantKey = groupKey;
+          state.focusDecisionKey = key;
+          render();
+          focusDecisionEditor(key);
+        };
+
+        window.scrollLecturerReviewTop = function () {
+          window.scrollTo({ top: 0, behavior: "smooth" });
         };
 
         window.backToCourseSchedule = function () {
@@ -1998,9 +2124,12 @@
           if (history.length > 1) history.back();
           else window.location.href = "../";
         });
+        $("backTopButton").addEventListener("click", window.scrollLecturerReviewTop);
+        window.addEventListener("scroll", updateBackTopButton, { passive: true });
         $("refreshButton").addEventListener("click", loadData);
 
         loadData();
+        updateBackTopButton();
       })();
     </script>
   </body>
