@@ -132,7 +132,7 @@ const DEFAULT_COURSES = [
     "type": "skills",
     "units": 6,
     "hours": 60,
-    "block": "Block 2",
+    "block": "Block 3",
     "software": "R/Python for statistical analysis",
     "prerequisites": "Bachelor's degree with probability, statistics, and algebra",
     "outcomes": "Apply descriptive statistics and probability laws, use probability distributions, conduct hypothesis testing, construct confidence intervals, and interpret regression and epidemiological measures.",
@@ -149,7 +149,7 @@ const DEFAULT_COURSES = [
     "type": "skills",
     "units": 6,
     "hours": 60,
-    "block": "Block 1",
+    "block": "Block 2",
     "software": "R, Python",
     "prerequisites": "Basic programming knowledge recommended",
     "outcomes": "Manage and wrangle datasets in R and Python, implement descriptive statistics and visualization, create reproducible reports, and perform basic statistical tests and regression analysis.",
@@ -166,7 +166,7 @@ const DEFAULT_COURSES = [
     "type": "skills",
     "units": 6,
     "hours": 60,
-    "block": "Block 3",
+    "block": "Block 1",
     "software": "SageMath, LaTeX, R/Python",
     "prerequisites": "MES05 - Introduction to R and Python",
     "outcomes": "Implement numerical algorithms, solve linear and nonlinear systems, apply numerical methods for ODEs and integration, and develop reliable computational programs.",
@@ -450,10 +450,10 @@ const DEFAULT_BLOCKS = [
     "start": "2026-10-05",
     "end": "2026-10-23",
     "kind": "teaching",
-    "note": "Core Skills: MES01 Mathematical Problem Solving; MES05 Introduction to R and Python",
+    "note": "Core Skills: MES01 Mathematical Problem Solving; MES06 Scientific Computing and LaTeX",
     "courses": [
       "MES01",
-      "MES05"
+      "MES06"
     ]
   },
   {
@@ -462,10 +462,10 @@ const DEFAULT_BLOCKS = [
     "start": "2026-10-26",
     "end": "2026-11-13",
     "kind": "teaching",
-    "note": "Core Skills: MES02 Differential Equations and Modelling; MES04 Introduction to Probability and Statistics",
+    "note": "Core Skills: MES02 Differential Equations and Modelling; MES05 Introduction to R and Python",
     "courses": [
       "MES02",
-      "MES04"
+      "MES05"
     ]
   },
   {
@@ -483,10 +483,10 @@ const DEFAULT_BLOCKS = [
     "start": "2026-11-23",
     "end": "2026-12-11",
     "kind": "teaching",
-    "note": "Core Skills: MES03 Physical Problem Solving; MES06 Scientific Computing and LaTeX",
+    "note": "Core Skills: MES03 Physical Problem Solving; MES04 Introduction to Probability and Statistics",
     "courses": [
       "MES03",
-      "MES06"
+      "MES04"
     ]
   },
   {
@@ -639,7 +639,7 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-002",
-    "courseCode": "MES05",
+    "courseCode": "MES06",
     "day": "Tuesday",
     "time": "09:00",
     "duration": 2,
@@ -661,7 +661,7 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-004",
-    "courseCode": "MES05",
+    "courseCode": "MES06",
     "day": "Thursday",
     "time": "11:00",
     "duration": 2,
@@ -683,7 +683,7 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-006",
-    "courseCode": "MES04",
+    "courseCode": "MES05",
     "day": "Tuesday",
     "time": "09:00",
     "duration": 2,
@@ -705,7 +705,7 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-008",
-    "courseCode": "MES04",
+    "courseCode": "MES05",
     "day": "Thursday",
     "time": "11:00",
     "duration": 2,
@@ -727,7 +727,7 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-010",
-    "courseCode": "MES06",
+    "courseCode": "MES04",
     "day": "Tuesday",
     "time": "09:00",
     "duration": 2,
@@ -749,7 +749,7 @@ const DEFAULT_SESSIONS = [
   },
   {
     "id": "s-012",
-    "courseCode": "MES06",
+    "courseCode": "MES04",
     "day": "Thursday",
     "time": "11:00",
     "duration": 2,
@@ -2431,16 +2431,16 @@ function migrateProgrammeData() {
       start: "2026-10-05",
       end: "2026-10-23",
       kind: "teaching",
-      note: "MES01 Mathematical Problem Solving; MES05 Introduction to R and Python",
-      courses: ["MES01", "MES05"],
+      note: "MES01 Mathematical Problem Solving; MES06 Scientific Computing and LaTeX",
+      courses: ["MES01", "MES06"],
     },
     "block-2": {
       title: "Block 2",
       start: "2026-10-26",
       end: "2026-11-13",
       kind: "teaching",
-      note: "MES02 Differential Equations and Modelling; MES04 Introduction to Probability and Statistics",
-      courses: ["MES02", "MES04"],
+      note: "MES02 Differential Equations and Modelling; MES05 Introduction to R and Python",
+      courses: ["MES02", "MES05"],
     },
     "reading-1": {
       title: "Reading / Convening Week",
@@ -2455,8 +2455,8 @@ function migrateProgrammeData() {
       start: "2026-11-23",
       end: "2026-12-11",
       kind: "teaching",
-      note: "MES03 Physical Problem Solving; MES06 Scientific Computing and LaTeX",
-      courses: ["MES03", "MES06"],
+      note: "MES03 Physical Problem Solving; MES04 Introduction to Probability and Statistics",
+      courses: ["MES03", "MES04"],
     },
     vacation: {
       title: "December Holiday",

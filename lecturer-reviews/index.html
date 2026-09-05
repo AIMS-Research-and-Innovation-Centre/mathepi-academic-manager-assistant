@@ -741,6 +741,31 @@
         font-size: 12px;
       }
 
+      .decision-comment-preview {
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--teal);
+        border-radius: 7px;
+        background: #fff;
+        padding: 9px 10px;
+      }
+
+      .decision-comment-preview span {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .decision-comment-preview strong {
+        display: block;
+        margin-top: 3px;
+        color: var(--ink);
+        font-weight: 600;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+      }
+
       .profile-panel {
         position: sticky;
         top: 82px;
@@ -1037,6 +1062,7 @@
           blocks: [],
           decisions: {},
           saving: {},
+          noteDrafts: {},
           notice: "",
           syncedAt: "",
         };
@@ -1045,11 +1071,11 @@
           ok: true,
           syncedAt: new Date().toISOString(),
           blocks: [
-            { id: "block-1", title: "Block 1", start: "2026-10-05", end: "2026-10-23", kind: "teaching", courses: ["MES01", "MES05"] },
+            { id: "block-1", title: "Block 1", start: "2026-10-05", end: "2026-10-23", kind: "teaching", courses: ["MES01", "MES06"] },
             { id: "block-8", title: "Block 8", start: "2027-04-05", end: "2027-04-23", kind: "teaching", courses: ["MEC08", "MEC10"] },
           ],
           courses: [
-            { code: "MES05", title: "Introduction to R and Python", type: "skills", hours: 60, block: "Block 1", outcomes: "Programming and reproducible data analysis." },
+            { code: "MES06", title: "Scientific Computing and LaTeX", type: "skills", hours: 60, block: "Block 1", outcomes: "Scientific computing and reproducible mathematical work." },
             { code: "MEC10", title: "Advanced Data Science for Epidemiology", type: "specialization", hours: 60, block: "Block 8", outcomes: "AI and data science for epidemiology." },
           ],
           applications: [
@@ -1064,8 +1090,8 @@
               nationality: "Rwanda",
               highest_qualification: "PhD",
               research_areas: "Data science, epidemiology",
-              selected_course_id: "MES05",
-              selected_course_title: "Introduction to R and Python",
+              selected_course_id: "MES06",
+              selected_course_title: "Scientific Computing and LaTeX",
               block: "Block 1 - 2026-10-05 - 2026-10-23",
               availability: "Available",
               course_plan_text: "Module 1: Data workflows",
@@ -1094,12 +1120,12 @@
           ],
           decisions: [
             {
-              decision_id: "demo-1::MES05",
+              decision_id: "demo-1::mes06",
               application_id: "demo-1",
               email: "demo@example.org",
               applicant: "Demo Applicant",
-              course_id: "MES05",
-              course_title: "Introduction to R and Python",
+              course_id: "MES06",
+              course_title: "Scientific Computing and LaTeX",
               decision: "Consider",
               notes: "Strong fit; confirm availability.",
               updated_at: new Date().toISOString(),
@@ -1268,7 +1294,8 @@
           var applicationId = clean(row.application_id || row.applicationId);
           var email = clean(row.email);
           var courseId = clean(row.course_id || row.courseId);
-          var id = clean(row.decision_id || row.decisionId || decisionKeyFromParts(applicationId, email, courseId));
+          var explicitId = clean(row.decision_id || row.decisionId);
+          var id = explicitId ? explicitId.toLowerCase() : decisionKeyFromParts(applicationId, email, courseId);
           return {
             id: id,
             applicationId: applicationId,
@@ -1424,9 +1451,10 @@
               app.blockStart = block.start;
               app.blockEnd = block.end;
             }
-            app.decisionRow = state.decisions[decisionKey(app)] || defaultDecision(app);
+            var key = decisionKey(app);
+            app.decisionRow = state.decisions[key] || defaultDecision(app);
             app.decision = app.decisionRow.decision;
-            app.decisionNotes = app.decisionRow.notes;
+            app.decisionNotes = hasDraftNote(key) ? state.noteDrafts[key] : app.decisionRow.notes;
             app.decisionUpdatedAt = app.decisionRow.updatedAt;
           });
         }
@@ -1838,11 +1866,13 @@
           var key = decisionKey(app);
           var status = normalizeDecisionStatus(app.decision);
           var saving = !!state.saving[key];
+          var notes = decisionNoteFor(app);
           return '<section class="decision-panel">' +
             '<div class="decision-actions">' + ["Approved", "Consider", "Rejected"].map(function (decision) {
               return '<button type="button" class="' + (status === decision ? "active" : "") + '" onclick=\'setApplicationDecision(' + JSON.stringify(key) + ", " + JSON.stringify(decision) + ')\'>' + esc(decision === "Rejected" ? "Reject" : decision === "Approved" ? "Approve" : "Consider") + '</button>';
             }).join("") + '</div>' +
-            '<textarea id="' + esc(decisionNoteId(key)) + '" placeholder="Decision notes or screening comments..." oninput=\'cacheDecisionNotes(' + JSON.stringify(key) + ', this.value)\'>' + esc(app.decisionNotes || "") + '</textarea>' +
+            '<textarea id="' + esc(decisionNoteId(key)) + '" placeholder="Decision notes or screening comments..." oninput=\'cacheDecisionNotes(' + JSON.stringify(key) + ', this.value)\'>' + esc(notes) + '</textarea>' +
+            '<div class="decision-comment-preview"><span>Decision comment</span><strong id="' + esc(decisionPreviewId(key)) + '">' + esc(notes || "No comment saved yet.") + '</strong></div>' +
             '<div class="decision-footer"><span>' + esc(app.decisionUpdatedAt ? "Updated " + dateLabel(app.decisionUpdatedAt) : "No decision saved yet") + '</span>' +
             '<button type="button" class="primary" onclick=\'saveApplicationDecision(' + JSON.stringify(key) + ')\'>' + esc(saving ? "Saving..." : "Save decision") + '</button></div>' +
             '</section>';
@@ -1850,6 +1880,10 @@
 
         function decisionNoteId(key) {
           return "decision-note-" + String(key || "").replace(/[^a-z0-9_-]+/gi, "-");
+        }
+
+        function decisionPreviewId(key) {
+          return "decision-comment-preview-" + safeDomId(key);
         }
 
         function applicationBlockId(key) {
@@ -1946,32 +1980,65 @@
           return state.applications.find(function (app) { return decisionKey(app) === key; }) || null;
         }
 
+        function hasDraftNote(key) {
+          return Object.prototype.hasOwnProperty.call(state.noteDrafts, key);
+        }
+
+        function decisionNoteFor(app) {
+          var key = decisionKey(app);
+          if (hasDraftNote(key)) return state.noteDrafts[key];
+          return String(app.decisionNotes != null ? app.decisionNotes : "");
+        }
+
+        function setDecisionNoteDraft(key, value) {
+          var app = appByDecisionKey(key);
+          var notes = String(value || "");
+          state.noteDrafts[key] = notes;
+          if (app) app.decisionNotes = notes;
+          var preview = $(decisionPreviewId(key));
+          if (preview) preview.textContent = notes || "No comment saved yet.";
+          return notes;
+        }
+
+        function syncDecisionNoteFromDom(key) {
+          var textarea = $(decisionNoteId(key));
+          if (textarea) return setDecisionNoteDraft(key, textarea.value);
+          var app = appByDecisionKey(key);
+          return app ? setDecisionNoteDraft(key, decisionNoteFor(app)) : "";
+        }
+
         function applyDecisionRow(app, row) {
           if (!app || !row) return;
-          state.decisions[row.id] = row;
+          var key = String(row.id || decisionKey(app)).toLowerCase();
+          row.id = key;
+          row.decision = normalizeDecisionStatus(row.decision);
+          row.notes = String(row.notes != null ? row.notes : decisionNoteFor(app));
+          state.decisions[key] = row;
           app.decisionRow = row;
           app.decision = row.decision;
-          app.decisionNotes = row.notes;
+          app.decisionNotes = hasDraftNote(key) ? state.noteDrafts[key] : row.notes;
           app.decisionUpdatedAt = row.updatedAt;
         }
 
         function localDecisionRow(app) {
-          var existing = state.decisions[decisionKey(app)] || defaultDecision(app);
+          var key = decisionKey(app);
+          var existing = state.decisions[key] || defaultDecision(app);
           return {
-            id: existing.id || decisionKey(app),
+            id: existing.id || key,
             applicationId: app.applicationId,
             email: app.email,
             applicant: app.applicant,
             courseId: app.courseId,
             courseTitle: app.courseTitle,
             decision: normalizeDecisionStatus(app.decision || existing.decision),
-            notes: String(app.decisionNotes != null ? app.decisionNotes : existing.notes || ""),
+            notes: hasDraftNote(key) ? state.noteDrafts[key] : String(app.decisionNotes != null ? app.decisionNotes : existing.notes || ""),
             decidedBy: existing.decidedBy || "Lecturer review desk",
             updatedAt: existing.updatedAt || "",
           };
         }
 
         function buildDecisionPayload(app) {
+          var key = decisionKey(app);
           return {
             applicationId: app.applicationId,
             email: app.email,
@@ -1979,7 +2046,7 @@
             courseId: app.courseId,
             courseTitle: app.courseTitle,
             decision: normalizeDecisionStatus(app.decision),
-            notes: String(app.decisionNotes || ""),
+            notes: hasDraftNote(key) ? state.noteDrafts[key] : String(app.decisionNotes || ""),
             decidedBy: "Lecturer review desk",
           };
         }
@@ -2051,6 +2118,7 @@
         window.setApplicationDecision = function (key, decision) {
           var app = appByDecisionKey(key);
           if (!app) return;
+          syncDecisionNoteFromDom(key);
           app.decision = normalizeDecisionStatus(decision);
           applyDecisionRow(app, localDecisionRow(app));
           render();
@@ -2060,23 +2128,25 @@
         window.cacheDecisionNotes = function (key, value) {
           var app = appByDecisionKey(key);
           if (!app) return;
-          app.decisionNotes = String(value || "");
+          setDecisionNoteDraft(key, value);
           applyDecisionRow(app, localDecisionRow(app));
         };
 
         window.saveApplicationDecision = function (key) {
           var app = appByDecisionKey(key);
           if (!app || state.saving[key]) return;
-          var textarea = $(decisionNoteId(key));
-          if (textarea) app.decisionNotes = textarea.value;
+          syncDecisionNoteFromDom(key);
+          var payload = buildDecisionPayload(app);
           state.saving[key] = true;
           render();
-          jsonp("saveLecturerReviewDecision", buildDecisionPayload(app))
+          jsonp("saveLecturerReviewDecision", payload)
             .then(function (result) {
               state.saving[key] = false;
               state.notice = "";
-              var row = normalizeDecision((result && result.decision) || buildDecisionPayload(app));
+              var row = normalizeDecision((result && result.decision) || payload);
               if (!row.id) row.id = decisionKey(app);
+              if (!row.notes && payload.notes) row.notes = payload.notes;
+              delete state.noteDrafts[key];
               applyDecisionRow(app, row);
               render();
             })
