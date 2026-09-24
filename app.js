@@ -4059,7 +4059,13 @@ function renderProgrammeWeek(item) {
     .map((code) => {
       const linked = course(code);
       const meta = linked ? COURSE_TYPES[linked.type] : null;
-      return `<span class="weekly-course ${meta?.color || "gray"}" title="${linked?.title || code}"><strong>${code}</strong><span>${linked?.title || ""}</span></span>`;
+      const lecturer = linked?.lecturerName || "";
+      const alternate = linked?.alternateLecturerName || "";
+      const staffTitle = [lecturer ? `Lecturer: ${lecturer}` : "", alternate ? `Alternate: ${alternate}` : ""].filter(Boolean).join("; ");
+      return `<span class="weekly-course ${meta?.color || "gray"}" title="${[linked?.title || code, staffTitle].filter(Boolean).join(" - ")}">
+        <strong>${code}</strong><span>${linked?.title || ""}</span>
+        ${lecturer ? `<small class="weekly-course-staff"><b>Lecturer:</b> ${lecturer}${alternate ? ` <em>Alternate: ${alternate}</em>` : ""}</small>` : ""}
+      </span>`;
     })
     .join("");
   const activity = item.activity
