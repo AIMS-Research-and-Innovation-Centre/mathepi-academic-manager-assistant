@@ -437,18 +437,18 @@ const DEFAULT_PEOPLE = [];
 const DEFAULT_BLOCKS = [
   {
     "id": "onboarding",
-    "title": "Introduction and Onboarding Week",
+    "title": "Programme Opening and Orientation",
     "start": "2026-10-26",
     "end": "2026-10-30",
     "kind": "onboarding",
-    "note": "Orientation, software setup, student onboarding, programme briefing",
+    "note": "Orientation integrated into Week 1 of Block 1",
     "courses": []
   },
   {
     "id": "block-1",
     "title": "Block 1",
-    "start": "2026-11-02",
-    "end": "2026-11-20",
+    "start": "2026-10-26",
+    "end": "2026-11-13",
     "kind": "teaching",
     "note": "Core Skills: MES01 Mathematical Problem Solving; MES06 Scientific Computing and LaTeX",
     "courses": [
@@ -459,8 +459,8 @@ const DEFAULT_BLOCKS = [
   {
     "id": "block-2",
     "title": "Block 2",
-    "start": "2026-11-23",
-    "end": "2026-12-11",
+    "start": "2026-11-09",
+    "end": "2026-11-27",
     "kind": "teaching",
     "note": "Core Skills: MES03 Physical Problem Solving; MES05 Introduction to R and Python",
     "courses": [
@@ -469,19 +469,10 @@ const DEFAULT_BLOCKS = [
     ]
   },
   {
-    "id": "reading-1",
-    "title": "Reading Week and AHC Convening",
-    "start": "2026-12-14",
-    "end": "2026-12-18",
-    "kind": "reading",
-    "note": "AHC Convening Week in Nairobi",
-    "courses": []
-  },
-  {
     "id": "block-3",
     "title": "Block 3",
-    "start": "2026-12-21",
-    "end": "2027-01-08",
+    "start": "2026-11-30",
+    "end": "2026-12-18",
     "kind": "teaching",
     "note": "Core Skills: MES02 Differential Equations and Modelling; MES04 Introduction to Probability and Statistics",
     "courses": [
@@ -490,19 +481,19 @@ const DEFAULT_BLOCKS = [
     ]
   },
   {
-    "id": "vacation",
-    "title": "Programme Break",
-    "start": "2027-01-11",
-    "end": "2027-01-31",
-    "kind": "holiday",
-    "note": "Vacation / programme break",
+    "id": "reading-1",
+    "title": "Christmas Break and Reading Period 1",
+    "start": "2026-12-19",
+    "end": "2027-01-04",
+    "kind": "reading",
+    "note": "Christmas break, reading, and consolidation; no teaching",
     "courses": []
   },
   {
     "id": "block-4",
     "title": "Block 4",
-    "start": "2027-02-01",
-    "end": "2027-02-19",
+    "start": "2027-01-05",
+    "end": "2027-01-22",
     "kind": "teaching",
     "note": "Specialization: MEC01 Introduction to Epidemiology; MEC03 Introduction to Mathematical Modelling",
     "courses": [
@@ -513,8 +504,8 @@ const DEFAULT_BLOCKS = [
   {
     "id": "block-5",
     "title": "Block 5",
-    "start": "2027-02-22",
-    "end": "2027-03-12",
+    "start": "2027-01-25",
+    "end": "2027-02-12",
     "kind": "teaching",
     "note": "Specialization: MEC02 Epidemiology for Disease Modelling; MEC04 Developing Mathematical Models in Public Health",
     "courses": [
@@ -525,8 +516,8 @@ const DEFAULT_BLOCKS = [
   {
     "id": "block-6",
     "title": "Block 6",
-    "start": "2027-03-15",
-    "end": "2027-04-02",
+    "start": "2027-02-15",
+    "end": "2027-03-05",
     "kind": "teaching",
     "note": "Professional and specialization block: MEC09 Professional, Project, and Entrepreneurship Development; MEC05 Model Fitting and Validation",
     "courses": [
@@ -537,8 +528,8 @@ const DEFAULT_BLOCKS = [
   {
     "id": "block-7",
     "title": "Block 7",
-    "start": "2027-04-05",
-    "end": "2027-04-23",
+    "start": "2027-03-15",
+    "end": "2027-04-02",
     "kind": "teaching",
     "note": "Specialization: MEC06 Numerical Methods; MEC07 Introduction to Data Analysis",
     "courses": [
@@ -548,18 +539,18 @@ const DEFAULT_BLOCKS = [
   },
   {
     "id": "reading-2",
-    "title": "Reading / Elective Preparation",
-    "start": "2027-04-26",
-    "end": "2027-04-30",
+    "title": "Reading Week 2",
+    "start": "2027-03-08",
+    "end": "2027-03-12",
     "kind": "reading",
-    "note": "Catch-up, reflection, elective preparation",
+    "note": "Reading, consolidation, assessment, and catch-up; no new teaching",
     "courses": []
   },
   {
     "id": "block-8",
     "title": "Block 8",
-    "start": "2027-05-03",
-    "end": "2027-05-21",
+    "start": "2027-04-05",
+    "end": "2027-04-23",
     "kind": "teaching",
     "note": "Specialization: MEC08 Advanced Data Analysis; MEC10 Advanced Data Science for Epidemiology",
     "courses": [
@@ -570,8 +561,8 @@ const DEFAULT_BLOCKS = [
   {
     "id": "block-9",
     "title": "Block 9",
-    "start": "2027-05-24",
-    "end": "2027-06-11",
+    "start": "2027-04-26",
+    "end": "2027-05-14",
     "kind": "teaching",
     "note": "Elective Courses: MEE01 Survival Analysis; MEE02 Time Series Analysis; MEE03 Bayesian Statistics; MEE04 Stochastic Models",
     "courses": [
@@ -582,32 +573,41 @@ const DEFAULT_BLOCKS = [
     ]
   },
   {
+    "id": "reading-3",
+    "title": "Reading Week 3",
+    "start": "2027-05-17",
+    "end": "2027-05-21",
+    "kind": "reading",
+    "note": "Reading, consolidation, and final assessments; no new teaching",
+    "courses": []
+  },
+  {
     "id": "coursework-consolidation",
-    "title": "Coursework Consolidation",
-    "start": "2027-06-14",
-    "end": "2027-06-25",
+    "title": "Coursework Close-out and Internship Preparation",
+    "start": "2027-05-24",
+    "end": "2027-05-28",
     "kind": "assessment",
-    "note": "Final coursework review, assessment completion, internship preparation",
+    "note": "Final assessment completion and internship preparation",
     "courses": []
   },
   {
     "id": "internship",
-    "title": "Mandatory Internship",
-    "start": "2027-06-28",
-    "end": "2027-12-24",
+    "title": "Internship",
+    "start": "2027-05-31",
+    "end": "2027-08-30",
     "kind": "practical",
-    "note": "MEI01 internship, supervised placement, or research project",
+    "note": "MEI01 three-month practical/research placement; end date provisional pending institutional confirmation",
     "courses": [
       "MEI01"
     ]
   },
   {
     "id": "thesis",
-    "title": "Essay, Review, Graduation Prep",
-    "start": "2027-12-27",
-    "end": "2028-02-25",
+    "title": "Thesis / Project Write-up",
+    "start": "2027-08-31",
+    "end": "2027-11-30",
     "kind": "thesis",
-    "note": "MEI01 essay/write-up, final review, and graduation preparation",
+    "note": "MEI01 three-month thesis/project write-up; dates provisional pending institutional confirmation",
     "courses": [
       "MEI01"
     ]
@@ -615,10 +615,10 @@ const DEFAULT_BLOCKS = [
   {
     "id": "graduation",
     "title": "Graduation Close-out",
-    "start": "2028-02-25",
-    "end": "2028-02-25",
+    "start": "2027-11-30",
+    "end": "2027-11-30",
     "kind": "graduation",
-    "note": "Graduation close-out milestone",
+    "note": "Provisional graduation close-out milestone pending institutional confirmation",
     "courses": []
   }
 ];
@@ -2419,139 +2419,139 @@ function migrateProgrammeData() {
 
   const programmeSchedule = {
     onboarding: {
-      title: "Introduction and Onboarding Week",
+      title: "Programme Opening and Orientation",
       start: "2026-10-26",
       end: "2026-10-30",
       kind: "onboarding",
-      note: "Orientation, software setup, programme briefing",
+      note: "Orientation integrated into Week 1 of Block 1",
       courses: [],
     },
     "block-1": {
       title: "Block 1",
-      start: "2026-11-02",
-      end: "2026-11-20",
+      start: "2026-10-26",
+      end: "2026-11-13",
       kind: "teaching",
       note: "MES01 Mathematical Problem Solving; MES06 Scientific Computing and LaTeX",
       courses: ["MES01", "MES06"],
     },
     "block-2": {
       title: "Block 2",
-      start: "2026-11-23",
-      end: "2026-12-11",
+      start: "2026-11-09",
+      end: "2026-11-27",
       kind: "teaching",
       note: "MES03 Physical Problem Solving; MES05 Introduction to R and Python",
       courses: ["MES03", "MES05"],
     },
-    "reading-1": {
-      title: "Reading / Convening Week",
-      start: "2026-12-14",
-      end: "2026-12-18",
-      kind: "reading",
-      note: "Reading, reflection, AHC/convening activities",
-      courses: [],
-    },
     "block-3": {
       title: "Block 3",
-      start: "2026-12-21",
-      end: "2027-01-08",
+      start: "2026-11-30",
+      end: "2026-12-18",
       kind: "teaching",
       note: "MES02 Differential Equations and Modelling; MES04 Introduction to Probability and Statistics",
       courses: ["MES02", "MES04"],
     },
-    vacation: {
-      title: "Programme Break",
-      start: "2027-01-11",
-      end: "2027-01-31",
-      kind: "holiday",
-      note: "Vacation / programme break",
+    "reading-1": {
+      title: "Christmas Break and Reading Period 1",
+      start: "2026-12-19",
+      end: "2027-01-04",
+      kind: "reading",
+      note: "Christmas break, reading, and consolidation; no teaching",
       courses: [],
     },
     "block-4": {
       title: "Block 4",
-      start: "2027-02-01",
-      end: "2027-02-19",
+      start: "2027-01-05",
+      end: "2027-01-22",
       kind: "teaching",
       note: "MEC01 Introduction to Epidemiology; MEC03 Introduction to Mathematical Modelling",
       courses: ["MEC01", "MEC03"],
     },
     "block-5": {
       title: "Block 5",
-      start: "2027-02-22",
-      end: "2027-03-12",
+      start: "2027-01-25",
+      end: "2027-02-12",
       kind: "teaching",
       note: "MEC02 Epidemiology for Disease Modelling; MEC04 Developing Mathematical Models in Public Health",
       courses: ["MEC02", "MEC04"],
     },
     "block-6": {
       title: "Block 6",
-      start: "2027-03-15",
-      end: "2027-04-02",
+      start: "2027-02-15",
+      end: "2027-03-05",
       kind: "teaching",
       note: "MEC09 Professional, Project, and Entrepreneurship Development; MEC05 Model Fitting and Validation",
       courses: ["MEC09", "MEC05"],
     },
     "block-7": {
       title: "Block 7",
-      start: "2027-04-05",
-      end: "2027-04-23",
+      start: "2027-03-15",
+      end: "2027-04-02",
       kind: "teaching",
       note: "MEC06 Numerical Methods; MEC07 Introduction to Data Analysis",
       courses: ["MEC06", "MEC07"],
     },
     "reading-2": {
-      title: "Reading / Elective Preparation",
-      start: "2027-04-26",
-      end: "2027-04-30",
+      title: "Reading Week 2",
+      start: "2027-03-08",
+      end: "2027-03-12",
       kind: "reading",
-      note: "Catch-up, reflection, elective preparation",
+      note: "Reading, consolidation, assessment, and catch-up; no new teaching",
       courses: [],
     },
     "block-8": {
       title: "Block 8",
-      start: "2027-05-03",
-      end: "2027-05-21",
+      start: "2027-04-05",
+      end: "2027-04-23",
       kind: "teaching",
       note: "MEC08 Advanced Data Analysis; MEC10 Advanced Data Science for Epidemiology",
       courses: ["MEC08", "MEC10"],
     },
     "block-9": {
       title: "Block 9",
-      start: "2027-05-24",
-      end: "2027-06-11",
+      start: "2027-04-26",
+      end: "2027-05-14",
       kind: "teaching",
       note: "MEE01 Survival Analysis; MEE02 Time Series Analysis; MEE03 Bayesian Statistics; MEE04 Stochastic Models",
       courses: ["MEE01", "MEE02", "MEE03", "MEE04"],
     },
+    "reading-3": {
+      title: "Reading Week 3",
+      start: "2027-05-17",
+      end: "2027-05-21",
+      kind: "reading",
+      note: "Reading, consolidation, and final assessments; no new teaching",
+      courses: [],
+    },
     "coursework-consolidation": {
-      title: "Coursework Consolidation",
-      start: "2027-06-14",
-      end: "2027-06-25",
+      title: "Coursework Close-out and Internship Preparation",
+      start: "2027-05-24",
+      end: "2027-05-28",
       kind: "assessment",
-      note: "Final coursework review, assessment completion, internship preparation",
+      note: "Final assessment completion and internship preparation",
       courses: [],
     },
     internship: {
       title: "Internship",
-      start: "2027-06-28",
-      end: "2027-12-24",
+      start: "2027-05-31",
+      end: "2027-08-30",
       kind: "practical",
-      note: "MEI01 internship, supervised placement, or research project",
+      note: "MEI01 three-month practical/research placement; end date provisional pending institutional confirmation",
       courses: ["MEI01"],
     },
     thesis: {
-      title: "Essay, Review, Graduation Prep",
-      start: "2027-12-27",
-      end: "2028-02-25",
+      title: "Thesis / Project Write-up",
+      start: "2027-08-31",
+      end: "2027-11-30",
       kind: "thesis",
-      note: "MEI01 essay/write-up, final review, and graduation preparation",
+      note: "MEI01 three-month thesis/project write-up; dates provisional pending institutional confirmation",
       courses: ["MEI01"],
     },
     graduation: {
       title: "Graduation Close-out",
-      start: "2028-02-25",
-      end: "2028-02-25",
+      start: "2027-11-30",
+      end: "2027-11-30",
       kind: "graduation",
-      note: "Graduation close-out milestone",
+      note: "Provisional graduation close-out milestone pending institutional confirmation",
       courses: [],
     },
   };
@@ -2561,6 +2561,8 @@ function migrateProgrammeData() {
     if (existing) Object.assign(existing, block);
     else state.blocks.push({ id, ...safeClone(block) });
   });
+
+  state.blocks = state.blocks.filter((item) => item.id !== "vacation");
 
   const courseToBlock = {};
   const courseToBlockId = {};
