@@ -4057,20 +4057,45 @@ function renderProgrammeWeek(item) {
 
 function renderWeek(block) {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-  const times = ["09:00", "11:00", "14:00", "16:00"];
+  const slots = [
+    { key: "morning-1", time: "08:30-10:30", label: "Morning lesson 1" },
+    { key: "morning-2", time: "10:30-12:30", label: "Morning lesson 2" },
+    { key: "lunch", time: "12:30-14:30", label: "Lunch" },
+    { key: "afternoon", time: "14:30-16:30", label: "Afternoon lesson" },
+    { key: "tutorial", time: "After dinner", label: "Evening tutorials" },
+  ];
+  const blockCourses = block.courses.map(course).filter(Boolean);
+  const courseFor = (dayIndex, offset = 0) => blockCourses[(dayIndex + offset) % blockCourses.length];
+  const teachingCell = (item, label) => item
+    ? `<div class="programme-session ${item.type || "skills"}" title="${item.code} ${item.title}">
+        <strong>${item.code}</strong><span>${item.title}</span><small>${label}</small>
+      </div>`
+    : `<span class="programme-slot-empty">To be assigned</span>`;
   return `
+    <div class="timetable-guidance">
+      <strong>Daily teaching rhythm</strong>
+      <span>Classes begin at 08:30. Two 2-hour morning lessons are followed by lunch from 12:30 to 14:30, one afternoon lesson, and tutorials after dinner.</span>
+      ${block.id === "block-1" ? `<span class="orientation-note">Week 1 exception: Orientation replaces the afternoon lesson on Monday 26 and Wednesday 28 October.</span>` : ""}
+    </div>
     <div class="scroll-x">
       <div class="week-grid">
         <div class="week-head">Time</div>
         ${days.map((day) => `<div class="week-head">${day}</div>`).join("")}
-        ${times
+        ${slots
           .map(
-            (time) => `
-            <div class="time-cell">${time}</div>
+            (slot) => `
+            <div class="time-cell"><strong>${slot.time}</strong><span>${slot.label}</span></div>
             ${days
-              .map((day) => {
-                const sessions = state.sessions.filter((s) => s.blockId === block.id && s.day === day && s.time === time);
-                return `<div class="week-cell">${sessions.map(renderSession).join("")}</div>`;
+              .map((day, dayIndex) => {
+                if (slot.key === "lunch") return `<div class="week-cell lunch-cell"><span>Lunch break</span></div>`;
+                if (slot.key === "tutorial") {
+                  return `<div class="week-cell tutorial-cell"><strong>Tutorials</strong><span>${blockCourses.map((item) => item.code).join(" / ") || "Course support"}</span><small>After dinner</small></div>`;
+                }
+                if (slot.key === "afternoon" && block.id === "block-1" && (day === "Monday" || day === "Wednesday")) {
+                  return `<div class="week-cell"><div class="programme-session orientation"><strong>Orientation</strong><span>Week 1 programme orientation</span><small>${day === "Monday" ? "26 Oct" : "28 Oct"} only</small></div></div>`;
+                }
+                const item = slot.key.startsWith("morning") ? courseFor(dayIndex) : courseFor(dayIndex, 1);
+                return `<div class="week-cell">${teachingCell(item, slot.label)}</div>`;
               })
               .join("")}
           `,

@@ -2781,9 +2781,9 @@ button {
 }
 
 .week-grid {
-  min-width: 640px;
+  min-width: 860px;
   display: grid;
-  grid-template-columns: 78px repeat(5, minmax(110px, 1fr));
+  grid-template-columns: 118px repeat(5, minmax(138px, 1fr));
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
@@ -3975,6 +3975,92 @@ button {
   background: var(--panel);
   color: var(--ink);
   border-color: var(--line);
+}
+
+.time-cell {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+}
+
+.time-cell strong {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.time-cell span {
+  line-height: 1.25;
+}
+
+.timetable-guidance {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-left: 4px solid var(--blue);
+  background: #f3f7fc;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.timetable-guidance strong {
+  color: var(--ink);
+}
+
+.orientation-note {
+  color: #7a4e00;
+  font-weight: 800;
+}
+
+.programme-session,
+.tutorial-cell {
+  min-height: 64px;
+  padding: 9px;
+  border-radius: 6px;
+  display: grid;
+  gap: 3px;
+  align-content: start;
+  color: #fff;
+}
+
+.programme-session strong,
+.tutorial-cell strong {
+  font-size: 12px;
+}
+
+.programme-session span,
+.programme-session small,
+.tutorial-cell span,
+.tutorial-cell small {
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.programme-session.skills { background: var(--blue); }
+.programme-session.specialization { background: var(--aims-maroon); }
+.programme-session.elective { background: var(--teal); }
+.programme-session.professional { background: #895f0f; }
+.programme-session.practical { background: var(--green); }
+.programme-session.orientation { background: #8b5d00; }
+
+.lunch-cell {
+  min-height: 56px;
+  display: grid;
+  place-items: center;
+  background: #f7f3e8;
+  color: #6d5c2f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.tutorial-cell {
+  background: #283647;
+}
+
+.programme-slot-empty {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 :root[data-theme="dark"] .programme-overview,
