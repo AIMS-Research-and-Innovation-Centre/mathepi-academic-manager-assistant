@@ -23,6 +23,48 @@ function listLecturerReviewData(payload) {
   };
 }
 
+function listReviewStaffingAssignments(payload) {
+  const spreadsheet = getOrCreateSpreadsheet();
+  ensureSheets(spreadsheet);
+  const lecturerAssignments = readSheetObjects(getSheet(spreadsheet, "LecturerReviewDecisions"))
+    .filter((row) => normalizeLecturerReviewDecision_(row.decision) === "Approved")
+    .map((row) => ({
+      applicationId: String(row.application_id || ""),
+      name: String(row.applicant || "").trim(),
+      courseCode: String(row.course_id || "").trim().toUpperCase(),
+      role: "Lecturer",
+      status: "Approved",
+      updatedAt: String(row.updated_at || ""),
+    }))
+    .filter((row) => row.name && row.courseCode);
+
+  const applicationById = {};
+  readSheetObjects(getSheet(spreadsheet, "TutorialFellowApplications")).forEach((row) => {
+    applicationById[String(row.application_id || "")] = row;
+  });
+  const decisionIds = {};
+  readSheetObjects(getSheet(spreadsheet, "ReviewStages")).forEach((row) => {
+    if (String(row.stage || "").trim() === "Decision" && !/reject|do not/i.test(String(row.decision || ""))) decisionIds[String(row.application_id || "")] = row;
+  });
+  const latestScores = {};
+  readSheetObjects(getSheet(spreadsheet, "ReviewScores")).forEach((row) => {
+    const id = String(row.application_id || "");
+    if (decisionIds[id] && (!latestScores[id] || String(row.updated_at || "") > String(latestScores[id].updated_at || ""))) latestScores[id] = row;
+  });
+  const tutorAssignments = [];
+  Object.keys(latestScores).forEach((applicationId) => {
+    const score = latestScores[applicationId];
+    if (/do not progress|reject/i.test(String(score.eligibility_decision || score.recommendation || ""))) return;
+    const verdicts = parseJsonSafe(score.course_verdicts_json, {});
+    const application = applicationById[applicationId] || {};
+    Object.keys(verdicts || {}).forEach((courseCode) => {
+      if (verdicts[courseCode] !== "Can tutor" && verdicts[courseCode] !== "Can lecture") return;
+      tutorAssignments.push({ applicationId, name: String(application.applicant || "").trim(), courseCode: String(courseCode || "").trim().toUpperCase(), role: "Tutor", status: "Decision", updatedAt: String(score.updated_at || decisionIds[applicationId].updated_at || "") });
+    });
+  });
+  return { ok: true, lecturerAssignments, tutorAssignments, syncedAt: new Date().toISOString() };
+}
+
 function saveLecturerReviewDecision(payload) {
   payload = payload || {};
   const spreadsheet = getOrCreateSpreadsheet();

@@ -126,8 +126,6 @@ const DEFAULT_COURSES = [
     "assignmentHours": 5,
     "independentStudyHours": 15,
     "lecturerId": null,
-    "lecturerName": "Dr. Sonagnon Eunice Edwige Gandote",
-    "lecturerStatus": "Approved in lecturer review",
     "alternateLecturerName": "Prof. Cecil Ouma",
     "tutorIds": []
   },
@@ -2634,8 +2632,6 @@ function migrateProgrammeData() {
       alternateLecturerName: "",
     },
     MES03: {
-      lecturerName: "Dr. Sonagnon Eunice Edwige Gandote",
-      lecturerStatus: "Approved in lecturer review",
       alternateLecturerName: "Prof. Cecil Ouma",
     },
   };
@@ -3387,6 +3383,7 @@ function setView(view) {
     history.replaceState(null, "", `#${state.view}`);
   }
   render();
+  if (state.view === "calendar" || state.view === "courses") syncReviewStaffing({ quiet: true });
 }
 
 function openDrawer(type, payload = null) {
@@ -4051,6 +4048,91 @@ function renderTimeline() {
   `;
 }
 
+let staffingSyncPromise = null;
+let staffingSyncedAt = 0;
+
+function tutorAssignmentsFromReviewState() {
+  const decisionIds = new Set(
+    state.tfReview.stages
+      .filter((row) => String(row.stage || "") === "Decision" && !/reject|do not/i.test(String(row.decision || "")))
+      .map((row) => String(row.application_id || row.applicationId || "")),
+  );
+  const latestScores = {};
+  state.tfReview.scores.forEach((row) => {
+    const id = String(row.application_id || row.applicationId || "");
+    if (!decisionIds.has(id)) return;
+    if (!latestScores[id] || String(row.updated_at || "") > String(latestScores[id].updated_at || "")) latestScores[id] = row;
+  });
+  return Object.entries(latestScores).flatMap(([applicationId, score]) => {
+    if (/do not progress|reject/i.test(String(score.eligibility_decision || score.recommendation || ""))) return [];
+    const applicant = state.tfReview.applications.find((row) => String(row.applicationId || row.application_id || "") === applicationId);
+    const name = applicant?.applicant || applicant?.name || "";
+    const verdicts = parseJson(score.course_verdicts_json, {});
+    return Object.entries(verdicts)
+      .filter(([, verdict]) => verdict === "Can tutor" || verdict === "Can lecture")
+      .map(([courseCode]) => ({ applicationId, name, courseCode, role: "Tutor", status: "Decision", updatedAt: score.updated_at || "" }));
+  });
+}
+
+function applyReviewStaffingAssignments(result = {}) {
+  const hasLecturers = Array.isArray(result.lecturerAssignments);
+  const hasTutors = Array.isArray(result.tutorAssignments);
+  const lecturers = result.lecturerAssignments || [];
+  const tutors = result.tutorAssignments || [];
+  state.courses.forEach((item) => {
+    if (hasLecturers) {
+      const reviewLecturers = lecturers.filter((row) => row.courseCode === item.code).map((row) => row.name).filter(Boolean);
+      item.reviewLecturerNames = [...new Set(reviewLecturers)];
+      if (item.reviewLecturerNames.length) {
+        item.lecturerName = item.reviewLecturerNames.join(" / ");
+        item.lecturerStatus = "Approved in lecturer review";
+      } else if (item.lecturerStatus === "Approved in lecturer review") {
+        item.lecturerName = "";
+        item.lecturerStatus = "";
+      }
+    }
+    if (hasTutors) {
+      const reviewTutors = tutors.filter((row) => row.courseCode === item.code).map((row) => row.name).filter(Boolean);
+      item.reviewTutorNames = [...new Set(reviewTutors)];
+    }
+  });
+  staffingSyncedAt = Date.now();
+  save();
+}
+
+async function syncReviewStaffing(options = {}) {
+  if (staffingSyncPromise) return staffingSyncPromise;
+  if (!options.force && Date.now() - staffingSyncedAt < 60000) return null;
+  const endpoint = reviewerAppsScriptUrl();
+  if (!endpoint) return null;
+  staffingSyncPromise = (async () => {
+    try {
+      let result;
+      try {
+        result = await googleEndpointApi(endpoint, "listReviewStaffingAssignments", {});
+      } catch (error) {
+        const legacy = await googleEndpointApi(endpoint, "listLecturerReviewData", {});
+        result = {
+          lecturerAssignments: (legacy.decisions || [])
+            .filter((row) => String(row.decision || "").toLowerCase() === "approved")
+            .map((row) => ({ name: row.applicant, courseCode: String(row.course_id || "").toUpperCase() })),
+          tutorAssignments: tutorAssignmentsFromReviewState(),
+        };
+      }
+      applyReviewStaffingAssignments(result || {});
+      if (!options.quiet) toast("Calendar staffing refreshed from saved review decisions.");
+      render();
+      return result;
+    } catch (error) {
+      if (!options.quiet) toast(error.message || "Could not refresh review staffing.");
+      return null;
+    } finally {
+      staffingSyncPromise = null;
+    }
+  })();
+  return staffingSyncPromise;
+}
+
 function renderProgrammeWeek(item) {
   const active = item.blockId === state.blockId;
   const block = state.blocks.find((candidate) => candidate.id === item.blockId);
@@ -4061,10 +4143,11 @@ function renderProgrammeWeek(item) {
       const meta = linked ? COURSE_TYPES[linked.type] : null;
       const lecturer = linked?.lecturerName || "";
       const alternate = linked?.alternateLecturerName || "";
-      const staffTitle = [lecturer ? `Lecturer: ${lecturer}` : "", alternate ? `Alternate: ${alternate}` : ""].filter(Boolean).join("; ");
+      const tutors = linked?.reviewTutorNames || [];
+      const staffTitle = [lecturer ? `Lecturer: ${lecturer}` : "", alternate ? `Alternate: ${alternate}` : "", tutors.length ? `Tutors: ${tutors.join(", ")}` : ""].filter(Boolean).join("; ");
       return `<span class="weekly-course ${meta?.color || "gray"}" title="${[linked?.title || code, staffTitle].filter(Boolean).join(" - ")}">
         <strong>${code}</strong><span>${linked?.title || ""}</span>
-        ${lecturer ? `<small class="weekly-course-staff"><b>Lecturer:</b> ${lecturer}${alternate ? ` <em>Alternate: ${alternate}</em>` : ""}</small>` : ""}
+        ${lecturer || tutors.length ? `<small class="weekly-course-staff">${lecturer ? `<b>Lecturer:</b> ${lecturer}` : ""}${alternate ? ` <em>Alternate: ${alternate}</em>` : ""}${tutors.length ? `<em>Tutors: ${tutors.join(", ")}</em>` : ""}</small>` : ""}
       </span>`;
     })
     .join("");
@@ -4097,7 +4180,7 @@ function renderWeek(block) {
   const teachingCell = (item, label) => item
     ? `<div class="programme-session ${item.type || "skills"}" title="${item.code} ${item.title}">
         <strong>${item.code}</strong><span>${item.title}</span><small>${label}</small>
-        ${item.lecturerName ? `<small class="programme-lecturer">${item.lecturerName}${item.alternateLecturerName ? ` · Alt: ${item.alternateLecturerName}` : ""}</small>` : ""}
+        ${item.lecturerName || item.reviewTutorNames?.length ? `<small class="programme-lecturer">${item.lecturerName ? `Lecturer: ${item.lecturerName}` : ""}${item.alternateLecturerName ? ` · Alt: ${item.alternateLecturerName}` : ""}${item.reviewTutorNames?.length ? ` · Tutors: ${item.reviewTutorNames.join(", ")}` : ""}</small>` : ""}
       </div>`
     : `<span class="programme-slot-empty">To be assigned</span>`;
   return `
@@ -4138,10 +4221,13 @@ function renderWeek(block) {
 function renderSession(session) {
   const item = course(session.courseCode);
   const owner = person(session.personId);
+  const lecturer = item ? courseLecturerName(item) : "";
+  const tutors = item?.reviewTutorNames || [];
   return `
     <button class="session-card ${item?.type || "skills"}" onclick="openDrawer('session', '${session.id}')">
       <strong>${session.courseCode} ${item?.title || ""}</strong>
-      <span>${session.type} · ${owner?.name || "Unassigned"}</span>
+      <span>${session.type} · ${owner?.name || lecturer || "Unassigned"}</span>
+      ${tutors.length ? `<span>Tutors: ${tutors.join(", ")}</span>` : ""}
       <span>${session.room}</span>
     </button>
   `;
@@ -4159,11 +4245,13 @@ function renderAgenda() {
               .map((session) => {
                 const item = course(session.courseCode);
                 const owner = person(session.personId);
+                const lecturer = item ? courseLecturerName(item) : "";
+                const tutors = item?.reviewTutorNames || [];
                 return `
                   <article class="agenda-item">
                     <div>
                       <h4>${session.day} ${session.time} · ${session.courseCode} ${item?.title || ""}</h4>
-                      <p>${session.type} in ${session.room} · ${owner?.name || "Unassigned"}</p>
+                      <p>${session.type} in ${session.room} · ${owner?.name || lecturer || "Unassigned"}${tutors.length ? ` · Tutors: ${tutors.join(", ")}` : ""}</p>
                       <div class="row-tags">${item ? typeBadge(item.type) : ""}<span class="chip gray">${session.duration} hours</span></div>
                     </div>
                     <button class="button ghost icon-only" onclick="openDrawer('session', '${session.id}')">${icon("edit", 18)}</button>
@@ -4221,23 +4309,25 @@ function courseLecturerName(item, lead = person(item.lecturerId)) {
 
 function studentCourseTeamChips(item, lead, tutors) {
   const lecturerName = courseLecturerName(item, lead);
-  const tutorText = tutors.length ? tutors.map((t) => t.name).join(", ") : "Tutor not assigned";
+  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
+  const tutorText = tutorNames.length ? tutorNames.join(", ") : "Tutor not assigned";
   return `
     <span class="chip ${lecturerName ? "blue" : "danger"}">Lecturer: ${lecturerName || "Not assigned"}</span>
     ${item.alternateLecturerName ? `<span class="chip gold">Alternate: ${item.alternateLecturerName}</span>` : ""}
-    <span class="chip ${tutors.length ? "green" : "danger"}">Tutor: ${tutorText}</span>
+    <span class="chip ${tutorNames.length ? "green" : "danger"}">Tutor: ${tutorText}</span>
   `;
 }
 
 function courseStaffingChips(item, lead, tutors) {
-  const tutorCount = item.tutorIds.length;
+  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
+  const tutorCount = tutorNames.length;
   const lecturerName = courseLecturerName(item, lead);
   return `
     ${lecturerName ? `<span class="chip green">${lecturerName}</span><span class="chip blue">${item.lecturerStatus || "Lecturer assigned"}</span>` : `<span class="badge danger">Lecturer not assigned</span>`}
     ${item.alternateLecturerName ? `<span class="chip gold">Alternate: ${item.alternateLecturerName}</span>` : ""}
     ${
       tutorCount
-        ? `<span class="chip green">${tutorCount} tutor${tutorCount === 1 ? "" : "s"} assigned</span>${tutors.map(personStatusBadge).join("")}`
+        ? `<span class="chip green">Tutors: ${tutorNames.join(", ")}</span>${tutors.map(personStatusBadge).join("")}`
         : `<span class="badge danger">No tutor assigned</span>`
     }
   `;
@@ -4247,6 +4337,7 @@ function renderCourseRow(item) {
   const lead = person(item.lecturerId);
   const lecturerName = courseLecturerName(item, lead);
   const tutors = item.tutorIds.map(person).filter(Boolean);
+  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
   const staffing =
     state.role === "student"
       ? studentCourseTeamChips(item, lead, tutors)
@@ -4255,7 +4346,7 @@ function renderCourseRow(item) {
     <article class="course-row">
       <div>
         <h4>${item.code} ${item.title}</h4>
-        <p>${item.block} · ${item.hours} hours · ${lecturerName || "Lecturer not assigned"}${item.alternateLecturerName ? ` · Alternate: ${item.alternateLecturerName}` : ""}</p>
+        <p>${item.block} · ${item.hours} hours · ${lecturerName || "Lecturer not assigned"}${item.alternateLecturerName ? ` · Alternate: ${item.alternateLecturerName}` : ""}${tutorNames.length ? ` · Tutors: ${tutorNames.join(", ")}` : ""}</p>
         <div class="row-tags">
           ${typeBadge(item.type)}
           ${staffing}
@@ -4631,6 +4722,7 @@ async function refreshTfReviews(options = {}) {
     state.tfReview.config = result.config || {};
     state.tfReview.lastSync = result.syncedAt || new Date().toISOString();
     if (!state.tfReview.selectedId && state.tfReview.applications[0]) state.tfReview.selectedId = state.tfReview.applications[0].applicationId;
+    applyReviewStaffingAssignments({ tutorAssignments: tutorAssignmentsFromReviewState() });
     if (!options.quiet) toast(`Loaded ${state.tfReview.applications.length} Tutorial Fellow applications.`);
   } catch (error) {
     state.tfReview.error = error.message || "Could not load review data.";
@@ -4652,6 +4744,7 @@ async function updateTfReviewStage(applicationId, stage) {
     else state.tfReview.stages.push(result.stage);
     toast("Review stage updated.");
     render();
+    syncReviewStaffing({ quiet: true, force: true });
   } catch (error) {
     toast(error.message || "Stage update failed.");
   }
@@ -4698,6 +4791,7 @@ async function saveTfReviewScore(applicationId) {
     else state.tfReview.scores.push(result.score);
     toast("Review score saved.");
     render();
+    syncReviewStaffing({ quiet: true, force: true });
   } catch (error) {
     toast(error.message || "Score save failed.");
   }
@@ -6924,6 +7018,7 @@ function courseDrawer(code) {
   if (!item) return drawerShell("Course not found", "The selected course is no longer available.", "");
   const lead = person(item.lecturerId);
   const tutors = item.tutorIds.map(person).filter(Boolean);
+  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
   const lecturerOptions = state.people.filter((entry) => entry.kind === "Lecturer");
   const tutorOptions = state.people.filter((entry) => entry.kind === "Tutor");
   const detail = COURSE_DETAILS[item.code];
@@ -6944,7 +7039,7 @@ function courseDrawer(code) {
     </div>
     <div class="timeline-item"><h4>Lecturer</h4><p>${lecturerText}</p></div>
     ${item.alternateLecturerName ? `<div class="timeline-item"><h4>Alternate lecturer</h4><p>${item.alternateLecturerName}</p></div>` : ""}
-    <div class="timeline-item"><h4>Tutors</h4><p>${tutors.length ? tutors.map((t) => t.name).join(", ") : "No tutor assigned yet"}</p></div>
+    <div class="timeline-item"><h4>Tutors</h4><p>${tutorNames.length ? tutorNames.join(", ") : "No tutor assigned yet"}</p></div>
     ${
       canEdit()
         ? `<div class="timeline-item">
@@ -8072,6 +8167,7 @@ window.setTfReviewSort = setTfReviewSort;
 window.setTfReviewCourseFilter = setTfReviewCourseFilter;
 window.insertTfDraftNote = insertTfDraftNote;
 window.updateTfReviewWeightedPreview = updateTfReviewWeightedPreview;
+window.syncReviewStaffing = syncReviewStaffing;
 window.state = state;
 
 window.addEventListener("hashchange", () => {
@@ -8096,3 +8192,7 @@ save();
 applyTheme();
 if (state.view === "tf-reviews") setView("tf-reviews");
 else render();
+syncReviewStaffing({ quiet: true });
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && (state.view === "calendar" || state.view === "courses")) syncReviewStaffing({ quiet: true, force: true });
+});
