@@ -623,6 +623,51 @@ const DEFAULT_BLOCKS = [
   }
 ];
 
+const WEEKLY_PROGRAMME = [
+  { week: "W1", dates: "26–30 Oct", phase: "phase-1", blockId: "block-1", courses: ["MES01", "MES06"], milestone: "Orientation integrated: Mon 26 and Wed 28 Oct PM" },
+  { week: "W2", dates: "2–6 Nov", phase: "phase-1", blockId: "block-1", courses: ["MES01", "MES06"], milestone: "MES06 ends" },
+  { week: "W3", dates: "9–13 Nov", phase: "phase-1", blockId: "block-2", blockLabel: "B1 / B2", courses: ["MES01", "MES03", "MES05"], milestone: "MES05 starts after MES06; MES01 final week", overlap: true },
+  { week: "W4", dates: "16–20 Nov", phase: "phase-1", blockId: "block-2", courses: ["MES03", "MES05"], milestone: "MES05 ends" },
+  { week: "W5", dates: "23–27 Nov", phase: "phase-1", blockId: "block-2", courses: ["MES03"], milestone: "MES03 ends" },
+  { week: "W6", dates: "30 Nov–4 Dec", phase: "phase-1", blockId: "block-3", courses: ["MES02", "MES04"], milestone: "Full Block 3" },
+  { week: "W7", dates: "7–11 Dec", phase: "phase-1", blockId: "block-3", courses: ["MES02", "MES04"], milestone: "Full Block 3" },
+  { week: "W8", dates: "14–18 Dec", phase: "phase-1", blockId: "block-3", courses: ["MES02", "MES04"], milestone: "Foundation phase ends before Christmas" },
+  { week: "BREAK", dates: "19 Dec–4 Jan", phase: "reading-1", blockId: "reading-1", activity: "Christmas Break + Reading / Consolidation", milestone: "No teaching", kind: "reading" },
+  { week: "W9", dates: "5–8 Jan", phase: "phase-2", blockId: "block-4", courses: ["MEC01", "MEC03"], milestone: "Four-day opening week" },
+  { week: "W10", dates: "11–15 Jan", phase: "phase-2", blockId: "block-4", courses: ["MEC01", "MEC03"] },
+  { week: "W11", dates: "18–22 Jan", phase: "phase-2", blockId: "block-4", courses: ["MEC01", "MEC03"], milestone: "Block 4 ends" },
+  { week: "W12", dates: "25–29 Jan", phase: "phase-2", blockId: "block-5", courses: ["MEC02", "MEC04"] },
+  { week: "W13", dates: "1–5 Feb", phase: "phase-2", blockId: "block-5", courses: ["MEC02", "MEC04"] },
+  { week: "W14", dates: "8–12 Feb", phase: "phase-2", blockId: "block-5", courses: ["MEC02", "MEC04"], milestone: "Block 5 ends" },
+  { week: "W15", dates: "15–19 Feb", phase: "phase-2", blockId: "block-6", courses: ["MEC09", "MEC05"] },
+  { week: "W16", dates: "22–26 Feb", phase: "phase-2", blockId: "block-6", courses: ["MEC09", "MEC05"] },
+  { week: "W17", dates: "1–5 Mar", phase: "phase-2", blockId: "block-6", courses: ["MEC09", "MEC05"], milestone: "Block 6 ends" },
+  { week: "RW2", dates: "8–12 Mar", phase: "reading-2", blockId: "reading-2", activity: "Reading, consolidation, assessment and catch-up", milestone: "No new teaching", kind: "reading" },
+  { week: "W19", dates: "15–19 Mar", phase: "phase-3", blockId: "block-7", courses: ["MEC06", "MEC07"] },
+  { week: "W20", dates: "22–26 Mar", phase: "phase-3", blockId: "block-7", courses: ["MEC06", "MEC07"] },
+  { week: "W21", dates: "29 Mar–2 Apr", phase: "phase-3", blockId: "block-7", courses: ["MEC06", "MEC07"], milestone: "Block 7 ends" },
+  { week: "W22", dates: "5–9 Apr", phase: "phase-3", blockId: "block-8", courses: ["MEC08", "MEC10"] },
+  { week: "W23", dates: "12–16 Apr", phase: "phase-3", blockId: "block-8", courses: ["MEC08", "MEC10"] },
+  { week: "W24", dates: "19–23 Apr", phase: "phase-3", blockId: "block-8", courses: ["MEC08", "MEC10"], milestone: "Block 8 ends" },
+  { week: "W25", dates: "26–30 Apr", phase: "phase-3", blockId: "block-9", courses: ["MEE01", "MEE02", "MEE03", "MEE04"], milestone: "Students take an approved elective combination" },
+  { week: "W26", dates: "3–7 May", phase: "phase-3", blockId: "block-9", courses: ["MEE01", "MEE02", "MEE03", "MEE04"] },
+  { week: "W27", dates: "10–14 May", phase: "phase-3", blockId: "block-9", courses: ["MEE01", "MEE02", "MEE03", "MEE04"], milestone: "Block 9 ends" },
+  { week: "RW3", dates: "17–21 May", phase: "reading-3", blockId: "reading-3", activity: "Reading, consolidation and final assessments", milestone: "No new teaching", kind: "reading" },
+  { week: "W29", dates: "24–28 May", phase: "transition", blockId: "coursework-consolidation", activity: "Coursework close-out + internship preparation", milestone: "Academic phase closes", kind: "assessment" },
+  { week: "W30", dates: "31 May", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "MEI01 Internship begins", milestone: "Practical application phase begins", kind: "practical" },
+];
+
+const WEEKLY_PHASES = {
+  "phase-1": { title: "Phase 1 · Core Skills Foundation", period: "26 Oct–18 Dec 2026", tone: "blue" },
+  "reading-1": { title: "Christmas + Reading Period 1", period: "19 Dec–4 Jan", tone: "sand" },
+  "phase-2": { title: "Phase 2 · Epidemiology & Mathematical Modelling", period: "5 Jan–5 Mar 2027", tone: "green" },
+  "reading-2": { title: "Reading Week 2", period: "8–12 Mar", tone: "sand" },
+  "phase-3": { title: "Phase 3 · Advanced Methods, Data & Specialisation", period: "15 Mar–14 May", tone: "violet" },
+  "reading-3": { title: "Reading Week 3", period: "17–21 May", tone: "sand" },
+  transition: { title: "Academic Transition", period: "24–28 May", tone: "slate" },
+  internship: { title: "Internship", period: "From 31 May 2027", tone: "green" },
+};
+
 
 
 const DEFAULT_SESSIONS = [
@@ -3885,11 +3930,15 @@ function renderCalendar() {
         <div class="card-header">
           <div>
             <h2>Academic Calendar and Timetable</h2>
-            <p>Course titles appear directly in block and timetable slots.</p>
+            <p>Follow the programme week by week, then open a block for its recurring teaching timetable.</p>
           </div>
           <div class="toolbar">
             <div class="tabs">
-              ${["timeline", "week", "agenda"].map((mode) => `<button class="tab ${state.calendarMode === mode ? "active" : ""}" onclick="state.calendarMode='${mode}'; render()">${mode}</button>`).join("")}
+              ${[
+                ["timeline", "Week by week"],
+                ["week", "Weekly timetable"],
+                ["agenda", "Agenda"],
+              ].map(([mode, label]) => `<button class="tab ${state.calendarMode === mode ? "active" : ""}" onclick="state.calendarMode='${mode}'; render()">${label}</button>`).join("")}
             </div>
             <select class="button ghost" onchange="state.blockId=this.value; render()">
               ${state.blocks
@@ -3946,35 +3995,63 @@ function renderCalendar() {
 }
 
 function renderTimeline() {
+  const phaseOrder = Object.keys(WEEKLY_PHASES);
   return `
-    <div class="timeline">
-      ${state.blocks
-        .map((block) => {
-          const active = block.id === state.blockId;
+    <div class="programme-overview" aria-label="Programme summary">
+      <div><span>Start</span><strong>26 Oct 2026</strong></div>
+      <div><span>Teaching</span><strong>9 blocks</strong></div>
+      <div><span>Rhythm</span><strong>Read after 3 blocks</strong></div>
+      <div><span>Internship</span><strong>31 May 2027</strong></div>
+    </div>
+    <div class="weekly-programme">
+      ${phaseOrder
+        .map((phaseId) => {
+          const phase = WEEKLY_PHASES[phaseId];
+          const weeks = WEEKLY_PROGRAMME.filter((item) => item.phase === phaseId);
+          if (!weeks.length) return "";
           return `
-            <article class="phase ${active ? "active" : ""}" onclick="state.blockId='${block.id}'; render()">
-              <div class="phase-date">${shortDate(block.start)}<br />${shortDate(block.end)}</div>
-              <div>
-                <h3 class="phase-title">${block.title}</h3>
-                <p class="phase-meta">${block.note}</p>
+            <section class="weekly-phase weekly-phase-${phase.tone}">
+              <header class="weekly-phase-header">
+                <h3>${phase.title}</h3>
+                <span>${phase.period}</span>
+              </header>
+              <div class="weekly-column-labels" aria-hidden="true">
+                <span>Week</span><span>Dates</span><span>Teaching / activity</span><span>Milestone</span>
               </div>
-              <div class="phase-courses">
-                ${
-                  block.courses.length
-                    ? block.courses
-                        .map((code) => {
-                          const item = course(code);
-                          return item ? `<span class="chip ${COURSE_TYPES[item.type].color}">${item.code} ${item.title}</span>` : "";
-                        })
-                        .join("")
-                    : `<span class="chip gray">${block.kind}</span>`
-                }
+              <div class="weekly-list">
+                ${weeks.map(renderProgrammeWeek).join("")}
               </div>
-            </article>
+            </section>
           `;
         })
         .join("")}
     </div>
+  `;
+}
+
+function renderProgrammeWeek(item) {
+  const active = item.blockId === state.blockId;
+  const block = state.blocks.find((candidate) => candidate.id === item.blockId);
+  const blockLabel = item.blockLabel || block?.title?.replace("Block ", "B") || "";
+  const courses = (item.courses || [])
+    .map((code) => {
+      const linked = course(code);
+      const meta = linked ? COURSE_TYPES[linked.type] : null;
+      return `<span class="weekly-course ${meta?.color || "gray"}" title="${linked?.title || code}"><strong>${code}</strong><span>${linked?.title || ""}</span></span>`;
+    })
+    .join("");
+  const activity = item.activity
+    ? `<p class="weekly-activity">${item.activity}</p>`
+    : `<div class="weekly-courses">${courses}</div>`;
+  return `
+    <article class="weekly-row ${active ? "active" : ""} ${item.overlap ? "overlap" : ""} ${item.kind || ""}"
+      onclick="state.blockId='${item.blockId}'; render()" tabindex="0"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();state.blockId='${item.blockId}';render()}">
+      <div class="weekly-week"><strong>${item.week}</strong><span>${blockLabel}</span></div>
+      <time class="weekly-dates">${item.dates}</time>
+      <div class="weekly-teaching">${activity}</div>
+      <p class="weekly-milestone">${item.milestone || "Teaching continues"}</p>
+    </article>
   `;
 }
 
