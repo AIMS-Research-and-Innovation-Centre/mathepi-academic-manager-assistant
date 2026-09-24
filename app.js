@@ -107,6 +107,8 @@ const DEFAULT_COURSES = [
     "assignmentHours": 5,
     "independentStudyHours": 15,
     "lecturerId": null,
+    "lecturerName": "Prof. Blaise Tchapnda",
+    "lecturerStatus": "Confirmed programme assignment",
     "tutorIds": []
   },
   {
@@ -124,6 +126,9 @@ const DEFAULT_COURSES = [
     "assignmentHours": 5,
     "independentStudyHours": 15,
     "lecturerId": null,
+    "lecturerName": "Dr. Sonagnon Eunice Edwige Gandote",
+    "lecturerStatus": "Approved in lecturer review",
+    "alternateLecturerName": "Prof. Cecil Ouma",
     "tutorIds": []
   },
   {
@@ -2622,6 +2627,23 @@ function migrateProgrammeData() {
     if (courseToBlock[course.code]) course.block = courseToBlock[course.code];
   });
 
+  const confirmedAssignments = {
+    MES02: {
+      lecturerName: "Prof. Blaise Tchapnda",
+      lecturerStatus: "Confirmed programme assignment",
+      alternateLecturerName: "",
+    },
+    MES03: {
+      lecturerName: "Dr. Sonagnon Eunice Edwige Gandote",
+      lecturerStatus: "Approved in lecturer review",
+      alternateLecturerName: "Prof. Cecil Ouma",
+    },
+  };
+  Object.entries(confirmedAssignments).forEach(([code, assignment]) => {
+    const item = state.courses.find((course) => course.code === code);
+    if (item) Object.assign(item, assignment);
+  });
+
   if (!safeStorageGet("mathepi-programme-schedule-v3")) {
     state.sessions = safeClone(DEFAULT_SESSIONS);
     safeStorageSet("mathepi-programme-schedule-v3", "1");
@@ -4069,6 +4091,7 @@ function renderWeek(block) {
   const teachingCell = (item, label) => item
     ? `<div class="programme-session ${item.type || "skills"}" title="${item.code} ${item.title}">
         <strong>${item.code}</strong><span>${item.title}</span><small>${label}</small>
+        ${item.lecturerName ? `<small class="programme-lecturer">${item.lecturerName}${item.alternateLecturerName ? ` · Alt: ${item.alternateLecturerName}` : ""}</small>` : ""}
       </div>`
     : `<span class="programme-slot-empty">To be assigned</span>`;
   return `
@@ -4186,18 +4209,26 @@ function renderCourses() {
   `;
 }
 
-function studentCourseTeamChips(lead, tutors) {
+function courseLecturerName(item, lead = person(item.lecturerId)) {
+  return lead?.name || item.lecturerName || "";
+}
+
+function studentCourseTeamChips(item, lead, tutors) {
+  const lecturerName = courseLecturerName(item, lead);
   const tutorText = tutors.length ? tutors.map((t) => t.name).join(", ") : "Tutor not assigned";
   return `
-    <span class="chip ${lead ? "blue" : "danger"}">Lecturer: ${lead ? lead.name : "Not assigned"}</span>
+    <span class="chip ${lecturerName ? "blue" : "danger"}">Lecturer: ${lecturerName || "Not assigned"}</span>
+    ${item.alternateLecturerName ? `<span class="chip gold">Alternate: ${item.alternateLecturerName}</span>` : ""}
     <span class="chip ${tutors.length ? "green" : "danger"}">Tutor: ${tutorText}</span>
   `;
 }
 
 function courseStaffingChips(item, lead, tutors) {
   const tutorCount = item.tutorIds.length;
+  const lecturerName = courseLecturerName(item, lead);
   return `
-    ${lead ? `<span class="chip green">Lecturer assigned</span>${personStatusBadge(lead)}` : `<span class="badge danger">Lecturer not assigned</span>`}
+    ${lecturerName ? `<span class="chip green">${lecturerName}</span><span class="chip blue">${item.lecturerStatus || "Lecturer assigned"}</span>` : `<span class="badge danger">Lecturer not assigned</span>`}
+    ${item.alternateLecturerName ? `<span class="chip gold">Alternate: ${item.alternateLecturerName}</span>` : ""}
     ${
       tutorCount
         ? `<span class="chip green">${tutorCount} tutor${tutorCount === 1 ? "" : "s"} assigned</span>${tutors.map(personStatusBadge).join("")}`
@@ -4208,16 +4239,17 @@ function courseStaffingChips(item, lead, tutors) {
 
 function renderCourseRow(item) {
   const lead = person(item.lecturerId);
+  const lecturerName = courseLecturerName(item, lead);
   const tutors = item.tutorIds.map(person).filter(Boolean);
   const staffing =
     state.role === "student"
-      ? studentCourseTeamChips(lead, tutors)
+      ? studentCourseTeamChips(item, lead, tutors)
       : courseStaffingChips(item, lead, tutors);
   return `
     <article class="course-row">
       <div>
         <h4>${item.code} ${item.title}</h4>
-        <p>${item.block} · ${item.hours} hours · ${lead ? lead.name : "Lecturer not assigned"}</p>
+        <p>${item.block} · ${item.hours} hours · ${lecturerName || "Lecturer not assigned"}${item.alternateLecturerName ? ` · Alternate: ${item.alternateLecturerName}` : ""}</p>
         <div class="row-tags">
           ${typeBadge(item.type)}
           ${staffing}
@@ -6893,7 +6925,9 @@ function courseDrawer(code) {
     ? state.role === "student"
       ? lead.name
       : `${lead.name} · ${lead.status}`
-    : "Not assigned";
+    : item.lecturerName
+      ? `${item.lecturerName} · ${item.lecturerStatus || "Assigned"}`
+      : "Not assigned";
   const body = `
     <div class="meta-grid">
       <div class="meta-box"><span>Course code</span><strong>${item.code}</strong></div>
@@ -6903,6 +6937,7 @@ function courseDrawer(code) {
       <div class="meta-box"><span>Hour split</span><strong>${courseHourSplit(item)}</strong></div>
     </div>
     <div class="timeline-item"><h4>Lecturer</h4><p>${lecturerText}</p></div>
+    ${item.alternateLecturerName ? `<div class="timeline-item"><h4>Alternate lecturer</h4><p>${item.alternateLecturerName}</p></div>` : ""}
     <div class="timeline-item"><h4>Tutors</h4><p>${tutors.length ? tutors.map((t) => t.name).join(", ") : "No tutor assigned yet"}</p></div>
     ${
       canEdit()

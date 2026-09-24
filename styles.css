@@ -4037,6 +4037,13 @@ button {
   line-height: 1.25;
 }
 
+.programme-session .programme-lecturer {
+  margin-top: 3px;
+  padding-top: 4px;
+  border-top: 1px solid rgb(255 255 255 / 28%);
+  font-weight: 800;
+}
+
 .programme-session.skills { background: var(--blue); }
 .programme-session.specialization { background: var(--aims-maroon); }
 .programme-session.elective { background: var(--teal); }
