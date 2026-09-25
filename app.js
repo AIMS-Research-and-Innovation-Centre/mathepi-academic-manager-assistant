@@ -126,8 +126,6 @@ const DEFAULT_COURSES = [
     "assignmentHours": 5,
     "independentStudyHours": 15,
     "lecturerId": null,
-    "manualAlternateLecturerName": "Prof. Cecil Ouma",
-    "alternateLecturerName": "Prof. Cecil Ouma",
     "tutorIds": []
   },
   {
@@ -2631,10 +2629,6 @@ function migrateProgrammeData() {
       lecturerName: "Prof. Blaise Tchapnda",
       lecturerStatus: "Confirmed programme assignment",
       alternateLecturerName: "",
-    },
-    MES03: {
-      manualAlternateLecturerName: "Prof. Cecil Ouma",
-      alternateLecturerName: "Prof. Cecil Ouma",
     },
   };
   Object.entries(confirmedAssignments).forEach(([code, assignment]) => {
