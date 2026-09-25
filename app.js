@@ -2264,7 +2264,7 @@ function googleJsonpApi(endpoint, action, payload = {}) {
     const timeout = setTimeout(() => {
       cleanup();
       reject(new Error("Apps Script did not respond. Update and redeploy the Apps Script route files, then try again."));
-    }, 20000);
+    }, 45000);
 
     function cleanup() {
       clearTimeout(timeout);
