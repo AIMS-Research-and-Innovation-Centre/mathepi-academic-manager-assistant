@@ -316,13 +316,13 @@ function listReviewStaffingAssignments(payload) {
   const spreadsheet = getOrCreateSpreadsheet();
   ensureSheets(spreadsheet);
   const lecturerAssignments = readSheetObjects(getSheet(spreadsheet, "LecturerReviewDecisions"))
-    .filter((row) => normalizeLecturerReviewDecision_(row.decision) === "Approved")
+    .filter((row) => ["Approved", "Consider"].indexOf(normalizeLecturerReviewDecision_(row.decision)) >= 0)
     .map((row) => ({
       applicationId: String(row.application_id || ""),
       name: String(row.applicant || "").trim(),
       courseCode: String(row.course_id || "").trim().toUpperCase(),
       role: "Lecturer",
-      status: "Approved",
+      status: normalizeLecturerReviewDecision_(row.decision),
       updatedAt: String(row.updated_at || ""),
     }))
     .filter((row) => row.name && row.courseCode);

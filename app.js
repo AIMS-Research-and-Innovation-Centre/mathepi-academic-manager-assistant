@@ -126,6 +126,7 @@ const DEFAULT_COURSES = [
     "assignmentHours": 5,
     "independentStudyHours": 15,
     "lecturerId": null,
+    "manualAlternateLecturerName": "Prof. Cecil Ouma",
     "alternateLecturerName": "Prof. Cecil Ouma",
     "tutorIds": []
   },
@@ -2632,6 +2633,7 @@ function migrateProgrammeData() {
       alternateLecturerName: "",
     },
     MES03: {
+      manualAlternateLecturerName: "Prof. Cecil Ouma",
       alternateLecturerName: "Prof. Cecil Ouma",
     },
   };
@@ -4081,8 +4083,11 @@ function applyReviewStaffingAssignments(result = {}) {
   const tutors = result.tutorAssignments || [];
   state.courses.forEach((item) => {
     if (hasLecturers) {
-      const reviewLecturers = lecturers.filter((row) => row.courseCode === item.code).map((row) => row.name).filter(Boolean);
+      const reviewLecturers = lecturers.filter((row) => row.courseCode === item.code && String(row.status || "Approved") === "Approved").map((row) => row.name).filter(Boolean);
+      const reviewAlternates = lecturers.filter((row) => row.courseCode === item.code && String(row.status || "") === "Consider").map((row) => row.name).filter(Boolean);
       item.reviewLecturerNames = [...new Set(reviewLecturers)];
+      item.reviewAlternateLecturerNames = [...new Set(reviewAlternates)];
+      item.alternateLecturerName = [...new Set([item.manualAlternateLecturerName, ...item.reviewAlternateLecturerNames].filter(Boolean))].join(" / ");
       if (item.reviewLecturerNames.length) {
         item.lecturerName = item.reviewLecturerNames.join(" / ");
         item.lecturerStatus = "Approved in lecturer review";
@@ -4114,8 +4119,8 @@ async function syncReviewStaffing(options = {}) {
         const legacy = await googleEndpointApi(endpoint, "listLecturerReviewData", {});
         result = {
           lecturerAssignments: (legacy.decisions || [])
-            .filter((row) => String(row.decision || "").toLowerCase() === "approved")
-            .map((row) => ({ name: row.applicant, courseCode: String(row.course_id || "").toUpperCase() })),
+            .filter((row) => ["approved", "consider"].includes(String(row.decision || "").toLowerCase()))
+            .map((row) => ({ name: row.applicant, courseCode: String(row.course_id || "").toUpperCase(), status: String(row.decision || "") })),
           tutorAssignments: tutorAssignmentsFromReviewState(),
         };
       }
