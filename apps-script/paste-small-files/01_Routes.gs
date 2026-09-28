@@ -36,6 +36,8 @@ function apiPost(request) {
   if (action === "setupWorkspace") return setupWorkspace(payload);
   if (action === "saveSnapshot") return saveSnapshot(payload);
   if (action === "getBootstrap") return getBootstrap();
+  if (action === "syncProgrammeCalendar") return syncProgrammeCalendar(payload);
+  if (action === "getProgrammeCalendarStatus") return getProgrammeCalendarStatus();
   if (action === "updateCfaStatus") return updateCfaStatus(payload);
   if (action === "getCfaStatus") return getCfaStatus(payload);
   if (action === "diagnoseEmailOtp") return diagnoseEmailOtp(payload);

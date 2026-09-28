@@ -9,6 +9,7 @@ function setupWorkspace(payload) {
     tabsUpdated = writeDatasets(spreadsheet, payload.datasets);
     if (payload.cfaStatuses) writeCfaStatuses(spreadsheet, payload.cfaStatuses);
   }
+  const calendarSync = payload && payload.datasets ? tryProgrammeCalendarSync(payload, spreadsheet) : getProgrammeCalendarStatus();
   return {
     ok: true,
     spreadsheetId: spreadsheet.getId(),
@@ -17,6 +18,7 @@ function setupWorkspace(payload) {
     driveRootFolderId: rootFolder.getId(),
     driveRootUrl: rootFolder.getUrl(),
     tabsUpdated,
+    calendarSync,
   };
 }
 
@@ -34,7 +36,8 @@ function saveSnapshot(payload) {
       updated_at: new Date().toISOString(),
     },
   ]);
-  return { ok: true, tabsUpdated, spreadsheetUrl: spreadsheet.getUrl(), driveRootUrl: rootFolder.getUrl() };
+  const calendarSync = tryProgrammeCalendarSync(payload, spreadsheet);
+  return { ok: true, tabsUpdated, spreadsheetUrl: spreadsheet.getUrl(), driveRootUrl: rootFolder.getUrl(), calendarSync };
 }
 
 function getBootstrap() {

@@ -8,13 +8,15 @@ Use this when the Google Apps Script web app is live but missing a new backend a
 2. Open the main script file in Apps Script.
 3. Replace its full contents with the contents of:
    `apps-script/Code.gs`
-4. Open Project Settings / Manifest file and confirm the manifest matches:
+4. Create `11_ProgrammeCalendar.gs` and paste the contents of:
+   `apps-script/paste-small-files/11_ProgrammeCalendar.gs`
+5. Open Project Settings / Manifest file and confirm the manifest matches:
    `apps-script/appsscript.json`
-5. Save.
-6. Deploy > Manage deployments > Edit the current Web app deployment.
-7. Choose New version.
-8. Deploy.
-9. Refresh:
+6. Save.
+7. Deploy > Manage deployments > Edit the current Web app deployment.
+8. Choose New version.
+9. Deploy.
+10. Refresh:
    `http://127.0.0.1:8776/lecturer-reviews/`
 
 ## If Apps Script Cannot Handle One Large Paste
@@ -33,6 +35,7 @@ Paste `00_Config.gs` into the default `Code.gs`, then create or replace the rema
 - `08_EmailOtp.gs`
 - `09_EmailOtpHelpers.gs`
 - `10_TutorialFellowReviews.gs`
+- `11_ProgrammeCalendar.gs`
 
 The lecturer review endpoint and decision storage need the current versions of:
 
@@ -41,3 +44,6 @@ The lecturer review endpoint and decision storage need the current versions of:
 - `04_LecturerApplications.gs`
 
 After saving, deploy a new Web app version.
+
+The first programme-calendar sync requests Google Calendar permission. Run `setupWorkspace`
+once in the Apps Script editor, accept the permission prompt, and then deploy the new version.

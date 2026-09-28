@@ -28,5 +28,6 @@ Paste these in order:
 9. `08_EmailOtp.gs`
 10. `09_EmailOtpHelpers.gs`
 11. `10_TutorialFellowReviews.gs`
+12. `11_ProgrammeCalendar.gs`
 
 Apps Script can run functions across multiple `.gs` files in the same project, so this is equivalent to the single `Code.gs` file.

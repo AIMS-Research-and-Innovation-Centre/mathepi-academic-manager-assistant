@@ -2358,11 +2358,34 @@ async function pushGoogleSnapshot(reason = "manual", options = {}) {
   try {
     const result = await googleApi("saveSnapshot", { ...googleSnapshot(), reason });
     state.googleConnected = true;
+    if (result?.calendarSync) state.programmeCalendar = result.calendarSync;
     if (!options.quiet) toast(`Synced ${result?.tabsUpdated || 0} tabs to Google Sheets.`);
     render();
   } catch (error) {
     if (!options.quiet) toast(error.message || "Google sync failed.");
   }
+}
+
+async function syncProgrammeGoogleCalendar() {
+  if (!googleBackendAvailable()) {
+    toast("The Apps Script backend is not configured.");
+    return;
+  }
+  state.programmeCalendar = { ...(state.programmeCalendar || {}), syncing: true };
+  render();
+  try {
+    const result = await timedGoogleApi(
+      googleApi("syncProgrammeCalendar", {}),
+      "Google Calendar synchronization is taking too long. Check Apps Script authorization and try again.",
+      90000,
+    );
+    state.programmeCalendar = result || {};
+    toast(`Google Calendar updated with ${result?.eventCount || 0} programme events.`);
+  } catch (error) {
+    state.programmeCalendar = { ok: false, error: error.message || "Google Calendar synchronization failed." };
+    toast(state.programmeCalendar.error);
+  }
+  render();
 }
 
 async function pullGoogleBootstrap() {
@@ -2404,7 +2427,8 @@ const state = {
   toast: null,
   theme: safeStorageGet("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
-  googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY) === "true",
+  googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY, "true") !== "false",
+  programmeCalendar: null,
   tfReview: {
     session: load(TF_REVIEW_SESSION_KEY, null),
     email: "",
@@ -3939,6 +3963,7 @@ function assistantPriorities() {
 
 function renderCalendar() {
   const active = activeBlock();
+  const calendarSync = state.programmeCalendar;
   return `
     <div class="view">
       <div class="card">
@@ -3948,6 +3973,8 @@ function renderCalendar() {
             <p>Follow the programme week by week, then open a block for its recurring teaching timetable.</p>
           </div>
           <div class="toolbar">
+            ${canEdit() ? `<button class="button soft" onclick="syncProgrammeGoogleCalendar()" ${calendarSync?.syncing ? "disabled" : ""}>${icon("calendar", 17)}${calendarSync?.syncing ? "Syncing..." : "Sync Google Calendar"}</button>` : ""}
+            ${calendarSync?.calendarUrl ? `<a class="button ghost" href="${escapeHtml(calendarSync.calendarUrl)}" target="_blank" rel="noopener">${icon("external", 17)}Open Google Calendar</a>` : ""}
             <div class="tabs">
               ${[
                 ["timeline", "Week by week"],
@@ -3964,6 +3991,8 @@ function renderCalendar() {
           </div>
         </div>
         <div class="card-body">
+          ${calendarSync?.error ? `<div class="notice danger">${escapeHtml(calendarSync.error)}</div>` : ""}
+          ${calendarSync?.lastSyncedAt ? `<div class="notice success">Google Calendar synced ${escapeHtml(new Date(calendarSync.lastSyncedAt).toLocaleString())} · ${Number(calendarSync.eventCount || 0)} events</div>` : ""}
           ${state.calendarMode === "timeline" ? renderTimeline() : ""}
           ${state.calendarMode === "week" ? renderWeek(active) : ""}
           ${state.calendarMode === "agenda" ? renderAgenda() : ""}
@@ -8138,6 +8167,7 @@ window.updateTaskStatus = updateTaskStatus;
 window.addPlannerTask = addPlannerTask;
 window.updatePlannerTaskStatus = updatePlannerTaskStatus;
 window.toggleStudentCalendarSync = toggleStudentCalendarSync;
+window.syncProgrammeGoogleCalendar = syncProgrammeGoogleCalendar;
 window.addTodo = addTodo;
 window.updateTodoStatus = updateTodoStatus;
 window.convertTodoToPlan = convertTodoToPlan;

@@ -4,7 +4,9 @@ const MATHEPI = {
   properties: {
     spreadsheetId: "MATHEPI_SPREADSHEET_ID",
     driveRootFolderId: "MATHEPI_DRIVE_ROOT_FOLDER_ID",
+    calendarId: "MATHEPI_PROGRAMME_CALENDAR_ID",
   },
+  calendarName: "MathEpi 2026-2027 Programme",
   defaultCfaStatuses: {
     lecturers: "Open",
     tutors: "Open",
@@ -94,6 +96,7 @@ const TAB_HEADERS = {
     "audit_id", "timestamp", "reviewer_email", "reviewer_name", "action",
     "application_id", "old_value_json", "new_value_json", "reason",
   ],
+  CalendarSyncEvents: ["sync_key", "event_id", "fingerprint", "event_date", "updated_at"],
   DriveDocuments: ["document_id", "type", "related_id", "file_name", "drive_file_id", "url", "created_at"],
 };
 
