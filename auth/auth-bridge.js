@@ -104,7 +104,7 @@
           await signOut(auth);
           return;
         }
-        const token = await firebaseUser.getIdTokenResult(true);
+        const token = await firebaseUser.getIdTokenResult();
         const roles = rolesFromClaims(token.claims);
         const role = roles[0];
         publish("ready", {

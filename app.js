@@ -3488,11 +3488,38 @@ async function authCreateAccount() {
     return;
   }
   try {
-    await auth.createAccount(email, password);
+    setAuthActionBusy(true, "Creating account...");
+    await withAuthTimeout(auth.createAccount(email, password));
     toast("Account created. Assign the production role in Firebase custom claims.");
   } catch (error) {
-    toast(error.message || "Account could not be created.");
+    toast(authErrorMessage(error, "Account could not be created."));
+  } finally {
+    setAuthActionBusy(false);
   }
+}
+
+function withAuthTimeout(operation, timeoutMs = 12000) {
+  return Promise.race([
+    operation,
+    new Promise((_, reject) => window.setTimeout(() => reject(new Error("AUTH_TIMEOUT")), timeoutMs)),
+  ]);
+}
+
+function setAuthActionBusy(busy, label = "") {
+  document.querySelectorAll("[data-auth-action]").forEach((button) => {
+    button.disabled = busy;
+    if (busy && button.dataset.authAction === "signin") button.textContent = label || "Signing in...";
+  });
+}
+
+function authErrorMessage(error, fallback) {
+  const code = String(error?.code || error?.message || "");
+  if (code.includes("AUTH_TIMEOUT")) return "Sign-in timed out. Check your connection and try again.";
+  if (code.includes("invalid-credential") || code.includes("INVALID_LOGIN_CREDENTIALS")) return "Email or password is incorrect. New users should select Create account first.";
+  if (code.includes("email-already-in-use")) return "This account already exists. Select Sign in instead.";
+  if (code.includes("weak-password")) return "Use a password with at least six characters.";
+  if (code.includes("network-request-failed")) return "Firebase could not be reached. Check your connection and try again.";
+  return error?.message || fallback;
 }
 
 async function authSignIn() {
@@ -3507,15 +3534,18 @@ async function authSignIn() {
     toast("Enter an email and password.");
     return;
   }
-  if (!/@aimsric\.org$/i.test(email)) {
-    toast("Access is restricted to @aimsric.org email addresses.");
+  if (typeof window.mathepiEmailAllowed === "function" && !window.mathepiEmailAllowed(email)) {
+    toast("Use an approved MathEpi account email.");
     return;
   }
   try {
-    await auth.signIn(email, password);
+    setAuthActionBusy(true, "Signing in...");
+    await withAuthTimeout(auth.signIn(email, password));
     toast("Signed in.");
   } catch (error) {
-    toast(error.message || "Sign in failed.");
+    toast(authErrorMessage(error, "Sign in failed."));
+  } finally {
+    setAuthActionBusy(false);
   }
 }
 
@@ -3622,10 +3652,10 @@ function authGateLayout() {
           </div>
         </div>
         <div class="hero-actions compact-actions">
-          <button class="button primary" ${canSubmit ? "" : "disabled"} onclick="authSignIn()">${icon("shield", 17)}Sign in</button>
-          <button class="button ghost" ${canSubmit && selfSignup ? "" : "disabled"} onclick="authCreateAccount()">${icon("users", 17)}Create account</button>
+          <button class="button primary" data-auth-action="signin" ${canSubmit ? "" : "disabled"} onclick="authSignIn()">${icon("shield", 17)}Sign in</button>
+          <button class="button ghost" data-auth-action="create" ${canSubmit && selfSignup ? "" : "disabled"} onclick="authCreateAccount()">${icon("users", 17)}Create account</button>
         </div>
-        <p class="muted-note">Access is limited to authorized AIMS RIC accounts. Roles are assigned centrally by an administrator.</p>
+        <p class="muted-note">First visit? Select Create account once. Returning users can sign in directly. Roles are assigned centrally by an administrator.</p>
       </section>
       ${state.toast ? `<div class="toast">${icon("check", 18)}${escapeHtml(state.toast)}</div>` : ""}
     </div>
