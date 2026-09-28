@@ -1,24 +1,41 @@
 function getOrCreateSpreadsheet() {
   const props = PropertiesService.getScriptProperties();
-  const rootFolder = getOrCreateRootFolder();
   const existingId = props.getProperty(MATHEPI.properties.spreadsheetId);
   if (existingId) {
     try {
-      const spreadsheet = SpreadsheetApp.openById(existingId);
-      try {
-        DriveApp.getFileById(existingId).moveTo(rootFolder);
-      } catch (moveError) {}
-      return spreadsheet;
+      return openSpreadsheetWithRetry_(existingId);
     } catch (e) {
+      if (!isMissingGoogleFileError_(e)) throw e;
       props.deleteProperty(MATHEPI.properties.spreadsheetId);
     }
   }
+  const rootFolder = getOrCreateRootFolder();
   const spreadsheet = SpreadsheetApp.create(MATHEPI.spreadsheetName);
   try {
     DriveApp.getFileById(spreadsheet.getId()).moveTo(rootFolder);
   } catch (moveError) {}
   props.setProperty(MATHEPI.properties.spreadsheetId, spreadsheet.getId());
   return spreadsheet;
+}
+
+function openSpreadsheetWithRetry_(spreadsheetId) {
+  let lastError = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+      spreadsheet.getName();
+      return spreadsheet;
+    } catch (error) {
+      lastError = error;
+      if (isMissingGoogleFileError_(error)) throw error;
+      if (attempt < 2) Utilities.sleep(1500 * (attempt + 1));
+    }
+  }
+  throw new Error("Google Drive temporarily timed out while opening the MathEpi spreadsheet. Wait 30 seconds and run the function again. Original error: " + (lastError && lastError.message ? lastError.message : lastError));
+}
+
+function isMissingGoogleFileError_(error) {
+  return /not found|does not exist|invalid argument|permission|access denied/i.test(String(error && error.message ? error.message : error));
 }
 
 function getOrCreateRootFolder() {
