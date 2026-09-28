@@ -46,9 +46,11 @@
     );
   }
 
-  function roleFromClaims(claims = {}) {
-    const role = claims.role || claims.mathepiRole || claims.mathepi_role || "viewer";
-    return validRoles.has(role) ? role : "viewer";
+  function rolesFromClaims(claims = {}) {
+    const claimed = Array.isArray(claims.roles) ? claims.roles : [];
+    const legacy = claims.role || claims.mathepiRole || claims.mathepi_role;
+    const roles = [...new Set([...claimed, legacy].filter((role) => validRoles.has(role)))];
+    return roles.length ? roles : ["viewer"];
   }
 
   function allowedEmail(email) {
@@ -56,8 +58,13 @@
       ? window.MATHEPI_ALLOWED_EMAIL_DOMAINS
       : ["aimsric.org"];
     const normalized = String(email || "").trim().toLowerCase();
-    return domains.some((domain) => normalized.endsWith(`@${String(domain).trim().toLowerCase()}`));
+    const emails = Array.isArray(window.MATHEPI_ALLOWED_EMAILS)
+      ? window.MATHEPI_ALLOWED_EMAILS.map((item) => String(item).trim().toLowerCase())
+      : [];
+    return emails.includes(normalized) || domains.some((domain) => normalized.endsWith(`@${String(domain).trim().toLowerCase()}`));
   }
+
+  window.mathepiEmailAllowed = allowedEmail;
 
   async function startFirebaseAuth(config) {
     publish("loading", { error: null });
@@ -77,11 +84,11 @@
       const auth = getAuth(app);
 
       authState.createAccount = (email, password) => {
-        if (!allowedEmail(email)) return Promise.reject(new Error("Access is restricted to @aimsric.org email addresses."));
+        if (!allowedEmail(email)) return Promise.reject(new Error("Use an approved MathEpi account email."));
         return createUserWithEmailAndPassword(auth, email, password);
       };
       authState.signIn = (email, password) => {
-        if (!allowedEmail(email)) return Promise.reject(new Error("Access is restricted to @aimsric.org email addresses."));
+        if (!allowedEmail(email)) return Promise.reject(new Error("Use an approved MathEpi account email."));
         return signInWithEmailAndPassword(auth, email, password);
       };
       authState.signOut = () => signOut(auth);
@@ -92,13 +99,14 @@
           return;
         }
         if (!allowedEmail(firebaseUser.email)) {
-          const message = "Access is restricted to @aimsric.org email addresses.";
+          const message = "This email is not approved for MathEpi access.";
           publish("ready", { user: null, error: message });
           await signOut(auth);
           return;
         }
         const token = await firebaseUser.getIdTokenResult(true);
-        const role = roleFromClaims(token.claims);
+        const roles = rolesFromClaims(token.claims);
+        const role = roles[0];
         publish("ready", {
           error: null,
           user: {
@@ -106,9 +114,11 @@
             email: firebaseUser.email,
             displayName: firebaseUser.displayName || firebaseUser.email,
             role,
+            roles,
           },
         });
-        if (typeof window.setAuthenticatedRole === "function") window.setAuthenticatedRole(role);
+        if (typeof window.setAuthenticatedRoles === "function") window.setAuthenticatedRoles(roles);
+        else if (typeof window.setAuthenticatedRole === "function") window.setAuthenticatedRole(role);
       });
     } catch (error) {
       publish("error", { error: error.message || "Firebase login could not start." });

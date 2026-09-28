@@ -22,8 +22,8 @@
     <div id="app"></div>
     <script>
       (function () {
-        var APP_SCRIPT = "app.js?v=42";
-        var AUTH_BRIDGE = "auth/auth-bridge.js?v=18";
+        var APP_SCRIPT = "app.js?v=43";
+        var AUTH_BRIDGE = "auth/auth-bridge.js?v=19";
         var booted = false;
         var resetDone = false;
 
@@ -89,7 +89,7 @@
         function loadApp() {
           if (booted) return;
           booted = true;
-          loadScript("auth/firebase-config.js", function () {
+          loadScript("auth/firebase-config.js?v=3", function () {
             loadScript(AUTH_BRIDGE, function () {
               loadScript(APP_SCRIPT, function () {
                 window.setTimeout(showBootFallback, 2500);

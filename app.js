@@ -3417,8 +3417,13 @@ function closeDrawer() {
 
 function setRole(role, options = {}) {
   if (!ROLES[role]) return;
-  if (authConfigured() && options.source !== "auth") {
+  const grantedRoles = authState().user?.roles || [];
+  if (authConfigured() && options.source !== "auth" && options.source !== "auth-switch") {
     toast("Roles are controlled by signed-in account claims.");
+    return;
+  }
+  if (options.source === "auth-switch" && !grantedRoles.includes(role)) {
+    toast("This role is not assigned to your account.");
     return;
   }
   state.role = role;
@@ -3428,6 +3433,15 @@ function setRole(role, options = {}) {
 
 function setAuthenticatedRole(role) {
   setRole(role, { source: "auth" });
+}
+
+function setAuthenticatedRoles(roles) {
+  const granted = Array.isArray(roles) ? roles.filter((role) => ROLES[role]) : [];
+  setRole(granted[0] || "viewer", { source: "auth" });
+}
+
+function switchAuthenticatedRole(role) {
+  setRole(role, { source: "auth-switch" });
 }
 
 function authStatusLabel() {
@@ -3465,8 +3479,8 @@ async function authCreateAccount() {
     toast("Enter an email and password.");
     return;
   }
-  if (!/@aimsric\.org$/i.test(email)) {
-    toast("Access is restricted to @aimsric.org email addresses.");
+  if (typeof window.mathepiEmailAllowed === "function" && !window.mathepiEmailAllowed(email)) {
+    toast("Use an approved MathEpi account email.");
     return;
   }
   if (password.length < 6) {
@@ -3546,10 +3560,15 @@ function renderRoleControl() {
   const auth = authState();
   if (!roleSimulationAllowed()) {
     const account = auth.user?.email || "Signed-in account";
+    const grantedRoles = Array.isArray(auth.user?.roles) ? auth.user.roles.filter((role) => ROLES[role]) : [state.role];
     return `
       <div class="role-card account-card">
         <label>Access role</label>
-        <strong>${escapeHtml(roleDef().label)}</strong>
+        ${grantedRoles.length > 1 ? `
+          <select aria-label="Active access role" onchange="switchAuthenticatedRole(this.value)">
+            ${grantedRoles.map((role) => `<option value="${role}" ${state.role === role ? "selected" : ""}>${escapeHtml(ROLES[role].label)}</option>`).join("")}
+          </select>
+        ` : `<strong>${escapeHtml(roleDef().label)}</strong>`}
         <small>${escapeHtml(account)}</small>
         <button class="button ghost" onclick="authSignOut()">${icon("x", 15)}Sign out</button>
       </div>
