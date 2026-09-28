@@ -3654,6 +3654,7 @@ function authGateLayout() {
         <div class="hero-actions compact-actions">
           <button class="button primary" data-auth-action="signin" ${canSubmit ? "" : "disabled"} onclick="authSignIn()">${icon("shield", 17)}Sign in</button>
           <button class="button ghost" data-auth-action="create" ${canSubmit && selfSignup ? "" : "disabled"} onclick="authCreateAccount()">${icon("users", 17)}Create account</button>
+          <button class="button ghost" data-auth-action="reset" ${canSubmit ? "" : "disabled"} onclick="authResetPassword()">Reset password</button>
         </div>
         <p class="muted-note">First visit? Select Create account once. Returning users can sign in directly. Roles are assigned centrally by an administrator.</p>
       </section>
@@ -4128,6 +4129,28 @@ function renderTimeline() {
         .join("")}
     </div>
   `;
+}
+
+async function authResetPassword() {
+  const auth = authState();
+  const email = (document.querySelector("#authEmail")?.value || document.querySelector("#authGateEmail")?.value || "").trim();
+  if (!email) {
+    toast("Enter your email address first.");
+    return;
+  }
+  if (typeof window.mathepiEmailAllowed === "function" && !window.mathepiEmailAllowed(email)) {
+    toast("Use an approved MathEpi account email.");
+    return;
+  }
+  try {
+    setAuthActionBusy(true);
+    await withAuthTimeout(auth.resetPassword(email));
+    toast("Password reset email sent. Check your inbox and spam folder.");
+  } catch (error) {
+    toast(authErrorMessage(error, "Password reset email could not be sent."));
+  } finally {
+    setAuthActionBusy(false);
+  }
 }
 
 let staffingSyncPromise = null;
@@ -8211,6 +8234,7 @@ window.render = render;
 window.toast = toast;
 window.authCreateAccount = authCreateAccount;
 window.authSignIn = authSignIn;
+window.authResetPassword = authResetPassword;
 window.authSignOut = authSignOut;
 window.updatePersonStatus = updatePersonStatus;
 window.addCourse = addCourse;

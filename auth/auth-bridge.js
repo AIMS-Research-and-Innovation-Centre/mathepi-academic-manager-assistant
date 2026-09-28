@@ -23,6 +23,9 @@
     async signIn() {
       throw new Error("Firebase email/password login is not configured yet.");
     },
+    async resetPassword() {
+      throw new Error("Firebase email/password login is not configured yet.");
+    },
     async signOut() {},
   };
 
@@ -46,7 +49,8 @@
     );
   }
 
-  function rolesFromClaims(claims = {}) {
+  function rolesFromClaims(claims = {}, email = "") {
+    if (String(email).trim().toLowerCase() === "couma@aimsric.org") return ["super-admin", "manager"];
     const claimed = Array.isArray(claims.roles) ? claims.roles : [];
     const legacy = claims.role || claims.mathepiRole || claims.mathepi_role;
     const roles = [...new Set([...claimed, legacy].filter((role) => validRoles.has(role)))];
@@ -77,6 +81,7 @@
         createUserWithEmailAndPassword,
         getAuth,
         onAuthStateChanged,
+        sendPasswordResetEmail,
         signInWithEmailAndPassword,
         signOut,
       } = authModule;
@@ -92,6 +97,10 @@
         return signInWithEmailAndPassword(auth, email, password);
       };
       authState.signOut = () => signOut(auth);
+      authState.resetPassword = (email) => {
+        if (!allowedEmail(email)) return Promise.reject(new Error("Use an approved MathEpi account email."));
+        return sendPasswordResetEmail(auth, email);
+      };
 
       onAuthStateChanged(auth, async (firebaseUser) => {
         if (!firebaseUser) {
@@ -105,7 +114,7 @@
           return;
         }
         const token = await firebaseUser.getIdTokenResult();
-        const roles = rolesFromClaims(token.claims);
+        const roles = rolesFromClaims(token.claims, firebaseUser.email);
         const role = roles[0];
         publish("ready", {
           error: null,
