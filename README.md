@@ -29,7 +29,7 @@ Open `index.html` in a browser. No build step is required.
 
 ## Private GitHub Hosting
 
-This static prototype can be committed to a private GitHub repository and deployed through GitHub Pages, Vercel, Netlify, or another GitHub-connected host. Keep API keys and OAuth client details out of the repository. Use deployment environment variables for production secrets.
+This production portal is deployed through GitHub Pages with Firebase authentication and an Apps Script backend. Keep private credentials and service-account secrets out of the repository.
 
 ## Installable App
 
@@ -39,7 +39,7 @@ The portal includes `manifest.webmanifest`, `sw.js`, and mobile icons. Once host
 
 The `auth/` folder contains a Firebase Auth bridge. To activate it, enable Email/Password sign-in in Firebase, paste the Firebase web app config into `auth/firebase-config.js`, then assign users a custom claim named `role`.
 
-When Firebase is configured, users must sign in before the portal opens. The sidebar role simulation is disabled, and the visible navigation is based on the signed-in user's `role` claim.
+Users must sign in with an authorized `@aimsric.org` account before the portal opens. Self-registration and the former role simulation are disabled. Visible navigation and permitted actions are based on the signed-in user's `role` claim.
 
 Supported role IDs are:
 

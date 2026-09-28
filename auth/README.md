@@ -12,7 +12,7 @@ The portal is prepared for Firebase email/password accounts. Passwords must stay
 6. Refresh the portal and open Access Control.
 7. Create or sign in with a user email and password.
 
-When Firebase config is active, the portal shows a sign-in screen before the main workspace. The old sidebar role switch is only available in unconfigured prototype mode.
+The portal always shows a sign-in screen before the main workspace. Only authorized `@aimsric.org` accounts are accepted, self-registration is disabled, and there is no role-simulation fallback.
 
 ## Role Claim
 

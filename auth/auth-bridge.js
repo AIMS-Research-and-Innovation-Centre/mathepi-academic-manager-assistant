@@ -51,6 +51,14 @@
     return validRoles.has(role) ? role : "viewer";
   }
 
+  function allowedEmail(email) {
+    const domains = Array.isArray(window.MATHEPI_ALLOWED_EMAIL_DOMAINS)
+      ? window.MATHEPI_ALLOWED_EMAIL_DOMAINS
+      : ["aimsric.org"];
+    const normalized = String(email || "").trim().toLowerCase();
+    return domains.some((domain) => normalized.endsWith(`@${String(domain).trim().toLowerCase()}`));
+  }
+
   async function startFirebaseAuth(config) {
     publish("loading", { error: null });
     try {
@@ -68,13 +76,25 @@
       const app = initializeApp(config);
       const auth = getAuth(app);
 
-      authState.createAccount = (email, password) => createUserWithEmailAndPassword(auth, email, password);
-      authState.signIn = (email, password) => signInWithEmailAndPassword(auth, email, password);
+      authState.createAccount = (email, password) => {
+        if (!allowedEmail(email)) return Promise.reject(new Error("Access is restricted to @aimsric.org email addresses."));
+        return createUserWithEmailAndPassword(auth, email, password);
+      };
+      authState.signIn = (email, password) => {
+        if (!allowedEmail(email)) return Promise.reject(new Error("Access is restricted to @aimsric.org email addresses."));
+        return signInWithEmailAndPassword(auth, email, password);
+      };
       authState.signOut = () => signOut(auth);
 
       onAuthStateChanged(auth, async (firebaseUser) => {
         if (!firebaseUser) {
-          publish("ready", { user: null, error: null });
+          publish("ready", { user: null, error: authState.error || null });
+          return;
+        }
+        if (!allowedEmail(firebaseUser.email)) {
+          const message = "Access is restricted to @aimsric.org email addresses.";
+          publish("ready", { user: null, error: message });
+          await signOut(auth);
           return;
         }
         const token = await firebaseUser.getIdTokenResult(true);

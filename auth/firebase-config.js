@@ -6,4 +6,5 @@ window.MATHEPI_FIREBASE_CONFIG = {
 };
 
 window.MATHEPI_REQUIRE_AUTH = true;
-window.MATHEPI_ALLOW_SELF_SIGNUP = true;
+window.MATHEPI_ALLOW_SELF_SIGNUP = false;
+window.MATHEPI_ALLOWED_EMAIL_DOMAINS = ["aimsric.org"];

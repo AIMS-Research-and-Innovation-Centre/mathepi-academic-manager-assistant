@@ -2745,8 +2745,7 @@ function authState() {
 }
 
 function authConfigured() {
-  const auth = authState();
-  return window.MATHEPI_REQUIRE_AUTH !== false && auth.status !== "unconfigured";
+  return window.MATHEPI_REQUIRE_AUTH !== false;
 }
 
 function authGateRequired() {
@@ -2755,7 +2754,7 @@ function authGateRequired() {
 }
 
 function roleSimulationAllowed() {
-  return !authConfigured();
+  return false;
 }
 
 function applyTheme() {
@@ -3434,6 +3433,7 @@ function setAuthenticatedRole(role) {
 function authStatusLabel() {
   const auth = authState();
   if (auth.status === "ready" && auth.user) return `Signed in as ${auth.user.email}`;
+  if (auth.error) return auth.error;
   if (auth.status === "ready") return "Firebase login ready";
   if (auth.status === "loading") return "Starting Firebase login";
   if (auth.status === "error") return auth.error || "Firebase login needs attention";
@@ -3465,6 +3465,10 @@ async function authCreateAccount() {
     toast("Enter an email and password.");
     return;
   }
+  if (!/@aimsric\.org$/i.test(email)) {
+    toast("Access is restricted to @aimsric.org email addresses.");
+    return;
+  }
   if (password.length < 6) {
     toast("Firebase requires at least 6 password characters.");
     return;
@@ -3487,6 +3491,10 @@ async function authSignIn() {
   }
   if (!email || !password) {
     toast("Enter an email and password.");
+    return;
+  }
+  if (!/@aimsric\.org$/i.test(email)) {
+    toast("Access is restricted to @aimsric.org email addresses.");
     return;
   }
   try {
@@ -3540,7 +3548,7 @@ function renderRoleControl() {
     const account = auth.user?.email || "Signed-in account";
     return `
       <div class="role-card account-card">
-        <label>Signed-in role</label>
+        <label>Access role</label>
         <strong>${escapeHtml(roleDef().label)}</strong>
         <small>${escapeHtml(account)}</small>
         <button class="button ghost" onclick="authSignOut()">${icon("x", 15)}Sign out</button>
@@ -3549,7 +3557,7 @@ function renderRoleControl() {
   }
   return `
     <div class="role-card">
-      <label for="roleSwitch">Prototype role simulation</label>
+      <label for="roleSwitch">Access role</label>
       <select id="roleSwitch" onchange="setRole(this.value)">
         ${Object.entries(ROLES)
           .map(([id, role]) => `<option value="${id}" ${state.role === id ? "selected" : ""}>${role.label}</option>`)
@@ -3568,7 +3576,7 @@ function authGateLayout() {
       ? "Starting secure sign-in."
       : auth.status === "error"
         ? auth.error || "Firebase sign-in needs attention."
-        : "Use your approved MathEpi account email and password.";
+        : auth.error || "Use your approved @aimsric.org account email and password.";
   return `
     <div class="auth-page">
       <section class="auth-panel">
@@ -3587,7 +3595,7 @@ function authGateLayout() {
         <div class="form-grid auth-form">
           <div class="field full">
             <label>Email</label>
-            <input id="authGateEmail" type="email" autocomplete="email" placeholder="user@example.org" ${canSubmit ? "" : "disabled"} />
+            <input id="authGateEmail" type="email" autocomplete="email" placeholder="name@aimsric.org" ${canSubmit ? "" : "disabled"} />
           </div>
           <div class="field full">
             <label>Password</label>
@@ -3598,7 +3606,7 @@ function authGateLayout() {
           <button class="button primary" ${canSubmit ? "" : "disabled"} onclick="authSignIn()">${icon("shield", 17)}Sign in</button>
           <button class="button ghost" ${canSubmit && selfSignup ? "" : "disabled"} onclick="authCreateAccount()">${icon("users", 17)}Create account</button>
         </div>
-        <p class="muted-note">New accounts start with Viewer access until an authorized admin assigns a production role claim.</p>
+        <p class="muted-note">Access is limited to authorized AIMS RIC accounts. Roles are assigned centrally by an administrator.</p>
       </section>
       ${state.toast ? `<div class="toast">${icon("check", 18)}${escapeHtml(state.toast)}</div>` : ""}
     </div>
@@ -6869,7 +6877,7 @@ function renderAccess() {
           <div class="form-grid">
             <div class="field">
               <label>Email</label>
-              <input id="authEmail" type="email" autocomplete="email" placeholder="user@example.org" />
+              <input id="authEmail" type="email" autocomplete="email" placeholder="name@aimsric.org" />
             </div>
             <div class="field">
               <label>Password</label>
