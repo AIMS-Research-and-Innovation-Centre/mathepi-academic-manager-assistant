@@ -302,6 +302,26 @@ button {
 .account-card > label { margin: 1px 0 0; font-size: 9px; }
 .account-card select { min-height: 34px; padding: 7px 9px; font-size: 12px; }
 
+.account-menu-shell { position: relative; flex: 0 0 auto; margin: 0 12px 14px; }
+.account-trigger { width: 100%; min-width: 0; min-height: 48px; display: grid; grid-template-columns: 32px minmax(0, 1fr) 18px; align-items: center; gap: 9px; padding: 8px; border: 1px solid rgba(255,255,255,.16); border-radius: 7px; color: #fff; background: rgba(255,255,255,.08); text-align: left; }
+.account-trigger:hover, .account-trigger:focus-visible, .account-trigger[aria-expanded="true"] { background: rgba(255,255,255,.14); }
+.account-avatar { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.16); }
+.account-trigger-copy { min-width: 0; display: grid; gap: 2px; }
+.account-trigger-copy strong, .account-trigger-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-trigger-copy strong { font-size: 11px; }
+.account-trigger-copy small { color: rgba(255,255,255,.67); font-size: 10px; }
+.account-popover { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); z-index: 80; padding: 6px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: var(--panel); box-shadow: 0 14px 34px rgba(16,24,40,.22); }
+.account-popover-head { min-width: 0; padding: 8px 9px 10px; border-bottom: 1px solid var(--line); }
+.account-popover-head strong, .account-popover-head span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-popover-head strong { font-size: 12px; }
+.account-popover-head span { margin-top: 3px; color: var(--muted); font-size: 11px; }
+.account-menu-section { padding: 8px 7px; }
+.account-menu-section label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.account-menu-section select { width: 100%; min-height: 34px; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--panel); color: var(--ink); font-size: 12px; }
+.account-popover > button { width: 100%; min-height: 36px; display: flex; align-items: center; gap: 9px; padding: 8px 9px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); font-size: 12px; text-align: left; }
+.account-popover > button:hover, .account-popover > button:focus-visible { background: var(--soft); }
+.account-popover > button.danger { color: var(--danger); }
+
 .content {
   min-width: 0;
   display: flex;
@@ -3769,6 +3789,12 @@ button {
     flex: 1 0 auto;
   }
 
+  .account-menu-shell.sidebar { margin-inline: 10px; }
+  .account-menu-shell.sidebar .account-trigger { grid-template-columns: 1fr; justify-items: center; }
+  .account-menu-shell.sidebar .account-trigger-copy,
+  .account-menu-shell.sidebar .account-trigger > svg { display: none; }
+  .account-menu-shell.sidebar .account-popover { width: 244px; right: auto; }
+
   .programme-overview {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3996,6 +4022,17 @@ button {
   background: var(--panel);
   color: var(--ink);
   border-color: var(--line);
+}
+
+@media (max-width: 760px) {
+  .mobile-bottom-nav > .account-menu-shell.mobile { margin: 0; position: static; min-width: 0; }
+  .mobile-bottom-nav > .account-menu-shell.mobile .account-trigger { height: var(--mobile-nav); min-height: 0; grid-template-columns: 1fr; justify-items: center; padding: 6px; border: 0; border-radius: 0; color: var(--muted); background: transparent; }
+  .mobile-bottom-nav > .account-menu-shell.mobile .account-trigger-copy,
+  .mobile-bottom-nav > .account-menu-shell.mobile .account-trigger > svg { display: none; }
+  .mobile-bottom-nav > .account-menu-shell.mobile .account-avatar { width: 30px; height: 30px; background: var(--soft); }
+  .mobile-bottom-nav > .account-menu-shell.mobile .account-popover { position: fixed; left: 12px; right: 12px; bottom: calc(var(--mobile-nav) + 10px); width: auto; }
+  .mobile-bottom-nav .account-popover > button { min-height: 40px; display: flex; grid-template-columns: none; place-items: initial; justify-content: flex-start; gap: 9px; padding: 8px 9px; font-size: 13px; }
+  .mobile-bottom-nav .account-popover > button span { overflow: visible; white-space: normal; }
 }
 
 .time-cell {
