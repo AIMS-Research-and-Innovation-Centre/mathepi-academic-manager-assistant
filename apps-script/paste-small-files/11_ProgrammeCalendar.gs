@@ -47,24 +47,18 @@ function syncProgrammeCalendarData(datasets, spreadsheet) {
   if (!blocks.length || !courses.length) throw new Error("Calendar blocks and courses must be synced before creating Google Calendar events.");
 
   const calendar = getOrCreateProgrammeCalendar();
-  ensureProgrammeCalendarTrigger();
+  removeProgrammeCalendarTriggers_();
   const ledgerSheet = getSheet(spreadsheet, "CalendarSyncEvents");
   ensureSheetHeaders(ledgerSheet, TAB_HEADERS.CalendarSyncEvents);
   const existing = readCalendarSyncLedger(ledgerSheet);
   const desired = buildProgrammeCalendarEvents(blocks, courses, sessions);
+  clearProgrammeCalendarEvents_(calendar);
   const retained = {};
   let created = 0;
   let updated = 0;
   let unchanged = 0;
 
   desired.forEach((item) => {
-    const prior = existing[item.sync_key];
-    if (prior && prior.fingerprint === item.fingerprint && calendarEventExists(calendar, prior.event_id)) {
-      retained[item.sync_key] = prior;
-      unchanged += 1;
-      return;
-    }
-    if (prior && prior.event_id) deleteCalendarEvent(calendar, prior.event_id);
     const event = createProgrammeCalendarEvent(calendar, item);
     retained[item.sync_key] = {
       sync_key: item.sync_key,
@@ -73,8 +67,7 @@ function syncProgrammeCalendarData(datasets, spreadsheet) {
       event_date: item.event_date,
       updated_at: new Date().toISOString(),
     };
-    if (prior) updated += 1;
-    else created += 1;
+    created += 1;
   });
 
   let removed = 0;
@@ -124,6 +117,18 @@ function getOrCreateProgrammeCalendar() {
 function ensureProgrammeCalendarTrigger() {
   const exists = ScriptApp.getProjectTriggers().some((trigger) => trigger.getHandlerFunction() === PROGRAMME_CALENDAR_TRIGGER);
   if (!exists) ScriptApp.newTrigger(PROGRAMME_CALENDAR_TRIGGER).timeBased().everyMinutes(15).create();
+}
+
+function removeProgrammeCalendarTriggers_() {
+  ScriptApp.getProjectTriggers().forEach(function (trigger) {
+    if (trigger.getHandlerFunction() === PROGRAMME_CALENDAR_TRIGGER) ScriptApp.deleteTrigger(trigger);
+  });
+}
+
+function clearProgrammeCalendarEvents_(calendar) {
+  const start = new Date("2025-01-01T00:00:00Z");
+  const end = new Date("2029-12-31T23:59:59Z");
+  calendar.getEvents(start, end).forEach(function (event) { event.deleteEvent(); });
 }
 
 function buildProgrammeCalendarEvents(blocks, courses, sessions) {
