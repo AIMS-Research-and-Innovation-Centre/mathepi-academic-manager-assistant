@@ -2428,6 +2428,7 @@ const state = {
   selected: null,
   drawer: null,
   toast: null,
+  portalOtpSent: false,
   theme: safeStorageGet("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
   googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY, "true") !== "false",
@@ -3634,8 +3635,8 @@ function authGateLayout() {
       <div class="form-grid auth-form">
         <div class="field full"><label>Email</label><input id="portalEmail" type="email" autocomplete="email" placeholder="name@aimsric.org" /></div>
         <div class="field full"><label>Requested role</label><select id="portalRole">${roleOptions.map(([id, role]) => `<option value="${id}">${escapeHtml(role.label)}</option>`).join("")}</select></div>
-        <div class="field full"><label>Six-digit code</label><input id="portalCode" inputmode="numeric" maxlength="6" placeholder="000000" /></div>
-      </div><div class="hero-actions compact-actions"><button class="button ghost" onclick="requestPortalOtp()">Send code</button><button class="button primary" onclick="verifyPortalOtp()">Verify and continue</button></div>`}
+        ${state.portalOtpSent ? `<div class="field full"><label>Six-digit code</label><input id="portalCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" autofocus /></div>` : ""}
+      </div><div class="hero-actions compact-actions"><button class="button ghost" onclick="requestPortalOtp()">${state.portalOtpSent ? "Send new code" : "Send code"}</button>${state.portalOtpSent ? `<button class="button primary" onclick="verifyPortalOtp()">Verify and continue</button>` : ""}</div>`}
       <p class="muted-note">Sessions remain active on this device for up to 30 days. New accounts require Academic Manager approval.</p>
     </section>${state.toast ? `<div class="toast">${icon("check",18)}${escapeHtml(state.toast)}</div>` : ""}</div>`;
   /* Legacy Firebase form retained below as a fallback during migration. */
@@ -4156,7 +4157,7 @@ function renderTimeline() {
 async function requestPortalOtp() {
   const email = document.querySelector("#portalEmail")?.value.trim();
   if (!email) return toast("Enter your email address.");
-  try { const result = await timedGoogleApi(googleApi("requestPortalAccessOtp", { email }), "The email service is taking too long.", 30000); if (!result.ok) throw new Error(result.error); toast("Code sent. Check your inbox and spam folder."); }
+  try { const result = await timedGoogleApi(googleApi("requestPortalAccessOtp", { email }), "The email service is taking too long.", 30000); if (!result.ok) throw new Error(result.error); state.portalOtpSent = true; toast("Code sent. Check your inbox and spam folder."); render(); }
   catch (error) { toast(error.message || "Code could not be sent."); }
 }
 
