@@ -43,6 +43,11 @@ function apiPost(request) {
   if (action === "diagnoseEmailOtp") return diagnoseEmailOtp(payload);
   if (action === "requestEmailOtp") return requestEmailOtp(payload);
   if (action === "verifyEmailOtp") return verifyEmailOtp(payload);
+  if (action === "requestPortalAccessOtp") return requestPortalAccessOtp(payload);
+  if (action === "verifyPortalAccessOtp") return verifyPortalAccessOtp(payload);
+  if (action === "getPortalAccessSession") return getPortalAccessSession(payload);
+  if (action === "listPortalAccessRequests") return listPortalAccessRequests(payload);
+  if (action === "decidePortalAccess") return decidePortalAccess(payload);
   if (action === "requestReviewerOtp") return requestReviewerOtp(payload);
   if (action === "verifyReviewerOtp") return verifyReviewerOtp(payload);
   if (action === "getReviewerSession") return getReviewerSession(payload);

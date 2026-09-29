@@ -2121,6 +2121,9 @@ const GOOGLE_BACKEND_URL_KEY = "mathepi-apps-script-url";
 const GOOGLE_AUTOSYNC_KEY = "mathepi-google-autosync";
 const PUBLIC_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrBseE_6REWP5D4zySf-Z6j_x9nUofWvT426M_HG5FoPllMDOZEcEa-f_Of4zryTQ9/exec";
 const TF_REVIEW_SESSION_KEY = "mathepi-tf-review-session-v1";
+const PORTAL_ACCESS_SESSION_KEY = "mathepi-portal-access-v1";
+let portalAccess = (() => { try { return JSON.parse(localStorage.getItem(PORTAL_ACCESS_SESSION_KEY) || "null"); } catch { return null; } })();
+let portalRequests = [];
 const TF_REVIEW_STAGES = [
   { id: "all", label: "All applicants", target: 100 },
   { id: "screened", label: "Screened", target: 85 },
@@ -2741,6 +2744,9 @@ function roleDef() {
 }
 
 function authState() {
+  if (portalAccess && portalAccess.status === "approved") {
+    return { status: "ready", user: { email: portalAccess.email, role: portalAccess.roles[0], roles: portalAccess.roles }, error: null };
+  }
   return window.mathepiAuth || { status: "unconfigured", user: null, error: null };
 }
 
@@ -2750,7 +2756,7 @@ function authConfigured() {
 
 function authGateRequired() {
   const auth = authState();
-  return authConfigured() && (auth.status === "loading" || auth.status === "error" || !auth.user);
+  return authConfigured() && !auth.user;
 }
 
 function roleSimulationAllowed() {
@@ -3617,6 +3623,22 @@ function renderRoleControl() {
 }
 
 function authGateLayout() {
+  const pending = portalAccess && portalAccess.status === "pending";
+  const rejected = portalAccess && portalAccess.status === "rejected";
+  const roleOptions = Object.entries(ROLES).filter(([id]) => !["super-admin", "reviewer"].includes(id));
+  return `
+    <div class="auth-page"><section class="auth-panel">
+      <div class="auth-brand"><img src="assets/aims-ric-logo.png" alt="AIMS Research & Innovation Centre logo" /><div><p>MathEpi Operations</p><h1>MathEpi Assistant</h1></div></div>
+      <div class="auth-copy"><span class="badge ${pending ? "gold" : rejected ? "danger" : "blue"}">${pending ? "Pending approval" : rejected ? "Request not approved" : "Passwordless access"}</span><h2>${pending ? "Your request is being reviewed" : "Sign in with an email code"}</h2><p>${pending ? "You will receive an email when the Academic Manager approves your role." : "Enter your approved email and requested role. We will send a six-digit code."}</p></div>
+      ${pending || rejected ? `<div class="hero-actions"><button class="button ghost" onclick="portalSignOut()">Use another email</button><button class="button primary" onclick="refreshPortalAccess()">Check status</button></div>` : `
+      <div class="form-grid auth-form">
+        <div class="field full"><label>Email</label><input id="portalEmail" type="email" autocomplete="email" placeholder="name@aimsric.org" /></div>
+        <div class="field full"><label>Requested role</label><select id="portalRole">${roleOptions.map(([id, role]) => `<option value="${id}">${escapeHtml(role.label)}</option>`).join("")}</select></div>
+        <div class="field full"><label>Six-digit code</label><input id="portalCode" inputmode="numeric" maxlength="6" placeholder="000000" /></div>
+      </div><div class="hero-actions compact-actions"><button class="button ghost" onclick="requestPortalOtp()">Send code</button><button class="button primary" onclick="verifyPortalOtp()">Verify and continue</button></div>`}
+      <p class="muted-note">Sessions remain active on this device for up to 30 days. New accounts require Academic Manager approval.</p>
+    </section>${state.toast ? `<div class="toast">${icon("check",18)}${escapeHtml(state.toast)}</div>` : ""}</div>`;
+  /* Legacy Firebase form retained below as a fallback during migration. */
   const auth = authState();
   const canSubmit = auth.status === "ready";
   const selfSignup = window.MATHEPI_ALLOW_SELF_SIGNUP !== false;
@@ -4130,6 +4152,29 @@ function renderTimeline() {
     </div>
   `;
 }
+
+async function requestPortalOtp() {
+  const email = document.querySelector("#portalEmail")?.value.trim();
+  if (!email) return toast("Enter your email address.");
+  try { const result = await timedGoogleApi(googleApi("requestPortalAccessOtp", { email }), "The email service is taking too long.", 30000); if (!result.ok) throw new Error(result.error); toast("Code sent. Check your inbox and spam folder."); }
+  catch (error) { toast(error.message || "Code could not be sent."); }
+}
+
+async function verifyPortalOtp() {
+  const email = document.querySelector("#portalEmail")?.value.trim();
+  const requestedRole = document.querySelector("#portalRole")?.value;
+  const code = document.querySelector("#portalCode")?.value.trim();
+  try { const result = await timedGoogleApi(googleApi("verifyPortalAccessOtp", { email, requestedRole, code }), "Verification is taking too long.", 30000); if (!result.ok) throw new Error(result.error); portalAccess = result; localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(result)); if (result.status === "approved") setAuthenticatedRoles(result.roles); render(); }
+  catch (error) { toast(error.message || "Code could not be verified."); }
+}
+
+async function refreshPortalAccess() {
+  if (!portalAccess?.token) return portalSignOut();
+  try { const result = await googleApi("getPortalAccessSession", { token: portalAccess.token }); if (!result.ok) throw new Error(result.error); portalAccess = result; localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(result)); if (result.status === "approved") setAuthenticatedRoles(result.roles); render(); }
+  catch (error) { toast(error.message || "Status could not be refreshed."); }
+}
+
+function portalSignOut() { portalAccess = null; localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY); render(); }
 
 async function authResetPassword() {
   const auth = authState();
@@ -6913,6 +6958,10 @@ function renderAccess() {
   return `
     <div class="view section-grid">
       <div class="card">
+        <div class="card-header"><div><h2>Account approvals</h2><p>Approve requested roles before users can enter the application.</p></div><button class="button ghost" onclick="loadPortalRequests()">Refresh</button></div>
+        <div class="card-body assistant-stack">${portalRequests.length ? portalRequests.map((request) => `<div class="priority"><div><strong>${escapeHtml(request.email)}</strong><span>Requested: ${escapeHtml(ROLES[request.requested_role]?.label || request.requested_role)}</span></div><select id="access-role-${request._row}">${Object.entries(ROLES).filter(([id]) => !["super-admin","reviewer"].includes(id)).map(([id,role]) => `<option value="${id}" ${id === request.requested_role ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select><button class="button primary" onclick="decidePortalRequest('${escapeHtml(request.email)}','approved','access-role-${request._row}')">Approve</button><button class="button ghost" onclick="decidePortalRequest('${escapeHtml(request.email)}','rejected','access-role-${request._row}')">Reject</button></div>`).join("") : `<div class="empty">No pending requests loaded.</div>`}</div>
+      </div>
+      <div class="card">
         <div class="card-header">
           <div>
             <h2>Installable App</h2>
@@ -7031,6 +7080,17 @@ function renderAccess() {
       </div>
     </div>
   `;
+}
+
+async function loadPortalRequests() {
+  try { const result = await googleApi("listPortalAccessRequests", { token: portalAccess?.token }); if (!result.ok) throw new Error(result.error); portalRequests = result.requests || []; render(); }
+  catch (error) { toast(error.message || "Requests could not be loaded."); }
+}
+
+async function decidePortalRequest(email, decision, selectId) {
+  const role = document.getElementById(selectId)?.value || "viewer";
+  try { const result = await googleApi("decidePortalAccess", { token: portalAccess?.token, email, decision, role }); if (!result.ok) throw new Error(result.error); toast(decision === "approved" ? "Account approved and confirmation sent." : "Request rejected and email sent."); await loadPortalRequests(); }
+  catch (error) { toast(error.message || "Decision could not be saved."); }
 }
 
 function renderDrawer() {
@@ -8236,6 +8296,12 @@ window.authCreateAccount = authCreateAccount;
 window.authSignIn = authSignIn;
 window.authResetPassword = authResetPassword;
 window.authSignOut = authSignOut;
+window.requestPortalOtp = requestPortalOtp;
+window.verifyPortalOtp = verifyPortalOtp;
+window.refreshPortalAccess = refreshPortalAccess;
+window.portalSignOut = portalSignOut;
+window.loadPortalRequests = loadPortalRequests;
+window.decidePortalRequest = decidePortalRequest;
 window.updatePersonStatus = updatePersonStatus;
 window.addCourse = addCourse;
 window.updateCourseLecturer = updateCourseLecturer;
@@ -8302,6 +8368,7 @@ save();
 applyTheme();
 if (state.view === "tf-reviews") setView("tf-reviews");
 else render();
+if (portalAccess?.token) refreshPortalAccess();
 syncReviewStaffing({ quiet: true });
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && (state.view === "calendar" || state.view === "courses")) syncReviewStaffing({ quiet: true, force: true });
