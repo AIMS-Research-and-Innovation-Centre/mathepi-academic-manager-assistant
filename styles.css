@@ -3649,7 +3649,83 @@ button {
   }
 
   .sidebar {
-    display: none;
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .brand-panel {
+    padding: 16px 20px 14px;
+  }
+
+  .logo-lockup {
+    grid-template-columns: 52px 1fr;
+    justify-items: start;
+  }
+
+  .logo-lockup img {
+    width: 52px;
+    height: 52px;
+  }
+
+  .brand-kicker,
+  .brand-title,
+  .assistant-pulse {
+    display: block;
+  }
+
+  .assistant-pulse {
+    margin-top: 12px;
+  }
+
+  .nav {
+    min-height: 0;
+    padding: 10px 14px;
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+
+  .nav-button {
+    width: auto;
+    min-width: max-content;
+    min-height: 44px;
+    grid-template-columns: 22px auto auto;
+    padding: 10px 13px;
+    white-space: nowrap;
+  }
+
+  .nav-button span,
+  .nav-button .count {
+    display: inline-grid;
+  }
+
+  .account-menu-shell.sidebar {
+    margin: 0;
+    padding: 0 14px 12px;
+  }
+
+  .account-menu-shell.sidebar .account-trigger {
+    grid-template-columns: 32px minmax(0, 1fr) 18px;
+    justify-items: stretch;
+  }
+
+  .account-menu-shell.sidebar .account-trigger-copy,
+  .account-menu-shell.sidebar .account-trigger > svg {
+    display: grid;
+  }
+
+  .account-menu-shell.sidebar .account-popover {
+    left: 14px;
+    right: 14px;
+    bottom: auto;
+    top: calc(100% - 6px);
+    width: auto;
   }
 
   .content {
