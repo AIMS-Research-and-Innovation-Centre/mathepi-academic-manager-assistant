@@ -3599,14 +3599,16 @@ function renderRoleControl() {
     const grantedRoles = Array.isArray(auth.user?.roles) ? auth.user.roles.filter((role) => ROLES[role]) : [state.role];
     return `
       <div class="role-card account-card">
-        <label>Access role</label>
+        <div class="account-card-header">
+          <div class="account-identity"><span>Signed in</span><small title="${escapeHtml(account)}">${escapeHtml(account)}</small></div>
+          <button class="account-signout" onclick="portalSignOut()" aria-label="Sign out" title="Sign out">${icon("x", 16)}</button>
+        </div>
+        <label for="activeRoleSwitch">Access role</label>
         ${grantedRoles.length > 1 ? `
-          <select aria-label="Active access role" onchange="switchAuthenticatedRole(this.value)">
+          <select id="activeRoleSwitch" aria-label="Active access role" onchange="switchAuthenticatedRole(this.value)">
             ${grantedRoles.map((role) => `<option value="${role}" ${state.role === role ? "selected" : ""}>${escapeHtml(ROLES[role].label)}</option>`).join("")}
           </select>
         ` : `<strong>${escapeHtml(roleDef().label)}</strong>`}
-        <small>${escapeHtml(account)}</small>
-        <button class="button ghost" onclick="authSignOut()">${icon("x", 15)}Sign out</button>
       </div>
     `;
   }
