@@ -2427,7 +2427,6 @@ const state = {
   blockId: "block-4",
   selected: null,
   drawer: null,
-  accountMenuOpen: false,
   toast: null,
   theme: safeStorageGet("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
@@ -3391,7 +3390,6 @@ function toast(message) {
 }
 
 function setView(view) {
-  state.accountMenuOpen = false;
   if (view === "tf-reviews") {
     const reviewUrl = new URL("./tf-reviews/", window.location.href);
     reviewUrl.searchParams.set("t", String(Date.now()));
@@ -3449,7 +3447,6 @@ function setAuthenticatedRoles(roles) {
 }
 
 function switchAuthenticatedRole(role) {
-  state.accountMenuOpen = false;
   setRole(role, { source: "auth-switch" });
 }
 
@@ -3600,7 +3597,18 @@ function renderRoleControl() {
   if (!roleSimulationAllowed()) {
     const account = auth.user?.email || "Signed-in account";
     const grantedRoles = Array.isArray(auth.user?.roles) ? auth.user.roles.filter((role) => ROLES[role]) : [state.role];
-    return renderAccountMenu(account, grantedRoles, "sidebar");
+    return `
+      <div class="role-card account-card">
+        <label>Access role</label>
+        ${grantedRoles.length > 1 ? `
+          <select aria-label="Active access role" onchange="switchAuthenticatedRole(this.value)">
+            ${grantedRoles.map((role) => `<option value="${role}" ${state.role === role ? "selected" : ""}>${escapeHtml(ROLES[role].label)}</option>`).join("")}
+          </select>
+        ` : `<strong>${escapeHtml(roleDef().label)}</strong>`}
+        <small>${escapeHtml(account)}</small>
+        <button class="button ghost" onclick="authSignOut()">${icon("x", 15)}Sign out</button>
+      </div>
+    `;
   }
   return `
     <div class="role-card">
@@ -3739,9 +3747,6 @@ function appLayout() {
 }
 
 function mobileNav(nav) {
-  const auth = authState();
-  const account = auth.user?.email || "Signed-in account";
-  const grantedRoles = Array.isArray(auth.user?.roles) ? auth.user.roles.filter((role) => ROLES[role]) : [state.role];
   const priorityIds =
     state.role === "student"
       ? ["dashboard", "planner", "groups", "support", "appointments"]
@@ -3751,9 +3756,9 @@ function mobileNav(nav) {
           ? ["dashboard", "lecturer-reviews", "tf-reviews", "cfa", "calendar"]
           : ["dashboard", "calendar", "courses", "groups", "support"];
   const priority = priorityIds.map((id) => nav.find((item) => item.id === id)).filter(Boolean);
-  const first = priority.length >= 4 ? priority.slice(0, 4) : nav.slice(0, 4);
+  const first = priority.length >= 5 ? priority.slice(0, 5) : nav.slice(0, 5);
   const active = nav.find((item) => item.id === state.view);
-  const mobile = active && !first.some((item) => item.id === active.id) ? [...first.slice(0, 3), active] : first;
+  const mobile = active && !first.some((item) => item.id === active.id) ? [...first.slice(0, 4), active] : first;
   return `
     <nav class="mobile-bottom-nav">
       ${mobile
@@ -3766,7 +3771,6 @@ function mobileNav(nav) {
         `,
         )
         .join("")}
-      ${renderAccountMenu(account, grantedRoles, "mobile")}
     </nav>
   `;
 }
@@ -4147,26 +4151,6 @@ function renderTimeline() {
         .join("")}
     </div>
   `;
-}
-
-function renderAccountMenu(account, grantedRoles, placement) {
-  return `<div class="account-menu-shell ${placement}">
-    <button class="account-trigger" onclick="toggleAccountMenu(event)" aria-haspopup="menu" aria-expanded="${state.accountMenuOpen}" title="${escapeHtml(account)}">
-      <span class="account-avatar">${icon("users", 17)}</span><span class="account-trigger-copy"><strong>${escapeHtml(account)}</strong><small>${escapeHtml(roleDef().label)}</small></span>${icon("menu", 16)}
-    </button>
-    ${state.accountMenuOpen ? `<div class="account-popover" role="menu">
-      <div class="account-popover-head"><strong>${escapeHtml(account)}</strong><span>${escapeHtml(roleDef().label)}</span></div>
-      ${grantedRoles.length > 1 ? `<div class="account-menu-section"><label for="accountRoleSwitch">Switch role</label><select id="accountRoleSwitch" onchange="switchAuthenticatedRole(this.value)">${grantedRoles.map((role) => `<option value="${role}" ${state.role === role ? "selected" : ""}>${escapeHtml(ROLES[role].label)}</option>`).join("")}</select></div>` : ""}
-      ${canView("access") ? `<button role="menuitem" onclick="setView('access')">${icon("shield", 17)}<span>Account & access</span></button>` : ""}
-      <button class="danger" role="menuitem" onclick="portalSignOut()">${icon("x", 17)}<span>Sign out</span></button>
-    </div>` : ""}
-  </div>`;
-}
-
-function toggleAccountMenu(event) {
-  event?.stopPropagation();
-  state.accountMenuOpen = !state.accountMenuOpen;
-  render();
 }
 
 async function requestPortalOtp() {
@@ -8297,7 +8281,6 @@ function render() {
 window.setView = setView;
 window.setRole = setRole;
 window.setAuthenticatedRole = setAuthenticatedRole;
-window.toggleAccountMenu = toggleAccountMenu;
 window.toggleTheme = toggleTheme;
 window.openDrawer = openDrawer;
 window.closeDrawer = closeDrawer;
@@ -8389,16 +8372,4 @@ if (portalAccess?.token) refreshPortalAccess();
 syncReviewStaffing({ quiet: true });
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && (state.view === "calendar" || state.view === "courses")) syncReviewStaffing({ quiet: true, force: true });
-});
-document.addEventListener("click", (event) => {
-  if (state.accountMenuOpen && !event.target.closest(".account-menu-shell")) {
-    state.accountMenuOpen = false;
-    render();
-  }
-});
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && state.accountMenuOpen) {
-    state.accountMenuOpen = false;
-    render();
-  }
 });

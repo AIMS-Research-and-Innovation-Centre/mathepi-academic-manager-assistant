@@ -167,7 +167,7 @@ button {
 
 .nav {
   flex: 1 1 auto;
-  min-height: 160px;
+  min-height: 0;
   padding: clamp(8px, 1.5vh, 14px) 10px;
   display: grid;
   align-content: start;
@@ -269,10 +269,7 @@ button {
 
 .account-card {
   display: grid;
-  gap: 7px;
-  padding: 10px;
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.07);
+  gap: 8px;
 }
 
 .account-card strong,
@@ -293,34 +290,14 @@ button {
   font-size: 11px;
 }
 
-.account-card-header { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 7px; border-bottom: 1px solid rgba(255, 255, 255, 0.13); }
-.account-identity { min-width: 0; }
-.account-identity span { display: block; margin-bottom: 2px; color: rgba(255, 255, 255, 0.58); font-size: 9px; font-weight: 800; text-transform: uppercase; }
-.account-identity small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.account-signout { flex: 0 0 30px; width: 30px; height: 30px; display: inline-grid; place-items: center; padding: 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; background: transparent; color: #fff; cursor: pointer; }
-.account-signout:hover, .account-signout:focus-visible { background: rgba(255, 255, 255, 0.14); }
-.account-card > label { margin: 1px 0 0; font-size: 9px; }
-.account-card select { min-height: 34px; padding: 7px 9px; font-size: 12px; }
-
-.account-menu-shell { position: relative; flex: 0 0 auto; margin: auto 12px 14px; }
-.account-trigger { width: 100%; min-width: 0; min-height: 48px; display: grid; grid-template-columns: 32px minmax(0, 1fr) 18px; align-items: center; gap: 9px; padding: 8px; border: 1px solid rgba(255,255,255,.16); border-radius: 7px; color: #fff; background: rgba(255,255,255,.08); text-align: left; }
-.account-trigger:hover, .account-trigger:focus-visible, .account-trigger[aria-expanded="true"] { background: rgba(255,255,255,.14); }
-.account-avatar { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.16); }
-.account-trigger-copy { min-width: 0; display: grid; gap: 2px; }
-.account-trigger-copy strong, .account-trigger-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.account-trigger-copy strong { font-size: 11px; }
-.account-trigger-copy small { color: rgba(255,255,255,.67); font-size: 10px; }
-.account-popover { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); z-index: 80; padding: 6px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: var(--panel); box-shadow: 0 14px 34px rgba(16,24,40,.22); }
-.account-popover-head { min-width: 0; padding: 8px 9px 10px; border-bottom: 1px solid var(--line); }
-.account-popover-head strong, .account-popover-head span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.account-popover-head strong { font-size: 12px; }
-.account-popover-head span { margin-top: 3px; color: var(--muted); font-size: 11px; }
-.account-menu-section { padding: 8px 7px; }
-.account-menu-section label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
-.account-menu-section select { width: 100%; min-height: 34px; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--panel); color: var(--ink); font-size: 12px; }
-.account-popover > button { width: 100%; min-height: 36px; display: flex; align-items: center; gap: 9px; padding: 8px 9px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); font-size: 12px; text-align: left; }
-.account-popover > button:hover, .account-popover > button:focus-visible { background: var(--soft); }
-.account-popover > button.danger { color: var(--danger); }
+.account-card .button {
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 8px;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
 
 .content {
   min-width: 0;
@@ -3633,7 +3610,7 @@ button {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 760px) {
   html,
   body,
   #app,
@@ -3649,83 +3626,7 @@ button {
   }
 
   .sidebar {
-    position: relative;
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-
-  .brand-panel {
-    padding: 16px 20px 14px;
-  }
-
-  .logo-lockup {
-    grid-template-columns: 52px 1fr;
-    justify-items: start;
-  }
-
-  .logo-lockup img {
-    width: 52px;
-    height: 52px;
-  }
-
-  .brand-kicker,
-  .brand-title,
-  .assistant-pulse {
-    display: block;
-  }
-
-  .assistant-pulse {
-    margin-top: 12px;
-  }
-
-  .nav {
-    min-height: 0;
-    padding: 10px 14px;
-    display: flex;
-    align-items: stretch;
-    gap: 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: thin;
-  }
-
-  .nav-button {
-    width: auto;
-    min-width: max-content;
-    min-height: 44px;
-    grid-template-columns: 22px auto auto;
-    padding: 10px 13px;
-    white-space: nowrap;
-  }
-
-  .nav-button span,
-  .nav-button .count {
-    display: inline-grid;
-  }
-
-  .account-menu-shell.sidebar {
-    margin: 0;
-    padding: 0 14px 12px;
-  }
-
-  .account-menu-shell.sidebar .account-trigger {
-    grid-template-columns: 32px minmax(0, 1fr) 18px;
-    justify-items: stretch;
-  }
-
-  .account-menu-shell.sidebar .account-trigger-copy,
-  .account-menu-shell.sidebar .account-trigger > svg {
-    display: grid;
-  }
-
-  .account-menu-shell.sidebar .account-popover {
-    left: 14px;
-    right: 14px;
-    bottom: auto;
-    top: calc(100% - 6px);
-    width: auto;
+    display: none;
   }
 
   .content {
@@ -3864,12 +3765,6 @@ button {
   .tab {
     flex: 1 0 auto;
   }
-
-  .account-menu-shell.sidebar { margin-inline: 10px; }
-  .account-menu-shell.sidebar .account-trigger { grid-template-columns: 1fr; justify-items: center; }
-  .account-menu-shell.sidebar .account-trigger-copy,
-  .account-menu-shell.sidebar .account-trigger > svg { display: none; }
-  .account-menu-shell.sidebar .account-popover { width: 244px; right: auto; }
 
   .programme-overview {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4098,17 +3993,6 @@ button {
   background: var(--panel);
   color: var(--ink);
   border-color: var(--line);
-}
-
-@media (max-width: 760px) {
-  .mobile-bottom-nav > .account-menu-shell.mobile { margin: 0; position: static; min-width: 0; }
-  .mobile-bottom-nav > .account-menu-shell.mobile .account-trigger { height: var(--mobile-nav); min-height: 0; grid-template-columns: 1fr; justify-items: center; padding: 6px; border: 0; border-radius: 0; color: var(--muted); background: transparent; }
-  .mobile-bottom-nav > .account-menu-shell.mobile .account-trigger-copy,
-  .mobile-bottom-nav > .account-menu-shell.mobile .account-trigger > svg { display: none; }
-  .mobile-bottom-nav > .account-menu-shell.mobile .account-avatar { width: 30px; height: 30px; background: var(--soft); }
-  .mobile-bottom-nav > .account-menu-shell.mobile .account-popover { position: fixed; left: 12px; right: 12px; bottom: calc(var(--mobile-nav) + 10px); width: auto; }
-  .mobile-bottom-nav .account-popover > button { min-height: 40px; display: flex; grid-template-columns: none; place-items: initial; justify-content: flex-start; gap: 9px; padding: 8px 9px; font-size: 13px; }
-  .mobile-bottom-nav .account-popover > button span { overflow: visible; white-space: normal; }
 }
 
 .time-cell {
