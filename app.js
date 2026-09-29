@@ -2431,7 +2431,7 @@ const state = {
   portalOtpSent: false,
   theme: safeStorageGet("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
-  googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY, "true") !== "false",
+  googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY, "false") === "true",
   programmeCalendar: null,
   tfReview: {
     session: load(TF_REVIEW_SESSION_KEY, null),
