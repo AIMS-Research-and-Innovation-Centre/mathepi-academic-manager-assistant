@@ -434,7 +434,16 @@ const DEFAULT_COURSES = [
   }
 ];
 
-const DEFAULT_PEOPLE = [];
+const DEFAULT_PEOPLE = [
+  { id: "tf-002", name: "Lucian Talu Mayabi", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Kenya", email: "talumayabi@gmail.com", reference: "TF-002", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
+  { id: "tf-003", name: "Theophilus Asamoah", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Ghana", email: "asamoahkasamoah38@gmail.com", reference: "TF-003", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
+  { id: "tf-004", name: "Gassan Ali Mohamed Osman Farah", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Sudan", email: "gassan.ncr2014@gmail.com", reference: "TF-004", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
+  { id: "tf-005", name: "Leul Mekonnen Anteneh", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Ethiopia", email: "amleul117@gmail.com", reference: "TF-005", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
+  { id: "tf-006", name: "Grace Mumbanu", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Kenya", email: "gracemumbanu1@gmail.com", reference: "TF-006", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
+  { id: "tf-007", name: "Glory Kawira Mutua", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Kenya", email: "kawira.glory@embuni.ac.ke", reference: "TF-007", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
+  { id: "tf-008", name: "Boris Rosmes Tchioffo", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Cameroon", email: "boristchioffo@gmail.com", reference: "TF-008", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
+  { id: "tf-009", name: "Munkaila Dasumani", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Ghana", email: "munkaila5@gmail.com", reference: "TF-009", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
+];
 
 const DEFAULT_BLOCKS = [
   {
@@ -2477,6 +2486,15 @@ const state = {
 };
 
 function migrateProgrammeData() {
+  const knownPeople = new Set(state.people.map((item) => String(item.name || "").toLowerCase()));
+  DEFAULT_PEOPLE.forEach((item) => {
+    if (!knownPeople.has(item.name.toLowerCase())) state.people.push(safeClone(item));
+  });
+  state.courses.forEach((item) => {
+    const name = String(item.lecturerName || "").trim();
+    if (!name || state.people.some((personItem) => personItem.name.toLowerCase() === name.toLowerCase())) return;
+    state.people.push({ id: `lecturer-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, name, kind: "Lecturer", affiliation: "Programme timetable", nationality: "", email: "", reference: "", expertise: item.title, status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" });
+  });
   if (!safeStorageGet("mathepi-tutorial-fellows-cfa-v1")) {
     state.cfaStatuses = Object.assign({}, DEFAULT_CFA_STATUS, state.cfaStatuses, { tutors: "Open" });
     safeStorageSet("mathepi-tutorial-fellows-cfa-v1", "1");
@@ -4238,6 +4256,26 @@ function applyReviewStaffingAssignments(result = {}) {
   const hasTutors = Array.isArray(result.tutorAssignments);
   const lecturers = result.lecturerAssignments || [];
   const tutors = result.tutorAssignments || [];
+  const staffingPeople = [...lecturers.map((row) => ({ ...row, kind: "Lecturer" })), ...tutors.map((row) => ({ ...row, kind: "Tutor" }))];
+  staffingPeople.forEach((row) => {
+    const name = String(row.name || "").trim();
+    if (!name) return;
+    const existing = state.people.find((personItem) => personItem.name.toLowerCase() === name.toLowerCase());
+    if (existing) return;
+    state.people.push({
+      id: `${String(row.kind).toLowerCase()}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
+      name,
+      kind: row.kind,
+      affiliation: row.affiliation || row.institution || "Review assignment",
+      nationality: row.nationality || "",
+      email: row.email || "",
+      reference: row.reference || row.applicationId || "",
+      expertise: row.courseCode || "Assigned course",
+      status: row.status === "Approved" || row.status === "Decision" ? "Confirmed" : "Awaiting response",
+      workload: 0,
+      nextFollowUp: "2026-10-01",
+    });
+  });
   state.courses.forEach((item) => {
     if (hasLecturers) {
       const reviewLecturers = lecturers.filter((row) => row.courseCode === item.code && String(row.status || "Approved") === "Approved").map((row) => row.name).filter(Boolean);
