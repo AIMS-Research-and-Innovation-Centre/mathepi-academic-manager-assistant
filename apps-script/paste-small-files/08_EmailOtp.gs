@@ -24,6 +24,7 @@ function sendEmailOtpMessage(email, code) {
     subject: "Your MathEpi application verification code",
     body: "Your MathEpi application verification code is: " + code + "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email.",
     name: "MathEpi Academic Operations",
+    noReply: true,
     htmlBody:
       "<p>Your MathEpi application verification code is:</p>" +
       "<p style=\"font-size:24px;font-weight:700;letter-spacing:3px;\">" + code + "</p>" +

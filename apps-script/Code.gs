@@ -1023,6 +1023,7 @@ function sendEmailOtpMessage(email, code) {
   MailApp.sendEmail({
     to: email,
     name: "MathEpi Academic Operations",
+    noReply: true,
     subject: "Your MathEpi application verification code",
     body: "Your MathEpi application verification code is: " + code +
       "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email.",
