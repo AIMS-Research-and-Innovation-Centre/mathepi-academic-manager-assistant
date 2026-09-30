@@ -2429,6 +2429,8 @@ const state = {
   drawer: null,
   toast: null,
   portalOtpSent: false,
+  portalEmail: "",
+  portalRequestedRole: "",
   theme: safeStorageGet("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
   googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY, "false") === "true",
@@ -3633,8 +3635,8 @@ function authGateLayout() {
       <div class="auth-copy"><span class="badge ${pending ? "gold" : rejected ? "danger" : "blue"}">${pending ? "Pending approval" : rejected ? "Request not approved" : "Passwordless access"}</span><h2>${pending ? "Your request is being reviewed" : "Sign in with an email code"}</h2><p>${pending ? "You will receive an email when the Academic Manager approves your role." : "Enter your approved email and requested role. We will send a six-digit code."}</p></div>
       ${pending || rejected ? `<div class="hero-actions"><button class="button ghost" onclick="portalSignOut()">Use another email</button><button class="button primary" onclick="refreshPortalAccess()">Check status</button></div>` : `
       <div class="form-grid auth-form">
-        <div class="field full"><label>Email</label><input id="portalEmail" type="email" autocomplete="email" placeholder="name@aimsric.org" /></div>
-        <div class="field full"><label>Requested role</label><select id="portalRole">${roleOptions.map(([id, role]) => `<option value="${id}">${escapeHtml(role.label)}</option>`).join("")}</select></div>
+        <div class="field full"><label>Email</label><input id="portalEmail" type="email" autocomplete="email" placeholder="name@aimsric.org" value="${escapeHtml(state.portalEmail)}" oninput="state.portalEmail=this.value" /></div>
+        <div class="field full"><label>Requested role</label><select id="portalRole" onchange="state.portalRequestedRole=this.value"><option value="" ${state.portalRequestedRole ? "" : "selected"} disabled>Choose your role</option>${roleOptions.map(([id, role]) => `<option value="${id}" ${state.portalRequestedRole === id ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></div>
         ${state.portalOtpSent ? `<div class="field full"><label>Six-digit code</label><input id="portalCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" autofocus /></div>` : ""}
       </div><div class="hero-actions compact-actions"><button class="button ghost" onclick="requestPortalOtp()">${state.portalOtpSent ? "Send new code" : "Send code"}</button>${state.portalOtpSent ? `<button class="button primary" onclick="verifyPortalOtp()">Verify and continue</button>` : ""}</div>`}
       <p class="muted-note">Sessions remain active on this device for up to 30 days. New accounts require Academic Manager approval.</p>
@@ -4155,15 +4157,19 @@ function renderTimeline() {
 }
 
 async function requestPortalOtp() {
-  const email = document.querySelector("#portalEmail")?.value.trim();
+  const email = (document.querySelector("#portalEmail")?.value || state.portalEmail || "").trim();
+  const requestedRole = document.querySelector("#portalRole")?.value || state.portalRequestedRole;
   if (!email) return toast("Enter your email address.");
-  try { const result = await timedGoogleApi(googleApi("requestPortalAccessOtp", { email }), "The email service is taking too long.", 30000); if (!result.ok) throw new Error(result.error); state.portalOtpSent = true; toast("Code sent. Check your inbox and spam folder."); render(); }
+  if (!requestedRole) return toast("Choose the role you are requesting.");
+  state.portalEmail = email;
+  state.portalRequestedRole = requestedRole;
+  try { const result = await timedGoogleApi(googleApi("requestPortalAccessOtp", { email, requestedRole }), "The email service is taking too long.", 45000); if (!result.ok) throw new Error(result.error); state.portalOtpSent = true; toast(result.deliveryHint || "Code sent. Check your inbox and spam folder."); render(); }
   catch (error) { toast(error.message || "Code could not be sent."); }
 }
 
 async function verifyPortalOtp() {
-  const email = document.querySelector("#portalEmail")?.value.trim();
-  const requestedRole = document.querySelector("#portalRole")?.value;
+  const email = (document.querySelector("#portalEmail")?.value || state.portalEmail || "").trim();
+  const requestedRole = document.querySelector("#portalRole")?.value || state.portalRequestedRole;
   const code = document.querySelector("#portalCode")?.value.trim();
   try { const result = await timedGoogleApi(googleApi("verifyPortalAccessOtp", { email, requestedRole, code }), "Verification is taking too long.", 30000); if (!result.ok) throw new Error(result.error); portalAccess = result; localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(result)); if (result.status === "approved") setAuthenticatedRoles(result.roles); render(); }
   catch (error) { toast(error.message || "Code could not be verified."); }
@@ -4175,7 +4181,7 @@ async function refreshPortalAccess() {
   catch (error) { toast(error.message || "Status could not be refreshed."); }
 }
 
-function portalSignOut() { portalAccess = null; localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY); render(); }
+function portalSignOut() { portalAccess = null; state.portalOtpSent = false; state.portalEmail = ""; state.portalRequestedRole = ""; localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY); render(); }
 
 async function authResetPassword() {
   const auth = authState();

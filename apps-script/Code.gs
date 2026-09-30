@@ -1031,7 +1031,7 @@ function sendEmailOtpMessage(email, code) {
       "<p style=\"font-size:24px;font-weight:700;letter-spacing:3px;\">" + code + "</p>" +
       "<p>This code expires in 10 minutes. If you did not request it, you can ignore this email.</p>",
   });
-  return "account";
+  return "MailApp";
 }
 
 function requestEmailOtp(payload) {
@@ -1068,7 +1068,7 @@ function requestEmailOtp(payload) {
       expiresInSeconds,
       remainingDailyQuota: Math.max(0, remainingDailyQuota - 1),
       senderMode,
-      deliveryHint: "The code was accepted by Google MailApp. Check inbox, spam/junk, Promotions, and Updates. The sender may show the deploying Google account with the display name MathEpi Academic Operations.",
+      deliveryHint: "Code sent. Check your inbox, spam/junk, Promotions, and Updates.",
     };
   } catch (error) {
     return emailOtpErrorResponse(error);

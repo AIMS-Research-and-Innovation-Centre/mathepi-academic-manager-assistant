@@ -2,8 +2,12 @@ const PORTAL_ADMIN_EMAIL = "couma@aimsric.org";
 const PORTAL_ROLES = ["manager", "centre-coordinator", "head-tutor", "lecturer", "tutor", "student", "support-counsellor", "it-support", "viewer"];
 
 function requestPortalAccessOtp(payload) {
+  payload = payload || {};
   const email = portalAllowedEmail_(payload && payload.email);
-  return requestEmailOtp({ email: email, purpose: "portal-access" });
+  const requestedRole = portalRole_(payload.requestedRole);
+  const result = requestEmailOtp({ email: email, purpose: "portal-access" });
+  if (result && result.ok) result.requestedRole = requestedRole;
+  return result;
 }
 
 function verifyPortalAccessOtp(payload) {
@@ -76,9 +80,9 @@ function portalAllowedEmail_(email) {
   if (!/@aimsric\.org$/i.test(email) && ["blaise.tchapnda@aims.ac.rw", "marie.uwera@aims.ac.rw"].indexOf(email) < 0) throw new Error("This email is not approved for MathEpi access.");
   return email;
 }
-function portalRole_(role) { role = String(role || "viewer"); return PORTAL_ROLES.indexOf(role) >= 0 ? role : "viewer"; }
+function portalRole_(role) { role = String(role || "").trim(); if (PORTAL_ROLES.indexOf(role) < 0) throw new Error("Choose a valid role before requesting a code."); return role; }
 function portalHash_(value) { return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, value)); }
 function portalSheet_(name, headers) { const ss = getOrCreateSpreadsheet(); let sh = ss.getSheetByName(name); if (!sh) sh = ss.insertSheet(name); if (!sh.getLastRow()) sh.appendRow(headers); return sh; }
 function portalRows_(sheet) { const values = sheet.getDataRange().getValues(); if (values.length < 2) return []; const heads = values[0]; return values.slice(1).map(function (row, i) { const out = {_row:i+2}; heads.forEach(function(h,j){out[h]=row[j];}); return out; }); }
 function portalFind_(sheet, email) { return portalRows_(sheet).filter(function(row){return String(row.email).toLowerCase() === email;})[0] || null; }
-function portalSend_(email, subject, message) { GmailApp.sendEmail(email, subject, message, {name:"MathEpi Academic Operations"}); }
+function portalSend_(email, subject, message) { MailApp.sendEmail({to:email, subject:subject, body:message, name:"MathEpi Academic Operations"}); }
