@@ -2424,7 +2424,7 @@ const state = {
   calendarMode: "timeline",
   plannerMode: "week",
   appointmentMode: "mine",
-  blockId: "block-4",
+  blockId: "block-1",
   selected: null,
   drawer: null,
   toast: null,
@@ -4065,12 +4065,14 @@ function renderCalendar() {
                 ["agenda", "Agenda"],
               ].map(([mode, label]) => `<button class="tab ${state.calendarMode === mode ? "active" : ""}" onclick="state.calendarMode='${mode}'; render()">${label}</button>`).join("")}
             </div>
-            <select class="button ghost" onchange="state.blockId=this.value; render()">
+            <label class="calendar-block-picker">Select block
+              <select class="button ghost" aria-label="Select timetable block" onchange="state.blockId=this.value; render()">
               ${state.blocks
                 .filter((item) => item.kind === "teaching" || item.kind === "practical" || item.kind === "thesis")
                 .map((item) => `<option value="${item.id}" ${state.blockId === item.id ? "selected" : ""}>${item.title}</option>`)
                 .join("")}
-            </select>
+              </select>
+            </label>
           </div>
         </div>
         <div class="card-body">
@@ -4252,8 +4254,11 @@ function applyReviewStaffingAssignments(result = {}) {
       }
     }
     if (hasTutors) {
-      const reviewTutors = tutors.filter((row) => row.courseCode === item.code).map((row) => row.name).filter(Boolean);
+      const courseTutors = tutors.filter((row) => row.courseCode === item.code);
+      const reviewTutors = courseTutors.filter((row) => !/reserve|alternate|consider/i.test(String(row.status || ""))).map((row) => row.name).filter(Boolean);
+      const reserveTutors = courseTutors.filter((row) => /reserve|alternate|consider/i.test(String(row.status || ""))).map((row) => row.name).filter(Boolean);
       item.reviewTutorNames = [...new Set(reviewTutors)];
+      item.reviewReserveTutorNames = [...new Set(reserveTutors)];
     }
   });
   staffingSyncedAt = Date.now();
@@ -4304,10 +4309,11 @@ function renderProgrammeWeek(item) {
       const lecturer = linked?.lecturerName || "";
       const alternate = linked?.alternateLecturerName || "";
       const tutors = linked?.reviewTutorNames || [];
-      const staffTitle = [lecturer ? `Lecturer: ${lecturer}` : "", alternate ? `Alternate: ${alternate}` : "", tutors.length ? `Tutors: ${tutors.join(", ")}` : ""].filter(Boolean).join("; ");
+      const reserveTutors = linked?.reviewReserveTutorNames || [];
+      const staffTitle = [lecturer ? `Lecturer: ${lecturer}` : "", alternate ? `Alternate: ${alternate}` : "", tutors.length ? `Tutors: ${tutors.join(", ")}` : "", reserveTutors.length ? `Reserve tutors: ${reserveTutors.join(", ")}` : ""].filter(Boolean).join("; ");
       return `<span class="weekly-course ${meta?.color || "gray"}" title="${[linked?.title || code, staffTitle].filter(Boolean).join(" - ")}">
         <strong>${code}</strong><span>${linked?.title || ""}</span>
-        ${lecturer || tutors.length ? `<small class="weekly-course-staff">${lecturer ? `<b>Lecturer:</b> ${lecturer}` : ""}${alternate ? ` <em>Alternate: ${alternate}</em>` : ""}${tutors.length ? `<em>Tutors: ${tutors.join(", ")}</em>` : ""}</small>` : ""}
+        ${lecturer || tutors.length || reserveTutors.length ? `<small class="weekly-course-staff">${lecturer ? `<b>Lecturer:</b> ${lecturer}` : ""}${alternate ? ` <em>Alternate: ${alternate}</em>` : ""}${tutors.length ? `<em>Tutors: ${tutors.join(", ")}</em>` : ""}${reserveTutors.length ? `<em>Reserve tutors: ${reserveTutors.join(", ")}</em>` : ""}</small>` : ""}
       </span>`;
     })
     .join("");
@@ -4340,7 +4346,7 @@ function renderWeek(block) {
   const teachingCell = (item, label) => item
     ? `<div class="programme-session ${item.type || "skills"}" title="${item.code} ${item.title}">
         <strong>${item.code}</strong><span>${item.title}</span><small>${label}</small>
-        ${item.lecturerName || item.reviewTutorNames?.length ? `<small class="programme-lecturer">${item.lecturerName ? `Lecturer: ${item.lecturerName}` : ""}${item.alternateLecturerName ? ` · Alt: ${item.alternateLecturerName}` : ""}${item.reviewTutorNames?.length ? ` · Tutors: ${item.reviewTutorNames.join(", ")}` : ""}</small>` : ""}
+        ${item.lecturerName || item.reviewTutorNames?.length || item.reviewReserveTutorNames?.length ? `<small class="programme-lecturer">${item.lecturerName ? `Lecturer: ${item.lecturerName}` : ""}${item.alternateLecturerName ? ` · Alt: ${item.alternateLecturerName}` : ""}${item.reviewTutorNames?.length ? ` · Tutors: ${item.reviewTutorNames.join(", ")}` : ""}${item.reviewReserveTutorNames?.length ? ` · Reserve tutors: ${item.reviewReserveTutorNames.join(", ")}` : ""}</small>` : ""}
       </div>`
     : `<span class="programme-slot-empty">To be assigned</span>`;
   return `
