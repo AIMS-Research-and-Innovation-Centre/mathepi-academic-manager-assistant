@@ -2741,6 +2741,7 @@ function today() {
 }
 
 function dateLabel(iso) {
+  if (!iso || Number.isNaN(new Date(`${iso}T10:00:00`).getTime())) return "Not set";
   return new Intl.DateTimeFormat("en", {
     month: "short",
     day: "numeric",
@@ -7324,19 +7325,19 @@ function personDrawer(id) {
       <span class="avatar">${initials(item.name)}</span>
       <div>
         <h3 style="margin:0">${item.name}</h3>
-        <p style="margin:5px 0 0;color:var(--muted)">${item.kind} · ${item.affiliation}</p>
+        <p style="margin:5px 0 0;color:var(--muted)">${item.kind} · ${item.affiliation || "Affiliation not provided"}</p>
       </div>
     </div>
     <div class="meta-grid">
       <div class="meta-box"><span>Status</span><strong>${item.status}</strong></div>
       <div class="meta-box"><span>Workload</span><strong>${item.workload} course${item.workload === 1 ? "" : "s"}</strong></div>
       <div class="meta-box"><span>Email</span><strong>${canSeeSensitive() ? item.email : "Hidden for this role"}</strong></div>
-      <div class="meta-box"><span>Phone / WhatsApp</span><strong>${canSeeSensitive() ? item.phone : "Hidden for this role"}</strong></div>
+      <div class="meta-box"><span>Phone / WhatsApp</span><strong>${canSeeSensitive() ? item.phone || "Not provided" : "Hidden for this role"}</strong></div>
     </div>
-    <div class="timeline-item"><h4>Expertise</h4><p>${item.expertise}</p></div>
-    <div class="timeline-item"><h4>Availability</h4><p>${item.availability}</p></div>
+    <div class="timeline-item"><h4>Expertise</h4><p>${item.expertise || "Not provided"}</p></div>
+    <div class="timeline-item"><h4>Availability</h4><p>${item.availability || "Not provided"}</p></div>
     <div class="timeline-item"><h4>Assigned courses</h4><p>${assigned.length ? assigned.map((c) => `${c.code} ${c.title}`).join("; ") : "No assignment yet"}</p></div>
-    <div class="timeline-item"><h4>Communication history</h4><p>Last contact: ${dateLabel(item.lastContact)}. Next follow-up: ${dateLabel(item.nextFollowUp)}. ${item.notes}</p></div>
+    <div class="timeline-item"><h4>Communication history</h4><p>Last contact: ${dateLabel(item.lastContact)}. Next follow-up: ${dateLabel(item.nextFollowUp)}. ${item.notes || "No notes recorded."}</p></div>
     ${
       canEdit()
         ? `<div class="field">
