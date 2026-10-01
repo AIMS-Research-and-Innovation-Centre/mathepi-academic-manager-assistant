@@ -8,8 +8,8 @@ function establishGooglePortalAccess(payload) {
   const email = portalAllowedEmail_(identity.email);
   let record = portalStoredAccess_(email);
   if (!record) {
-    const requestedRole = portalRole_(payload.requestedRole);
     const admin = email === PORTAL_ADMIN_EMAIL;
+    const requestedRole = admin ? "manager" : portalRole_(payload.requestedRole);
     const roles = admin ? ["super-admin", "manager"] : [];
     record = { email: email, requested_role: requestedRole, roles_json: JSON.stringify(roles), status: admin ? "approved" : "pending", requested_at: new Date().toISOString(), decided_at: admin ? new Date().toISOString() : "", decided_by: admin ? email : "" };
     portalStoreAccess_(record);
