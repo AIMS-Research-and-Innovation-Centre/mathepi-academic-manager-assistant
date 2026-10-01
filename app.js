@@ -435,6 +435,7 @@ const DEFAULT_COURSES = [
 ];
 
 const DEFAULT_PEOPLE = [
+  { id: "lecturer-aklilu-zeleke", name: "Prof. Aklilu Zeleke", kind: "Lecturer", affiliation: "Michigan State University", nationality: "", email: "zeleke@msu.edu", reference: "MEE04", expertise: "Stochastic Models", status: "Confirmed", workload: 1, nextFollowUp: "2026-10-01" },
   { id: "tf-002", name: "Lucian Talu Mayabi", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Kenya", email: "talumayabi@gmail.com", reference: "TF-002", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
   { id: "tf-003", name: "Theophilus Asamoah", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Ghana", email: "asamoahkasamoah38@gmail.com", reference: "TF-003", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
   { id: "tf-004", name: "Gassan Ali Mohamed Osman Farah", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Sudan", email: "gassan.ncr2014@gmail.com", reference: "TF-004", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
@@ -2687,6 +2688,11 @@ function migrateProgrammeData() {
       lecturerStatus: "Confirmed programme assignment",
       alternateLecturerName: "",
     },
+    MEE04: {
+      lecturerName: "Prof. Aklilu Zeleke",
+      lecturerStatus: "Confirmed programme assignment",
+      alternateLecturerName: "",
+    },
   };
   Object.entries(confirmedAssignments).forEach(([code, assignment]) => {
     const item = state.courses.find((course) => course.code === code);
@@ -4390,7 +4396,18 @@ function tutorAssignmentsFromReviewState() {
 function applyReviewStaffingAssignments(result = {}) {
   const hasLecturers = Array.isArray(result.lecturerAssignments);
   const hasTutors = Array.isArray(result.tutorAssignments);
-  const lecturers = result.lecturerAssignments || [];
+  const lecturers = (result.lecturerAssignments || []).filter((row) =>
+    !(String(row.courseCode || "").toUpperCase() === "MEE04" && /punam|amratia/i.test(String(row.name || ""))),
+  );
+  if (hasLecturers) {
+    lecturers.push({
+      name: "Prof. Aklilu Zeleke",
+      email: "zeleke@msu.edu",
+      affiliation: "Michigan State University",
+      courseCode: "MEE04",
+      status: "Approved",
+    });
+  }
   const tutors = result.tutorAssignments || [];
   const staffingPeople = [...lecturers.map((row) => ({ ...row, kind: "Lecturer" })), ...tutors.map((row) => ({ ...row, kind: "Tutor" }))];
   staffingPeople.forEach((row) => {
