@@ -100,16 +100,22 @@
 
       authState.signInWithGoogle = async () => {
         try {
+          publish("loading", { error: null });
           return await signInWithPopup(auth, googleProvider);
         } catch (error) {
           if (["auth/popup-blocked", "auth/operation-not-supported-in-this-environment"].includes(error?.code)) {
             return signInWithRedirect(auth, googleProvider);
           }
+          publish("ready", { error: error?.message || "Google sign-in failed." });
           throw error;
         }
       };
       authState.signOut = () => signOut(auth);
-      await getRedirectResult(auth).catch(() => null);
+      try {
+        await getRedirectResult(auth);
+      } catch (error) {
+        publish("ready", { error: error?.message || "Google sign-in could not return to MathEpi." });
+      }
 
       onAuthStateChanged(auth, async (firebaseUser) => {
         if (!firebaseUser) {

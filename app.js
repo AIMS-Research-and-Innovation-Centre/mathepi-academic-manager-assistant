@@ -2449,7 +2449,7 @@ const state = {
   portalOtpSending: false,
   portalOtpCooldownUntil: 0,
   portalEmail: "",
-  portalRequestedRole: "",
+  portalRequestedRole: sessionStorage.getItem("mathepi-google-requested-role") || "",
   theme: safeStorageGet("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
   googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY, "false") === "true",
@@ -3601,7 +3601,7 @@ function withAuthTimeout(operation, timeoutMs = 12000) {
 function setAuthActionBusy(busy, label = "") {
   document.querySelectorAll("[data-auth-action]").forEach((button) => {
     button.disabled = busy;
-    if (busy && button.dataset.authAction === "signin") button.textContent = label || "Signing in...";
+    if (busy && ["signin", "google"].includes(button.dataset.authAction)) button.textContent = label || "Signing in...";
   });
 }
 
@@ -3612,6 +3612,10 @@ function authErrorMessage(error, fallback) {
   if (code.includes("email-already-in-use")) return "This account already exists. Select Sign in instead.";
   if (code.includes("weak-password")) return "Use a password with at least six characters.";
   if (code.includes("network-request-failed")) return "Firebase could not be reached. Check your connection and try again.";
+  if (code.includes("unauthorized-domain")) return "Google sign-in is not authorised for mathepi.aimsric.org yet. Contact the administrator.";
+  if (code.includes("popup-blocked")) return "Your browser blocked the Google sign-in window. Allow popups and try again.";
+  if (code.includes("popup-closed-by-user") || code.includes("cancelled-popup-request")) return "Google sign-in was cancelled. Select Try again when ready.";
+  if (code.includes("account-exists-with-different-credential")) return "This email already has a different sign-in method. Contact the administrator to link Google access.";
   return error?.message || fallback;
 }
 
@@ -3722,7 +3726,7 @@ function authGateLayout() {
     <div class="auth-page"><section class="auth-panel">
       <div class="auth-brand"><img src="assets/aims-ric-logo.png" alt="AIMS Research & Innovation Centre logo" /><div><p>MathEpi Operations</p><h1>MathEpi Assistant</h1></div></div>
       <div class="auth-copy"><span class="badge ${googlePending ? "gold" : googleRejected ? "danger" : "blue"}">${googlePending ? "Pending approval" : googleRejected ? "Request not approved" : "Secure Google access"}</span><h2>${googlePending ? "Your role request is being reviewed" : googleRejected ? "Access was not approved" : "Sign in with your Google account"}</h2><p>${googlePending ? `Signed in as ${escapeHtml(googleUser?.email || portalAccess?.email || "")}. The Academic Manager must approve the requested role.` : googleRejected ? "Contact the Academic Manager if you believe this decision should be reviewed." : "Google verifies your identity. MathEpi then applies the role approved by the Academic Manager."}</p></div>
-      ${googlePending || googleRejected ? `<div class="hero-actions"><button class="button ghost" onclick="googlePortalSignOut()">Use another account</button><button class="button primary" onclick="refreshPortalAccess()">Check status</button></div>` : googleUser ? `<div class="notice blue">${icon("shield", 18)} Verifying MathEpi access for ${escapeHtml(googleUser.email)}...</div><div class="hero-actions"><button class="button ghost" onclick="googlePortalSignOut()">Cancel</button></div>` : `<div class="form-grid auth-form"><div class="field full"><label>Requested role</label><select id="googlePortalRole" onchange="state.portalRequestedRole=this.value"><option value="" ${state.portalRequestedRole ? "" : "selected"} disabled>Choose your role</option>${googleRoleOptions.map(([id, role]) => `<option value="${id}" ${state.portalRequestedRole === id ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></div></div><div class="hero-actions compact-actions"><button class="button primary" data-auth-action="google" onclick="authGoogleSignIn()" ${googleAuth.status !== "ready" ? "disabled" : ""}>${icon("shield", 18)}Continue with Google</button></div>`}
+      ${googlePending || googleRejected ? `<div class="hero-actions"><button class="button ghost" onclick="googlePortalSignOut()">Use another account</button><button class="button primary" onclick="refreshPortalAccess()">Check status</button></div>` : googleUser ? `<div class="notice blue">${icon("shield", 18)} Verifying MathEpi access for ${escapeHtml(googleUser.email)}...</div><div class="hero-actions"><button class="button ghost" onclick="googlePortalSignOut()">Cancel</button></div>` : `<div class="form-grid auth-form"><div class="field full"><label>Requested role</label><select id="googlePortalRole" onchange="state.portalRequestedRole=this.value" ${googleAuth.status === "loading" ? "disabled" : ""}><option value="" ${state.portalRequestedRole ? "" : "selected"} disabled>Choose your role</option>${googleRoleOptions.map(([id, role]) => `<option value="${id}" ${state.portalRequestedRole === id ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></div></div><div class="hero-actions compact-actions"><button class="button primary" data-auth-action="google" onclick="authGoogleSignIn()" ${googleAuth.status !== "ready" ? "disabled" : ""}>${icon("shield", 18)}${googleAuth.status === "loading" ? "Opening Google..." : googleAuth.error ? "Try Google sign-in again" : "Continue with Google"}</button></div>`}
       ${googleStatus ? `<div class="notice danger">${escapeHtml(googleStatus)}</div>` : ""}
       <p class="muted-note">Only approved MathEpi accounts can enter. Sessions remain active on this device until sign-out or access revocation.</p>
     </section>${state.toast ? `<div class="toast">${icon("check",18)}${escapeHtml(state.toast)}</div>` : ""}</div>`;
@@ -4267,6 +4271,7 @@ async function requestPortalOtp() {
   if (!requestedRole) return toast("Choose the role you are requesting.");
   state.portalEmail = email;
   state.portalRequestedRole = requestedRole;
+  sessionStorage.setItem("mathepi-google-requested-role", requestedRole);
   state.portalOtpSending = true;
   state.portalOtpCooldownUntil = Date.now() + 30000;
   render();
@@ -4302,6 +4307,7 @@ async function syncFirebasePortalAccess(firebaseUser = window.mathepiAuth?.user)
       if (!result.ok) throw new Error(result.error || "MathEpi access could not be established.");
       portalAccess = result;
       localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(result));
+      sessionStorage.removeItem("mathepi-google-requested-role");
       if (result.status === "approved") setAuthenticatedRoles(result.roles);
       render();
       return result;
@@ -4325,6 +4331,7 @@ async function googlePortalSignOut() {
   portalAccess = null;
   localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY);
   state.portalRequestedRole = "";
+  sessionStorage.removeItem("mathepi-google-requested-role");
   await window.mathepiAuth?.signOut();
   render();
 }
