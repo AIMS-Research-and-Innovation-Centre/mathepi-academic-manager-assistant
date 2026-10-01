@@ -1069,7 +1069,7 @@ function requestEmailOtp(payload) {
       expiresInSeconds,
       remainingDailyQuota: Math.max(0, remainingDailyQuota - 1),
       senderMode,
-      deliveryHint: "Code sent. Check your inbox, spam/junk, Promotions, and Updates.",
+      deliveryHint: "OTP sent. Check your inbox and spam folder.",
     };
   } catch (error) {
     return emailOtpErrorResponse(error);

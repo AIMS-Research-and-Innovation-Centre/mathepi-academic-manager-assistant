@@ -2686,14 +2686,14 @@ function migrateProgrammeData() {
 
   const mes04 = state.courses.find((item) => item.code === "MES04");
   if (mes04) {
-    if (/\byao\b/i.test(String(mes04.lecturerName || ""))) {
+    if (/\byawo\b/i.test(String(mes04.lecturerName || ""))) {
       mes04.lecturerName = "";
       mes04.lecturerStatus = "";
       mes04.lecturerId = null;
     }
-    mes04.manualAlternateLecturerName = String(mes04.manualAlternateLecturerName || "").split("/").map((name) => name.trim()).filter((name) => name && !/\byao\b/i.test(name)).join(" / ");
-    mes04.alternateLecturerName = String(mes04.alternateLecturerName || "").split("/").map((name) => name.trim()).filter((name) => name && !/\byao\b/i.test(name)).join(" / ");
-    mes04.reviewAlternateLecturerNames = (mes04.reviewAlternateLecturerNames || []).filter((name) => !/\byao\b/i.test(name));
+    mes04.manualAlternateLecturerName = String(mes04.manualAlternateLecturerName || "").split("/").map((name) => name.trim()).filter((name) => name && !/\byawo\b/i.test(name)).join(" / ");
+    mes04.alternateLecturerName = String(mes04.alternateLecturerName || "").split("/").map((name) => name.trim()).filter((name) => name && !/\byawo\b/i.test(name)).join(" / ");
+    mes04.reviewAlternateLecturerNames = (mes04.reviewAlternateLecturerNames || []).filter((name) => !/\byawo\b/i.test(name));
   }
 
   if (!safeStorageGet("mathepi-programme-schedule-v3")) {
@@ -4228,7 +4228,7 @@ async function requestPortalOtp() {
   if (!requestedRole) return toast("Choose the role you are requesting.");
   state.portalEmail = email;
   state.portalRequestedRole = requestedRole;
-  try { const result = await timedGoogleApi(googleApi("requestPortalAccessOtp", { email, requestedRole }), "The email service is taking too long.", 45000); if (!result.ok) throw new Error(result.error); state.portalOtpSent = true; toast(result.deliveryHint || "Code sent. Check your inbox and spam folder."); render(); }
+  try { const result = await timedGoogleApi(googleApi("requestPortalAccessOtp", { email, requestedRole }), "The email service is taking too long.", 45000); if (!result.ok) throw new Error(result.error); state.portalOtpSent = true; toast(result.deliveryHint || "OTP sent. Check your inbox and spam folder."); render(); }
   catch (error) { toast(error.message || "Code could not be sent."); }
 }
 
@@ -4325,7 +4325,7 @@ function applyReviewStaffingAssignments(result = {}) {
   });
   state.courses.forEach((item) => {
     if (hasLecturers) {
-      const courseLecturers = lecturers.filter((row) => row.courseCode === item.code && !(item.code === "MES04" && /\byao\b/i.test(String(row.name || ""))));
+      const courseLecturers = lecturers.filter((row) => row.courseCode === item.code && !(item.code === "MES04" && /\byawo\b/i.test(String(row.name || ""))));
       const reviewLecturers = courseLecturers.filter((row) => String(row.status || "Approved") === "Approved").map((row) => row.name).filter(Boolean);
       const reviewAlternates = courseLecturers.filter((row) => String(row.status || "") === "Consider").map((row) => row.name).filter(Boolean);
       item.reviewLecturerNames = [...new Set(reviewLecturers)];
