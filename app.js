@@ -2451,6 +2451,7 @@ const state = {
   portalEmail: "",
   portalRequestedRole: sessionStorage.getItem("mathepi-google-requested-role") || "",
   portalRequestsLoading: false,
+  mobileMenuOpen: false,
   theme: safeStorageGet("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
   googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY, "false") === "true",
@@ -3491,6 +3492,7 @@ function setView(view) {
     return;
   }
   state.view = canView(view) ? view : "dashboard";
+  state.mobileMenuOpen = false;
   state.drawer = null;
   if (window.location.hash !== `#${state.view}`) {
     history.replaceState(null, "", `#${state.view}`);
@@ -3498,6 +3500,11 @@ function setView(view) {
   render();
   if (state.view === "access" && ["super-admin", "manager"].includes(state.role)) loadPortalRequests();
   if (state.view === "calendar" || state.view === "courses") syncReviewStaffing({ quiet: true });
+}
+
+function toggleMobileMenu(force) {
+  state.mobileMenuOpen = typeof force === "boolean" ? force : !state.mobileMenuOpen;
+  render();
 }
 
 function openDrawer(type, payload = null) {
@@ -3801,7 +3808,7 @@ function appLayout() {
   const viewMeta = NAV.find((item) => item.id === state.view) || NAV[0];
   return `
     <div class="app-shell">
-      <aside class="sidebar">
+      <aside class="sidebar ${state.mobileMenuOpen ? "mobile-open" : ""}" aria-label="Application navigation">
         <div class="brand-panel">
           <div class="logo-lockup">
             <img src="assets/aims-ric-logo.png" alt="AIMS Research & Innovation Centre logo" />
@@ -3809,6 +3816,7 @@ function appLayout() {
               <p class="brand-kicker">MathEpi Operations</p>
               <h1 class="brand-title">MathEpi Assistant</h1>
             </div>
+            <button class="mobile-drawer-close" onclick="toggleMobileMenu(false)" aria-label="Close navigation">${icon("x", 20)}</button>
           </div>
           <div class="assistant-pulse">
             <div class="pulse-top"><span>Operations pulse</span><span class="pulse-dot"></span></div>
@@ -3830,8 +3838,10 @@ function appLayout() {
         </nav>
         ${renderRoleControl()}
       </aside>
+      ${state.mobileMenuOpen ? `<button class="mobile-drawer-backdrop" onclick="toggleMobileMenu(false)" aria-label="Close navigation"></button>` : ""}
       <section class="content">
         <header class="topbar">
+          <button class="mobile-menu-button" onclick="toggleMobileMenu(true)" aria-label="Open navigation">${icon("menu", 22)}</button>
           <div class="page-title">
             <h1>${viewMeta.label}</h1>
             <p>${roleDef().hint}</p>
@@ -8593,6 +8603,7 @@ window.setTfReviewTab = setTfReviewTab;
 window.setTfReviewQuery = setTfReviewQuery;
 window.setTfReviewSort = setTfReviewSort;
 window.setTfReviewCourseFilter = setTfReviewCourseFilter;
+window.toggleMobileMenu = toggleMobileMenu;
 window.insertTfDraftNote = insertTfDraftNote;
 window.updateTfReviewWeightedPreview = updateTfReviewWeightedPreview;
 window.syncReviewStaffing = syncReviewStaffing;
