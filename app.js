@@ -3495,6 +3495,7 @@ function setView(view) {
     history.replaceState(null, "", `#${state.view}`);
   }
   render();
+  if (state.view === "access" && ["super-admin", "manager"].includes(state.role)) loadPortalRequests();
   if (state.view === "calendar" || state.view === "courses") syncReviewStaffing({ quiet: true });
 }
 
@@ -7172,7 +7173,7 @@ function renderAccess() {
   return `
     <div class="view section-grid">
       <div class="card">
-        <div class="card-header"><div><h2>Account approvals</h2><p>Approve requested roles before users can enter the application.</p></div><button class="button ghost" onclick="loadPortalRequests()">Refresh</button></div>
+        <div class="card-header"><div><h2>Account approvals</h2><p>Only <strong>@aimsric.org</strong> accounts can request access. Review pending requests here.</p></div><button class="button ghost" onclick="loadPortalRequests()">Refresh approvals</button></div>
         <div class="card-body assistant-stack">${portalRequests.length ? portalRequests.map((request) => `<div class="priority"><div><strong>${escapeHtml(request.email)}</strong><span>Requested: ${escapeHtml(ROLES[request.requested_role]?.label || request.requested_role)}</span></div><select id="access-role-${request._row}">${Object.entries(ROLES).filter(([id]) => !["super-admin","reviewer"].includes(id)).map(([id,role]) => `<option value="${id}" ${id === request.requested_role ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select><button class="button primary" onclick="decidePortalRequest('${escapeHtml(request.email)}','approved','access-role-${request._row}')">Approve</button><button class="button ghost" onclick="decidePortalRequest('${escapeHtml(request.email)}','rejected','access-role-${request._row}')">Reject</button></div>`).join("") : `<div class="empty">No pending requests loaded.</div>`}</div>
       </div>
       <div class="card">

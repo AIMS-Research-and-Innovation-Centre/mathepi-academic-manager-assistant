@@ -10,7 +10,4 @@ window.MATHEPI_FIREBASE_CONFIG = {
 window.MATHEPI_REQUIRE_AUTH = true;
 window.MATHEPI_ALLOW_SELF_SIGNUP = true;
 window.MATHEPI_ALLOWED_EMAIL_DOMAINS = ["aimsric.org"];
-window.MATHEPI_ALLOWED_EMAILS = [
-  "blaise.tchapnda@aims.ac.rw",
-  "marie.uwera@aims.ac.rw",
-];
+window.MATHEPI_ALLOWED_EMAILS = [];

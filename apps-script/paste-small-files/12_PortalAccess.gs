@@ -26,7 +26,7 @@ function establishGooglePortalAccess(payload) {
 function portalVerifyFirebaseGoogleToken_(idToken) {
   idToken = String(idToken || "").trim();
   if (!idToken) throw new Error("Google sign-in token is missing.");
-  const response = UrlFetchApp.fetch("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=" + encodeURIComponent(PORTAL_FIREBASE_API_KEY), {
+  const response = UrlFetchApp.fetch("https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo?key=" + encodeURIComponent(PORTAL_FIREBASE_API_KEY), {
     method: "post",
     contentType: "application/json",
     payload: JSON.stringify({ idToken: idToken }),
@@ -140,7 +140,7 @@ function portalStoredSession_(token) {
 
 function portalAllowedEmail_(email) {
   email = normalizeEmailAddress(email);
-  if (!/@aimsric\.org$/i.test(email) && ["blaise.tchapnda@aims.ac.rw", "marie.uwera@aims.ac.rw"].indexOf(email) < 0) throw new Error("This email is not approved for MathEpi access.");
+  if (!/@aimsric\.org$/i.test(email)) throw new Error("Only an @aimsric.org email address can request MathEpi access.");
   return email;
 }
 function portalRole_(role) { role = String(role || "").trim(); if (PORTAL_ROLES.indexOf(role) < 0) throw new Error("Choose a valid role before requesting a code."); return role; }
