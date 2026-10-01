@@ -100,12 +100,19 @@
 
       authState.signInWithGoogle = async () => {
         try {
+          authState.googleSignInPending = true;
           publish("loading", { error: null });
           const result = await signInWithPopup(auth, googleProvider);
           const credential = GoogleAuthProvider.credentialFromResult(result);
           authState.googleAccessToken = credential?.accessToken || null;
+          authState.googleSignInPending = false;
+          if (authState.user && authState.googleAccessToken) {
+            authState.user.googleAccessToken = authState.googleAccessToken;
+            if (typeof window.handleFirebaseAuthChanged === "function") window.handleFirebaseAuthChanged(authState.user);
+          }
           return result;
         } catch (error) {
+          authState.googleSignInPending = false;
           if (["auth/popup-blocked", "auth/operation-not-supported-in-this-environment"].includes(error?.code)) {
             return signInWithRedirect(auth, googleProvider);
           }
@@ -151,7 +158,7 @@
               roles,
             },
           });
-          if (typeof window.handleFirebaseAuthChanged === "function") window.handleFirebaseAuthChanged(authState.user);
+          if (!authState.googleSignInPending && typeof window.handleFirebaseAuthChanged === "function") window.handleFirebaseAuthChanged(authState.user);
         } catch (error) {
           publish("ready", {
             user: null,

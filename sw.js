@@ -1,11 +1,11 @@
-const CACHE_NAME = "mathepi-academic-manager-v68";
+const CACHE_NAME = "mathepi-academic-manager-v69";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css?v=29",
   "./app.js?v=59",
   "./auth/firebase-config.js?v=3",
-  "./auth/auth-bridge.js?v=26",
+  "./auth/auth-bridge.js?v=27",
   "./manifest.webmanifest",
   "./assets/aims-ric-logo.png",
   "./assets/icon-192.png",
