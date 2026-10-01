@@ -1910,7 +1910,7 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
