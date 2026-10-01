@@ -2450,6 +2450,7 @@ const state = {
   portalOtpCooldownUntil: 0,
   portalEmail: "",
   portalRequestedRole: sessionStorage.getItem("mathepi-google-requested-role") || "",
+  portalRequestsLoading: false,
   theme: safeStorageGet("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
   googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY, "false") === "true",
@@ -4347,7 +4348,7 @@ async function verifyPortalOtp() {
 
 async function refreshPortalAccess() {
   if (!portalAccess?.token) return portalSignOut();
-  try { const result = await googleApi("getPortalAccessSession", { token: portalAccess.token }); if (!result.ok) throw new Error(result.error); portalAccess = result; localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(result)); if (result.status === "approved") setAuthenticatedRoles(result.roles); render(); }
+  try { const result = await googleApi("getPortalAccessSession", { token: portalAccess.token }); if (!result.ok) throw new Error(result.error); portalAccess = result; localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(result)); if (result.status === "approved") setAuthenticatedRoles(result.roles); render(); if (state.view === "access") loadPortalRequests(); }
   catch (error) { toast(error.message || "Status could not be refreshed."); }
 }
 
@@ -7173,8 +7174,8 @@ function renderAccess() {
   return `
     <div class="view section-grid">
       <div class="card">
-        <div class="card-header"><div><h2>Account approvals</h2><p>Only <strong>@aimsric.org</strong> accounts can request access. Review pending requests here.</p></div><button class="button ghost" onclick="loadPortalRequests()">Refresh approvals</button></div>
-        <div class="card-body assistant-stack">${portalRequests.length ? portalRequests.map((request) => `<div class="priority"><div><strong>${escapeHtml(request.email)}</strong><span>Requested: ${escapeHtml(ROLES[request.requested_role]?.label || request.requested_role)}</span></div><select id="access-role-${request._row}">${Object.entries(ROLES).filter(([id]) => !["super-admin","reviewer"].includes(id)).map(([id,role]) => `<option value="${id}" ${id === request.requested_role ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select><button class="button primary" onclick="decidePortalRequest('${escapeHtml(request.email)}','approved','access-role-${request._row}')">Approve</button><button class="button ghost" onclick="decidePortalRequest('${escapeHtml(request.email)}','rejected','access-role-${request._row}')">Reject</button></div>`).join("") : `<div class="empty">No pending requests loaded.</div>`}</div>
+        <div class="card-header"><div><h2>Account approvals</h2><p>Only <strong>@aimsric.org</strong> accounts can request access. Review pending requests here.</p></div><button class="button ghost" onclick="loadPortalRequests()" ${state.portalRequestsLoading ? "disabled" : ""}>${state.portalRequestsLoading ? "Loading approvals..." : "Refresh approvals"}</button></div>
+        <div class="card-body assistant-stack">${state.portalRequestsLoading && !portalRequests.length ? `<div class="empty">Loading pending access requests...</div>` : portalRequests.length ? portalRequests.map((request) => `<div class="priority"><div><strong>${escapeHtml(request.email)}</strong><span>Requested: ${escapeHtml(ROLES[request.requested_role]?.label || request.requested_role)}</span></div><select id="access-role-${request._row}">${Object.entries(ROLES).filter(([id]) => !["super-admin","reviewer"].includes(id)).map(([id,role]) => `<option value="${id}" ${id === request.requested_role ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select><button class="button primary" onclick="decidePortalRequest('${escapeHtml(request.email)}','approved','access-role-${request._row}')">Approve</button><button class="button ghost" onclick="decidePortalRequest('${escapeHtml(request.email)}','rejected','access-role-${request._row}')">Reject</button></div>`).join("") : `<div class="empty">No pending access requests.</div>`}</div>
       </div>
       <div class="card">
         <div class="card-header">
@@ -7298,8 +7299,13 @@ function renderAccess() {
 }
 
 async function loadPortalRequests() {
-  try { const result = await googleApi("listPortalAccessRequests", { token: portalAccess?.token }); if (!result.ok) throw new Error(result.error); portalRequests = result.requests || []; render(); }
+  if (state.portalRequestsLoading) return;
+  if (!portalAccess?.token) return toast("Your admin session is not ready. Sign out and sign in again.");
+  state.portalRequestsLoading = true;
+  render();
+  try { const result = await timedGoogleApi(googleApi("listPortalAccessRequests", { token: portalAccess.token }), "Approval requests are taking too long to load.", 20000); if (!result.ok) throw new Error(result.error); portalRequests = result.requests || []; }
   catch (error) { toast(error.message || "Requests could not be loaded."); }
+  finally { state.portalRequestsLoading = false; render(); }
 }
 
 async function decidePortalRequest(email, decision, selectId) {
@@ -8599,6 +8605,7 @@ window.addEventListener("hashchange", () => {
     state.view = canView(nextView) ? nextView : "dashboard";
     state.drawer = null;
     render();
+    if (state.view === "access") loadPortalRequests();
   }
 });
 
