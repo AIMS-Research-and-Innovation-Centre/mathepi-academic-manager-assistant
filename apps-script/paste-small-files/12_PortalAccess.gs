@@ -1,5 +1,46 @@
 const PORTAL_ADMIN_EMAIL = "couma@aimsric.org";
 const PORTAL_ROLES = ["manager", "centre-coordinator", "head-tutor", "lecturer", "tutor", "student", "support-counsellor", "it-support", "viewer"];
+const PORTAL_FIREBASE_API_KEY = "AIzaSyA_7_wqSyIk5cIShXN0wet3jEncNqwrThE";
+
+function establishGooglePortalAccess(payload) {
+  payload = payload || {};
+  const identity = portalVerifyFirebaseGoogleToken_(payload.idToken);
+  const email = portalAllowedEmail_(identity.email);
+  const sheet = portalSheet_("AccessRoles", ["email", "requested_role", "roles_json", "status", "requested_at", "decided_at", "decided_by"]);
+  let record = portalFind_(sheet, email);
+  if (!record) {
+    const requestedRole = portalRole_(payload.requestedRole);
+    const admin = email === PORTAL_ADMIN_EMAIL;
+    const roles = admin ? ["super-admin", "manager"] : [];
+    sheet.appendRow([email, requestedRole, JSON.stringify(roles), admin ? "approved" : "pending", new Date(), admin ? new Date() : "", admin ? email : ""]);
+    record = { email: email, requested_role: requestedRole, roles_json: JSON.stringify(roles), status: admin ? "approved" : "pending" };
+  }
+  const token = Utilities.getUuid() + Utilities.getUuid();
+  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  portalSheet_("AccessSessions", ["token_hash", "email", "expires_at", "created_at"]).appendRow([portalHash_(token), email, expires, new Date()]);
+  const result = portalSessionResult_(record, token, expires);
+  result.provider = "google";
+  result.displayName = identity.displayName;
+  return result;
+}
+
+function portalVerifyFirebaseGoogleToken_(idToken) {
+  idToken = String(idToken || "").trim();
+  if (!idToken) throw new Error("Google sign-in token is missing.");
+  const response = UrlFetchApp.fetch("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=" + encodeURIComponent(PORTAL_FIREBASE_API_KEY), {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({ idToken: idToken }),
+    muteHttpExceptions: true,
+  });
+  const data = JSON.parse(response.getContentText() || "{}");
+  const user = data.users && data.users[0];
+  if (response.getResponseCode() !== 200 || !user) throw new Error("Google sign-in could not be verified.");
+  if (!user.emailVerified) throw new Error("Your Google account email is not verified.");
+  const providers = user.providerUserInfo || [];
+  if (!providers.some(function (provider) { return provider.providerId === "google.com"; })) throw new Error("Use Sign in with Google for MathEpi access.");
+  return { uid: String(user.localId || ""), email: String(user.email || ""), displayName: String(user.displayName || user.email || "") };
+}
 
 function requestPortalAccessOtp(payload) {
   payload = payload || {};
@@ -55,8 +96,6 @@ function decidePortalAccess(payload) {
   const found = portalFind_(sheet, email);
   if (!found) throw new Error("Access request not found.");
   sheet.getRange(found._row, 2, 1, 6).setValues([[role, JSON.stringify(decision === "approved" ? [role] : []), decision, found.requested_at, new Date(), admin.email]]);
-  portalSend_(email, decision === "approved" ? "Your MathEpi account is approved" : "MathEpi account request update",
-    decision === "approved" ? "Your MathEpi account has been approved for the role: " + role + ". You can now open the app." : "Your MathEpi account request was not approved. Contact the Academic Manager if you need assistance.");
   return { ok: true };
 }
 

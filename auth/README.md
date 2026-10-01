@@ -1,18 +1,18 @@
 # MathEpi Accounts
 
-The portal is prepared for Firebase email/password accounts. Passwords must stay in Firebase Auth; do not save them in Google Sheets, Drive, Apps Script, or browser storage.
+The portal uses Firebase Google Sign-In. MathEpi never receives or stores user passwords, and authentication does not depend on email OTP delivery.
 
-## Activate Email/Password Login
+## Activate Google Sign-In
 
 1. Create a Firebase project.
-2. Open Authentication, then enable the Email/Password sign-in provider.
+2. Open Authentication, then enable the Google sign-in provider.
 3. Register a web app in Firebase project settings.
 4. Copy the Firebase web config into `auth/firebase-config.js`.
 5. Add the production domain in Firebase Authentication authorized domains.
 6. Refresh the portal and open Access Control.
-7. Create or sign in with a user email and password.
+7. Sign in with an approved Google account and request a role.
 
-The portal always shows a sign-in screen before the main workspace. Only authorized `@aimsric.org` accounts are accepted, self-registration is disabled, and there is no role-simulation fallback.
+The portal always shows a sign-in screen before the main workspace. Only `@aimsric.org` accounts and explicitly allowed exceptions are accepted. First-time users remain pending until the Academic Manager approves their requested role.
 
 ## Role Claim
 

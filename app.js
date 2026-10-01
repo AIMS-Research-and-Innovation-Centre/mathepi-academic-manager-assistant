@@ -2783,7 +2783,8 @@ function authState() {
   if (portalAccess && portalAccess.status === "approved") {
     return { status: "ready", user: { email: portalAccess.email, role: portalAccess.roles[0], roles: portalAccess.roles }, error: null };
   }
-  return window.mathepiAuth || { status: "unconfigured", user: null, error: null };
+  const firebase = window.mathepiAuth || { status: "unconfigured", user: null, error: null };
+  return { status: firebase.status, user: null, firebaseUser: firebase.user, error: firebase.error };
 }
 
 function authConfigured() {
@@ -3625,6 +3626,8 @@ async function authSignIn() {
 
 async function authSignOut() {
   try {
+    portalAccess = null;
+    localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY);
     await window.mathepiAuth?.signOut();
     toast("Signed out.");
   } catch (error) {
@@ -3691,6 +3694,21 @@ function renderRoleControl() {
 }
 
 function authGateLayout() {
+  const googleAuth = window.mathepiAuth || { status: "unconfigured", user: null, error: null };
+  const googlePending = portalAccess?.status === "pending";
+  const googleRejected = portalAccess?.status === "rejected";
+  const googleRoleOptions = Object.entries(ROLES).filter(([id]) => !["super-admin", "reviewer"].includes(id));
+  const googleUser = googleAuth.user;
+  const googleStatus = googleAuth.status === "loading" ? "Starting secure sign-in..." : googleAuth.error || "";
+  return `
+    <div class="auth-page"><section class="auth-panel">
+      <div class="auth-brand"><img src="assets/aims-ric-logo.png" alt="AIMS Research & Innovation Centre logo" /><div><p>MathEpi Operations</p><h1>MathEpi Assistant</h1></div></div>
+      <div class="auth-copy"><span class="badge ${googlePending ? "gold" : googleRejected ? "danger" : "blue"}">${googlePending ? "Pending approval" : googleRejected ? "Request not approved" : "Secure Google access"}</span><h2>${googlePending ? "Your role request is being reviewed" : googleRejected ? "Access was not approved" : "Sign in with your Google account"}</h2><p>${googlePending ? `Signed in as ${escapeHtml(googleUser?.email || portalAccess?.email || "")}. The Academic Manager must approve the requested role.` : googleRejected ? "Contact the Academic Manager if you believe this decision should be reviewed." : "Google verifies your identity. MathEpi then applies the role approved by the Academic Manager."}</p></div>
+      ${googlePending || googleRejected ? `<div class="hero-actions"><button class="button ghost" onclick="googlePortalSignOut()">Use another account</button><button class="button primary" onclick="refreshPortalAccess()">Check status</button></div>` : googleUser ? `<div class="notice blue">${icon("shield", 18)} Verifying MathEpi access for ${escapeHtml(googleUser.email)}...</div><div class="hero-actions"><button class="button ghost" onclick="googlePortalSignOut()">Cancel</button></div>` : `<div class="form-grid auth-form"><div class="field full"><label>Requested role</label><select id="googlePortalRole" onchange="state.portalRequestedRole=this.value"><option value="" ${state.portalRequestedRole ? "" : "selected"} disabled>Choose your role</option>${googleRoleOptions.map(([id, role]) => `<option value="${id}" ${state.portalRequestedRole === id ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></div></div><div class="hero-actions compact-actions"><button class="button primary" data-auth-action="google" onclick="authGoogleSignIn()" ${googleAuth.status !== "ready" ? "disabled" : ""}>${icon("shield", 18)}Continue with Google</button></div>`}
+      ${googleStatus ? `<div class="notice danger">${escapeHtml(googleStatus)}</div>` : ""}
+      <p class="muted-note">Only approved MathEpi accounts can enter. Sessions remain active on this device until sign-out or access revocation.</p>
+    </section>${state.toast ? `<div class="toast">${icon("check",18)}${escapeHtml(state.toast)}</div>` : ""}</div>`;
+
   const pending = portalAccess && portalAccess.status === "pending";
   const rejected = portalAccess && portalAccess.status === "rejected";
   const roleOptions = Object.entries(ROLES).filter(([id]) => !["super-admin", "reviewer"].includes(id));
@@ -4238,6 +4256,59 @@ async function requestPortalOtp() {
   try { const result = await timedGoogleApi(googleApi("requestPortalAccessOtp", { email, requestedRole }), "The email service is taking too long.", 45000); if (!result.ok) throw new Error(result.error); state.portalOtpSent = true; toast(result.deliveryHint || "OTP sent. Check your inbox and spam folder."); }
   catch (error) { toast(error.message || "Code could not be sent."); }
   finally { state.portalOtpSending = false; render(); }
+}
+
+let firebasePortalSyncPromise = null;
+
+async function authGoogleSignIn() {
+  const requestedRole = document.querySelector("#googlePortalRole")?.value || state.portalRequestedRole;
+  if (!requestedRole) return toast("Choose the role you are requesting.");
+  state.portalRequestedRole = requestedRole;
+  try {
+    setAuthActionBusy(true, "Opening Google...");
+    await withAuthTimeout(window.mathepiAuth.signInWithGoogle(), 30000);
+    if (window.mathepiAuth.user) await syncFirebasePortalAccess(window.mathepiAuth.user);
+  } catch (error) {
+    toast(authErrorMessage(error, "Google sign-in failed."));
+  } finally {
+    setAuthActionBusy(false);
+  }
+}
+
+async function syncFirebasePortalAccess(firebaseUser = window.mathepiAuth?.user) {
+  if (!firebaseUser?.idToken) return null;
+  if (firebasePortalSyncPromise) return firebasePortalSyncPromise;
+  firebasePortalSyncPromise = (async () => {
+    try {
+      const result = await googleApi("establishGooglePortalAccess", { idToken: firebaseUser.idToken, requestedRole: state.portalRequestedRole });
+      if (!result.ok) throw new Error(result.error || "MathEpi access could not be established.");
+      portalAccess = result;
+      localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(result));
+      if (result.status === "approved") setAuthenticatedRoles(result.roles);
+      render();
+      return result;
+    } catch (error) {
+      toast(error.message || "MathEpi access could not be established.");
+      render();
+      return null;
+    } finally {
+      firebasePortalSyncPromise = null;
+    }
+  })();
+  return firebasePortalSyncPromise;
+}
+
+function handleFirebaseAuthChanged(firebaseUser) {
+  if (firebaseUser) syncFirebasePortalAccess(firebaseUser);
+  else if (!portalAccess?.token) render();
+}
+
+async function googlePortalSignOut() {
+  portalAccess = null;
+  localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY);
+  state.portalRequestedRole = "";
+  await window.mathepiAuth?.signOut();
+  render();
 }
 
 async function verifyPortalOtp() {
@@ -7196,7 +7267,7 @@ async function loadPortalRequests() {
 
 async function decidePortalRequest(email, decision, selectId) {
   const role = document.getElementById(selectId)?.value || "viewer";
-  try { const result = await googleApi("decidePortalAccess", { token: portalAccess?.token, email, decision, role }); if (!result.ok) throw new Error(result.error); toast(decision === "approved" ? "Account approved and confirmation sent." : "Request rejected and email sent."); await loadPortalRequests(); }
+  try { const result = await googleApi("decidePortalAccess", { token: portalAccess?.token, email, decision, role }); if (!result.ok) throw new Error(result.error); toast(decision === "approved" ? "Account approved. The user can now sign in with Google." : "Access request rejected."); await loadPortalRequests(); }
   catch (error) { toast(error.message || "Decision could not be saved."); }
 }
 
@@ -8423,6 +8494,9 @@ window.authCreateAccount = authCreateAccount;
 window.authSignIn = authSignIn;
 window.authResetPassword = authResetPassword;
 window.authSignOut = authSignOut;
+window.authGoogleSignIn = authGoogleSignIn;
+window.handleFirebaseAuthChanged = handleFirebaseAuthChanged;
+window.googlePortalSignOut = googlePortalSignOut;
 window.requestPortalOtp = requestPortalOtp;
 window.verifyPortalOtp = verifyPortalOtp;
 window.refreshPortalAccess = refreshPortalAccess;
@@ -8497,6 +8571,7 @@ applyTheme();
 if (state.view === "tf-reviews") setView("tf-reviews");
 else render();
 if (portalAccess?.token) refreshPortalAccess();
+else if (window.mathepiAuth?.user) syncFirebasePortalAccess(window.mathepiAuth.user);
 syncReviewStaffing({ quiet: true });
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && (state.view === "calendar" || state.view === "courses")) syncReviewStaffing({ quiet: true, force: true });

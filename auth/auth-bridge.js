@@ -23,6 +23,9 @@
     async signIn() {
       throw new Error("Firebase email/password login is not configured yet.");
     },
+    async signInWithGoogle() {
+      throw new Error("Google sign-in is not configured yet.");
+    },
     async resetPassword() {
       throw new Error("Firebase email/password login is not configured yet.");
     },
@@ -78,29 +81,34 @@
         import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js"),
       ]);
       const {
-        createUserWithEmailAndPassword,
+        browserLocalPersistence,
         getAuth,
+        getRedirectResult,
+        GoogleAuthProvider,
         onAuthStateChanged,
-        sendPasswordResetEmail,
-        signInWithEmailAndPassword,
+        setPersistence,
+        signInWithPopup,
+        signInWithRedirect,
         signOut,
       } = authModule;
       const app = initializeApp(config);
       const auth = getAuth(app);
+      await setPersistence(auth, browserLocalPersistence);
+      const googleProvider = new GoogleAuthProvider();
+      googleProvider.setCustomParameters({ prompt: "select_account", hd: "aimsric.org" });
 
-      authState.createAccount = (email, password) => {
-        if (!allowedEmail(email)) return Promise.reject(new Error("Use an approved MathEpi account email."));
-        return createUserWithEmailAndPassword(auth, email, password);
-      };
-      authState.signIn = (email, password) => {
-        if (!allowedEmail(email)) return Promise.reject(new Error("Use an approved MathEpi account email."));
-        return signInWithEmailAndPassword(auth, email, password);
+      authState.signInWithGoogle = async () => {
+        try {
+          return await signInWithPopup(auth, googleProvider);
+        } catch (error) {
+          if (["auth/popup-blocked", "auth/operation-not-supported-in-this-environment"].includes(error?.code)) {
+            return signInWithRedirect(auth, googleProvider);
+          }
+          throw error;
+        }
       };
       authState.signOut = () => signOut(auth);
-      authState.resetPassword = (email) => {
-        if (!allowedEmail(email)) return Promise.reject(new Error("Use an approved MathEpi account email."));
-        return sendPasswordResetEmail(auth, email);
-      };
+      await getRedirectResult(auth).catch(() => null);
 
       onAuthStateChanged(auth, async (firebaseUser) => {
         if (!firebaseUser) {
@@ -113,21 +121,21 @@
           await signOut(auth);
           return;
         }
-        const token = await firebaseUser.getIdTokenResult();
-        const roles = rolesFromClaims(token.claims, firebaseUser.email);
-        const role = roles[0];
+        const token = await firebaseUser.getIdTokenResult(true);
+        const roles = rolesFromClaims(token.claims, firebaseUser.email).filter((role) => role !== "viewer");
+        const role = roles[0] || null;
         publish("ready", {
           error: null,
           user: {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName || firebaseUser.email,
+            idToken: token.token,
             role,
             roles,
           },
         });
-        if (typeof window.setAuthenticatedRoles === "function") window.setAuthenticatedRoles(roles);
-        else if (typeof window.setAuthenticatedRole === "function") window.setAuthenticatedRole(role);
+        if (typeof window.handleFirebaseAuthChanged === "function") window.handleFirebaseAuthChanged(authState.user);
       });
     } catch (error) {
       publish("error", { error: error.message || "Firebase login could not start." });

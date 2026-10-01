@@ -45,6 +45,7 @@ function apiPost(request) {
   if (action === "verifyEmailOtp") return verifyEmailOtp(payload);
   if (action === "requestPortalAccessOtp") return requestPortalAccessOtp(payload);
   if (action === "verifyPortalAccessOtp") return verifyPortalAccessOtp(payload);
+  if (action === "establishGooglePortalAccess") return establishGooglePortalAccess(payload);
   if (action === "getPortalAccessSession") return getPortalAccessSession(payload);
   if (action === "listPortalAccessRequests") return listPortalAccessRequests(payload);
   if (action === "decidePortalAccess") return decidePortalAccess(payload);
