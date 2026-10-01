@@ -2783,6 +2783,48 @@ button {
   font-weight: 800;
 }
 
+.lecturer-linked-name {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.academic-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.academic-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--maroon);
+  background: var(--surface);
+  text-decoration: none;
+  line-height: 1;
+}
+
+.academic-links a:hover,
+.academic-links a:focus-visible {
+  color: var(--surface);
+  background: var(--maroon);
+  outline: none;
+}
+
+.academic-links .orcid-link {
+  color: #4f7f00;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
 .weekly-activity,
 .weekly-milestone {
   margin: 0;

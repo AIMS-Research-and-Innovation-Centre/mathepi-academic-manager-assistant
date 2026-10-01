@@ -2684,6 +2684,18 @@ function migrateProgrammeData() {
     if (item) Object.assign(item, assignment);
   });
 
+  const mes04 = state.courses.find((item) => item.code === "MES04");
+  if (mes04) {
+    if (/\byao\b/i.test(String(mes04.lecturerName || ""))) {
+      mes04.lecturerName = "";
+      mes04.lecturerStatus = "";
+      mes04.lecturerId = null;
+    }
+    mes04.manualAlternateLecturerName = String(mes04.manualAlternateLecturerName || "").split("/").map((name) => name.trim()).filter((name) => name && !/\byao\b/i.test(name)).join(" / ");
+    mes04.alternateLecturerName = String(mes04.alternateLecturerName || "").split("/").map((name) => name.trim()).filter((name) => name && !/\byao\b/i.test(name)).join(" / ");
+    mes04.reviewAlternateLecturerNames = (mes04.reviewAlternateLecturerNames || []).filter((name) => !/\byao\b/i.test(name));
+  }
+
   if (!safeStorageGet("mathepi-programme-schedule-v3")) {
     state.sessions = safeClone(DEFAULT_SESSIONS);
     safeStorageSet("mathepi-programme-schedule-v3", "1");
@@ -2806,6 +2818,38 @@ function canEdit() {
 
 function canSeeSensitive() {
   return roleDef().canSensitive;
+}
+
+function canSeeLecturerAlternates() {
+  return state.role === "manager" || state.role === "super-admin";
+}
+
+function safeAcademicUrl(value, type) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:") return "";
+    if (type === "orcid" && url.hostname !== "orcid.org" && url.hostname !== "www.orcid.org") return "";
+    if (type === "scholar" && url.hostname !== "scholar.google.com") return "";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
+function lecturerAcademicLinks(name, lecturerRecord = null) {
+  const linkedPerson = lecturerRecord || state.people.find((item) => item.kind === "Lecturer" && String(item.name || "").toLowerCase() === String(name || "").toLowerCase());
+  const scholar = safeAcademicUrl(linkedPerson?.scholarUrl, "scholar") || `https://scholar.google.com/scholar?q=${encodeURIComponent(String(name || ""))}`;
+  const orcid = safeAcademicUrl(linkedPerson?.orcidUrl, "orcid");
+  return `<span class="academic-links">
+    <a href="${escapeHtml(scholar)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="${linkedPerson?.scholarUrl ? "Open Google Scholar profile" : "Search Google Scholar"}" aria-label="${linkedPerson?.scholarUrl ? "Open Google Scholar profile" : "Search Google Scholar"} for ${escapeHtml(name)}">${icon("graduation", 15)}</a>
+    ${orcid ? `<a class="orcid-link" href="${escapeHtml(orcid)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="Open ORCID profile" aria-label="Open ORCID profile for ${escapeHtml(name)}">iD</a>` : ""}
+  </span>`;
+}
+
+function lecturerNameWithLinks(name) {
+  return name ? `<span class="lecturer-linked-name">${escapeHtml(name)}${lecturerAcademicLinks(name)}</span>` : "";
 }
 
 function course(code) {
@@ -4271,6 +4315,8 @@ function applyReviewStaffingAssignments(result = {}) {
       nationality: row.nationality || "",
       email: row.email || "",
       reference: row.reference || row.applicationId || "",
+      scholarUrl: safeAcademicUrl(row.scholarUrl || row.googleScholarUrl, "scholar"),
+      orcidUrl: safeAcademicUrl(row.orcidUrl || row.orcid, "orcid"),
       expertise: row.courseCode || "Assigned course",
       status: row.status === "Approved" || row.status === "Decision" ? "Confirmed" : "Awaiting response",
       workload: 0,
@@ -4279,8 +4325,9 @@ function applyReviewStaffingAssignments(result = {}) {
   });
   state.courses.forEach((item) => {
     if (hasLecturers) {
-      const reviewLecturers = lecturers.filter((row) => row.courseCode === item.code && String(row.status || "Approved") === "Approved").map((row) => row.name).filter(Boolean);
-      const reviewAlternates = lecturers.filter((row) => row.courseCode === item.code && String(row.status || "") === "Consider").map((row) => row.name).filter(Boolean);
+      const courseLecturers = lecturers.filter((row) => row.courseCode === item.code && !(item.code === "MES04" && /\byao\b/i.test(String(row.name || ""))));
+      const reviewLecturers = courseLecturers.filter((row) => String(row.status || "Approved") === "Approved").map((row) => row.name).filter(Boolean);
+      const reviewAlternates = courseLecturers.filter((row) => String(row.status || "") === "Consider").map((row) => row.name).filter(Boolean);
       item.reviewLecturerNames = [...new Set(reviewLecturers)];
       item.reviewAlternateLecturerNames = [...new Set(reviewAlternates)];
       item.alternateLecturerName = [...new Set([item.manualAlternateLecturerName, ...item.reviewAlternateLecturerNames].filter(Boolean))].join(" / ");
@@ -4346,13 +4393,13 @@ function renderProgrammeWeek(item) {
       const linked = course(code);
       const meta = linked ? COURSE_TYPES[linked.type] : null;
       const lecturer = linked?.lecturerName || "";
-      const alternate = linked?.alternateLecturerName || "";
+      const alternate = canSeeLecturerAlternates() ? linked?.alternateLecturerName || "" : "";
       const tutors = linked?.reviewTutorNames || [];
       const reserveTutors = linked?.reviewReserveTutorNames || [];
       const staffTitle = [lecturer ? `Lecturer: ${lecturer}` : "", alternate ? `Alternate: ${alternate}` : "", tutors.length ? `Tutors: ${tutors.join(", ")}` : "", reserveTutors.length ? `Reserve tutors: ${reserveTutors.join(", ")}` : ""].filter(Boolean).join("; ");
       return `<span class="weekly-course ${meta?.color || "gray"}" title="${[linked?.title || code, staffTitle].filter(Boolean).join(" - ")}">
         <strong>${code}</strong><span>${linked?.title || ""}</span>
-        ${lecturer || tutors.length || reserveTutors.length ? `<small class="weekly-course-staff">${lecturer ? `<b>Lecturer:</b> ${lecturer}` : ""}${alternate ? ` <em>Alternate: ${alternate}</em>` : ""}${tutors.length ? `<em>Tutors: ${tutors.join(", ")}</em>` : ""}${reserveTutors.length ? `<em>Reserve tutors: ${reserveTutors.join(", ")}</em>` : ""}</small>` : ""}
+        ${lecturer || tutors.length || reserveTutors.length ? `<small class="weekly-course-staff">${lecturer ? `<b>Lecturer:</b> ${lecturerNameWithLinks(lecturer)}` : ""}${alternate ? ` <em>Alternate: ${escapeHtml(alternate)}</em>` : ""}${tutors.length ? `<em>Tutors: ${tutors.join(", ")}</em>` : ""}${reserveTutors.length ? `<em>Reserve tutors: ${reserveTutors.join(", ")}</em>` : ""}</small>` : ""}
       </span>`;
     })
     .join("");
@@ -4385,7 +4432,7 @@ function renderWeek(block) {
   const teachingCell = (item, label) => item
     ? `<div class="programme-session ${item.type || "skills"}" title="${item.code} ${item.title}">
         <strong>${item.code}</strong><span>${item.title}</span><small>${label}</small>
-        ${item.lecturerName || item.reviewTutorNames?.length || item.reviewReserveTutorNames?.length ? `<small class="programme-lecturer">${item.lecturerName ? `Lecturer: ${item.lecturerName}` : ""}${item.alternateLecturerName ? ` · Alt: ${item.alternateLecturerName}` : ""}${item.reviewTutorNames?.length ? ` · Tutors: ${item.reviewTutorNames.join(", ")}` : ""}${item.reviewReserveTutorNames?.length ? ` · Reserve tutors: ${item.reviewReserveTutorNames.join(", ")}` : ""}</small>` : ""}
+        ${item.lecturerName || item.reviewTutorNames?.length || item.reviewReserveTutorNames?.length ? `<small class="programme-lecturer">${item.lecturerName ? `Lecturer: ${lecturerNameWithLinks(item.lecturerName)}` : ""}${canSeeLecturerAlternates() && item.alternateLecturerName ? ` · Alt: ${escapeHtml(item.alternateLecturerName)}` : ""}${item.reviewTutorNames?.length ? ` · Tutors: ${item.reviewTutorNames.join(", ")}` : ""}${item.reviewReserveTutorNames?.length ? ` · Reserve tutors: ${item.reviewReserveTutorNames.join(", ")}` : ""}</small>` : ""}
       </div>`
     : `<span class="programme-slot-empty">To be assigned</span>`;
   return `
@@ -4517,8 +4564,8 @@ function studentCourseTeamChips(item, lead, tutors) {
   const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
   const tutorText = tutorNames.length ? tutorNames.join(", ") : "Tutor not assigned";
   return `
-    <span class="chip ${lecturerName ? "blue" : "danger"}">Lecturer: ${lecturerName || "Not assigned"}</span>
-    ${item.alternateLecturerName ? `<span class="chip gold">Alternate: ${item.alternateLecturerName}</span>` : ""}
+    <span class="chip ${lecturerName ? "blue" : "danger"}">Lecturer: ${lecturerName ? lecturerNameWithLinks(lecturerName) : "Not assigned"}</span>
+    ${canSeeLecturerAlternates() && item.alternateLecturerName ? `<span class="chip gold">Alternate: ${escapeHtml(item.alternateLecturerName)}</span>` : ""}
     <span class="chip ${tutorNames.length ? "green" : "danger"}">Tutor: ${tutorText}</span>
   `;
 }
@@ -4528,8 +4575,8 @@ function courseStaffingChips(item, lead, tutors) {
   const tutorCount = tutorNames.length;
   const lecturerName = courseLecturerName(item, lead);
   return `
-    ${lecturerName ? `<span class="chip green">${lecturerName}</span><span class="chip blue">${item.lecturerStatus || "Lecturer assigned"}</span>` : `<span class="badge danger">Lecturer not assigned</span>`}
-    ${item.alternateLecturerName ? `<span class="chip gold">Alternate: ${item.alternateLecturerName}</span>` : ""}
+    ${lecturerName ? `<span class="chip green">${lecturerNameWithLinks(lecturerName)}</span><span class="chip blue">${item.lecturerStatus || "Lecturer assigned"}</span>` : `<span class="badge danger">Lecturer not assigned</span>`}
+    ${canSeeLecturerAlternates() && item.alternateLecturerName ? `<span class="chip gold">Alternate: ${escapeHtml(item.alternateLecturerName)}</span>` : ""}
     ${
       tutorCount
         ? `<span class="chip green">Tutors: ${tutorNames.join(", ")}</span>${tutors.map(personStatusBadge).join("")}`
@@ -4551,7 +4598,7 @@ function renderCourseRow(item) {
     <article class="course-row">
       <div>
         <h4>${item.code} ${item.title}</h4>
-        <p>${item.block} · ${item.hours} hours · ${lecturerName || "Lecturer not assigned"}${item.alternateLecturerName ? ` · Alternate: ${item.alternateLecturerName}` : ""}${tutorNames.length ? ` · Tutors: ${tutorNames.join(", ")}` : ""}</p>
+        <p>${item.block} · ${item.hours} hours · ${lecturerName ? lecturerNameWithLinks(lecturerName) : "Lecturer not assigned"}${canSeeLecturerAlternates() && item.alternateLecturerName ? ` · Alternate: ${escapeHtml(item.alternateLecturerName)}` : ""}${tutorNames.length ? ` · Tutors: ${tutorNames.join(", ")}` : ""}</p>
         <div class="row-tags">
           ${typeBadge(item.type)}
           ${staffing}
@@ -7242,6 +7289,7 @@ function courseDrawer(code) {
   const lecturerOptions = state.people.filter((entry) => entry.kind === "Lecturer");
   const tutorOptions = state.people.filter((entry) => entry.kind === "Tutor");
   const detail = COURSE_DETAILS[item.code];
+  const lecturerName = courseLecturerName(item, lead);
   const lecturerText = lead
     ? state.role === "student"
       ? lead.name
@@ -7257,8 +7305,8 @@ function courseDrawer(code) {
       <div class="meta-box"><span>Hours / units</span><strong>${item.hours} hrs · ${item.units} units</strong></div>
       <div class="meta-box"><span>Hour split</span><strong>${courseHourSplit(item)}</strong></div>
     </div>
-    <div class="timeline-item"><h4>Lecturer</h4><p>${lecturerText}</p></div>
-    ${item.alternateLecturerName ? `<div class="timeline-item"><h4>Alternate lecturer</h4><p>${item.alternateLecturerName}</p></div>` : ""}
+    <div class="timeline-item"><h4>Lecturer</h4><p>${lecturerName ? lecturerNameWithLinks(lecturerName) : lecturerText}</p></div>
+    ${canSeeLecturerAlternates() && item.alternateLecturerName ? `<div class="timeline-item"><h4>Alternate lecturer</h4><p>${escapeHtml(item.alternateLecturerName)}</p></div>` : ""}
     <div class="timeline-item"><h4>Tutors</h4><p>${tutorNames.length ? tutorNames.join(", ") : "No tutor assigned yet"}</p></div>
     ${
       canEdit()
@@ -7324,7 +7372,7 @@ function personDrawer(id) {
     <div class="profile-head">
       <span class="avatar">${initials(item.name)}</span>
       <div>
-        <h3 style="margin:0">${item.name}</h3>
+        <h3 style="margin:0">${escapeHtml(item.name)}${item.kind === "Lecturer" ? lecturerAcademicLinks(item.name, item) : ""}</h3>
         <p style="margin:5px 0 0;color:var(--muted)">${item.kind} · ${item.affiliation || "Affiliation not provided"}</p>
       </div>
     </div>
@@ -7338,6 +7386,7 @@ function personDrawer(id) {
     <div class="timeline-item"><h4>Availability</h4><p>${item.availability || "Not provided"}</p></div>
     <div class="timeline-item"><h4>Assigned courses</h4><p>${assigned.length ? assigned.map((c) => `${c.code} ${c.title}`).join("; ") : "No assignment yet"}</p></div>
     <div class="timeline-item"><h4>Communication history</h4><p>Last contact: ${dateLabel(item.lastContact)}. Next follow-up: ${dateLabel(item.nextFollowUp)}. ${item.notes || "No notes recorded."}</p></div>
+    ${item.kind === "Lecturer" && canSeeLecturerAlternates() ? `<div class="timeline-item"><h4>Academic profiles</h4><div class="form-grid"><div class="field full"><label>Google Scholar profile</label><input id="lecturerScholarUrl" type="url" value="${escapeHtml(item.scholarUrl || "")}" placeholder="https://scholar.google.com/citations?user=..." /></div><div class="field full"><label>ORCID profile</label><input id="lecturerOrcidUrl" type="url" value="${escapeHtml(item.orcidUrl || "")}" placeholder="https://orcid.org/0000-0000-0000-0000" /></div></div></div>` : ""}
     ${
       canEdit()
         ? `<div class="field">
@@ -7352,10 +7401,25 @@ function personDrawer(id) {
     }
   `;
   const footer = canEdit()
-    ? `<button class="button ghost" onclick="openDrawer('messageDraft', '${item.id}')">${icon("mail", 17)}Draft message</button>
+    ? `${item.kind === "Lecturer" && canSeeLecturerAlternates() ? `<button class="button ghost" onclick="updateLecturerAcademicProfiles('${item.id}')">${icon("graduation", 17)}Save profile links</button>` : ""}<button class="button ghost" onclick="openDrawer('messageDraft', '${item.id}')">${icon("mail", 17)}Draft message</button>
        <button class="button primary" onclick="closeDrawer()">${icon("check", 17)}Done</button>`
     : `<button class="button ghost" onclick="closeDrawer()">Close</button>`;
   return drawerShell(item.name, `${item.kind} contact and assignment profile`, body, footer);
+}
+
+function updateLecturerAcademicProfiles(id) {
+  if (!canSeeLecturerAlternates()) return toast("Only Academic Managers and Admins can edit academic profile links.");
+  const item = person(id);
+  if (!item || item.kind !== "Lecturer") return;
+  const scholarInput = document.querySelector("#lecturerScholarUrl")?.value.trim() || "";
+  const orcidInput = document.querySelector("#lecturerOrcidUrl")?.value.trim() || "";
+  const scholarUrl = safeAcademicUrl(scholarInput, "scholar");
+  const orcidUrl = safeAcademicUrl(orcidInput, "orcid");
+  if (scholarInput && !scholarUrl) return toast("Use a valid https://scholar.google.com profile URL.");
+  if (orcidInput && !orcidUrl) return toast("Use a valid https://orcid.org profile URL.");
+  item.scholarUrl = scholarUrl;
+  item.orcidUrl = orcidUrl;
+  saveAndRender(`${item.name} academic profile links updated.`);
 }
 
 function updatePersonStatus(id, status) {
@@ -7465,6 +7529,7 @@ function personFormDrawer(payload = {}) {
       <div class="field"><label>Expertise</label><input name="expertise" placeholder="Epidemiology, modelling..." /></div>
       <div class="field"><label>Email</label><input name="email" type="email" placeholder="name@example.org" /></div>
       <div class="field"><label>Phone / WhatsApp</label><input name="phone" placeholder="+250..." /></div>
+      ${kind === "Lecturer" && canSeeLecturerAlternates() ? `<div class="field"><label>Google Scholar profile</label><input name="scholarUrl" type="url" placeholder="https://scholar.google.com/citations?user=..." /></div><div class="field"><label>ORCID profile</label><input name="orcidUrl" type="url" placeholder="https://orcid.org/0000-0000-0000-0000" /></div>` : ""}
       <div class="field full"><label>Notes</label><textarea name="notes" placeholder="Communication notes"></textarea></div>
     </form>
   `;
@@ -7484,6 +7549,8 @@ function addPerson() {
     affiliation: data.affiliation || "To be confirmed",
     email: data.email || "to-be-confirmed@example.org",
     phone: data.phone || "To be confirmed",
+    scholarUrl: safeAcademicUrl(data.scholarUrl, "scholar"),
+    orcidUrl: safeAcademicUrl(data.orcidUrl, "orcid"),
     expertise: data.expertise || "To be confirmed",
     availability: "To be confirmed",
     status: data.status,
@@ -8355,6 +8422,7 @@ window.portalSignOut = portalSignOut;
 window.loadPortalRequests = loadPortalRequests;
 window.decidePortalRequest = decidePortalRequest;
 window.updatePersonStatus = updatePersonStatus;
+window.updateLecturerAcademicProfiles = updateLecturerAcademicProfiles;
 window.addCourse = addCourse;
 window.updateCourseLecturer = updateCourseLecturer;
 window.updateCourseTutor = updateCourseTutor;
