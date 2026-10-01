@@ -122,27 +122,36 @@
           publish("ready", { user: null, error: authState.error || null });
           return;
         }
-        if (!allowedEmail(firebaseUser.email)) {
-          const message = "This email is not approved for MathEpi access.";
-          publish("ready", { user: null, error: message });
-          await signOut(auth);
-          return;
+        try {
+          if (!allowedEmail(firebaseUser.email)) {
+            const message = "This email is not approved for MathEpi access.";
+            publish("ready", { user: null, error: message });
+            await signOut(auth);
+            return;
+          }
+          const token = await firebaseUser.getIdTokenResult(false);
+          const roles = rolesFromClaims(token.claims, firebaseUser.email).filter((role) => role !== "viewer");
+          const role = roles[0] || null;
+          publish("ready", {
+            error: null,
+            user: {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName || firebaseUser.email,
+              idToken: token.token,
+              role,
+              roles,
+            },
+          });
+          if (typeof window.handleFirebaseAuthChanged === "function") window.handleFirebaseAuthChanged(authState.user);
+        } catch (error) {
+          publish("ready", {
+            user: null,
+            error: error?.code === "auth/network-request-failed"
+              ? "Google signed you in, but Firebase could not finish verification. Check your connection and try again."
+              : error?.message || "Google sign-in could not be verified.",
+          });
         }
-        const token = await firebaseUser.getIdTokenResult(true);
-        const roles = rolesFromClaims(token.claims, firebaseUser.email).filter((role) => role !== "viewer");
-        const role = roles[0] || null;
-        publish("ready", {
-          error: null,
-          user: {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName || firebaseUser.email,
-            idToken: token.token,
-            role,
-            roles,
-          },
-        });
-        if (typeof window.handleFirebaseAuthChanged === "function") window.handleFirebaseAuthChanged(authState.user);
       });
     } catch (error) {
       publish("error", { error: error.message || "Firebase login could not start." });
