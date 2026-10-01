@@ -6,18 +6,17 @@ function establishGooglePortalAccess(payload) {
   payload = payload || {};
   const identity = portalVerifyFirebaseGoogleToken_(payload.idToken);
   const email = portalAllowedEmail_(identity.email);
-  const sheet = portalSheet_("AccessRoles", ["email", "requested_role", "roles_json", "status", "requested_at", "decided_at", "decided_by"]);
-  let record = portalFind_(sheet, email);
+  let record = portalStoredAccess_(email);
   if (!record) {
     const requestedRole = portalRole_(payload.requestedRole);
     const admin = email === PORTAL_ADMIN_EMAIL;
     const roles = admin ? ["super-admin", "manager"] : [];
-    sheet.appendRow([email, requestedRole, JSON.stringify(roles), admin ? "approved" : "pending", new Date(), admin ? new Date() : "", admin ? email : ""]);
-    record = { email: email, requested_role: requestedRole, roles_json: JSON.stringify(roles), status: admin ? "approved" : "pending" };
+    record = { email: email, requested_role: requestedRole, roles_json: JSON.stringify(roles), status: admin ? "approved" : "pending", requested_at: new Date().toISOString(), decided_at: admin ? new Date().toISOString() : "", decided_by: admin ? email : "" };
+    portalStoreAccess_(record);
   }
   const token = Utilities.getUuid() + Utilities.getUuid();
   const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  portalSheet_("AccessSessions", ["token_hash", "email", "expires_at", "created_at"]).appendRow([portalHash_(token), email, expires, new Date()]);
+  portalStoreSession_(token, email, expires);
   const result = portalSessionResult_(record, token, expires);
   result.provider = "google";
   result.displayName = identity.displayName;
@@ -81,8 +80,7 @@ function getPortalAccessSession(payload) {
 
 function listPortalAccessRequests(payload) {
   portalRequireSession_(payload && payload.token, true);
-  const sheet = portalSheet_("AccessRoles", ["email", "requested_role", "roles_json", "status", "requested_at", "decided_at", "decided_by"]);
-  return { ok: true, requests: portalRows_(sheet).filter(function (row) { return row.status === "pending"; }) };
+  return { ok: true, requests: portalStoredAccessRows_().filter(function (row) { return row.status === "pending"; }) };
 }
 
 function decidePortalAccess(payload) {
@@ -92,19 +90,21 @@ function decidePortalAccess(payload) {
   const decision = String(payload.decision || "").toLowerCase();
   if (["approved", "rejected"].indexOf(decision) < 0) throw new Error("Choose Approve or Reject.");
   const role = portalRole_(payload.role);
-  const sheet = portalSheet_("AccessRoles", ["email", "requested_role", "roles_json", "status", "requested_at", "decided_at", "decided_by"]);
-  const found = portalFind_(sheet, email);
+  const found = portalStoredAccess_(email);
   if (!found) throw new Error("Access request not found.");
-  sheet.getRange(found._row, 2, 1, 6).setValues([[role, JSON.stringify(decision === "approved" ? [role] : []), decision, found.requested_at, new Date(), admin.email]]);
+  found.requested_role = role;
+  found.roles_json = JSON.stringify(decision === "approved" ? [role] : []);
+  found.status = decision;
+  found.decided_at = new Date().toISOString();
+  found.decided_by = admin.email;
+  portalStoreAccess_(found);
   return { ok: true };
 }
 
 function portalRequireSession_(token, adminOnly) {
-  const hash = portalHash_(String(token || ""));
-  const sessions = portalRows_(portalSheet_("AccessSessions", ["token_hash", "email", "expires_at", "created_at"]));
-  const session = sessions.filter(function (row) { return row.token_hash === hash && new Date(row.expires_at).getTime() > Date.now(); })[0];
-  if (!session) throw new Error("Your session has expired. Request a new email code.");
-  const access = portalFind_(portalSheet_("AccessRoles", ["email", "requested_role", "roles_json", "status", "requested_at", "decided_at", "decided_by"]), session.email);
+  const session = portalStoredSession_(token);
+  if (!session || new Date(session.expires_at).getTime() <= Date.now()) throw new Error("Your session has expired. Sign in with Google again.");
+  const access = portalStoredAccess_(session.email);
   if (!access) throw new Error("Access record not found.");
   if (adminOnly && session.email !== PORTAL_ADMIN_EMAIL) throw new Error("Administrator access is required.");
   return { email: session.email, access: access, expires: session.expires_at };
@@ -112,6 +112,30 @@ function portalRequireSession_(token, adminOnly) {
 
 function portalSessionResult_(record, token, expires) {
   return { ok: true, token: token, email: record.email, status: record.status, requestedRole: record.requested_role, roles: JSON.parse(record.roles_json || "[]"), expiresAt: expires };
+}
+
+function portalStore_() { return PropertiesService.getScriptProperties(); }
+function portalAccessKey_(email) { return "portal_access_" + portalHash_(normalizeEmailAddress(email)); }
+function portalSessionKey_(token) { return "portal_session_" + portalHash_(String(token || "")); }
+function portalStoredAccess_(email) {
+  const value = portalStore_().getProperty(portalAccessKey_(email));
+  return value ? JSON.parse(value) : null;
+}
+function portalStoreAccess_(record) { portalStore_().setProperty(portalAccessKey_(record.email), JSON.stringify(record)); }
+function portalStoredAccessRows_() {
+  const properties = portalStore_().getProperties();
+  return Object.keys(properties).filter(function (key) { return key.indexOf("portal_access_") === 0; }).map(function (key, index) {
+    const record = JSON.parse(properties[key]);
+    record._row = index + 1;
+    return record;
+  });
+}
+function portalStoreSession_(token, email, expires) {
+  portalStore_().setProperty(portalSessionKey_(token), JSON.stringify({ email: email, expires_at: expires.toISOString(), created_at: new Date().toISOString() }));
+}
+function portalStoredSession_(token) {
+  const value = portalStore_().getProperty(portalSessionKey_(token));
+  return value ? JSON.parse(value) : null;
 }
 
 function portalAllowedEmail_(email) {
