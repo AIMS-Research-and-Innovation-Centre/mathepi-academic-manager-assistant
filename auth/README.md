@@ -25,6 +25,7 @@ The portal reads a Firebase custom claim named `role`. Use one of these role IDs
 - `lecturer`
 - `tutor`
 - `student`
+- `aims-ric-support` (same application privileges as `student`)
 - `support-counsellor`
 - `it-support`
 - `viewer`

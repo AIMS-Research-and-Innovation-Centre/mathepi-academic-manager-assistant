@@ -1,5 +1,5 @@
 const PORTAL_ADMIN_EMAIL = "couma@aimsric.org";
-const PORTAL_ROLES = ["manager", "centre-coordinator", "head-tutor", "lecturer", "tutor", "student", "support-counsellor", "it-support", "viewer"];
+const PORTAL_ROLES = ["manager", "centre-coordinator", "head-tutor", "lecturer", "tutor", "student", "aims-ric-support", "support-counsellor", "it-support", "viewer"];
 const PORTAL_FIREBASE_API_KEY = "AIzaSyA_7_wqSyIk5cIShXN0wet3jEncNqwrThE";
 
 function establishGooglePortalAccess(payload) {

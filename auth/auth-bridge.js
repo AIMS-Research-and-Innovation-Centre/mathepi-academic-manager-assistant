@@ -7,6 +7,7 @@
     "lecturer",
     "tutor",
     "student",
+    "aims-ric-support",
     "support-counsellor",
     "it-support",
     "viewer",

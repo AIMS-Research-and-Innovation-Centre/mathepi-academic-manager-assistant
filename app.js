@@ -1953,6 +1953,13 @@ const ROLES = {
     canSensitive: false,
     views: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
   },
+  "aims-ric-support": {
+    label: "AIMS RIC Support",
+    hint: "Student-level access to programme information, planning, groups, appointments, and support",
+    canEdit: false,
+    canSensitive: false,
+    views: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
+  },
   "support-counsellor": {
     label: "Support / Counsellor",
     hint: "Confidential support triage, counselling referrals, and wellbeing requests",
@@ -2906,6 +2913,10 @@ function currentStudentId() {
   return "student-01";
 }
 
+function isStudentRole() {
+  return state.role === "student" || state.role === "aims-ric-support";
+}
+
 function student(id) {
   return state.students.find((item) => item.id === id);
 }
@@ -2921,6 +2932,7 @@ function currentLecturerId() {
 function currentActorId() {
   const map = {
     student: currentStudentId(),
+    "aims-ric-support": currentStudentId(),
     tutor: currentTutorId(),
     lecturer: currentLecturerId(),
     "head-tutor": "head-tutor-01",
@@ -2964,7 +2976,7 @@ function participantKind(id) {
 }
 
 function visiblePlannerTasks() {
-  if (state.role === "student") {
+  if (isStudentRole()) {
     return state.plannerTasks.filter((item) => item.ownerId === currentStudentId());
   }
   return state.plannerTasks;
@@ -3033,7 +3045,7 @@ function visibleAppointments() {
 
 function visibleAvailability() {
   const actor = currentActorId();
-  if (["super-admin", "manager", "centre-coordinator", "student"].includes(state.role)) return state.availability;
+  if (["super-admin", "manager", "centre-coordinator", "student", "aims-ric-support"].includes(state.role)) return state.availability;
   if (state.role === "head-tutor") {
     return state.availability.filter((item) => participantKind(item.personId) === "Tutor" || item.personId === actor);
   }
@@ -3052,7 +3064,7 @@ function canUpdateAppointment(item) {
 }
 
 function visibleTodos() {
-  if (state.role === "student") {
+  if (isStudentRole()) {
     return state.studentTodos.filter((item) => item.ownerId === currentStudentId());
   }
   return state.studentTodos;
@@ -3079,7 +3091,7 @@ function acceptedGroupMembers(groupId) {
 }
 
 function pendingStudyGroupInvites() {
-  if (state.role !== "student") return [];
+  if (!isStudentRole()) return [];
   return state.studyGroupInvitations.filter(
     (item) =>
       item.invitedStudentId === currentStudentId() &&
@@ -3090,7 +3102,7 @@ function pendingStudyGroupInvites() {
 function visibleStudyGroups() {
   const actor = currentActorId();
   if (["manager", "super-admin", "centre-coordinator"].includes(state.role)) return state.studyGroups;
-  if (state.role === "student") {
+  if (isStudentRole()) {
     return state.studyGroups.filter((group) => {
       const invite = groupInvitations(group.id).find((item) => item.invitedStudentId === currentStudentId());
       return group.organizerId === currentStudentId() || invite?.status === "Accepted";
@@ -3103,7 +3115,7 @@ function visibleStudyGroups() {
 }
 
 function canManageStudyGroup(group) {
-  return state.role === "student" && group.organizerId === currentStudentId();
+  return isStudentRole() && group.organizerId === currentStudentId();
 }
 
 function invitationStatusBadge(status) {
@@ -3124,7 +3136,7 @@ function groupConflictNote(group) {
   const plannerConflict = state.plannerTasks.find(
     (item) => item.ownerId === currentStudentId() && item.date === group.meetingDate && item.time === group.meetingTime,
   );
-  if (plannerConflict && state.role === "student") {
+  if (plannerConflict && isStudentRole()) {
     return `This overlaps with your planner block: ${plannerConflict.title}.`;
   }
   const courseSessions = state.sessions.filter((session) => session.courseCode === group.courseCode && session.time === group.meetingTime);
@@ -3190,7 +3202,7 @@ function canManageSupport(item) {
 
 function visibleSupportRequests() {
   const actor = currentActorId();
-  if (state.role === "student" || state.role === "tutor" || state.role === "lecturer") {
+  if (isStudentRole() || state.role === "tutor" || state.role === "lecturer") {
     return state.supportRequests.filter((item) => item.requesterId === actor || item.assignedTo === actor);
   }
   if (state.role === "support-counsellor") {
@@ -3266,7 +3278,7 @@ function appointmentConflictNote(personId, preferredDate, time) {
 
 function appointmentTargetOptions() {
   const contacts = appointmentContacts().filter((item) => item.id !== currentActorId());
-  if (state.role === "student") {
+  if (isStudentRole()) {
     return contacts.filter((item) =>
       ["Tutor", "Lecturer", "Academic Manager", "Centre Coordinator", "Support / Counsellor", "IT Support"].includes(item.kind),
     );
@@ -3645,10 +3657,10 @@ function topbarAction() {
   if (canEdit()) {
     return `<button class="button primary" onclick="openDrawer('quickAdd')">${icon("plus", 18)}Add</button>`;
   }
-  if (state.view === "planner" && state.role === "student") {
+  if (state.view === "planner" && isStudentRole()) {
     return `<button class="button primary" onclick="openDrawer('plannerForm')">${icon("plus", 18)}Plan</button>`;
   }
-  if (state.view === "groups" && state.role === "student") {
+  if (state.view === "groups" && isStudentRole()) {
     return `<button class="button primary" onclick="openDrawer('studyGroupForm')">${icon("group", 18)}Group</button>`;
   }
   if (state.view === "appointments" && canCreateAppointment()) {
@@ -3834,7 +3846,7 @@ function appLayout() {
 
 function mobileNav(nav) {
   const priorityIds =
-    state.role === "student"
+    isStudentRole()
       ? ["dashboard", "planner", "groups", "support", "appointments"]
       : state.role === "reviewer"
         ? ["dashboard", "tf-reviews"]
@@ -3987,7 +3999,7 @@ function renderDashboard() {
 }
 
 function dashboardQuickActions() {
-  if (state.role === "student") {
+  if (isStudentRole()) {
     return [
       {
         title: "Student planner",
@@ -4087,9 +4099,9 @@ function quick(title, text, iconName, color, action) {
   const selfServiceAction =
     action.includes("supportForm") ||
     action.includes("appointmentForm") ||
-    (state.role === "student" && action.includes("studyGroupForm")) ||
-    (state.role === "student" && action.includes("todoForm")) ||
-    (state.role === "student" && action.includes("plannerForm")) ||
+    (isStudentRole() && action.includes("studyGroupForm")) ||
+    (isStudentRole() && action.includes("todoForm")) ||
+    (isStudentRole() && action.includes("plannerForm")) ||
     (state.role === "tutor" && action.includes("timesheetForm"));
   return `
     <button class="quick-action" onclick="${canEdit() || action.includes("setView") || selfServiceAction ? action : "toast('This role has read-only access.')" }">
@@ -4611,7 +4623,7 @@ function renderBlockCourses(block) {
 
 function renderCourses() {
   const subtitle =
-    state.role === "student"
+    isStudentRole()
       ? "Open any course to see its schedule, lecturer, tutors, description, and learning expectations."
       : "Curriculum data, assignments, Google Drive documents, and operational notes.";
   return `
@@ -4670,7 +4682,7 @@ function renderCourseRow(item) {
   const tutors = item.tutorIds.map(person).filter(Boolean);
   const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
   const staffing =
-    state.role === "student"
+    isStudentRole()
       ? studentCourseTeamChips(item, lead, tutors)
       : courseStaffingChips(item, lead, tutors);
   return `
@@ -6348,7 +6360,7 @@ function renderStudentPlanner() {
     return acc;
   }, {});
   const busiest = Object.entries(dayLoads).sort((a, b) => b[1] - a[1])[0];
-  const canPlan = state.role === "student" || canEdit();
+  const canPlan = isStudentRole() || canEdit();
   return `
     <div class="view planner-view">
       <section class="planner-hero">
@@ -6698,7 +6710,7 @@ function renderSupport() {
 }
 
 function supportQuickActions() {
-  if (state.role === "student") {
+  if (isStudentRole()) {
     return [
       { title: "Confidential check-in", text: "Request counselling or wellbeing support without clinical labels.", icon: "support", color: "maroon", action: "openDrawer('supportForm', {category:'Counselling referral'})" },
       { title: "Academic help", text: "Ask for study, assessment, or course support.", icon: "book", color: "blue", action: "openDrawer('supportForm', {category:'Academic support'})" },
@@ -6801,7 +6813,7 @@ function renderStudyGroups() {
       </section>
 
       ${
-        state.role === "student"
+        isStudentRole()
           ? `<section class="quick-grid">
               ${quick("Create group", "Invite classmates and propose an agenda.", "group", "maroon", "openDrawer('studyGroupForm')")}
               ${quick("My invitations", "Accept, decline, or request another time.", "mail", "gold", "setView('groups')")}
@@ -6815,10 +6827,10 @@ function renderStudyGroups() {
         <div class="card">
           <div class="card-header">
             <div>
-              <h2>${state.role === "student" ? "My Study Groups" : "Study Group Overview"}</h2>
-              <p>${state.role === "student" ? "Groups you organize or have accepted." : "Aggregate view of active course study groups without private student discussion details."}</p>
+              <h2>${isStudentRole() ? "My Study Groups" : "Study Group Overview"}</h2>
+              <p>${isStudentRole() ? "Groups you organize or have accepted." : "Aggregate view of active course study groups without private student discussion details."}</p>
             </div>
-            ${state.role === "student" ? `<button class="button primary" onclick="openDrawer('studyGroupForm')">${icon("plus", 17)}Group</button>` : `<span class="badge gray">Aggregate</span>`}
+            ${isStudentRole() ? `<button class="button primary" onclick="openDrawer('studyGroupForm')">${icon("plus", 17)}Group</button>` : `<span class="badge gray">Aggregate</span>`}
           </div>
           <div class="card-body group-list">
             ${groups.length ? groups.map(renderStudyGroupCard).join("") : `<div class="empty">No study groups visible yet.</div>`}
@@ -6828,12 +6840,12 @@ function renderStudyGroups() {
         <div class="card">
           <div class="card-header">
             <div>
-              <h2>${state.role === "student" ? "Invitations and Directory" : "Group Intelligence"}</h2>
-              <p>${state.role === "student" ? "Classmate invitations require consent before joining." : "Course demand and readiness signals."}</p>
+              <h2>${isStudentRole() ? "Invitations and Directory" : "Group Intelligence"}</h2>
+              <p>${isStudentRole() ? "Classmate invitations require consent before joining." : "Course demand and readiness signals."}</p>
             </div>
           </div>
           <div class="card-body assistant-stack">
-            ${state.role === "student" ? renderStudentInvitationsAndDirectory(pending) : renderGroupAggregateInsights()}
+            ${isStudentRole() ? renderStudentInvitationsAndDirectory(pending) : renderGroupAggregateInsights()}
           </div>
         </div>
       </section>
@@ -6845,7 +6857,7 @@ function renderStudyGroupCard(group) {
   const readiness = groupReadiness(group);
   const members = acceptedGroupMembers(group.id);
   const activities = groupActivities(group.id);
-  const isMemberView = state.role === "student";
+  const isMemberView = isStudentRole();
   return `
     <article class="group-card">
       <div class="group-main">
@@ -7370,7 +7382,7 @@ function courseDrawer(code) {
   const detail = COURSE_DETAILS[item.code];
   const lecturerName = courseLecturerName(item, lead);
   const lecturerText = lead
-    ? state.role === "student"
+    ? isStudentRole()
       ? lead.name
       : `${lead.name} · ${lead.status}`
     : item.lecturerName
@@ -7912,7 +7924,7 @@ function plannerTaskDrawer(id) {
   const item = state.plannerTasks.find((task) => task.id === id);
   if (!item) return drawerShell("Planner item not found", "The selected item is no longer available.", "");
   const linkedCourse = course(item.courseCode);
-  const canPlan = state.role === "student" || canEdit();
+  const canPlan = isStudentRole() || canEdit();
   const body = `
     <div class="meta-grid">
       <div class="meta-box"><span>Course</span><strong>${item.courseCode}</strong></div>
@@ -8191,7 +8203,7 @@ function convertTodoToPlan(id) {
 }
 
 function supportFormDrawer(payload = {}) {
-  const category = payload?.category || (state.role === "it-support" ? "IT/technical support" : state.role === "student" ? "Academic support" : "Teaching support");
+  const category = payload?.category || (state.role === "it-support" ? "IT/technical support" : isStudentRole() ? "Academic support" : "Teaching support");
   const body = `
     <form id="supportForm" class="form-grid">
       <div class="field">
@@ -8401,7 +8413,7 @@ function studyGroupDrawer(id) {
       <div class="meta-box"><span>Meeting</span><strong>${dateLabel(group.meetingDate)} ${group.meetingTime}</strong></div>
       <div class="meta-box"><span>Readiness</span><strong>${readiness.label}</strong></div>
     </div>
-    <div class="timeline-item"><h4>Objective</h4><p>${state.role === "student" || group.advisorIds?.includes(currentActorId()) ? group.notes : "Private group plan hidden in aggregate view."}</p></div>
+    <div class="timeline-item"><h4>Objective</h4><p>${isStudentRole() || group.advisorIds?.includes(currentActorId()) ? group.notes : "Private group plan hidden in aggregate view."}</p></div>
     <div class="timeline-item"><h4>Conflict check</h4><p>${groupConflictNote(group)}</p></div>
     <div class="timeline-item">
       <h4>Members</h4>
