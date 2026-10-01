@@ -4,7 +4,9 @@ const PORTAL_FIREBASE_API_KEY = "AIzaSyA_7_wqSyIk5cIShXN0wet3jEncNqwrThE";
 
 function establishGooglePortalAccess(payload) {
   payload = payload || {};
-  const identity = portalVerifyFirebaseGoogleToken_(payload.idToken);
+  const identity = payload.googleAccessToken
+    ? portalVerifyGoogleAccessToken_(payload.googleAccessToken)
+    : portalVerifyFirebaseGoogleToken_(payload.idToken);
   const email = portalAllowedEmail_(identity.email);
   let record = portalStoredAccess_(email);
   if (!record) {
@@ -21,6 +23,19 @@ function establishGooglePortalAccess(payload) {
   result.provider = "google";
   result.displayName = identity.displayName;
   return result;
+}
+
+function portalVerifyGoogleAccessToken_(accessToken) {
+  accessToken = String(accessToken || "").trim();
+  if (!accessToken) throw new Error("Google sign-in token is missing.");
+  const response = UrlFetchApp.fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: "Bearer " + accessToken },
+    muteHttpExceptions: true,
+  });
+  const data = JSON.parse(response.getContentText() || "{}");
+  if (response.getResponseCode() !== 200 || !data.sub || !data.email) throw new Error("Google sign-in could not be verified.");
+  if (data.email_verified !== true && data.email_verified !== "true") throw new Error("Your Google account email is not verified.");
+  return { uid: String(data.sub), email: String(data.email), displayName: String(data.name || data.email) };
 }
 
 function portalVerifyFirebaseGoogleToken_(idToken) {

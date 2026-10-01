@@ -4304,7 +4304,7 @@ async function syncFirebasePortalAccess(firebaseUser = window.mathepiAuth?.user)
   if (firebasePortalSyncPromise) return firebasePortalSyncPromise;
   firebasePortalSyncPromise = (async () => {
     try {
-      const result = await googleApi("establishGooglePortalAccess", { idToken: firebaseUser.idToken, requestedRole: state.portalRequestedRole });
+      const result = await googleApi("establishGooglePortalAccess", { idToken: firebaseUser.idToken, googleAccessToken: firebaseUser.googleAccessToken, requestedRole: state.portalRequestedRole });
       if (!result.ok) throw new Error(result.error || "MathEpi access could not be established.");
       portalAccess = result;
       localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(result));

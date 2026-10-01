@@ -101,7 +101,10 @@
       authState.signInWithGoogle = async () => {
         try {
           publish("loading", { error: null });
-          return await signInWithPopup(auth, googleProvider);
+          const result = await signInWithPopup(auth, googleProvider);
+          const credential = GoogleAuthProvider.credentialFromResult(result);
+          authState.googleAccessToken = credential?.accessToken || null;
+          return result;
         } catch (error) {
           if (["auth/popup-blocked", "auth/operation-not-supported-in-this-environment"].includes(error?.code)) {
             return signInWithRedirect(auth, googleProvider);
@@ -112,7 +115,11 @@
       };
       authState.signOut = () => signOut(auth);
       try {
-        await getRedirectResult(auth);
+        const redirectResult = await getRedirectResult(auth);
+        if (redirectResult) {
+          const credential = GoogleAuthProvider.credentialFromResult(redirectResult);
+          authState.googleAccessToken = credential?.accessToken || null;
+        }
       } catch (error) {
         publish("ready", { error: error?.message || "Google sign-in could not return to MathEpi." });
       }
@@ -139,6 +146,7 @@
               email: firebaseUser.email,
               displayName: firebaseUser.displayName || firebaseUser.email,
               idToken: token.token,
+              googleAccessToken: authState.googleAccessToken || null,
               role,
               roles,
             },
