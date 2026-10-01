@@ -4386,10 +4386,35 @@ async function verifyPortalOtp() {
   catch (error) { toast(error.message || "Code could not be verified."); }
 }
 
-async function refreshPortalAccess() {
+function notifyPortalDecision(previousStatus, result) {
+  if (!result || result.status === "pending" || result.status === previousStatus) return;
+  const notificationId = result.notificationId || `${result.email}:${result.status}:${result.decidedAt || "current"}`;
+  const storageKey = `mathepi-access-notification:${notificationId}`;
+  if (safeStorageGet(storageKey)) return;
+  safeStorageSet(storageKey, "seen");
+  if (result.status === "approved") {
+    const roleLabel = ROLES[result.roles?.[0]]?.label || "approved role";
+    toast(`Access approved. You are signed in as ${roleLabel}.`);
+    return;
+  }
+  if (result.status === "rejected") toast("Access was not approved. Please contact the Academic Manager.");
+}
+
+async function refreshPortalAccess(options = {}) {
   if (!portalAccess?.token) return portalSignOut();
-  try { const result = await googleApi("getPortalAccessSession", { token: portalAccess.token }); if (!result.ok) throw new Error(result.error); portalAccess = result; localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(result)); if (result.status === "approved") setAuthenticatedRoles(result.roles); render(); if (state.view === "access") loadPortalRequests(); }
-  catch (error) { toast(error.message || "Status could not be refreshed."); }
+  const previousStatus = portalAccess.status;
+  try {
+    const result = await googleApi("getPortalAccessSession", { token: portalAccess.token });
+    if (!result.ok) throw new Error(result.error);
+    portalAccess = result;
+    localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(result));
+    notifyPortalDecision(previousStatus, result);
+    if (result.status === "approved") setAuthenticatedRoles(result.roles);
+    else render();
+    if (state.view === "access") loadPortalRequests();
+  } catch (error) {
+    if (!options.quiet) toast(error.message || "Status could not be refreshed.");
+  }
 }
 
 function portalSignOut() { portalAccess = null; state.portalOtpSent = false; state.portalOtpSending = false; state.portalOtpCooldownUntil = 0; state.portalEmail = ""; state.portalRequestedRole = ""; localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY); render(); }
@@ -7357,7 +7382,7 @@ async function loadPortalRequests() {
 
 async function decidePortalRequest(email, decision, selectId) {
   const role = document.getElementById(selectId)?.value || "viewer";
-  try { const result = await googleApi("decidePortalAccess", { token: portalAccess?.token, email, decision, role }); if (!result.ok) throw new Error(result.error); toast(decision === "approved" ? "Account approved. The user can now sign in with Google." : "Access request rejected."); await loadPortalRequests(); }
+  try { const result = await googleApi("decidePortalAccess", { token: portalAccess?.token, email, decision, role }); if (!result.ok) throw new Error(result.error); toast(decision === "approved" ? "Account approved. The user will be notified automatically." : "Access request rejected. The user will be notified automatically."); await loadPortalRequests(); }
   catch (error) { toast(error.message || "Decision could not be saved."); }
 }
 
@@ -8704,6 +8729,9 @@ if (state.view === "tf-reviews") setView("tf-reviews");
 else render();
 if (portalAccess?.token) refreshPortalAccess();
 else if (window.mathepiAuth?.user) syncFirebasePortalAccess(window.mathepiAuth.user);
+window.setInterval(() => {
+  if (portalAccess?.token && portalAccess.status === "pending" && !document.hidden) refreshPortalAccess({ quiet: true });
+}, 15000);
 syncReviewStaffing({ quiet: true });
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && (state.view === "calendar" || state.view === "courses")) syncReviewStaffing({ quiet: true, force: true });

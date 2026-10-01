@@ -112,8 +112,12 @@ function decidePortalAccess(payload) {
   found.status = decision;
   found.decided_at = new Date().toISOString();
   found.decided_by = admin.email;
+  found.notification_id = Utilities.getUuid();
+  found.notification_message = decision === "approved"
+    ? "Your MathEpi access has been approved as " + role + "."
+    : "Your MathEpi access request was not approved. Please contact the Academic Manager.";
   portalStoreAccess_(found);
-  return { ok: true };
+  return { ok: true, notificationId: found.notification_id };
 }
 
 function portalRequireSession_(token, adminOnly) {
@@ -126,7 +130,18 @@ function portalRequireSession_(token, adminOnly) {
 }
 
 function portalSessionResult_(record, token, expires) {
-  return { ok: true, token: token, email: record.email, status: record.status, requestedRole: record.requested_role, roles: JSON.parse(record.roles_json || "[]"), expiresAt: expires };
+  return {
+    ok: true,
+    token: token,
+    email: record.email,
+    status: record.status,
+    requestedRole: record.requested_role,
+    roles: JSON.parse(record.roles_json || "[]"),
+    expiresAt: expires,
+    decidedAt: record.decided_at || "",
+    notificationId: record.notification_id || "",
+    notificationMessage: record.notification_message || "",
+  };
 }
 
 function portalStore_() { return PropertiesService.getScriptProperties(); }
