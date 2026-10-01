@@ -3593,6 +3593,27 @@ button {
   animation: toast-in 0.2s ease-out;
 }
 
+.connection-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 99;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 32px));
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #d6a537;
+  border-radius: var(--radius);
+  color: #402f08;
+  background: #fff4d9;
+  font-size: 13px;
+  font-weight: 750;
+  box-shadow: var(--shadow);
+}
+
 .auth-page {
   min-height: 100vh;
   min-height: 100dvh;

@@ -33,6 +33,10 @@ function parseRouteRequestBody(body) {
 function apiPost(request) {
   const action = request && request.action;
   const payload = (request && request.payload) || {};
+  const managerActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "updateCfaStatus", "listLecturerReviewData", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns"];
+  const approvedActions = ["getProgrammeCalendarStatus", "listReviewStaffingAssignments"];
+  if (managerActions.indexOf(action) >= 0) portalRequireRoles_(payload.token, ["super-admin", "manager"]);
+  if (approvedActions.indexOf(action) >= 0) portalRequireRoles_(payload.token, []);
   if (action === "setupWorkspace") return setupWorkspace(payload);
   if (action === "saveSnapshot") return saveSnapshot(payload);
   if (action === "getBootstrap") return getBootstrap();

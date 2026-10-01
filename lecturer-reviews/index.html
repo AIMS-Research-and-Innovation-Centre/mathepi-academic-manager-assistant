@@ -1210,6 +1210,9 @@
               cleanup();
               reject(new Error("Could not reach Apps Script. Check the deployment URL and access settings."));
             };
+            var session = {};
+            try { session = JSON.parse(localStorage.getItem("mathepi-portal-access-v1") || "{}"); } catch (error) {}
+            payload = Object.assign({}, payload || {}, { token: session.token || "" });
             script.src = endpoint + separator + new URLSearchParams({
               action: action,
               payload: JSON.stringify(payload || {}),

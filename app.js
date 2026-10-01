@@ -2236,17 +2236,19 @@ function googleBackendAvailable() {
 }
 
 function googleApi(action, payload = {}) {
+  const protectedActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "getProgrammeCalendarStatus", "updateCfaStatus", "listLecturerReviewData", "listReviewStaffingAssignments", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns"];
+  const securedPayload = portalAccess?.token && protectedActions.includes(action) ? { ...payload, token: portalAccess.token } : payload;
   if (hasAppsScriptBridge()) {
     return new Promise((resolve, reject) => {
       google.script.run
         .withSuccessHandler(resolve)
         .withFailureHandler((error) => reject(new Error(error?.message || String(error))))
-        .apiPost({ action, payload });
+        .apiPost({ action, payload: securedPayload });
     });
   }
   const endpoint = appsScriptUrl();
   if (!endpoint) return Promise.reject(new Error("Apps Script Web App URL is not configured."));
-  return googleEndpointApi(endpoint, action, payload);
+  return googleEndpointApi(endpoint, action, securedPayload);
 }
 
 function googleEndpointApi(endpoint, action, payload = {}) {
@@ -3768,7 +3770,7 @@ function authGateLayout() {
       ${googlePending || googleRejected ? `<div class="hero-actions"><button class="button ghost" onclick="googlePortalSignOut()">Use another account</button><button class="button primary" onclick="refreshPortalAccess()">Check status</button></div>` : googleUser ? `<div class="notice blue">${icon("shield", 18)} Verifying MathEpi access for ${escapeHtml(googleUser.email)}...</div><div class="hero-actions"><button class="button ghost" onclick="googlePortalSignOut()">Cancel</button></div>` : `<div class="form-grid auth-form"><div class="field full"><label>Requested role</label><select id="googlePortalRole" onchange="state.portalRequestedRole=this.value" ${googleAuth.status === "loading" ? "disabled" : ""}><option value="" ${state.portalRequestedRole ? "" : "selected"} disabled>Choose your role</option>${googleRoleOptions.map(([id, role]) => `<option value="${id}" ${state.portalRequestedRole === id ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></div></div><div class="hero-actions compact-actions"><button class="button primary" data-auth-action="google" onclick="authGoogleSignIn()" ${googleAuth.status !== "ready" ? "disabled" : ""}>${icon("shield", 18)}${googleAuth.status === "loading" ? "Opening Google..." : googleAuth.error ? "Try Google sign-in again" : "Continue with Google"}</button></div>`}
       ${googleStatus ? `<div class="notice danger">${escapeHtml(googleStatus)}</div>` : ""}
       <p class="muted-note">Only approved MathEpi accounts can enter. Sessions remain active on this device until sign-out or access revocation.</p>
-    </section>${state.toast ? `<div class="toast">${icon("check",18)}${escapeHtml(state.toast)}</div>` : ""}</div>`;
+    </section>${state.toast ? `<div class="toast" role="status" aria-live="polite">${icon("check",18)}${escapeHtml(state.toast)}</div>` : ""}</div>`;
 
   const pending = portalAccess && portalAccess.status === "pending";
   const rejected = portalAccess && portalAccess.status === "rejected";
@@ -3784,7 +3786,7 @@ function authGateLayout() {
         ${state.portalOtpSent ? `<div class="field full"><label>Six-digit code</label><input id="portalCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" autofocus /></div>` : ""}
       </div>${state.portalOtpSent ? `<div class="notice success">${icon("check", 18)} OTP sent to ${escapeHtml(state.portalEmail)}. Enter the six-digit code below.</div>` : ""}<div class="hero-actions compact-actions">${state.portalOtpSent ? `<button class="button primary" onclick="verifyPortalOtp()">Verify and continue</button><button class="button ghost" onclick="portalSignOut()">Start again</button>` : `<button class="button ghost" onclick="requestPortalOtp()" ${state.portalOtpSending || Date.now() < state.portalOtpCooldownUntil ? "disabled" : ""}>${state.portalOtpSending ? "Sending OTP..." : Date.now() < state.portalOtpCooldownUntil ? "Please wait 30 seconds" : "Send code"}</button>`}</div>`}
       <p class="muted-note">Sessions remain active on this device for up to 30 days. New accounts require Academic Manager approval.</p>
-    </section>${state.toast ? `<div class="toast">${icon("check",18)}${escapeHtml(state.toast)}</div>` : ""}</div>`;
+    </section>${state.toast ? `<div class="toast" role="status" aria-live="polite">${icon("check",18)}${escapeHtml(state.toast)}</div>` : ""}</div>`;
   /* Legacy Firebase form retained below as a fallback during migration. */
   const auth = authState();
   const canSubmit = auth.status === "ready";
@@ -3827,7 +3829,7 @@ function authGateLayout() {
         </div>
         <p class="muted-note">First visit? Select Create account once. Returning users can sign in directly. Roles are assigned centrally by an administrator.</p>
       </section>
-      ${state.toast ? `<div class="toast">${icon("check", 18)}${escapeHtml(state.toast)}</div>` : ""}
+      ${state.toast ? `<div class="toast" role="status" aria-live="polite">${icon("check", 18)}${escapeHtml(state.toast)}</div>` : ""}
     </div>
   `;
 }
@@ -3892,7 +3894,8 @@ function appLayout() {
     </div>
     ${mobileNav(nav)}
     ${state.drawer ? renderDrawer() : ""}
-    ${state.toast ? `<div class="toast">${icon("check", 18)}${escapeHtml(state.toast)}</div>` : ""}
+    ${navigator.onLine ? "" : `<div class="connection-banner" role="status">${icon("cloud", 17)} Offline. Live changes will not save until the connection returns.</div>`}
+    ${state.toast ? `<div class="toast" role="status" aria-live="polite">${icon("check", 18)}${escapeHtml(state.toast)}</div>` : ""}
   `;
 }
 
@@ -4542,9 +4545,9 @@ async function syncReviewStaffing(options = {}) {
     try {
       let result;
       try {
-        result = await googleEndpointApi(endpoint, "listReviewStaffingAssignments", {});
+        result = await googleEndpointApi(endpoint, "listReviewStaffingAssignments", { token: portalAccess?.token || "" });
       } catch (error) {
-        const legacy = await googleEndpointApi(endpoint, "listLecturerReviewData", {});
+        const legacy = await googleEndpointApi(endpoint, "listLecturerReviewData", { token: portalAccess?.token || "" });
         result = {
           lecturerAssignments: (legacy.decisions || [])
             .filter((row) => ["approved", "consider"].includes(String(row.decision || "").toLowerCase()))
@@ -7234,7 +7237,6 @@ function sheetDescription(tab) {
 
 function renderAccess() {
   const auth = window.mathepiAuth || { status: "unconfigured", user: null };
-  const authReady = auth.status === "ready";
   const currentRole = auth.user?.role || state.role;
   return `
     <div class="view section-grid">
@@ -7277,41 +7279,17 @@ function renderAccess() {
       <div class="card">
         <div class="card-header">
           <div>
-            <h2>Email Accounts</h2>
-            <p>Firebase email/password sign-in bridge for production users.</p>
+            <h2>Current secure session</h2>
+            <p>Google verifies identity; MathEpi applies the centrally approved role.</p>
           </div>
           <span class="badge ${authStatusBadge()}">${escapeHtml(authStatusLabel())}</span>
         </div>
         <div class="card-body">
-          <div class="form-grid">
-            <div class="field">
-              <label>Email</label>
-              <input id="authEmail" type="email" autocomplete="email" placeholder="name@aimsric.org" />
-            </div>
-            <div class="field">
-              <label>Password</label>
-              <input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 6 characters" />
-            </div>
-            <div class="field">
-              <label>Role preview</label>
-              <select onchange="setRole(this.value)">
-                ${Object.entries(ROLES)
-                  .map(([id, role]) => `<option value="${id}" ${currentRole === id ? "selected" : ""}>${role.label}</option>`)
-                  .join("")}
-              </select>
-              <small>Production roles must be assigned server-side as a Firebase custom claim named <strong>role</strong>.</small>
-            </div>
-            <div class="field">
-              <label>Current account</label>
-              <input readonly value="${auth.user ? escapeHtml(auth.user.email) : "Not signed in"}" />
-            </div>
-          </div>
+          <div class="meta-grid"><div class="meta-box"><span>Signed-in account</span><strong>${escapeHtml(portalAccess?.email || auth.user?.email || "Not signed in")}</strong></div><div class="meta-box"><span>Active role</span><strong>${escapeHtml(ROLES[currentRole]?.label || currentRole)}</strong></div><div class="meta-box"><span>Identity provider</span><strong>Google</strong></div><div class="meta-box"><span>Access status</span><strong>${escapeHtml(portalAccess?.status || "Approved")}</strong></div></div>
           <div class="hero-actions compact-actions">
-            <button class="button primary" ${authReady ? "" : "disabled"} onclick="authCreateAccount()">${icon("users", 17)}Create account</button>
-            <button class="button ghost" ${authReady ? "" : "disabled"} onclick="authSignIn()">${icon("shield", 17)}Sign in</button>
-            <button class="button ghost" ${auth.user ? "" : "disabled"} onclick="authSignOut()">${icon("x", 17)}Sign out</button>
+            <button class="button ghost" onclick="installMathEpiApp()">${icon("install", 17)}Install app</button><button class="button ghost" onclick="authSignOut()">${icon("x", 17)}Sign out</button>
           </div>
-          <p class="muted-note">Passwords are handled by Firebase Auth, not by Google Sheets, Drive, local storage, or Apps Script.</p>
+          <p class="muted-note">Passwords are never collected or stored by MathEpi.</p>
         </div>
       </div>
       <div class="card">
@@ -8703,6 +8681,8 @@ window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   deferredInstallPrompt = event;
 });
+window.addEventListener("online", () => { toast("Connection restored. Live data is available again."); render(); });
+window.addEventListener("offline", () => render());
 
 window.addEventListener("hashchange", () => {
   const nextView = window.location.hash ? window.location.hash.slice(1) : "dashboard";

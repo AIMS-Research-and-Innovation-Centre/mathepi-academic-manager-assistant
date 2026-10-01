@@ -125,8 +125,17 @@ function portalRequireSession_(token, adminOnly) {
   if (!session || new Date(session.expires_at).getTime() <= Date.now()) throw new Error("Your session has expired. Sign in with Google again.");
   const access = portalStoredAccess_(session.email);
   if (!access) throw new Error("Access record not found.");
-  if (adminOnly && session.email !== PORTAL_ADMIN_EMAIL) throw new Error("Administrator access is required.");
+  const roles = JSON.parse(access.roles_json || "[]");
+  if (adminOnly && session.email !== PORTAL_ADMIN_EMAIL && roles.indexOf("super-admin") < 0 && roles.indexOf("manager") < 0) throw new Error("Administrator access is required.");
   return { email: session.email, access: access, expires: session.expires_at };
+}
+
+function portalRequireRoles_(token, allowedRoles) {
+  const session = portalRequireSession_(token, false);
+  if (session.access.status !== "approved") throw new Error("Approved MathEpi access is required.");
+  const roles = JSON.parse(session.access.roles_json || "[]");
+  if (allowedRoles && allowedRoles.length && !roles.some(function (role) { return allowedRoles.indexOf(role) >= 0; })) throw new Error("Your assigned role cannot perform this action.");
+  return session;
 }
 
 function portalSessionResult_(record, token, expires) {
