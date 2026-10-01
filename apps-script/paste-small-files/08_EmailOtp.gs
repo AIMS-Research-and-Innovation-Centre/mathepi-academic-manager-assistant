@@ -40,8 +40,17 @@ function requestEmailOtp(payload) {
     const purpose = otpPurpose(payload);
     const cache = CacheService.getScriptCache();
     const rateKey = emailOtpCacheKey("rate", purpose, email);
-    if (cache.get(rateKey)) {
-      return { ok: false, error: "Please wait about 30 seconds before requesting another code." };
+    const requestLock = LockService.getScriptLock();
+    if (!requestLock.tryLock(5000)) {
+      return { ok: false, error: "An OTP request is already being processed. Please wait 30 seconds." };
+    }
+    try {
+      if (cache.get(rateKey)) {
+        return { ok: false, error: "Please wait 30 seconds before requesting another code." };
+      }
+      cache.put(rateKey, "pending", 30);
+    } finally {
+      requestLock.releaseLock();
     }
     const remainingDailyQuota = MailApp.getRemainingDailyQuota();
     if (remainingDailyQuota < 1) {
@@ -58,9 +67,15 @@ function requestEmailOtp(payload) {
       expiresAt: Date.now() + expiresInSeconds * 1000,
     };
 
-    const senderMode = sendEmailOtpMessage(email, code);
+    let senderMode;
+    try {
+      senderMode = sendEmailOtpMessage(email, code);
+    } catch (sendError) {
+      cache.remove(rateKey);
+      throw sendError;
+    }
     cache.put(emailOtpCacheKey("challenge", purpose, email), JSON.stringify(challenge), expiresInSeconds);
-    cache.put(rateKey, "1", 30);
+    cache.put(rateKey, "sent", 30);
     return {
       ok: true,
       email,

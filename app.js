@@ -2438,6 +2438,8 @@ const state = {
   drawer: null,
   toast: null,
   portalOtpSent: false,
+  portalOtpSending: false,
+  portalOtpCooldownUntil: 0,
   portalEmail: "",
   portalRequestedRole: "",
   theme: safeStorageGet("mathepi-theme") || "light",
@@ -3701,7 +3703,7 @@ function authGateLayout() {
         <div class="field full"><label>Email</label><input id="portalEmail" type="email" autocomplete="email" placeholder="name@aimsric.org" value="${escapeHtml(state.portalEmail)}" oninput="state.portalEmail=this.value" ${state.portalOtpSent ? "disabled" : ""} /></div>
         <div class="field full"><label>Requested role</label><select id="portalRole" onchange="state.portalRequestedRole=this.value" ${state.portalOtpSent ? "disabled" : ""}><option value="" ${state.portalRequestedRole ? "" : "selected"} disabled>Choose your role</option>${roleOptions.map(([id, role]) => `<option value="${id}" ${state.portalRequestedRole === id ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></div>
         ${state.portalOtpSent ? `<div class="field full"><label>Six-digit code</label><input id="portalCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" autofocus /></div>` : ""}
-      </div>${state.portalOtpSent ? `<div class="notice success">${icon("check", 18)} OTP sent to ${escapeHtml(state.portalEmail)}. Enter the six-digit code below.</div>` : ""}<div class="hero-actions compact-actions">${state.portalOtpSent ? `<button class="button primary" onclick="verifyPortalOtp()">Verify and continue</button><button class="button ghost" onclick="portalSignOut()">Start again</button>` : `<button class="button ghost" onclick="requestPortalOtp()">Send code</button>`}</div>`}
+      </div>${state.portalOtpSent ? `<div class="notice success">${icon("check", 18)} OTP sent to ${escapeHtml(state.portalEmail)}. Enter the six-digit code below.</div>` : ""}<div class="hero-actions compact-actions">${state.portalOtpSent ? `<button class="button primary" onclick="verifyPortalOtp()">Verify and continue</button><button class="button ghost" onclick="portalSignOut()">Start again</button>` : `<button class="button ghost" onclick="requestPortalOtp()" ${state.portalOtpSending || Date.now() < state.portalOtpCooldownUntil ? "disabled" : ""}>${state.portalOtpSending ? "Sending OTP..." : Date.now() < state.portalOtpCooldownUntil ? "Please wait 30 seconds" : "Send code"}</button>`}</div>`}
       <p class="muted-note">Sessions remain active on this device for up to 30 days. New accounts require Academic Manager approval.</p>
     </section>${state.toast ? `<div class="toast">${icon("check",18)}${escapeHtml(state.toast)}</div>` : ""}</div>`;
   /* Legacy Firebase form retained below as a fallback during migration. */
@@ -4222,14 +4224,20 @@ function renderTimeline() {
 }
 
 async function requestPortalOtp() {
+  if (state.portalOtpSending || Date.now() < state.portalOtpCooldownUntil) return;
   const email = (document.querySelector("#portalEmail")?.value || state.portalEmail || "").trim();
   const requestedRole = document.querySelector("#portalRole")?.value || state.portalRequestedRole;
   if (!email) return toast("Enter your email address.");
   if (!requestedRole) return toast("Choose the role you are requesting.");
   state.portalEmail = email;
   state.portalRequestedRole = requestedRole;
-  try { const result = await timedGoogleApi(googleApi("requestPortalAccessOtp", { email, requestedRole }), "The email service is taking too long.", 45000); if (!result.ok) throw new Error(result.error); state.portalOtpSent = true; toast(result.deliveryHint || "OTP sent. Check your inbox and spam folder."); render(); }
+  state.portalOtpSending = true;
+  state.portalOtpCooldownUntil = Date.now() + 30000;
+  render();
+  window.setTimeout(() => { if (!state.portalOtpSent) render(); }, 30100);
+  try { const result = await timedGoogleApi(googleApi("requestPortalAccessOtp", { email, requestedRole }), "The email service is taking too long.", 45000); if (!result.ok) throw new Error(result.error); state.portalOtpSent = true; toast(result.deliveryHint || "OTP sent. Check your inbox and spam folder."); }
   catch (error) { toast(error.message || "Code could not be sent."); }
+  finally { state.portalOtpSending = false; render(); }
 }
 
 async function verifyPortalOtp() {
@@ -4246,7 +4254,7 @@ async function refreshPortalAccess() {
   catch (error) { toast(error.message || "Status could not be refreshed."); }
 }
 
-function portalSignOut() { portalAccess = null; state.portalOtpSent = false; state.portalEmail = ""; state.portalRequestedRole = ""; localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY); render(); }
+function portalSignOut() { portalAccess = null; state.portalOtpSent = false; state.portalOtpSending = false; state.portalOtpCooldownUntil = 0; state.portalEmail = ""; state.portalRequestedRole = ""; localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY); render(); }
 
 async function authResetPassword() {
   const auth = authState();
