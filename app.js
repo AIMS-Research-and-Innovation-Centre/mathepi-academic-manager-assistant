@@ -21,6 +21,8 @@ const ICONS = {
     '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/>',
   drive:
     '<path d="m7 3 10 18"/><path d="M17 3 7 21"/><path d="M3 14h18"/><path d="m7 3-4 7 4 11h10l4-7-4-11Z"/>',
+  install:
+    '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',
   edit:
     '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
   filter:
@@ -445,6 +447,17 @@ const DEFAULT_PEOPLE = [
   { id: "tf-008", name: "Boris Rosmes Tchioffo", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Cameroon", email: "boristchioffo@gmail.com", reference: "TF-008", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
   { id: "tf-009", name: "Munkaila Dasumani", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Ghana", email: "munkaila5@gmail.com", reference: "TF-009", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
 ];
+
+const CONFIRMED_LECTURER_ASSIGNMENTS = {
+  MES01: { lecturerName: "Dr Bernard Bainson" },
+  MES02: { lecturerName: "Prof. Blaise Tchapnda" },
+  MES03: { lecturerName: "Prof. Cecil Ouma", manualAlternateLecturerName: "Eunice" },
+  MEC06: { lecturerName: "Dr Issa Karambal" },
+  MEC08: { lecturerName: "Ogwel" },
+  MEC09: { lecturerName: "Whistler Cherubin", manualAlternateLecturerName: "Prof. Nyawira" },
+  MEC10: { lecturerName: "Birma" },
+  MEE04: { lecturerName: "Prof. Aklilu Zeleke" },
+};
 
 const DEFAULT_BLOCKS = [
   {
@@ -1428,7 +1441,7 @@ const DEFAULT_PLANNER_TASKS = [
     title: "Set up R and Python workflow",
     type: "Study",
     courseCode: "MES05",
-    date: "2026-10-05",
+    date: "2026-11-08",
     time: "16:00",
     duration: 90,
     priority: "High",
@@ -1441,7 +1454,7 @@ const DEFAULT_PLANNER_TASKS = [
     title: "Mathematical problem-solving clinic prep",
     type: "Revision",
     courseCode: "MES01",
-    date: "2026-10-06",
+    date: "2026-10-27",
     time: "07:30",
     duration: 60,
     priority: "Medium",
@@ -1454,7 +1467,7 @@ const DEFAULT_PLANNER_TASKS = [
     title: "Probability flash review",
     type: "Reading",
     courseCode: "MES04",
-    date: "2026-10-08",
+    date: "2026-11-29",
     time: "19:00",
     duration: 45,
     priority: "Medium",
@@ -1467,7 +1480,7 @@ const DEFAULT_PLANNER_TASKS = [
     title: "Weekly recovery window",
     type: "Wellness",
     courseCode: "MES01",
-    date: "2026-10-10",
+    date: "2026-10-31",
     time: "10:00",
     duration: 120,
     priority: "High",
@@ -1480,7 +1493,7 @@ const DEFAULT_PLANNER_TASKS = [
     title: "Internship topic scan",
     type: "Research",
     courseCode: "MEI01",
-    date: "2026-09-30",
+    date: "2027-05-24",
     time: "15:00",
     duration: 75,
     priority: "Low",
@@ -1508,7 +1521,7 @@ const DEFAULT_STUDENT_TODOS = [
     title: "Complete R/Python setup checklist",
     courseCode: "MES05",
     category: "Study",
-    due: "2026-10-04",
+    due: "2026-11-08",
     priority: "High",
     status: "Open",
     notes: "Install R, Python, Quarto, and test the reproducible report template.",
@@ -1519,7 +1532,7 @@ const DEFAULT_STUDENT_TODOS = [
     title: "Prepare questions for MES01 clinic",
     courseCode: "MES01",
     category: "Revision",
-    due: "2026-10-06",
+    due: "2026-10-27",
     priority: "Medium",
     status: "In progress",
     notes: "List two proof techniques and one problem that needs tutor support.",
@@ -1530,7 +1543,7 @@ const DEFAULT_STUDENT_TODOS = [
     title: "Submit accommodation confirmation",
     courseCode: "MEI01",
     category: "Logistics",
-    due: "2026-09-23",
+    due: "2026-10-19",
     priority: "High",
     status: "Open",
     notes: "Confirm arrival time, room allocation, and emergency contact details.",
@@ -1541,7 +1554,7 @@ const DEFAULT_STUDENT_TODOS = [
     title: "Block protected rest time",
     courseCode: "MES01",
     category: "Wellness",
-    due: "2026-10-10",
+    due: "2026-10-31",
     priority: "Medium",
     status: "Open",
     notes: "Keep one recovery block in the planner before the next teaching week.",
@@ -1805,7 +1818,7 @@ const DEFAULT_APPOINTMENTS = [
     "targetId": "manager-01",
     "courseCode": "MEI01",
     "category": "Internship guidance",
-    "preferredDate": "2026-10-01",
+    "preferredDate": "2026-10-20",
     "time": "14:30",
     "duration": 30,
     "mode": "In person",
@@ -1859,7 +1872,7 @@ const DEFAULT_SUPPORT_REQUESTS = [
     "status": "Submitted",
     "visibility": "confidential",
     "assignedTo": "support-01",
-    "date": "2026-10-07",
+    "date": "2026-10-28",
     "summary": "Student requested a private check-in without sharing details in the app.",
     "privateNote": "Student prefers a confidential appointment after class; no clinical notes stored here."
   },
@@ -2684,21 +2697,27 @@ function migrateProgrammeData() {
     if (courseToBlock[course.code]) course.block = courseToBlock[course.code];
   });
 
-  const confirmedAssignments = {
-    MES02: {
-      lecturerName: "Prof. Blaise Tchapnda",
-      lecturerStatus: "Confirmed programme assignment",
-      alternateLecturerName: "",
-    },
-    MEE04: {
-      lecturerName: "Prof. Aklilu Zeleke",
-      lecturerStatus: "Confirmed programme assignment",
-      alternateLecturerName: "",
-    },
-  };
-  Object.entries(confirmedAssignments).forEach(([code, assignment]) => {
+  Object.entries(CONFIRMED_LECTURER_ASSIGNMENTS).forEach(([code, assignment]) => {
     const item = state.courses.find((course) => course.code === code);
-    if (item) Object.assign(item, assignment);
+    if (!item) return;
+    Object.assign(item, assignment, { lecturerStatus: "Confirmed programme assignment" });
+    item.alternateLecturerName = assignment.manualAlternateLecturerName || "";
+    const name = String(assignment.lecturerName || "").trim();
+    if (name && !state.people.some((personItem) => personItem.name.toLowerCase() === name.toLowerCase())) {
+      state.people.push({
+        id: `lecturer-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
+        name,
+        kind: "Lecturer",
+        affiliation: "Programme timetable",
+        nationality: code === "MEC06" ? "Chad" : "",
+        email: code === "MEE04" ? "zeleke@msu.edu" : "",
+        reference: code,
+        expertise: item.title,
+        status: "Confirmed",
+        workload: 1,
+        nextFollowUp: item.block === "Block 1" ? "2026-10-12" : "2026-10-26",
+      });
+    }
   });
 
   const mes04 = state.courses.find((item) => item.code === "MES04");
@@ -2713,9 +2732,19 @@ function migrateProgrammeData() {
     mes04.reviewAlternateLecturerNames = (mes04.reviewAlternateLecturerNames || []).filter((name) => !/\byawo\b/i.test(name));
   }
 
-  if (!safeStorageGet("mathepi-programme-schedule-v3")) {
+  if (!safeStorageGet("mathepi-calendar-alignment-v1")) {
+    const plannerDates = { "plan-001": "2026-11-08", "plan-002": "2026-10-27", "plan-003": "2026-11-29", "plan-004": "2026-10-31", "plan-005": "2027-05-24" };
+    const todoDates = { "todo-001": "2026-11-08", "todo-002": "2026-10-27", "todo-003": "2026-10-19", "todo-004": "2026-10-31" };
+    state.plannerTasks.forEach((item) => { if (plannerDates[item.id]) item.date = plannerDates[item.id]; });
+    state.studentTodos.forEach((item) => { if (todoDates[item.id]) item.due = todoDates[item.id]; });
+    state.appointments.forEach((item) => { if (item.id === "apt-001") item.preferredDate = "2026-10-20"; });
+    state.supportRequests.forEach((item) => { if (item.id === "sup-001") item.date = "2026-10-28"; });
+    safeStorageSet("mathepi-calendar-alignment-v1", "1");
+  }
+
+  if (!safeStorageGet("mathepi-programme-schedule-v4")) {
     state.sessions = safeClone(DEFAULT_SESSIONS);
-    safeStorageSet("mathepi-programme-schedule-v3", "1");
+    safeStorageSet("mathepi-programme-schedule-v4", "1");
   } else {
     state.sessions.forEach((session) => {
       if (courseToBlockId[session.courseCode]) session.blockId = courseToBlockId[session.courseCode];
@@ -3708,6 +3737,7 @@ function renderRoleControl() {
           </select>
         ` : `<strong>${escapeHtml(roleDef().label)}</strong>`}
         <small>${escapeHtml(account)}</small>
+        <button class="button ghost" onclick="installMathEpiApp()">${icon("install", 15)}Install app</button>
         <button class="button ghost" onclick="authSignOut()">${icon("x", 15)}Sign out</button>
       </div>
     `;
@@ -7359,6 +7389,7 @@ function renderDrawer() {
   if (type === "supportRequest") content = supportRequestDrawer(payload);
   if (type === "cfaCall") content = cfaCallDrawer(payload);
   if (type === "tfReviewAudit") content = tfReviewAuditDrawer(payload);
+  if (type === "install") content = installAppDrawer();
   return `<div class="drawer-backdrop" onclick="if(event.target.classList.contains('drawer-backdrop')) closeDrawer()">${content}</div>`;
 }
 
@@ -7373,6 +7404,38 @@ function drawerShell(title, subtitle, body, footer = "") {
       ${footer ? `<div class="drawer-footer">${footer}</div>` : ""}
     </aside>
   `;
+}
+
+let deferredInstallPrompt = null;
+
+function installAppDrawer() {
+  const canPrompt = Boolean(deferredInstallPrompt);
+  const body = `
+    <div class="install-intro">
+      <span class="icon-box maroon">${icon("install", 22)}</span>
+      <div><strong>MathEpi works as an installed app</strong><p>Use the same secure account and role on your phone, tablet, or computer.</p></div>
+    </div>
+    <div class="install-steps">
+      <article><span>Phone or tablet</span><strong>Android: Chrome menu &gt; Install app</strong><p>On iPhone or iPad, open this site in Safari, tap Share, then Add to Home Screen.</p></article>
+      <article><span>Laptop or desktop</span><strong>Chrome or Edge: Install MathEpi</strong><p>Use the install icon in the address bar or choose Install app from the browser menu.</p></article>
+      <article><span>After installation</span><strong>Open MathEpi from your home screen or apps</strong><p>Your approved role is loaded after you sign in. Internet access is required for live operational data.</p></article>
+    </div>`;
+  const footer = canPrompt
+    ? `<button class="button ghost" onclick="closeDrawer()">Not now</button><button class="button primary" onclick="runInstallPrompt()">${icon("install", 17)}Install MathEpi</button>`
+    : `<button class="button primary" onclick="closeDrawer()">Done</button>`;
+  return drawerShell("Install MathEpi", "Add the app to this device for faster access.", body, footer);
+}
+
+function installMathEpiApp() {
+  openDrawer("install");
+}
+
+async function runInstallPrompt() {
+  if (!deferredInstallPrompt) return installMathEpiApp();
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  closeDrawer();
 }
 
 function cfaCallDrawer(id) {
@@ -8608,6 +8671,13 @@ window.insertTfDraftNote = insertTfDraftNote;
 window.updateTfReviewWeightedPreview = updateTfReviewWeightedPreview;
 window.syncReviewStaffing = syncReviewStaffing;
 window.state = state;
+window.installMathEpiApp = installMathEpiApp;
+window.runInstallPrompt = runInstallPrompt;
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+});
 
 window.addEventListener("hashchange", () => {
   const nextView = window.location.hash ? window.location.hash.slice(1) : "dashboard";

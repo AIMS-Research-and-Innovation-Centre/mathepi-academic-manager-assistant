@@ -305,6 +305,53 @@ button {
   color: #fff;
 }
 
+.install-intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.install-intro strong,
+.install-intro p,
+.install-steps strong,
+.install-steps p,
+.install-steps span {
+  display: block;
+}
+
+.install-intro p,
+.install-steps p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.install-steps {
+  display: grid;
+  gap: 10px;
+}
+
+.install-steps article {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.install-steps span {
+  margin-bottom: 4px;
+  color: var(--aims-maroon);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
 .content {
   min-width: 0;
   display: flex;
