@@ -3124,6 +3124,116 @@ button {
   gap: 12px;
 }
 
+.access-request-card {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.35fr) minmax(220px, 0.85fr) auto;
+  gap: 20px;
+  align-items: end;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--maroon);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.access-request-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.access-request-avatar {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f6e6e8;
+  color: var(--maroon);
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.access-request-identity strong {
+  display: inline-block;
+  max-width: 100%;
+  margin-right: 8px;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+
+.access-request-identity p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.access-request-role label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.access-request-role select {
+  width: 100%;
+  height: 44px;
+  padding: 0 38px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.access-request-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.access-request-actions .button {
+  height: 44px;
+  white-space: nowrap;
+}
+
+.danger-action {
+  color: var(--danger);
+  border-color: #e8c4c7;
+}
+
+@media (max-width: 980px) {
+  .access-request-card {
+    grid-template-columns: minmax(0, 1fr) minmax(210px, 0.8fr);
+  }
+
+  .access-request-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 640px) {
+  .access-request-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .access-request-actions {
+    grid-column: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .access-request-actions .button {
+    width: 100%;
+  }
+}
+
 .planner-hero,
 .support-hero {
   min-height: 220px;

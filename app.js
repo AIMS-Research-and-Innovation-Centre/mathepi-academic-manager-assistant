@@ -7175,7 +7175,14 @@ function renderAccess() {
     <div class="view section-grid">
       <div class="card">
         <div class="card-header"><div><h2>Account approvals</h2><p>Only <strong>@aimsric.org</strong> accounts can request access. Review pending requests here.</p></div><button class="button ghost" onclick="loadPortalRequests()" ${state.portalRequestsLoading ? "disabled" : ""}>${state.portalRequestsLoading ? "Loading approvals..." : "Refresh approvals"}</button></div>
-        <div class="card-body assistant-stack">${state.portalRequestsLoading && !portalRequests.length ? `<div class="empty">Loading pending access requests...</div>` : portalRequests.length ? portalRequests.map((request) => `<div class="priority"><div><strong>${escapeHtml(request.email)}</strong><span>Requested: ${escapeHtml(ROLES[request.requested_role]?.label || request.requested_role)}</span></div><select id="access-role-${request._row}">${Object.entries(ROLES).filter(([id]) => !["super-admin","reviewer"].includes(id)).map(([id,role]) => `<option value="${id}" ${id === request.requested_role ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select><button class="button primary" onclick="decidePortalRequest('${escapeHtml(request.email)}','approved','access-role-${request._row}')">Approve</button><button class="button ghost" onclick="decidePortalRequest('${escapeHtml(request.email)}','rejected','access-role-${request._row}')">Reject</button></div>`).join("") : `<div class="empty">No pending access requests.</div>`}</div>
+        <div class="card-body assistant-stack">${state.portalRequestsLoading && !portalRequests.length ? `<div class="empty">Loading pending access requests...</div>` : portalRequests.length ? portalRequests.map((request) => `<article class="access-request-card">
+          <div class="access-request-identity">
+            <span class="access-request-avatar">${escapeHtml(String(request.email || "?").charAt(0).toUpperCase())}</span>
+            <div><strong>${escapeHtml(request.email)}</strong><span class="badge gold">Pending approval</span><p>Requested role: ${escapeHtml(ROLES[request.requested_role]?.label || request.requested_role)}</p></div>
+          </div>
+          <div class="access-request-role"><label for="access-role-${request._row}">Assign role</label><select id="access-role-${request._row}">${Object.entries(ROLES).filter(([id]) => !["super-admin","reviewer"].includes(id)).map(([id,role]) => `<option value="${id}" ${id === request.requested_role ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></div>
+          <div class="access-request-actions"><button class="button primary" onclick="decidePortalRequest('${escapeHtml(request.email)}','approved','access-role-${request._row}')">${icon("check", 17)}Approve</button><button class="button ghost danger-action" onclick="decidePortalRequest('${escapeHtml(request.email)}','rejected','access-role-${request._row}')">${icon("x", 17)}Reject</button></div>
+        </article>`).join("") : `<div class="empty">No pending access requests.</div>`}</div>
       </div>
       <div class="card">
         <div class="card-header">
