@@ -34,11 +34,17 @@ const DATASET_TABS = [
   "Appointments",
   "Availability",
   "SupportRequests",
+  "ItTickets",
+  "TicketHistory",
+  "Notifications",
 ];
 
 const TAB_HEADERS = {
   AppState: ["key", "json", "updated_at"],
   CfaStatuses: ["id", "status", "updated_at"],
+  TicketHistory: ["event_id", "ticket_id", "event", "actor_email", "detail", "created_at"],
+  Notifications: ["notification_id", "recipient_email", "recipient_role", "title", "message", "type", "ticket_id", "read", "created_at"],
+  ItTickets: ["id", "ticketRef", "requester_email", "requesterId", "title", "category", "urgency", "status", "visibility", "assignedTo", "date", "summary", "affectedArea", "device", "resolutionSummary", "created_at", "updated_at"],
   LecturerApplications: [
     "application_id", "submitted_at", "recovery_status", "email", "title", "applicant",
     "gender", "affiliation", "designation", "address", "country_of_residence",

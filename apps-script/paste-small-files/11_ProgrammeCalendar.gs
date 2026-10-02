@@ -40,10 +40,12 @@ function syncProgrammeCalendarData(datasets, spreadsheet) {
     CalendarBlocks: readJsonRecords(getSheet(spreadsheet, "CalendarBlocks")),
     Courses: readJsonRecords(getSheet(spreadsheet, "Courses")),
     Sessions: readJsonRecords(getSheet(spreadsheet, "Sessions")),
+    StudyGroupMeetings: readJsonRecords(getSheet(spreadsheet, "StudyGroupMeetings")),
   };
   const blocks = data.CalendarBlocks || [];
   const courses = data.Courses || [];
   const sessions = data.Sessions || [];
+  const groupMeetings = data.StudyGroupMeetings || [];
   if (!blocks.length || !courses.length) throw new Error("Calendar blocks and courses must be synced before creating Google Calendar events.");
 
   const calendar = getOrCreateProgrammeCalendar();
@@ -51,7 +53,7 @@ function syncProgrammeCalendarData(datasets, spreadsheet) {
   const ledgerSheet = getSheet(spreadsheet, "CalendarSyncEvents");
   ensureSheetHeaders(ledgerSheet, TAB_HEADERS.CalendarSyncEvents);
   const existing = readCalendarSyncLedger(ledgerSheet);
-  const desired = buildProgrammeCalendarEvents(blocks, courses, sessions);
+  const desired = buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings);
   clearProgrammeCalendarEvents_(calendar);
   const retained = {};
   let created = 0;
@@ -131,7 +133,7 @@ function clearProgrammeCalendarEvents_(calendar) {
   calendar.getEvents(start, end).forEach(function (event) { event.deleteEvent(); });
 }
 
-function buildProgrammeCalendarEvents(blocks, courses, sessions) {
+function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings) {
   const blockMap = {};
   const courseMap = {};
   blocks.forEach((block) => { blockMap[String(block.id || block.block_id || "")] = block; });
@@ -183,6 +185,22 @@ function buildProgrammeCalendarEvents(blocks, courses, sessions) {
       description: [block.note || "", "Synced automatically from the MathEpi Academic Manager."].filter(Boolean).join("\n\n"),
       event_date: String(block.start),
       all_day: true,
+    };
+    item.fingerprint = programmeCalendarFingerprint(item);
+    events.push(item);
+  });
+  (groupMeetings || []).filter((meeting) => meeting.date && meeting.time && meeting.status !== "Cancelled").forEach((meeting) => {
+    const start = dateAtTime(programmeDate(meeting.date), meeting.time);
+    const end = new Date(start.getTime() + Number(meeting.duration || 90) * 60 * 1000);
+    const item = {
+      sync_key: "study-group::" + String(meeting.id || meeting.groupId + "-" + meeting.date + "-" + meeting.time),
+      title: "Study group: " + String(meeting.title || meeting.courseCode || "MathEpi"),
+      start: start,
+      end: end,
+      location: meeting.location || "",
+      description: [meeting.objective || "", meeting.courseCode ? "Course: " + meeting.courseCode : "", "Created from the MathEpi Study Groups workspace."].filter(Boolean).join("\n\n"),
+      event_date: formatProgrammeDate(start),
+      all_day: false,
     };
     item.fingerprint = programmeCalendarFingerprint(item);
     events.push(item);

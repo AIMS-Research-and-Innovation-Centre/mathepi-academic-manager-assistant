@@ -7,6 +7,8 @@ const ICONS = {
     '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><path d="m9 15 2 2 4-4"/>',
   book:
     '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H22"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H22v20H6.5A2.5 2.5 0 0 1 4 19.5z"/><path d="M8 7h8"/><path d="M8 11h6"/>',
+  bell:
+    '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>',
   calendar:
     '<path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/>',
   check:
@@ -1844,6 +1846,8 @@ const SUPPORT_CATEGORIES = [
 ];
 
 const SUPPORT_STATUS_COLOR = {
+  New: "blue",
+  Triaged: "gold",
   Draft: "gray",
   Submitted: "blue",
   Triage: "gold",
@@ -1853,6 +1857,7 @@ const SUPPORT_STATUS_COLOR = {
   Resolved: "green",
   Closed: "green",
   Escalated: "danger",
+  Reopened: "gold",
 };
 
 const URGENCY_COLOR = {
@@ -1890,6 +1895,9 @@ const DEFAULT_SUPPORT_REQUESTS = [
     "privateNote": "Check invite domain and sharing policy."
   }
 ];
+
+const DEFAULT_NOTIFICATIONS = [];
+const DEFAULT_STUDY_GROUP_MEETINGS = [];
 
 
 
@@ -2175,9 +2183,11 @@ const GOOGLE_DATASETS = [
   ["studyGroups", "StudyGroups"],
   ["studyGroupInvitations", "StudyGroupInvitations"],
   ["studyGroupActivities", "StudyGroupActivities"],
+  ["studyGroupMeetings", "StudyGroupMeetings"],
   ["appointments", "Appointments"],
   ["availability", "Availability"],
   ["supportRequests", "SupportRequests"],
+  ["notifications", "Notifications"],
 ];
 
 let googleSyncTimer = null;
@@ -2236,7 +2246,7 @@ function googleBackendAvailable() {
 }
 
 function googleApi(action, payload = {}) {
-  const protectedActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "getProgrammeCalendarStatus", "updateCfaStatus", "listLecturerReviewData", "listReviewStaffingAssignments", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns"];
+  const protectedActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "getProgrammeCalendarStatus", "updateCfaStatus", "listLecturerReviewData", "listReviewStaffingAssignments", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns", "createItTicket", "listItTickets", "updateItTicket", "listNotifications", "markNotificationRead"];
   const securedPayload = portalAccess?.token && protectedActions.includes(action) ? { ...payload, token: portalAccess.token } : payload;
   if (hasAppsScriptBridge()) {
     return new Promise((resolve, reject) => {
@@ -2506,9 +2516,11 @@ const state = {
   studyGroups: load("mathepi-study-groups", DEFAULT_STUDY_GROUPS),
   studyGroupInvitations: load("mathepi-study-group-invitations", DEFAULT_STUDY_GROUP_INVITATIONS),
   studyGroupActivities: load("mathepi-study-group-activities", DEFAULT_STUDY_GROUP_ACTIVITIES),
+  studyGroupMeetings: load("mathepi-study-group-meetings", DEFAULT_STUDY_GROUP_MEETINGS),
   appointments: load("mathepi-appointments", DEFAULT_APPOINTMENTS),
   availability: load("mathepi-availability", DEFAULT_AVAILABILITY),
   supportRequests: load("mathepi-support-requests", DEFAULT_SUPPORT_REQUESTS),
+  notifications: load("mathepi-notifications", DEFAULT_NOTIFICATIONS),
   cfaStatuses: load(CFA_STATUS_KEY, DEFAULT_CFA_STATUS),
 };
 
@@ -2784,9 +2796,11 @@ function save() {
   safeStorageSet("mathepi-study-groups", JSON.stringify(state.studyGroups));
   safeStorageSet("mathepi-study-group-invitations", JSON.stringify(state.studyGroupInvitations));
   safeStorageSet("mathepi-study-group-activities", JSON.stringify(state.studyGroupActivities));
+  safeStorageSet("mathepi-study-group-meetings", JSON.stringify(state.studyGroupMeetings));
   safeStorageSet("mathepi-appointments", JSON.stringify(state.appointments));
   safeStorageSet("mathepi-availability", JSON.stringify(state.availability));
   safeStorageSet("mathepi-support-requests", JSON.stringify(state.supportRequests));
+  safeStorageSet("mathepi-notifications", JSON.stringify(state.notifications));
   safeStorageSet("mathepi-student-calendar", String(state.studentCalendarConnected));
   safeStorageSet(CFA_STATUS_KEY, JSON.stringify(state.cfaStatuses));
   scheduleGoogleSync();
@@ -3509,6 +3523,41 @@ function toast(message) {
   }, 2600);
 }
 
+function visibleNotifications() {
+  const actor = currentActorId();
+  return state.notifications.filter((item) => !item.recipientId || item.recipientId === actor || item.recipientRole === state.role || (["super-admin", "manager"].includes(state.role) && item.managerVisible)).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+}
+
+function addNotification({ title, message, type = "info", ticketId = "", recipientId = "", recipientRole = "", managerVisible = true, eventId = "" }) {
+  const id = eventId || `notice-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  if (state.notifications.some((item) => item.id === id)) return;
+  state.notifications.unshift({ id, title, message, type, ticketId, recipientId, recipientRole, managerVisible, read: false, createdAt: new Date().toISOString() });
+}
+
+function markNotificationRead(id) {
+  const item = state.notifications.find((notice) => notice.id === id);
+  if (item) item.read = true;
+  if (item?.ticketId) openDrawer("supportRequest", item.ticketId);
+  save();
+  googleApi("markNotificationRead", { notificationId: id }).catch(() => {});
+  render();
+}
+
+function markAllNotificationsRead() {
+  visibleNotifications().forEach((item) => { item.read = true; });
+  saveAndRender("Notifications marked as read.");
+}
+
+async function syncNotifications() {
+  if (!portalAccess?.token || portalAccess.status !== "approved" || document.hidden) return;
+  try {
+    const result = await googleApi("listNotifications", {});
+    (result.notifications || []).forEach((row) => addNotification({ title: row.title, message: row.message, type: row.type, ticketId: row.ticket_id, recipientId: currentActorId(), eventId: row.notification_id }));
+    save();
+    render();
+  } catch (_) {}
+}
+
 function setView(view) {
   if (view === "tf-reviews") {
     const reviewUrl = new URL("./tf-reviews/", window.location.href);
@@ -3886,6 +3935,7 @@ function appLayout() {
             <button class="button ghost icon-only theme-toggle" onclick="toggleTheme()" aria-label="Switch to ${state.theme === "dark" ? "light" : "dark"} mode" title="Switch to ${state.theme === "dark" ? "light" : "dark"} mode">
               ${icon(state.theme === "dark" ? "sun" : "moon", 18)}
             </button>
+            <button class="button ghost icon-only notification-button" onclick="openDrawer('notifications')" aria-label="Open notifications" title="Notifications">${icon("bell", 18)}${visibleNotifications().filter((item) => !item.read).length ? `<span>${visibleNotifications().filter((item) => !item.read).length}</span>` : ""}</button>
             ${topbarAction()}
           </div>
         </header>
@@ -4397,10 +4447,11 @@ function notifyPortalDecision(previousStatus, result) {
   safeStorageSet(storageKey, "seen");
   if (result.status === "approved") {
     const roleLabel = ROLES[result.roles?.[0]]?.label || "approved role";
+    addNotification({ title: "Access approved", message: `You are signed in as ${roleLabel}.`, type: "success", eventId: notificationId });
     toast(`Access approved. You are signed in as ${roleLabel}.`);
     return;
   }
-  if (result.status === "rejected") toast("Access was not approved. Please contact the Academic Manager.");
+  if (result.status === "rejected") { addNotification({ title: "Access request not approved", message: "Please contact the Academic Manager.", type: "critical", eventId: notificationId }); toast("Access was not approved. Please contact the Academic Manager."); }
 }
 
 async function refreshPortalAccess(options = {}) {
@@ -4674,6 +4725,7 @@ function renderAgenda() {
   const items = state.sessions
     .filter((session) => session.blockId === state.blockId)
     .sort((a, b) => `${a.day}${a.time}`.localeCompare(`${b.day}${b.time}`));
+  const meetings = state.studyGroupMeetings.slice().sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
   return `
     <div class="agenda-list">
       ${
@@ -4698,6 +4750,7 @@ function renderAgenda() {
               .join("")
           : `<div class="empty">No sessions in this block yet.</div>`
       }
+      ${meetings.map((meeting) => `<article class="agenda-item"><div><h4>${dateLabel(meeting.date)} ${meeting.time} · ${escapeHtml(meeting.title)}</h4><p>Study group · ${escapeHtml(meeting.mode)} · ${escapeHtml(meeting.location)}</p><div class="row-tags"><span class="chip teal">${escapeHtml(meeting.courseCode)}</span><span class="chip gray">Group calendar</span></div></div><button class="button ghost" onclick="setView('groups')">Open group</button></article>`).join("")}
     </div>
   `;
 }
@@ -7393,6 +7446,7 @@ function renderDrawer() {
   if (type === "cfaCall") content = cfaCallDrawer(payload);
   if (type === "tfReviewAudit") content = tfReviewAuditDrawer(payload);
   if (type === "install") content = installAppDrawer();
+  if (type === "notifications") content = notificationsDrawer();
   return `<div class="drawer-backdrop" onclick="if(event.target.classList.contains('drawer-backdrop')) closeDrawer()">${content}</div>`;
 }
 
@@ -7407,6 +7461,13 @@ function drawerShell(title, subtitle, body, footer = "") {
       ${footer ? `<div class="drawer-footer">${footer}</div>` : ""}
     </aside>
   `;
+}
+
+function notificationsDrawer() {
+  const notices = visibleNotifications();
+  const body = notices.length ? `<div class="notification-list">${notices.map((item) => `<button class="notification-row ${item.read ? "" : "unread"}" onclick="markNotificationRead('${item.id}')"><span class="icon-box ${item.type === "critical" ? "danger" : item.type === "success" ? "green" : "blue"}">${icon(item.type === "critical" ? "alert" : "bell", 17)}</span><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.message)}</small><time>${dateLabel(item.createdAt)}</time></span></button>`).join("")}</div>` : `<div class="empty">No notifications yet.</div>`;
+  const footer = notices.some((item) => !item.read) ? `<button class="button ghost" onclick="markAllNotificationsRead()">${icon("check", 17)}Mark all read</button>` : `<button class="button primary" onclick="closeDrawer()">Done</button>`;
+  return drawerShell("Notifications", "Ticket updates, group meetings, approvals, and operational alerts.", body, footer);
 }
 
 let deferredInstallPrompt = null;
@@ -8165,8 +8226,9 @@ function addAppointment() {
   const form = document.querySelector("#appointmentForm");
   if (!form.reportValidity()) return;
   const data = Object.fromEntries(new FormData(form));
+  const appointmentId = `apt-${Date.now()}`;
   state.appointments.unshift({
-    id: `apt-${Date.now()}`,
+    id: appointmentId,
     requesterId: currentActorId(),
     targetId: data.targetId,
     courseCode: data.courseCode,
@@ -8179,6 +8241,8 @@ function addAppointment() {
     summary: data.summary || "Appointment request submitted.",
     privateNote: "No private note yet.",
   });
+  addNotification({ title: "Appointment requested", message: `${data.category} · ${dateLabel(data.preferredDate)} at ${data.time}`, type: "info", recipientId: currentActorId(), eventId: `${appointmentId}:requested:requester` });
+  addNotification({ title: "New appointment request", message: `${participantName(currentActorId())} requested ${dateLabel(data.preferredDate)} at ${data.time}.`, type: "info", recipientId: data.targetId, eventId: `${appointmentId}:requested:target` });
   state.view = "appointments";
   closeDrawer();
   saveAndRender("Appointment request submitted.");
@@ -8225,6 +8289,7 @@ function updateAppointmentStatus(id, status) {
   const item = state.appointments.find((appointment) => appointment.id === id);
   if (!item) return;
   item.status = status;
+  addNotification({ title: `Appointment ${status}`, message: `${item.category} · ${dateLabel(item.preferredDate)} at ${item.time}`, type: status === "Confirmed" || status === "Completed" ? "success" : "info", recipientId: item.requesterId, eventId: `${item.id}:status:${status}` });
   saveAndRender(`Appointment moved to ${status}.`);
 }
 
@@ -8341,6 +8406,8 @@ function supportFormDrawer(payload = {}) {
         <label>Optional notes</label>
         <textarea name="summary" placeholder="Share only what is necessary. You do not need to disclose sensitive wellness details here."></textarea>
       </div>
+      <div class="field"><label>Affected area</label><input name="affectedArea" placeholder="Login, calendar, Drive, classroom..." /></div>
+      <div class="field"><label>Device / browser</label><input name="device" value="${escapeHtml(navigator.userAgent)}" /></div>
     </form>
     <div class="timeline-item">
       <h4>Confidentiality note</h4>
@@ -8357,22 +8424,33 @@ function addSupportRequest() {
   const data = Object.fromEntries(new FormData(form));
   const assignedTo = supportAssignmentFor(data.category);
   const visibility = supportVisibilityFor(data.category);
+  const requestId = `sup-${Date.now()}`;
+  const ticketRef = visibility === "technical" ? `IT-${new Date().getFullYear()}-${String(state.supportRequests.filter((item) => item.visibility === "technical").length + 1).padStart(4, "0")}` : "";
   state.supportRequests.unshift({
-    id: `sup-${Date.now()}`,
+    id: requestId,
+    ticketRef,
     requesterId: currentActorId(),
     title: data.title,
     category: data.category,
     urgency: data.urgency,
-    status: "Submitted",
+    status: visibility === "technical" ? "New" : "Submitted",
     visibility,
     assignedTo,
-    date: "2026-05-21",
+    date: new Date().toISOString(),
+    affectedArea: data.affectedArea || "",
+    device: data.device || navigator.userAgent,
+    history: [{ event: "Created", by: currentActorId(), at: new Date().toISOString() }],
+    resolutionSummary: "",
     summary: data.summary || "Support request submitted.",
     privateNote:
       visibility === "confidential"
         ? "Private details should be handled by the confidential support handler outside the broad academic view."
         : data.summary || "No additional private note.",
   });
+  const createdRequest = state.supportRequests[0];
+  if (ticketRef) googleApi("createItTicket", { ticket: createdRequest }).then((result) => { if (result?.ticket?.ticketRef) { createdRequest.ticketRef = result.ticket.ticketRef; save(); render(); } }).catch((error) => toast(error.message || "Ticket saved on this device; server sync is pending."));
+  addNotification({ title: ticketRef ? `${ticketRef} submitted` : "Support request submitted", message: "Your request was recorded and can now be tracked.", type: "success", ticketId: requestId, recipientId: currentActorId(), eventId: `${requestId}:created:requester` });
+  if (ticketRef) addNotification({ title: `New IT ticket ${ticketRef}`, message: data.title, type: data.urgency === "Critical" ? "critical" : "info", ticketId: requestId, recipientRole: "it-support", eventId: `${requestId}:created:it` });
   state.view = "support";
   closeDrawer();
   saveAndRender("Support request submitted.");
@@ -8384,12 +8462,15 @@ function supportRequestDrawer(id) {
   const privateVisible = canSeeSupportPrivate(item);
   const body = `
     <div class="meta-grid">
+      ${item.ticketRef ? `<div class="meta-box"><span>Ticket</span><strong>${item.ticketRef}</strong></div>` : ""}
       <div class="meta-box"><span>Requester</span><strong>${participantName(item.requesterId)}</strong></div>
       <div class="meta-box"><span>Assigned to</span><strong>${participantName(item.assignedTo)}</strong></div>
       <div class="meta-box"><span>Urgency</span><strong>${item.urgency}</strong></div>
       <div class="meta-box"><span>Visibility</span><strong>${item.visibility}</strong></div>
     </div>
     <div class="timeline-item"><h4>${item.category}</h4><p>${item.summary}</p></div>
+    ${item.device ? `<div class="timeline-item"><h4>Technical context</h4><p>${escapeHtml(item.affectedArea || "Not specified")} &middot; ${escapeHtml(item.device)}</p></div>` : ""}
+    ${item.history?.length ? `<div class="timeline-item"><h4>Activity</h4><p>${item.history.map((event) => `${event.event} · ${dateLabel(event.at)}`).join("<br>")}</p></div>` : ""}
     <div class="timeline-item"><h4>Private note</h4><p>${privateVisible ? item.privateNote : "Hidden for this role. Use authorized support routing for sensitive details."}</p></div>
     ${
       item.urgency === "Critical"
@@ -8401,9 +8482,9 @@ function supportRequestDrawer(id) {
         ? `<div class="field">
             <label>Status</label>
             <select onchange="updateSupportStatus('${item.id}', this.value)">
-              ${["Draft", "Submitted", "Triage", "Assigned", "In progress", "Waiting on requester", "Resolved", "Closed", "Escalated"].map((status) => `<option ${item.status === status ? "selected" : ""}>${status}</option>`).join("")}
+              ${["New", "Triaged", "Assigned", "In progress", "Waiting on requester", "Resolved", "Reopened", "Closed", "Escalated"].map((status) => `<option ${item.status === status ? "selected" : ""}>${status}</option>`).join("")}
             </select>
-          </div>`
+          </div><div class="field"><label>Resolution summary</label><textarea id="supportResolution">${escapeHtml(item.resolutionSummary || "")}</textarea><small>Required before resolving or closing a ticket.</small></div>`
         : ""
     }
   `;
@@ -8414,7 +8495,14 @@ function supportRequestDrawer(id) {
 function updateSupportStatus(id, status) {
   const item = state.supportRequests.find((request) => request.id === id);
   if (!item) return;
+  const resolution = document.querySelector("#supportResolution")?.value.trim() || item.resolutionSummary || "";
+  if (["Resolved", "Closed"].includes(status) && !resolution) return toast("Add a resolution summary before resolving or closing this ticket.");
   item.status = status;
+  item.resolutionSummary = resolution;
+  item.history = item.history || [];
+  item.history.push({ event: `Status changed to ${status}`, by: currentActorId(), at: new Date().toISOString() });
+  if (item.ticketRef) googleApi("updateItTicket", { ticket: item }).catch((error) => toast(error.message || "Ticket update is pending server sync."));
+  addNotification({ title: `${item.ticketRef || "Support request"}: ${status}`, message: resolution || `Status changed to ${status}.`, type: status === "Resolved" ? "success" : item.urgency === "Critical" ? "critical" : "info", ticketId: item.id, recipientId: item.requesterId, eventId: `${item.id}:status:${status}:${item.history.length}` });
   saveAndRender(`Support request moved to ${status}.`);
 }
 
@@ -8483,6 +8571,8 @@ function addStudyGroup() {
     notes: data.notes || "Group objective to be refined by members.",
     advisorIds: [],
   });
+  state.studyGroupMeetings.unshift({ id: `sgm-${Date.now()}`, groupId, title: data.name, courseCode: data.courseCode, date: data.meetingDate, time: data.meetingTime, mode: data.mode, location: data.location || "To be confirmed", objective: data.notes || "Study group meeting", status: "Scheduled", createdAt: new Date().toISOString() });
+  addNotification({ title: "Study group meeting scheduled", message: `${data.name} · ${dateLabel(data.meetingDate)} at ${data.meetingTime}`, type: "info", recipientId: currentStudentId(), eventId: `${groupId}:meeting:organizer` });
   formData.getAll("inviteIds").forEach((studentId) => {
     state.studyGroupInvitations.push({
       id: `sgi-${Date.now()}-${studentId}`,
@@ -8494,6 +8584,7 @@ function addStudyGroup() {
       createdAt: "2026-05-21",
       respondedAt: "",
     });
+    addNotification({ title: "Study group invitation", message: `${data.name} meets ${dateLabel(data.meetingDate)} at ${data.meetingTime}.`, type: "info", recipientId: studentId, eventId: `${groupId}:invite:${studentId}` });
   });
   if (data.notes) {
     state.studyGroupActivities.push({
@@ -8651,6 +8742,8 @@ window.addAppointment = addAppointment;
 window.updateAppointmentStatus = updateAppointmentStatus;
 window.addSupportRequest = addSupportRequest;
 window.updateSupportStatus = updateSupportStatus;
+window.markNotificationRead = markNotificationRead;
+window.markAllNotificationsRead = markAllNotificationsRead;
 window.addStudyGroup = addStudyGroup;
 window.addStudyGroupActivity = addStudyGroupActivity;
 window.updateStudyGroupInvitation = updateStudyGroupInvitation;
@@ -8712,6 +8805,8 @@ else if (window.mathepiAuth?.user) syncFirebasePortalAccess(window.mathepiAuth.u
 window.setInterval(() => {
   if (portalAccess?.token && portalAccess.status === "pending" && !document.hidden) refreshPortalAccess({ quiet: true });
 }, 15000);
+window.setInterval(syncNotifications, 30000);
+syncNotifications();
 syncReviewStaffing({ quiet: true });
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && (state.view === "calendar" || state.view === "courses")) syncReviewStaffing({ quiet: true, force: true });

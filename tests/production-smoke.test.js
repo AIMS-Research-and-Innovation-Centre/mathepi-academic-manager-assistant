@@ -31,3 +31,14 @@ test("production UI exposes installation, offline, and accessible status feedbac
   assert.match(app, /aria-live="polite"/);
   assert.doesNotMatch(app, /<h2>Email Accounts<\/h2>/);
 });
+
+test("ticket notifications and study-group calendar integration are wired", () => {
+  const app = read("app.js");
+  const routes = read("apps-script/paste-small-files/01_Routes.gs");
+  const calendar = read("apps-script/paste-small-files/11_ProgrammeCalendar.gs");
+  assert.match(app, /IT-\$\{new Date\(\)\.getFullYear\(\)\}/);
+  assert.match(app, /function notificationsDrawer/);
+  assert.match(app, /studyGroupMeetings\.unshift/);
+  assert.match(routes, /createItTicket/);
+  assert.match(calendar, /study-group::/);
+});

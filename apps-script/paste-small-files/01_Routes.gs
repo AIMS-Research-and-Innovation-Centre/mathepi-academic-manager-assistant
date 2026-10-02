@@ -37,6 +37,11 @@ function apiPost(request) {
   const approvedActions = ["getProgrammeCalendarStatus", "listReviewStaffingAssignments"];
   if (managerActions.indexOf(action) >= 0) portalRequireRoles_(payload.token, ["super-admin", "manager"]);
   if (approvedActions.indexOf(action) >= 0) portalRequireRoles_(payload.token, []);
+  if (action === "createItTicket") return createItTicket(payload);
+  if (action === "listItTickets") return listItTickets(payload);
+  if (action === "updateItTicket") return updateItTicket(payload);
+  if (action === "listNotifications") return listNotifications(payload);
+  if (action === "markNotificationRead") return markNotificationRead(payload);
   if (action === "setupWorkspace") return setupWorkspace(payload);
   if (action === "saveSnapshot") return saveSnapshot(payload);
   if (action === "getBootstrap") return getBootstrap();

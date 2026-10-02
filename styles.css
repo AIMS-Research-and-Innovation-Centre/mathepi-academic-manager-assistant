@@ -3614,6 +3614,67 @@ button {
   box-shadow: var(--shadow);
 }
 
+.notification-button {
+  position: relative;
+}
+
+.notification-button > span {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--panel);
+  border-radius: 999px;
+  color: #fff;
+  background: var(--danger);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.notification-list {
+  display: grid;
+  gap: 8px;
+}
+
+.notification-row {
+  width: 100%;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: var(--panel);
+  text-align: left;
+}
+
+.notification-row.unread {
+  border-left: 4px solid var(--aims-maroon);
+  background: var(--aims-maroon-soft);
+}
+
+.notification-row strong,
+.notification-row small,
+.notification-row time {
+  display: block;
+}
+
+.notification-row small,
+.notification-row time {
+  margin-top: 4px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.notification-row time {
+  font-size: 11px;
+}
+
 .auth-page {
   min-height: 100vh;
   min-height: 100dvh;
