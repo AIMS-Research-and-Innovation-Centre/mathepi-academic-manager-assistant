@@ -2780,6 +2780,44 @@ button {
   gap: 6px;
 }
 
+.weekly-segments {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.weekly-segment {
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid color-mix(in srgb, var(--maroon) 22%, var(--line));
+  border-radius: 5px;
+  background: var(--maroon-soft);
+  color: var(--ink);
+}
+
+.weekly-segment strong,
+.weekly-segment span,
+.weekly-segment small {
+  display: block;
+}
+
+.weekly-segment strong {
+  color: var(--maroon);
+  font-size: 10px;
+}
+
+.weekly-segment span {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.weekly-segment small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
 .weekly-course {
   min-width: 0;
   display: inline-grid;
@@ -4105,6 +4143,10 @@ button {
 
   .weekly-course span {
     white-space: normal;
+  }
+
+  .weekly-segments {
+    grid-template-columns: 1fr;
   }
 
   .phase {

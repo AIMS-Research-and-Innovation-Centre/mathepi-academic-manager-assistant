@@ -145,7 +145,9 @@ function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings) 
     const code = String(session.courseCode || session.course_code || "").toUpperCase();
     const course = courseMap[code];
     if (!block || !course || !block.start || !block.end || !session.day || !session.time) return;
-    datesForWeekday(block.start, block.end, session.day).forEach((date) => {
+    const deliveryStart = course.deliveryStart || course.delivery_start || block.start;
+    const deliveryEnd = course.deliveryEnd || course.delivery_end || block.end;
+    datesForWeekday(deliveryStart, deliveryEnd, session.day).forEach((date) => {
       const start = dateAtTime(date, session.time);
       const end = new Date(start.getTime() + Number(session.duration || 2) * 60 * 60 * 1000);
       const lecturers = course.lecturerName || "To be confirmed";

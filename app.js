@@ -461,6 +461,13 @@ const CONFIRMED_LECTURER_ASSIGNMENTS = {
   MEE04: { lecturerName: "Prof. Aklilu Zeleke" },
 };
 
+const COURSE_DELIVERY_WINDOWS = {
+  MES01: { deliveryStart: "2026-10-26", deliveryEnd: "2026-11-13", deliveryLength: "3 weeks" },
+  MES06: { deliveryStart: "2026-10-26", deliveryEnd: "2026-11-10", deliveryLength: "2.5 weeks" },
+  MES05: { deliveryStart: "2026-11-11", deliveryEnd: "2026-11-27", deliveryLength: "2.5 weeks" },
+  MES03: { deliveryStart: "2026-11-16", deliveryEnd: "2026-11-27", deliveryLength: "2 intensive weeks" },
+};
+
 const DEFAULT_BLOCKS = [
   {
     "id": "onboarding",
@@ -477,7 +484,7 @@ const DEFAULT_BLOCKS = [
     "start": "2026-10-26",
     "end": "2026-11-13",
     "kind": "teaching",
-    "note": "Core Skills: MES01 Mathematical Problem Solving; MES06 Scientific Computing and LaTeX",
+    "note": "Core Skills: MES01 runs 26 Oct-13 Nov; MES06 runs 26 Oct-10 Nov (2.5 weeks)",
     "courses": [
       "MES01",
       "MES06"
@@ -486,10 +493,10 @@ const DEFAULT_BLOCKS = [
   {
     "id": "block-2",
     "title": "Block 2",
-    "start": "2026-11-09",
+    "start": "2026-11-11",
     "end": "2026-11-27",
     "kind": "teaching",
-    "note": "Core Skills: MES03 Physical Problem Solving; MES05 Introduction to R and Python",
+    "note": "Core Skills: MES05 runs 11-27 Nov (2.5 weeks); MES03 runs intensively 16-27 Nov",
     "courses": [
       "MES03",
       "MES05"
@@ -652,10 +659,10 @@ const DEFAULT_BLOCKS = [
 
 const WEEKLY_PROGRAMME = [
   { week: "W1", dates: "26–30 Oct", phase: "phase-1", blockId: "block-1", courses: ["MES01", "MES06"], milestone: "Orientation integrated: Mon 26 and Wed 28 Oct PM" },
-  { week: "W2", dates: "2–6 Nov", phase: "phase-1", blockId: "block-1", courses: ["MES01", "MES06"], milestone: "MES06 ends" },
-  { week: "W3", dates: "9–13 Nov", phase: "phase-1", blockId: "block-2", blockLabel: "B1 / B2", courses: ["MES01", "MES03", "MES05"], milestone: "MES05 starts after MES06; MES01 final week", overlap: true },
-  { week: "W4", dates: "16–20 Nov", phase: "phase-1", blockId: "block-2", courses: ["MES03", "MES05"], milestone: "MES05 ends" },
-  { week: "W5", dates: "23–27 Nov", phase: "phase-1", blockId: "block-2", courses: ["MES03"], milestone: "MES03 ends" },
+  { week: "W2", dates: "2–6 Nov", phase: "phase-1", blockId: "block-1", courses: ["MES01", "MES06"], milestone: "MES06 continues to Tuesday 10 Nov" },
+  { week: "W3", dates: "9–13 Nov", phase: "phase-1", blockId: "block-2", blockLabel: "Handover", courses: ["MES01", "MES06", "MES05"], segments: [{ dates: "9–10 Nov", courses: ["MES01", "MES06"], label: "MES06 completion" }, { dates: "11–13 Nov", courses: ["MES01", "MES05"], label: "MES05 begins" }], milestone: "Midweek handover; no three-course concurrency", overlap: true },
+  { week: "W4", dates: "16–20 Nov", phase: "phase-1", blockId: "block-2", courses: ["MES03", "MES05"], milestone: "Balanced two-course week" },
+  { week: "W5", dates: "23–27 Nov", phase: "phase-1", blockId: "block-2", courses: ["MES03", "MES05"], milestone: "MES03 and MES05 end" },
   { week: "W6", dates: "30 Nov–4 Dec", phase: "phase-1", blockId: "block-3", courses: ["MES02", "MES04"], milestone: "Full Block 3" },
   { week: "W7", dates: "7–11 Dec", phase: "phase-1", blockId: "block-3", courses: ["MES02", "MES04"], milestone: "Full Block 3" },
   { week: "W8", dates: "14–18 Dec", phase: "phase-1", blockId: "block-3", courses: ["MES02", "MES04"], milestone: "Foundation phase ends before Christmas" },
@@ -2565,15 +2572,15 @@ function migrateProgrammeData() {
       start: "2026-10-26",
       end: "2026-11-13",
       kind: "teaching",
-      note: "MES01 Mathematical Problem Solving; MES06 Scientific Computing and LaTeX",
+      note: "MES01 runs 26 Oct-13 Nov; MES06 runs 26 Oct-10 Nov (2.5 weeks)",
       courses: ["MES01", "MES06"],
     },
     "block-2": {
       title: "Block 2",
-      start: "2026-11-09",
+      start: "2026-11-11",
       end: "2026-11-27",
       kind: "teaching",
-      note: "MES03 Physical Problem Solving; MES05 Introduction to R and Python",
+      note: "MES05 runs 11-27 Nov (2.5 weeks); MES03 runs intensively 16-27 Nov",
       courses: ["MES03", "MES05"],
     },
     "block-3": {
@@ -2732,6 +2739,11 @@ function migrateProgrammeData() {
         nextFollowUp: item.block === "Block 1" ? "2026-10-12" : "2026-10-26",
       });
     }
+  });
+
+  Object.entries(COURSE_DELIVERY_WINDOWS).forEach(([code, delivery]) => {
+    const item = state.courses.find((course) => course.code === code);
+    if (item) Object.assign(item, delivery);
   });
 
   const mes04 = state.courses.find((item) => item.code === "MES04");
@@ -4639,9 +4651,12 @@ function renderProgrammeWeek(item) {
       </span>`;
     })
     .join("");
+  const segmentMarkup = item.segments?.length
+    ? `<div class="weekly-segments">${item.segments.map((segment) => `<div class="weekly-segment"><strong>${segment.dates}</strong><span>${segment.courses.join(" + ")}</span><small>${segment.label}</small></div>`).join("")}</div>`
+    : "";
   const activity = item.activity
     ? `<p class="weekly-activity">${item.activity}</p>`
-    : `<div class="weekly-courses">${courses}</div>`;
+    : segmentMarkup || `<div class="weekly-courses">${courses}</div>`;
   return `
     <article class="weekly-row ${active ? "active" : ""} ${item.overlap ? "overlap" : ""} ${item.kind || ""}"
       onclick="state.blockId='${item.blockId}'; render()" tabindex="0"
