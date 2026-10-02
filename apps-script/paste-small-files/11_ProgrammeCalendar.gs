@@ -133,6 +133,13 @@ function clearProgrammeCalendarEvents_(calendar) {
   calendar.getEvents(start, end).forEach(function (event) { event.deleteEvent(); });
 }
 
+const PROGRAMME_COURSE_DELIVERY_WINDOWS = {
+  MES01: { start: "2026-10-26", end: "2026-11-13" },
+  MES06: { start: "2026-10-26", end: "2026-11-10" },
+  MES05: { start: "2026-11-11", end: "2026-11-27" },
+  MES03: { start: "2026-11-16", end: "2026-11-27" },
+};
+
 function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings) {
   const blockMap = {};
   const courseMap = {};
@@ -145,8 +152,9 @@ function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings) 
     const code = String(session.courseCode || session.course_code || "").toUpperCase();
     const course = courseMap[code];
     if (!block || !course || !block.start || !block.end || !session.day || !session.time) return;
-    const deliveryStart = course.deliveryStart || course.delivery_start || block.start;
-    const deliveryEnd = course.deliveryEnd || course.delivery_end || block.end;
+    const fixedWindow = PROGRAMME_COURSE_DELIVERY_WINDOWS[code] || {};
+    const deliveryStart = fixedWindow.start || course.deliveryStart || course.delivery_start || block.start;
+    const deliveryEnd = fixedWindow.end || course.deliveryEnd || course.delivery_end || block.end;
     datesForWeekday(deliveryStart, deliveryEnd, session.day).forEach((date) => {
       const start = dateAtTime(date, session.time);
       const end = new Date(start.getTime() + Number(session.duration || 2) * 60 * 60 * 1000);
