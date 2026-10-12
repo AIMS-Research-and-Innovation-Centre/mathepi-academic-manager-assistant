@@ -1,4 +1,10 @@
 const ICONS = {
+  chevronLeft:
+    '<path d="m15 18-6-6 6-6"/>',
+  minus:
+    '<path d="M5 12h14"/>',
+  send:
+    '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
   activity:
     '<path d="M22 12h-4l-3 7L9 5l-3 7H2"/><path d="M22 12h-4l-3 7L9 5l-3 7H2"/>',
   alert:
@@ -2573,6 +2579,9 @@ const state = {
     queue: [],
     busy: false,
     communityLoadedAt: 0,
+    dockOpen: (() => { try { return sessionStorage.getItem("mathepi-pi-dock-open") === "1"; } catch { return false; } })(),
+    pending: null,
+    context: {},
   },
   tfReview: {
     session: load(TF_REVIEW_SESSION_KEY, null),
@@ -4364,7 +4373,23 @@ function piKnowledgeDocs() {
 // ---------------------------------------------------------------- on-device model
 
 const PI_SEMANTIC_PREF_KEY = "mathepi-pi-semantic";
-const piSemantic = { worker: null, status: "off", progress: 0, error: "", vectors: new Map(), pending: new Map(), seq: 0 };
+const piSemantic = { worker: null, status: "off", progress: 0, error: "", vectors: new Map(), pending: new Map(), seq: 0, retried: false };
+
+// A dropped connection during the one-time download is common on mobile
+// data; try once more before falling back to standard understanding.
+function piSemanticFailed(message) {
+  if (piSemantic.worker) piSemantic.worker.terminate();
+  piSemantic.worker = null;
+  if (!piSemantic.retried) {
+    piSemantic.retried = true;
+    piSemantic.status = "loading";
+    setTimeout(() => piStartSemantic(true), 4000);
+  } else {
+    piSemantic.status = "error";
+    piSemantic.error = message;
+  }
+  piUpdateSemanticStatus();
+}
 
 function piSemanticSupported() {
   return typeof Worker !== "undefined" && typeof WebAssembly === "object";
@@ -4403,9 +4428,7 @@ function piStartSemantic(manual = false) {
       piSemantic.status = "ready";
       piUpdateSemanticStatus();
     } else if (message.type === "error") {
-      piSemantic.status = "error";
-      piSemantic.error = message.message || "The on-device model could not load.";
-      piUpdateSemanticStatus();
+      piSemanticFailed(message.message || "The on-device model could not load.");
     } else if (message.type === "embedded") {
       const pending = piSemantic.pending.get(message.id);
       if (!pending) return;
@@ -4415,9 +4438,7 @@ function piStartSemantic(manual = false) {
     }
   };
   piSemantic.worker.onerror = (event) => {
-    piSemantic.status = "error";
-    piSemantic.error = event.message || "The on-device model could not start.";
-    piUpdateSemanticStatus();
+    piSemanticFailed(event.message || "The on-device model could not start.");
   };
   piSemantic.worker.postMessage({ type: "load" });
   piUpdateSemanticStatus();
@@ -4490,6 +4511,8 @@ function piSemanticStatusHtml() {
 function piUpdateSemanticStatus() {
   const element = document.querySelector("#piSemanticStatus");
   if (element) element.innerHTML = piSemanticStatusHtml();
+  const dockStatus = document.querySelector(".pi-dock-title span");
+  if (dockStatus) dockStatus.innerHTML = `<i class="pi-dot"></i>${escapeHtml(piDockStatus())}`;
 }
 
 // ---------------------------------------------------------------- answers
@@ -4607,9 +4630,10 @@ function piCourseAnswer(item, question) {
       source: PI_SOURCES.liveApp,
       action: ["people", "Open Lecturers & Tutors"],
       suggestions: [`Book time about ${item.code}`, `Tell me about ${item.code}`],
+      context: { course: item.code },
     };
   }
-  return { title: doc.title, text: doc.text, bullets: doc.bullets, source: doc.source, action: doc.action, suggestions: [`Who teaches ${item.code}?`, `Book time about ${item.code}`] };
+  return { title: doc.title, text: doc.text, bullets: doc.bullets, source: doc.source, action: doc.action, suggestions: [`Who teaches ${item.code}?`, `Book time about ${item.code}`], context: { course: item.code } };
 }
 
 function piPersonAnswer(item) {
@@ -4625,10 +4649,62 @@ function piPersonAnswer(item) {
     ].filter(Boolean),
     source: PI_SOURCES.liveApp,
     action: ["people", "Open Lecturers & Tutors"],
-    draft: bookable && canCreateAppointment()
-      ? { type: "appointment", label: `Request a meeting with ${item.name}`, payload: { targetId: item.id, courseCode: courses[0]?.code || "" }, lines: [`With: ${item.name}`, courses[0] ? `Course: ${courses[0].code}` : "Course: choose in the form"] }
-      : null,
+    context: { person: item.id },
+    suggestions: bookable && canCreateAppointment() ? [`Book time with ${item.name}`] : [],
   };
+}
+
+// ---------------------------------------------------------------- guided actions
+//
+// Pi collects what an action needs one question at a time, shows a summary,
+// and only submits after the user says yes. Submission goes through the same
+// create* functions the forms use, so permissions and notifications match.
+
+const PI_TIME_CHIPS = ["09:00", "11:00", "14:00", "16:00"];
+
+function piDayChips() {
+  const chips = ["Tomorrow"];
+  const now = new Date();
+  for (let offset = 2; chips.length < 4 && offset < 10; offset += 1) {
+    const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+    if (day.getDay() === 0 || day.getDay() === 6) continue;
+    chips.push(new Intl.DateTimeFormat("en", { weekday: "long" }).format(day));
+  }
+  return chips;
+}
+
+function piCourseChips() {
+  const codes = [...(piCurrentBlock()?.courses || []), ...(piNextBlock()?.courses || [])];
+  return [...new Set(codes)].slice(0, 4);
+}
+
+function piClearCourse(question) {
+  return piEngine().matchCourses(question, state.courses).find((match) => match.by === "code" || match.score >= 0.7)?.course || null;
+}
+
+function piKindFromText(q) {
+  if (/\bhead tutor\b/.test(q)) return "Head Tutor";
+  if (/\btutors?\b/.test(q)) return "Tutor";
+  if (/\b(lecturers?|prof\w*)\b/.test(q)) return "Lecturer";
+  if (/\bcounsell?or\b/.test(q)) return "Support / Counsellor";
+  if (/\bcoordinator\b/.test(q)) return "Centre Coordinator";
+  if (/\bmanager\b/.test(q)) return "Academic Manager";
+  if (/\bit support\b/.test(q)) return "IT Support";
+  return "";
+}
+
+// People the user can book, the teaching teams of the current and next block first.
+function piAppointmentCandidates(kind = "") {
+  const targets = appointmentTargetOptions();
+  const codes = piCourseChips();
+  const teamIds = new Set(
+    state.courses
+      .filter((item) => codes.includes(item.code))
+      .flatMap((item) => [item.lecturerId, ...(item.tutorIds || [])])
+      .filter(Boolean),
+  );
+  const list = kind ? targets.filter((item) => item.kind === kind) : targets;
+  return [...list.filter((item) => teamIds.has(item.id)), ...list.filter((item) => !teamIds.has(item.id))];
 }
 
 function piAppointmentCategory(q) {
@@ -4641,96 +4717,308 @@ function piAppointmentCategory(q) {
   return "";
 }
 
-function piDraftAnswer(action, question) {
+function piStartFlow(action, question) {
   const engine = piEngine();
   const q = engine.normalize(question);
   const range = engine.parseDate(question, new Date());
   const time = engine.parseTime(question);
-  // Only a clear course reference fills the course field ("time" in "book
-  // time with my tutor" is not Time Series Analysis).
-  const matchedCourse = engine.matchCourses(question, state.courses).find((match) => match.by === "code" || match.score >= 0.7)?.course;
+  const matchedCourse = piClearCourse(question);
 
   if (action.type === "appointment") {
     if (!canCreateAppointment()) return { title: "Appointments", text: "Your current role cannot request appointments.", bullets: [], source: PI_SOURCES.liveApp };
+    if (action.asksHow) {
+      const doc = piStaticKnowledge().find((item) => item.id === "appointments-how");
+      return { title: doc.title, text: doc.text, bullets: [], source: doc.source, action: doc.action, suggestions: ["Book an appointment for me", "Who teaches this block?"] };
+    }
     const targets = appointmentTargetOptions();
-    let target = engine.matchPeople(question, targets)[0]?.person;
-    if (!target && matchedCourse) {
-      const wantsTutor = /\btutor\b/.test(q);
-      const team = wantsTutor ? (matchedCourse.tutorIds || []) : [matchedCourse.lecturerId, ...(matchedCourse.tutorIds || [])];
-      target = targets.find((entry) => team.includes(entry.id));
+    const kind = piKindFromText(q);
+    let target = engine.matchPeople(question, targets).find((match) => match.score >= 0.6)?.person;
+    if (!target && matchedCourse && (kind === "Tutor" || kind === "Lecturer")) {
+      const team = kind === "Tutor" ? matchedCourse.tutorIds || [] : [matchedCourse.lecturerId];
+      target = targets.find((item) => team.includes(item.id));
     }
-    if (!target) {
-      const kind = /\bhead tutor\b/.test(q) ? "Head Tutor" : /\btutor\b/.test(q) ? "Tutor" : /\blecturer|prof/.test(q) ? "Lecturer" : /\bcounsell?or\b/.test(q) ? "Support / Counsellor" : /\bcoordinator\b/.test(q) ? "Centre Coordinator" : /\bmanager\b/.test(q) ? "Academic Manager" : "";
-      if (kind && kind !== "Tutor" && kind !== "Lecturer") target = targets.find((entry) => entry.kind === kind);
-    }
-    const payload = {
-      targetId: target?.id || "",
-      courseCode: matchedCourse?.code || "",
-      category: piAppointmentCategory(q) || (matchedCourse ? "Course clarification" : "General advising"),
-      preferredDate: range?.start || "",
-      time,
-      summary: action.asksHow ? "" : question,
-    };
-    return {
-      title: action.asksHow ? "Booking an appointment" : "Appointment request ready",
-      text: action.asksHow
-        ? "Choose who you want to meet, the course, a reason, date and time. I can fill the form in for you; review it and submit when it looks right."
-        : "I filled in what I understood. Review the request, change anything that is wrong, then submit it.",
-      bullets: [],
-      source: PI_SOURCES.liveApp,
-      draft: {
-        type: "appointment",
-        label: action.asksHow ? "Start an appointment request" : "Review and submit",
-        payload,
-        lines: [
-          `With: ${target ? `${target.name} (${target.kind})` : "choose in the form"}`,
-          `Course: ${matchedCourse ? `${matchedCourse.code} ${matchedCourse.title}` : "choose in the form"}`,
-          `When: ${range ? dateLabel(range.start) : "choose a date"}${time ? ` at ${time}` : ""}`,
-          `Reason: ${payload.category}`,
-        ],
+    if (!target && kind && kind !== "Tutor" && kind !== "Lecturer") target = targets.find((item) => item.kind === kind);
+    state.pi.pending = {
+      type: "appointment",
+      slots: {
+        targetId: target?.id || "",
+        kind,
+        courseCode: matchedCourse ? matchedCourse.code : null,
+        category: piAppointmentCategory(q),
+        preferredDate: range?.start || "",
+        time,
+        summary: question,
       },
     };
+    return piNextStep();
   }
 
   if (action.type === "support") {
     if (!canCreateSupportRequest()) return { title: "Support requests", text: "Your current role cannot submit support requests.", bullets: [], source: PI_SOURCES.liveApp };
-    const payload = { category: action.category, title: action.title || "Support request", urgency: action.urgency || "Normal", summary: question };
-    return {
-      title: action.category === "IT/technical support" ? "IT ticket ready" : "Support request ready",
-      text: action.category === "IT/technical support"
-        ? "I prepared an IT ticket. Add where it happens and on which device, then submit. You can follow its progress in Support & Wellness."
-        : "I prepared a support request for the right team. Check the details, then submit.",
-      bullets: [],
-      source: PI_SOURCES.liveApp,
-      draft: { type: "support", label: "Review and submit", payload, lines: [`Title: ${payload.title}`, `Category: ${payload.category}`, `Urgency: ${payload.urgency}`] },
+    const generic = !action.title || /^(an? )?(it )?(ticket|fault|issue|problem)$/i.test(action.title);
+    state.pi.pending = {
+      type: "support",
+      slots: { category: action.category, title: generic ? "" : action.title, urgency: action.urgency || "Normal", summary: generic ? "" : question },
     };
+    return piNextStep();
   }
 
   if (action.type === "todo" || action.type === "planner") {
     if (!isStudentRole()) {
       return { title: "Student Planner", text: "To-dos and planner blocks belong to the Student Planner, which is available to students. Staff can track work in Tasks.", bullets: [], source: PI_SOURCES.liveApp, action: ["tasks", "Open Tasks"] };
     }
-    const date = range?.start || piTodayIso();
-    if (action.type === "todo") {
-      const payload = { title: action.title || "New to-do", due: date, courseCode: matchedCourse?.code || "", priority: /\b(urgent|important|asap)\b/.test(q) ? "High" : "Medium" };
-      return {
-        title: "To-do ready",
-        text: "Here is the to-do I will add to your planner. Change anything you need, then add it.",
-        bullets: [],
-        source: PI_SOURCES.liveApp,
-        draft: { type: "todo", label: "Review and add", payload, lines: [`To-do: ${payload.title}`, `Due: ${dateLabel(date)}`, `Course: ${matchedCourse ? matchedCourse.code : "choose in the form"}`] },
-      };
-    }
-    const payload = { title: action.title || "Study session", date, time: time || "16:00", courseCode: matchedCourse?.code || "" };
-    return {
-      title: "Study block ready",
-      text: "Here is the planner block I prepared. Adjust the time or length if needed, then add it.",
-      bullets: [],
-      source: PI_SOURCES.liveApp,
-      draft: { type: "planner", label: "Review and add", payload, lines: [`Plan: ${payload.title}`, `When: ${dateLabel(date)} at ${payload.time}`, `Course: ${matchedCourse ? matchedCourse.code : "choose in the form"}`] },
-    };
+    state.pi.pending = action.type === "todo"
+      ? { type: "todo", slots: { title: action.title || "", due: range?.start || "", courseCode: matchedCourse?.code || "", priority: /\b(urgent|important|asap)\b/.test(q) ? "High" : "Medium" } }
+      : { type: "planner", slots: { title: action.title || "", date: range?.start || "", time, courseCode: matchedCourse?.code || "" } };
+    return piNextStep();
   }
   return null;
+}
+
+function piStep(step, text, suggestions = [], extra = {}) {
+  state.pi.pending.step = step;
+  return { text, bullets: [], suggestions, kind: "step", ...extra };
+}
+
+function piNextStep() {
+  const pending = state.pi.pending;
+  const slots = pending.slots;
+  const cancel = "Cancel";
+
+  if (pending.type === "appointment") {
+    if (!slots.targetId) {
+      const candidates = piAppointmentCandidates(["Tutor", "Lecturer"].includes(slots.kind) ? slots.kind : "");
+      const label = slots.kind ? `${slots.kind.toLowerCase()}s` : "people";
+      return piStep("target", `Sure. Who would you like to meet? Here are ${label} you can book.`, [...candidates.slice(0, 5).map((item) => item.name), "Someone else", cancel]);
+    }
+    const name = participantName(slots.targetId);
+    if (slots.courseCode === null) return piStep("course", `Is the meeting with ${name} about a course?`, [...piCourseChips(), "Not about a course", cancel]);
+    if (!slots.preferredDate) return piStep("date", "What day suits you?", [...piDayChips(), cancel]);
+    if (!slots.time) {
+      const slotsText = availabilityFor(slots.targetId).map((slot) => `${slot.day} ${slot.time}`).join(", ");
+      return piStep("time", `What time works for you?${slotsText ? ` ${name} usually has ${slotsText}.` : ""}`, [...PI_TIME_CHIPS, cancel]);
+    }
+    const info = slots.courseCode ? course(slots.courseCode) : null;
+    slots.category = slots.category || (info ? "Course clarification" : "General advising");
+    return piStep("confirm", `Here is your request. Shall I send it to ${name}?`, ["Send request", "Change time", "Edit in form", cancel], {
+      card: [
+        `With: ${name}`,
+        `Course: ${info ? `${info.code} ${info.title}` : "Not about a course"}`,
+        `When: ${dateLabel(slots.preferredDate)} at ${slots.time}`,
+        `Reason: ${slots.category}`,
+      ],
+    });
+  }
+
+  if (pending.type === "support") {
+    if (!slots.title) return piStep("title", "What is the problem? Describe it in a sentence, for example \"The projector in Room 2 does not turn on\".", [cancel]);
+    const it = slots.category === "IT/technical support";
+    return piStep("confirm", it ? "I will log this as an IT ticket. Send it?" : "I will send this to the right support team. Send it?", ["Send it", slots.urgency === "Urgent" ? "Not urgent" : "Mark as urgent", "Edit in form", cancel], {
+      card: [`Issue: ${slots.title}`, `Goes to: ${slots.category}`, `Urgency: ${slots.urgency}`],
+    });
+  }
+
+  if (pending.type === "todo") {
+    if (!slots.title) return piStep("title", "What should I remind you about?", [cancel]);
+    if (!slots.due) return piStep("date", "When is it due?", ["Today", ...piDayChips(), cancel]);
+    const info = slots.courseCode ? course(slots.courseCode) : null;
+    return piStep("confirm", "Add this to your to-do list?", ["Add it", "Change date", "Edit in form", cancel], {
+      card: [`To-do: ${slots.title}`, `Due: ${dateLabel(slots.due)}`, `Course: ${info ? info.code : "None"}`],
+    });
+  }
+
+  if (pending.type === "planner") {
+    if (!slots.title) return piStep("title", "What do you want to work on?", [cancel]);
+    if (!slots.date) return piStep("date", "Which day?", ["Today", ...piDayChips(), cancel]);
+    if (!slots.time) return piStep("time", "What time should it start?", [...PI_TIME_CHIPS, "18:00", cancel]);
+    const info = slots.courseCode ? course(slots.courseCode) : null;
+    return piStep("confirm", "Add this study block to your planner?", ["Add it", "Change time", "Edit in form", cancel], {
+      card: [`Plan: ${slots.title}`, `When: ${dateLabel(slots.date)} at ${slots.time} (1 hour)`, `Course: ${info ? info.code : "None"}`],
+    });
+  }
+  state.pi.pending = null;
+  return null;
+}
+
+function piFlowFormPayload(pending) {
+  const slots = pending.slots;
+  if (pending.type === "appointment") return ["appointmentForm", { targetId: slots.targetId, courseCode: slots.courseCode || "", category: slots.category, preferredDate: slots.preferredDate, time: slots.time, summary: slots.summary }];
+  if (pending.type === "support") return ["supportForm", { category: slots.category, title: slots.title, urgency: slots.urgency, summary: slots.summary }];
+  if (pending.type === "todo") return ["todoForm", { title: slots.title, due: slots.due, courseCode: slots.courseCode, priority: slots.priority }];
+  return ["plannerForm", { title: slots.title, date: slots.date, time: slots.time, courseCode: slots.courseCode }];
+}
+
+// Interprets the user's reply while an action is in progress. Returns null
+// when the reply is a new question, which also abandons the action.
+function piContinuePending(question) {
+  const pending = state.pi.pending;
+  if (!pending) return null;
+  const engine = piEngine();
+  const q = engine.normalize(question).replace(/[.!?]+$/, "");
+  const slots = pending.slots;
+
+  if (/^(cancel|stop|never ?mind|forget it|no thanks?|nope|no)$/.test(q) || /^cancel\b/.test(q)) {
+    state.pi.pending = null;
+    return { text: "No problem, I have cancelled that.", bullets: [], suggestions: piPageSuggestions(), kind: "step" };
+  }
+  if (/\b(edit in (the )?form|open (the )?form|use the form)\b/.test(q) || (pending.step === "target" && q === "someone else")) {
+    const [drawer, payload] = piFlowFormPayload(pending);
+    state.pi.pending = null;
+    piOpenFormSoon(drawer, payload);
+    return { text: "I have opened the form with everything filled in so far. Check it and submit when you are ready.", bullets: [], kind: "step" };
+  }
+
+  switch (pending.step) {
+    case "target": {
+      const targets = appointmentTargetOptions();
+      const match = engine.matchPeople(question, targets).find((item) => item.score >= 0.6);
+      if (match) slots.targetId = match.person.id;
+      else {
+        const kind = piKindFromText(q);
+        if (!kind) break;
+        const candidates = piAppointmentCandidates(kind);
+        if (candidates.length === 1) slots.targetId = candidates[0].id;
+        else slots.kind = kind;
+      }
+      return piNextStep();
+    }
+    case "course": {
+      if (/\b(not|no|none|general|other|neither)\b/.test(q)) slots.courseCode = "";
+      else {
+        const match = engine.matchCourses(question, state.courses).find((item) => item.by === "code" || item.score >= 0.5);
+        if (!match) break;
+        slots.courseCode = match.course.code;
+      }
+      return piNextStep();
+    }
+    case "date": {
+      const range = engine.parseDate(question, new Date());
+      if (!range) break;
+      if (pending.type === "appointment") slots.preferredDate = range.start;
+      else if (pending.type === "todo") slots.due = range.start;
+      else slots.date = range.start;
+      const time = engine.parseTime(question);
+      if (time && "time" in slots) slots.time = time;
+      return piNextStep();
+    }
+    case "time": {
+      const time = engine.parseTime(/^\d{1,2}$/.test(q) ? `at ${q}` : question);
+      if (!time) break;
+      slots.time = time;
+      return piNextStep();
+    }
+    case "title": {
+      if (q.length < 3) break;
+      slots.title = question.trim().replace(/[.\s]+$/, "").slice(0, 160);
+      if (pending.type === "support" && !slots.summary) slots.summary = question.trim();
+      return piNextStep();
+    }
+    case "confirm": {
+      if (/^(yes|yep|yeah|sure|ok|okay|send|submit|confirm|add|log|do it|go ahead|book it|please)\b/.test(q)) return piSubmitFlow();
+      if (/^(mark as urgent|urgent)$/.test(q)) {
+        slots.urgency = "Urgent";
+        return piNextStep();
+      }
+      if (/^not urgent$/.test(q)) {
+        slots.urgency = "Normal";
+        return piNextStep();
+      }
+      if (/^change (the )?time$/.test(q) && "time" in slots) {
+        slots.time = "";
+        return piNextStep();
+      }
+      if (/^change (the )?(date|day)$/.test(q)) {
+        if (pending.type === "todo") slots.due = "";
+        else if (pending.type === "planner") slots.date = "";
+        else slots.preferredDate = "";
+        return piNextStep();
+      }
+      // "Make it 4pm" or "Friday instead" adjusts the request in place.
+      const range = engine.parseDate(question, new Date());
+      const time = engine.parseTime(question);
+      if (!range && !time) break;
+      if (range) {
+        if (pending.type === "todo") slots.due = range.start;
+        else if (pending.type === "planner") slots.date = range.start;
+        else if (pending.type === "appointment") slots.preferredDate = range.start;
+      }
+      if (time && "time" in slots) slots.time = time;
+      return piNextStep();
+    }
+    default:
+      break;
+  }
+  state.pi.pending = null;
+  return null;
+}
+
+function piSubmitFlow() {
+  const { type, slots } = state.pi.pending;
+  state.pi.pending = null;
+  if (type === "appointment") {
+    const name = participantName(slots.targetId);
+    createAppointment({ targetId: slots.targetId, courseCode: slots.courseCode || "", category: slots.category, preferredDate: slots.preferredDate, time: slots.time, duration: 30, mode: "In person", summary: slots.summary });
+    return { text: `Done. Your request to ${name} for ${dateLabel(slots.preferredDate)} at ${slots.time} has been sent. You will get a notification when they reply.`, bullets: [], action: ["appointments", "Open Appointments"], kind: "done" };
+  }
+  if (type === "support") {
+    const request = createSupportRequest({ title: slots.title, category: slots.category, urgency: slots.urgency, summary: slots.summary, affectedArea: "", device: navigator.userAgent });
+    return {
+      text: request.ticketRef
+        ? `Logged as ${request.ticketRef}. The IT team has been notified, and you can follow it in Support & Wellness.`
+        : "Sent. The support team has been notified, and you can follow it in Support & Wellness.",
+      bullets: [],
+      action: ["support", "Open Support & Wellness"],
+      kind: "done",
+    };
+  }
+  if (type === "todo") {
+    createTodo({ title: slots.title, courseCode: slots.courseCode, category: Object.keys(TODO_CATEGORIES)[0], due: slots.due, priority: slots.priority, notes: "" });
+    return { text: `Added "${slots.title}" to your to-do list, due ${dateLabel(slots.due)}.`, bullets: [], action: ["planner", "Open Student Planner"], kind: "done" };
+  }
+  createPlannerTask({ title: slots.title, type: Object.keys(PLANNER_TYPES)[0], courseCode: slots.courseCode, date: slots.date, time: slots.time, duration: 60, priority: "Medium", notes: "" });
+  return { text: `Added "${slots.title}" to your planner on ${dateLabel(slots.date)} at ${slots.time}.`, bullets: [], action: ["planner", "Open Student Planner"], kind: "done" };
+}
+
+function piOpenFormSoon(drawer, payload) {
+  // Let the chat reply render first, then open the form above it.
+  setTimeout(() => {
+    if (state.pi.dockOpen) piDockClose(false);
+    openDrawer(drawer, payload);
+  }, 650);
+}
+
+// Follow-ups like "who teaches it?" or "book time with her" refer to the
+// course or person Pi talked about last.
+function piResolveReferences(question) {
+  const context = state.pi.context || {};
+  const engine = piEngine();
+  let resolved = question;
+  const q = engine.normalize(question);
+  // Only short follow-ups point back ("who teaches it?", "when is that course?");
+  // "is it okay to ..." uses "it" without meaning the last topic.
+  const shortFollowUp = q.split(" ").length <= 6 && !/^(is|was|does|do) it\b|\bit'?s\b/.test(q);
+  const pointsBack = /\b(this|that|the same) (course|module|one|class)\b/.test(q) || (shortFollowUp && /\b(it|this|that)\b/.test(q));
+  if (context.course && pointsBack && !piClearCourse(question)) {
+    resolved += ` ${context.course}`;
+  }
+  if (context.person && q.split(" ").length <= 8 && /\b(him|her|them|they|he|she)\b/.test(q) && !engine.matchPeople(question, state.people).length) {
+    const item = person(context.person);
+    if (item) resolved += ` ${item.name}`;
+  }
+  return resolved;
+}
+
+function piPageSuggestions() {
+  const firstCode = piCurrentBlock()?.courses?.[0] || state.courses[0]?.code || "MES01";
+  const byView = {
+    calendar: ["What is on this week?", "When does the next block start?", "What is on tomorrow?"],
+    courses: [`Tell me about ${firstCode}`, `Who teaches ${firstCode}?`, "What courses will I take?"],
+    people: ["Who teaches this block?", "Book time with my tutor"],
+    appointments: ["Book time with my tutor", "How do appointments work?"],
+    support: ["Report an IT problem", "I need accommodation help", "Who do I talk to about a concern?"],
+    planner: ["What is due this week?", "Remind me to revise tomorrow", "Plan a study session"],
+  };
+  return byView[state.view] || ["Brief me", "What is on tomorrow?", "Book time with my tutor", "Report an IT problem"];
 }
 
 async function piRespond(question) {
@@ -4745,8 +5033,8 @@ async function piRespond(question) {
 
   const action = engine.detectAction(question);
   if (action) {
-    const draft = piDraftAnswer(action, question);
-    if (draft) return draft;
+    const reply = piStartFlow(action, question);
+    if (reply) return reply;
   }
 
   const range = engine.parseDate(question, new Date());
@@ -4844,27 +5132,281 @@ async function piRespond(question) {
 
 // ---------------------------------------------------------------- conversation
 
-async function askPi(prompt) {
-  const input = document.querySelector("#piQuestion");
-  const question = String(prompt || input?.value || "").trim().slice(0, 500);
+// One conversation shared by the floating chat and the Ask Pi tab.
+async function piConverse(rawQuestion) {
+  const question = String(rawQuestion || "").trim().slice(0, 500);
   if (!question || state.pi.busy) return;
-  const sensitive = !!piEngine().detectSensitive(question);
+  const engine = piEngine();
+  const sensitive = !!engine.detectSensitive(question);
   state.pi.messages.push({ role: "user", text: question, private: sensitive, at: new Date().toISOString() });
+  if (state.pi.messages.length > 80) state.pi.messages.splice(0, state.pi.messages.length - 80);
   state.pi.busy = true;
-  render();
-  piScrollConversation();
-  let answer;
+  piRefreshViews(true);
+  const started = Date.now();
+  let answer = null;
   try {
-    answer = await piRespond(question);
+    const resolved = piResolveReferences(question);
+    if (sensitive) state.pi.pending = null;
+    else answer = piContinuePending(resolved);
+    if (!answer) answer = await piRespond(resolved);
   } catch (error) {
+    state.pi.pending = null;
     answer = { title: "Something went wrong", text: "I could not work that out just now. Please try again, or rephrase the question.", bullets: [], source: "Pi help guide" };
   }
-  state.pi.messages.push({ role: "pi", answer, question: sensitive ? "" : question, at: new Date().toISOString() });
+  if (answer.context) state.pi.context = { ...(state.pi.context || {}), ...answer.context };
+  // A short pause so replies read like a conversation rather than a page reload.
+  const pause = Math.min(1000, 380 + question.length * 6) - (Date.now() - started);
+  if (pause > 0) await new Promise((resolve) => setTimeout(resolve, pause));
+  state.pi.messages.push({ role: "pi", answer, question: sensitive || answer.kind === "step" || answer.kind === "done" ? "" : question, view: state.view, at: new Date().toISOString() });
   state.pi.busy = false;
   save();
-  render();
-  piScrollConversation();
+  if (answer.kind === "done" && state.view !== "pi") render();
+  piRefreshViews(true);
+}
+
+function piRefreshViews(toBottom) {
+  if (state.view === "pi") {
+    render();
+    if (toBottom) piScrollConversation();
+  }
+  piDockRender({ bottom: toBottom });
+}
+
+async function askPi(prompt) {
+  const input = document.querySelector("#piQuestion");
+  await piConverse(prompt || input?.value || "");
   if (window.matchMedia && window.matchMedia("(pointer: fine)").matches) document.querySelector("#piQuestion")?.focus({ preventScroll: true });
+}
+
+// ---------------------------------------------------------------- floating chat
+
+const PI_DOCK_OPEN_KEY = "mathepi-pi-dock-open";
+// The dock is redrawn on every message; entrance animations run only once.
+const piDockAnimate = { panel: false, peekShown: false };
+const PI_PEEK_KEY = "mathepi-pi-peek-date";
+
+function piDockRoot() {
+  let root = document.getElementById("piDock");
+  if (!root) {
+    root = document.createElement("div");
+    root.id = "piDock";
+    document.body.appendChild(root);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && state.pi.dockOpen && !state.drawer) piDockClose();
+    });
+  }
+  return root;
+}
+
+function piDockAvailable() {
+  return !authGateRequired() && canView("pi") && !state.drawer && state.view !== "pi" && !state.mobileMenuOpen;
+}
+
+function piTeamAnswerNotices() {
+  return visibleNotifications().filter((item) => !item.read && item.title === "Pi has an answer for you");
+}
+
+function piBriefedToday() {
+  const today = piTodayIso();
+  return state.pi.messages.some((message) => message.role === "pi" && message.answer?.kind === "briefing" && piEngine().isoDate(new Date(message.at)) === today);
+}
+
+function piDockBadgeCount() {
+  return (piBriefedToday() ? 0 : 1) + piTeamAnswerNotices().length;
+}
+
+function piPeekText() {
+  if (piBriefedToday() || safeStorageGet(PI_PEEK_KEY) === piTodayIso()) return "";
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const briefing = piBriefing();
+  const count = briefing.bullets.length;
+  return `${greeting}! ${count ? `I have ${count} update${count === 1 ? "" : "s"} for you today.` : briefing.text} Tap to chat.`;
+}
+
+function piDockOpen() {
+  state.pi.dockOpen = true;
+  piDockAnimate.panel = true;
+  try { sessionStorage.setItem(PI_DOCK_OPEN_KEY, "1"); } catch {}
+  safeStorageSet(PI_PEEK_KEY, piTodayIso());
+  // Pi speaks first: today's briefing, then any answers the team published.
+  if (!piBriefedToday()) state.pi.messages.push({ role: "pi", answer: piBriefing(), question: "", at: new Date().toISOString() });
+  piTeamAnswerNotices().forEach((notice) => {
+    notice.read = true;
+    googleApi("markNotificationRead", { notificationId: notice.id }).catch(() => {});
+    state.pi.messages.push({ role: "pi", answer: { title: "The programme team answered your question", text: notice.message, bullets: [], source: "Programme team", kind: "team" }, question: "", at: new Date().toISOString() });
+  });
+  save();
+  piDockRender({ bottom: true, focus: true });
+  piStartSemantic(false);
+  piRefreshCommunity(false);
+}
+
+function piDockClose(restoreFocus = true) {
+  state.pi.dockOpen = false;
+  try { sessionStorage.removeItem(PI_DOCK_OPEN_KEY); } catch {}
+  piDockRender();
+  if (restoreFocus) document.querySelector(".pi-launcher")?.focus({ preventScroll: true });
+}
+
+function piDockExpand() {
+  piDockClose(false);
+  setView("pi");
+  piScrollConversation();
+}
+
+function piDismissPeek() {
+  safeStorageSet(PI_PEEK_KEY, piTodayIso());
+  piDockRender();
+}
+
+function piDockSend(text) {
+  const input = document.querySelector("#piDockInput");
+  const question = String(text || input?.value || "").trim();
+  if (!question) return;
+  if (input && !text) input.value = "";
+  piConverse(question);
+}
+
+function piClockTime(iso) {
+  return new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
+}
+
+function piDayLabel(iso) {
+  const day = piEngine().isoDate(new Date(iso));
+  const today = piTodayIso();
+  const yesterday = piEngine().isoDate(new Date(Date.now() - 86400000));
+  if (day === today) return "Today";
+  if (day === yesterday) return "Yesterday";
+  return dateLabel(day);
+}
+
+// Long answers are trimmed to two sentences with the rest behind "Read more".
+function piShortText(text) {
+  const value = String(text || "");
+  if (value.length <= 260) return escapeHtml(value);
+  const sentences = value.match(/[^.!?]+[.!?]+(\s|$)/g) || [value];
+  const head = sentences.slice(0, 2).join("").trim();
+  const rest = value.slice(head.length).trim();
+  if (!rest) return escapeHtml(value);
+  return `${escapeHtml(head)} <details class="pi-more"><summary>Read more</summary>${escapeHtml(rest)}</details>`;
+}
+
+function piDockAnswerHtml(answer, index, message) {
+  const bullets = answer.bullets || [];
+  const rate = !answer.sensitive && !["briefing", "step", "done", "team"].includes(answer.kind) && message.question;
+  const showSend = message.question && (answer.offerSend || message.feedback === "down");
+  return `
+    <div class="pi-bubble pi">
+      ${answer.title ? `<strong class="pi-bubble-title">${escapeHtml(answer.title)}</strong>` : ""}
+      ${answer.text ? `<p>${piShortText(answer.text)}</p>` : ""}
+      ${bullets.length ? `<ul>${bullets.slice(0, 4).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>${bullets.length > 4 ? `<details class="pi-more"><summary>Show ${bullets.length - 4} more</summary><ul>${bullets.slice(4).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>` : ""}` : ""}
+      ${answer.card ? `<div class="pi-card">${answer.card.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}</div>` : ""}
+      ${answer.draft ? `<button class="pi-bubble-button" onclick="piOpenDraft(${index}); piDockClose(false)">${escapeHtml(answer.draft.label)}</button>` : ""}
+      ${answer.action ? `<button class="pi-bubble-link" onclick="piDockClose(false); setView('${answer.action[0]}')">${escapeHtml(answer.action[1])} ${icon("external", 12)}</button>` : ""}
+      ${showSend ? (message.sent
+        ? `<span class="pi-bubble-note">${icon("check", 13)} Sent to the programme team</span>`
+        : `<button class="pi-bubble-button ghost" ${message.sending ? "disabled" : ""} onclick="piSendQuestion(${index})">${message.sending ? "Sending…" : "Ask the programme team"}</button>`) : ""}
+      <div class="pi-bubble-meta">
+        ${answer.source && answer.kind !== "step" && answer.kind !== "done" ? `<span>${escapeHtml(answer.source)}</span>` : "<span></span>"}
+        ${rate ? `<span class="pi-bubble-rate"><button class="${message.feedback === "up" ? "active" : ""}" aria-label="Helpful" onclick="piFeedback(${index}, true)">${icon("check", 12)}</button><button class="${message.feedback === "down" ? "active" : ""}" aria-label="Not helpful" onclick="piFeedback(${index}, false)">${icon("x", 12)}</button></span>` : ""}
+        <time>${piClockTime(message.at)}</time>
+      </div>
+    </div>
+  `;
+}
+
+function piDockMessagesHtml() {
+  let lastDay = "";
+  let previousRole = "";
+  const parts = state.pi.messages.map((message, index) => {
+    const day = piDayLabel(message.at);
+    const separator = day !== lastDay ? `<div class="pi-day"><span>${escapeHtml(day)}</span></div>` : "";
+    if (separator) previousRole = "";
+    lastDay = day;
+    const grouped = previousRole === message.role;
+    previousRole = message.role;
+    if (message.role === "user") {
+      return `${separator}<div class="pi-row me"><div class="pi-bubble me"><p>${escapeHtml(message.text)}</p><div class="pi-bubble-meta"><span></span><time>${piClockTime(message.at)}</time></div></div></div>`;
+    }
+    return `${separator}<div class="pi-row pi ${grouped ? "grouped" : ""}"><span class="pi-avatar" aria-hidden="true">π</span>${piDockAnswerHtml(message.answer || {}, index, message)}</div>`;
+  });
+  if (state.pi.busy) parts.push(`<div class="pi-row pi"><span class="pi-avatar" aria-hidden="true">π</span><div class="pi-bubble pi pi-typing" role="status" aria-label="Pi is typing"><span></span><span></span><span></span></div></div>`);
+  return parts.join("");
+}
+
+function piDockChips() {
+  if (state.pi.busy) return [];
+  const last = [...state.pi.messages].reverse().find((message) => message.role === "pi");
+  const fresh = last && last === state.pi.messages[state.pi.messages.length - 1] && (state.pi.pending || !last.view || last.view === state.view);
+  // After moving to another page, offer that page's suggestions instead of stale replies.
+  if (fresh && last.answer?.suggestions?.length) return last.answer.suggestions;
+  return piPageSuggestions();
+}
+
+function piDockStatus() {
+  if (piSemantic.status === "ready") return "Online · on-device, private";
+  if (piSemantic.status === "loading") return `Online · getting smarter${piSemantic.progress ? ` ${piSemantic.progress}%` : ""}`;
+  return "Online · replies instantly";
+}
+
+function piDockPanelHtml() {
+  const chips = piDockChips();
+  return `
+    <section class="pi-dock-panel ${piDockAnimate.panel ? "entering" : ""}" role="dialog" aria-label="Chat with Pi">
+      <header class="pi-dock-head">
+        <button class="pi-dock-icon pi-dock-back" aria-label="Close chat" onclick="piDockClose()">${icon("chevronLeft", 22)}</button>
+        <span class="pi-avatar large" aria-hidden="true">π</span>
+        <div class="pi-dock-title"><strong>Pi</strong><span><i class="pi-dot"></i>${escapeHtml(piDockStatus())}</span></div>
+        <button class="pi-dock-icon" aria-label="Open full Ask Pi page" title="Open full page" onclick="piDockExpand()">${icon("external", 18)}</button>
+        <button class="pi-dock-icon pi-dock-min" aria-label="Minimise chat" title="Minimise" onclick="piDockClose()">${icon("minus", 20)}</button>
+      </header>
+      <div class="pi-dock-messages" aria-live="polite">${piDockMessagesHtml()}</div>
+      ${chips.length ? `<div class="pi-dock-chips">${chips.map((item) => `<button data-q="${escapeHtml(item)}" onclick="piDockSend(this.dataset.q)">${escapeHtml(item)}</button>`).join("")}</div>` : ""}
+      <form class="pi-dock-composer" onsubmit="event.preventDefault(); piDockSend()">
+        <input id="piDockInput" autocomplete="off" maxlength="500" placeholder="Message Pi" aria-label="Message Pi" ${state.pi.busy ? "disabled" : ""} />
+        <button type="submit" aria-label="Send" ${state.pi.busy ? "disabled" : ""}>${icon("send", 19)}</button>
+      </form>
+    </section>
+  `;
+}
+
+function piDockRender(options = {}) {
+  const root = piDockRoot();
+  const available = piDockAvailable();
+  document.body.classList.toggle("pi-dock-on", available);
+  document.body.classList.toggle("pi-dock-open", available && !!state.pi.dockOpen);
+  if (!available) {
+    root.innerHTML = "";
+    return;
+  }
+  const oldInput = root.querySelector("#piDockInput");
+  const draft = oldInput?.value || "";
+  const hadFocus = !!oldInput && document.activeElement === oldInput;
+  const oldList = root.querySelector(".pi-dock-messages");
+  const wasAtBottom = !oldList || oldList.scrollHeight - oldList.scrollTop - oldList.clientHeight < 40;
+  const oldTop = oldList?.scrollTop || 0;
+
+  const open = !!state.pi.dockOpen;
+  const badge = open ? 0 : piDockBadgeCount();
+  const peek = open ? "" : piPeekText();
+  root.innerHTML = `
+    ${open ? piDockPanelHtml() : ""}
+    ${peek ? `<div class="pi-peek ${piDockAnimate.peekShown ? "" : "entering"}"><button class="pi-peek-body" onclick="piDockOpen()"><span class="pi-avatar" aria-hidden="true">π</span><span>${escapeHtml(peek)}</span></button><button class="pi-peek-close" aria-label="Dismiss" onclick="piDismissPeek()">${icon("x", 14)}</button></div>` : ""}
+    <button class="pi-launcher ${open ? "open" : ""}" aria-label="${open ? "Close chat with Pi" : `Chat with Pi${badge ? `, ${badge} new` : ""}`}" aria-expanded="${open}" onclick="${open ? "piDockClose()" : "piDockOpen()"}">
+      ${open ? icon("x", 24) : `<span class="pi-launcher-mark" aria-hidden="true">π</span>`}
+      ${badge ? `<span class="pi-badge" aria-hidden="true">${badge}</span>` : ""}
+    </button>
+  `;
+  if (peek) piDockAnimate.peekShown = true;
+  piDockAnimate.panel = false;
+  if (!open) return;
+  const input = root.querySelector("#piDockInput");
+  if (input) input.value = draft;
+  const list = root.querySelector(".pi-dock-messages");
+  if (list) list.scrollTop = options.bottom || wasAtBottom ? list.scrollHeight : oldTop;
+  const fine = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
+  if (input && !input.disabled && (hadFocus || (options.focus && fine) || (options.bottom && fine && !state.pi.busy))) input.focus({ preventScroll: true });
 }
 
 // Re-render without losing the reader's place in the conversation.
@@ -4990,13 +5532,15 @@ async function piAnswerQuestion(id, publish) {
 
 function renderPiAnswer(answer, index = -1, message = {}) {
   const draft = answer.draft;
-  const canRate = index >= 0 && !answer.sensitive && answer.kind !== "briefing";
+  const canRate = index >= 0 && !answer.sensitive && !["briefing", "step", "done", "team"].includes(answer.kind) && message.question;
+  // Quick replies belong to the latest message only; older ones would answer a stale question.
+  const isLatest = index >= 0 && index === state.pi.messages.length - 1;
   const showSend = index >= 0 && message.question && (answer.offerSend || message.feedback === "down");
   return `
     <article class="pi-answer">
       <div class="pi-answer-mark">π</div>
       <div>
-        <h4>${escapeHtml(answer.title)}</h4>
+        ${answer.title ? `<h4>${escapeHtml(answer.title)}</h4>` : ""}
         <p>${escapeHtml(answer.text)}</p>
         ${answer.bullets?.length ? `<ul>${answer.bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}
         ${draft && index >= 0 ? `
@@ -5005,7 +5549,8 @@ function renderPiAnswer(answer, index = -1, message = {}) {
             <ul>${draft.lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
             <button class="button primary" onclick="piOpenDraft(${index})">${escapeHtml(draft.label)}</button>
           </div>` : ""}
-        ${answer.suggestions?.length && index >= 0 ? `<div class="pi-followups">${answer.suggestions.map((item) => `<button data-q="${escapeHtml(item)}" onclick="askPi(this.dataset.q)">${escapeHtml(item)}</button>`).join("")}</div>` : ""}
+        ${answer.card ? `<div class="pi-draft"><ul>${answer.card.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul></div>` : ""}
+        ${answer.suggestions?.length && isLatest ? `<div class="pi-followups">${answer.suggestions.map((item) => `<button data-q="${escapeHtml(item)}" onclick="askPi(this.dataset.q)">${escapeHtml(item)}</button>`).join("")}</div>` : ""}
         ${showSend ? `
           <div class="pi-send">
             ${message.sent
@@ -5013,7 +5558,7 @@ function renderPiAnswer(answer, index = -1, message = {}) {
               : `<button class="button ghost" ${message.sending ? "disabled" : ""} onclick="piSendQuestion(${index})">${icon("megaphone", 15)} ${message.sending ? "Sending…" : "Send this question to the programme team"}</button>`}
           </div>` : ""}
         <div class="pi-answer-footer">
-          <span>${icon("book", 14)} ${escapeHtml(answer.source || "Pi knowledge base")}</span>
+          ${["step", "done"].includes(answer.kind) ? "<span></span>" : `<span>${icon("book", 14)} ${escapeHtml(answer.source || "Pi knowledge base")}</span>`}
           ${answer.action ? `<button class="pi-text-action" onclick="setView('${answer.action[0]}')">${escapeHtml(answer.action[1])} ${icon("external", 13)}</button>` : ""}
           ${canRate ? `
             <span class="pi-rate" role="group" aria-label="Was this helpful?">
@@ -9211,7 +9756,14 @@ function plannerFormDrawer(payload = {}) {
 function addPlannerTask() {
   const form = document.querySelector("#plannerForm");
   if (!form.reportValidity()) return;
-  const data = Object.fromEntries(new FormData(form));
+  createPlannerTask(Object.fromEntries(new FormData(form)));
+  state.view = "planner";
+  closeDrawer();
+  saveAndRender("Planner item added.");
+}
+
+// Shared by the planner form and Pi's confirmed actions.
+function createPlannerTask(data) {
   state.plannerTasks.push({
     id: `plan-${Date.now()}`,
     ownerId: currentStudentId(),
@@ -9225,9 +9777,6 @@ function addPlannerTask() {
     status: "Planned",
     notes: data.notes || "Planner item created.",
   });
-  state.view = "planner";
-  closeDrawer();
-  saveAndRender("Planner item added.");
 }
 
 function plannerTaskDrawer(id) {
@@ -9363,7 +9912,14 @@ function appointmentFormDrawer(payload = {}) {
 function addAppointment() {
   const form = document.querySelector("#appointmentForm");
   if (!form.reportValidity()) return;
-  const data = Object.fromEntries(new FormData(form));
+  createAppointment(Object.fromEntries(new FormData(form)));
+  state.view = "appointments";
+  closeDrawer();
+  saveAndRender("Appointment request submitted.");
+}
+
+// Shared by the appointment form and Pi's confirmed actions.
+function createAppointment(data) {
   const appointmentId = `apt-${Date.now()}`;
   state.appointments.unshift({
     id: appointmentId,
@@ -9381,9 +9937,7 @@ function addAppointment() {
   });
   addNotification({ title: "Appointment requested", message: `${data.category} · ${dateLabel(data.preferredDate)} at ${data.time}`, type: "info", recipientId: currentActorId(), eventId: `${appointmentId}:requested:requester` });
   addNotification({ title: "New appointment request", message: `${participantName(currentActorId())} requested ${dateLabel(data.preferredDate)} at ${data.time}.`, type: "info", recipientId: data.targetId, eventId: `${appointmentId}:requested:target` });
-  state.view = "appointments";
-  closeDrawer();
-  saveAndRender("Appointment request submitted.");
+  return appointmentId;
 }
 
 function appointmentDrawer(id) {
@@ -9450,7 +10004,14 @@ function todoFormDrawer(payload = {}) {
 function addTodo() {
   const form = document.querySelector("#todoForm");
   if (!form.reportValidity()) return;
-  const data = Object.fromEntries(new FormData(form));
+  createTodo(Object.fromEntries(new FormData(form)));
+  state.view = "planner";
+  closeDrawer();
+  saveAndRender("Student to-do added.");
+}
+
+// Shared by the to-do form and Pi's confirmed actions.
+function createTodo(data) {
   state.studentTodos.unshift({
     id: `todo-${Date.now()}`,
     ownerId: currentStudentId(),
@@ -9462,9 +10023,6 @@ function addTodo() {
     status: "Open",
     notes: data.notes || "To-do item created.",
   });
-  state.view = "planner";
-  closeDrawer();
-  saveAndRender("Student to-do added.");
 }
 
 function todoDrawer(id) {
@@ -9559,7 +10117,14 @@ function supportFormDrawer(payload = {}) {
 function addSupportRequest() {
   const form = document.querySelector("#supportForm");
   if (!form.reportValidity()) return;
-  const data = Object.fromEntries(new FormData(form));
+  createSupportRequest(Object.fromEntries(new FormData(form)));
+  state.view = "support";
+  closeDrawer();
+  saveAndRender("Support request submitted.");
+}
+
+// Shared by the support form and Pi's confirmed actions. Returns the request.
+function createSupportRequest(data) {
   const assignedTo = supportAssignmentFor(data.category);
   const visibility = supportVisibilityFor(data.category);
   const requestId = `sup-${Date.now()}`;
@@ -9589,9 +10154,7 @@ function addSupportRequest() {
   if (ticketRef) googleApi("createItTicket", { ticket: createdRequest }).then((result) => { if (result?.ticket?.ticketRef) { createdRequest.ticketRef = result.ticket.ticketRef; save(); render(); } }).catch((error) => toast(error.message || "Ticket saved on this device; server sync is pending."));
   addNotification({ title: ticketRef ? `${ticketRef} submitted` : "Support request submitted", message: "Your request was recorded and can now be tracked.", type: "success", ticketId: requestId, recipientId: currentActorId(), eventId: `${requestId}:created:requester` });
   if (ticketRef) addNotification({ title: `New IT ticket ${ticketRef}`, message: data.title, type: data.urgency === "Critical" ? "critical" : "info", ticketId: requestId, recipientRole: "it-support", eventId: `${requestId}:created:it` });
-  state.view = "support";
-  closeDrawer();
-  saveAndRender("Support request submitted.");
+  return createdRequest;
 }
 
 function supportRequestDrawer(id) {
@@ -9829,6 +10392,7 @@ function updateStudyGroupInvitation(id, status) {
 
 function render() {
   document.querySelector("#app").innerHTML = appLayout();
+  piDockRender();
 }
 
 window.setView = setView;
@@ -9846,6 +10410,11 @@ window.piAnswerQuestion = piAnswerQuestion;
 window.piRefreshCommunity = piRefreshCommunity;
 window.piStartSemantic = piStartSemantic;
 window.piDisableSemantic = piDisableSemantic;
+window.piDockOpen = piDockOpen;
+window.piDockClose = piDockClose;
+window.piDockExpand = piDockExpand;
+window.piDismissPeek = piDismissPeek;
+window.piDockSend = piDockSend;
 window.openDrawer = openDrawer;
 window.closeDrawer = closeDrawer;
 window.updateCfaStatus = updateCfaStatus;
