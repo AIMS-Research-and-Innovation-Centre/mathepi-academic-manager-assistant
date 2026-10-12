@@ -1931,6 +1931,7 @@ const ROLES = {
       "tf-reviews",
       "google",
       "access",
+      "pi",
     ],
   },
   manager: {
@@ -1938,49 +1939,49 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
+    views: ["dashboard", "pi", "calendar", "courses", "people", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
     hint: "Manager-level visibility for coordination, without write access",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "pi", "calendar", "courses", "people", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
   },
   reviewer: {
     label: "TF Reviewer",
     hint: "Tutorial Fellow review panel, notes, scores, and staged decisions",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "tf-reviews"],
+    views: ["dashboard", "pi", "tf-reviews"],
   },
   "head-tutor": {
     label: "Head Tutor",
     hint: "Tutor workload, tutor profiles, assigned work, and lecturer-course tracking",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "cfa", "appointments", "groups", "support", "contact", "timesheets", "tasks"],
+    views: ["dashboard", "pi", "calendar", "courses", "people", "cfa", "appointments", "groups", "support", "contact", "timesheets", "tasks"],
   },
   lecturer: {
     label: "Lecturer",
     hint: "Assigned courses, timetable, materials, and confirmation",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "contact"],
+    views: ["dashboard", "pi", "calendar", "courses", "appointments", "groups", "support", "contact"],
   },
   tutor: {
     label: "Tutor",
     hint: "Assigned tutorials, course materials, timesheet logging, and workload balance",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "timesheets", "tasks"],
+    views: ["dashboard", "pi", "calendar", "courses", "appointments", "groups", "support", "timesheets", "tasks"],
   },
   student: {
     label: "Student",
     hint: "Calendar, courses, teaching teams, planner, and appointment requests",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
+    views: ["dashboard", "pi", "calendar", "planner", "groups", "courses", "appointments", "support"],
   },
   "aims-ric-support": {
     label: "AIMS RIC Support",
@@ -1994,26 +1995,27 @@ const ROLES = {
     hint: "Confidential support triage, counselling referrals, and wellbeing requests",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "appointments", "support"],
+    views: ["dashboard", "pi", "appointments", "support"],
   },
   "it-support": {
     label: "IT Support",
     hint: "Learning systems, Drive access, classroom technology, and technical tickets",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "appointments", "support", "tasks"],
+    views: ["dashboard", "pi", "appointments", "support", "tasks"],
   },
   viewer: {
     label: "Viewer / Partner",
     hint: "Read-only approved programme information",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses"],
+    views: ["dashboard", "pi", "calendar", "courses"],
   },
 };
 
 const NAV = [
   { id: "dashboard", label: "Command", icon: "command" },
+  { id: "pi", label: "Ask Pi", short: "Pi", icon: "spark" },
   { id: "calendar", label: "Calendar", icon: "calendar" },
   { id: "planner", label: "Student Planner", short: "Planner", icon: "planner" },
   { id: "groups", label: "Study Groups", short: "Groups", icon: "group" },
@@ -2030,6 +2032,72 @@ const NAV = [
   { id: "google", label: "Sheets & Drive", short: "Sheets", icon: "cloud" },
   { id: "access", label: "Access Control", short: "Access", icon: "shield" },
 ];
+
+const PI_CHAT_KEY = "mathepi-pi-chat-v1";
+const PI_ONBOARDING_KEY = "mathepi-pi-onboarding-v1";
+const PI_SOURCES = {
+  curriculum: "MathEpi Curriculum v0.2",
+  conduct: "KEMRI-AIMS Students Code of Conduct",
+  tutorOrientation: "AIMS Academic Department Tutor Orientation",
+  liveApp: "Current MathEpi schedule and operations data",
+};
+
+const PI_CONDUCT_TOPICS = [
+  {
+    keys: ["conduct", "behaviour", "behavior", "rules", "discipline"],
+    title: "Community conduct",
+    text: "The KEMRI-AIMS learning community requires respect, integrity, discipline and courtesy. Discrimination, harassment, theft, vandalism, violence, alcohol or prohibited substances are not permitted. Students should carry their identification cards and follow campus, accommodation and safety procedures.",
+  },
+  {
+    keys: ["plagiarism", "cheating", "academic integrity", "ai use"],
+    title: "Academic integrity",
+    text: "Cheating, falsification and plagiarism are prohibited. Work drawn from another person or source must be acknowledged correctly. The curriculum also prohibits plagiarism and unauthorised AI use. Ask the lecturer what assistance and tools are permitted for each assessment before submitting work.",
+  },
+  {
+    keys: ["harassment", "discrimination", "sexual", "respect"],
+    title: "Respect and safeguarding",
+    text: "Discrimination and harassment in physical, verbal, written or sexual form are not permitted. Students may not engage in sexual behaviour with lecturers, tutors, researchers or administrative staff. Raise a concern through the appropriate academic or programme channel; urgent safety concerns should be reported immediately.",
+  },
+  {
+    keys: ["grievance", "complaint", "dispute", "report", "incident"],
+    title: "Raising a concern",
+    text: "For a grievance arising in an academic setting, contact the Academic Director. For a dispute outside academic areas but on KEMRI-AIMS premises, contact the Programme Manager or the KEMRI-based Collaboration Co-Director. Security risks should be reported immediately to the Administration team.",
+  },
+  {
+    keys: ["computer", "equipment", "laptop", "library", "it"],
+    title: "Equipment and learning resources",
+    text: "AIMS equipment is for authorised students, tutors, lecturers, staff and official visitors. Do not remove equipment without permission, use it commercially, access offensive material, interfere with another person's files or email, or place food and drinks near IT equipment. Library materials must be handled carefully.",
+  },
+];
+
+const PI_ORIENTATION_STEPS = {
+  student: [
+    ["Review your programme calendar", "Check the current teaching block, class times and rooms in Calendar."],
+    ["Understand academic expectations", "Attendance is at least 70%; participate actively, submit work on time and seek help early."],
+    ["Read the Code of Conduct", "Review academic integrity, respectful behaviour, safety, visitors, facilities and grievance routes."],
+    ["Confirm learning access", "Verify your email, shared Drive folders, R, Python, LaTeX and required course software."],
+    ["Know your support routes", "Identify your tutor, lecturer, Academic Director, Programme Manager and support contacts."],
+  ],
+  tutor: [
+    ["Confirm your assigned courses", "Review current course, lecturer, tutorial hours and timetable conflicts."],
+    ["Prepare the first tutorial", "Align activities with course outcomes and specify what students should produce by the end."],
+    ["Understand assessment support", "Follow the active course assessment plan and lecturer instructions; do not invent weighting rules."],
+    ["Set support boundaries", "Use appointments and approved channels, protect student privacy and escalate welfare concerns."],
+    ["Complete operations setup", "Confirm Drive access, timesheet expectations, attendance records and reporting lines."],
+  ],
+  lecturer: [
+    ["Confirm course ownership", "Review dates, contact hours, outcomes, prerequisites and assigned teaching support."],
+    ["Publish the teaching plan", "Share materials, assessment dates, office hours and expectations before the block begins."],
+    ["Coordinate the tutor team", "Agree tutorial objectives, marking responsibilities and escalation routes."],
+    ["Apply programme standards", "Provide timely feedback, maintain academic integrity and connect theory to application."],
+  ],
+  staff: [
+    ["Review the operating calendar", "Confirm onboarding, teaching blocks, breaks, internship and thesis milestones."],
+    ["Check people and access", "Verify appointments, course ownership, Drive permissions and contact information."],
+    ["Prepare student services", "Confirm accommodation, safety, IT, learning resources and support referral routes."],
+    ["Monitor delivery", "Use tasks, support requests and programme data to resolve risks before they affect teaching."],
+  ],
+};
 
 const STATUS_COLOR = {
   Confirmed: "green",
@@ -2488,6 +2556,12 @@ const state = {
   googleConnected: googleBackendAvailable(),
   googleAutoSync: safeStorageGet(GOOGLE_AUTOSYNC_KEY, "false") === "true",
   programmeCalendar: null,
+  pi: {
+    query: "",
+    audience: safeStorageGet("mathepi-pi-audience") || "auto",
+    messages: load(PI_CHAT_KEY, []),
+    onboarding: load(PI_ONBOARDING_KEY, {}),
+  },
   tfReview: {
     session: load(TF_REVIEW_SESSION_KEY, null),
     email: "",
@@ -2796,6 +2870,9 @@ function load(key, fallback) {
 }
 
 function save() {
+  safeStorageSet(PI_CHAT_KEY, JSON.stringify(state.pi.messages.slice(-20)));
+  safeStorageSet(PI_ONBOARDING_KEY, JSON.stringify(state.pi.onboarding));
+  safeStorageSet("mathepi-pi-audience", state.pi.audience);
   safeStorageSet("mathepi-courses", JSON.stringify(state.courses));
   safeStorageSet("mathepi-people", JSON.stringify(state.people));
   safeStorageSet("mathepi-blocks", JSON.stringify(state.blocks));
@@ -3759,6 +3836,9 @@ async function authSignOut() {
 }
 
 function topbarAction() {
+  if (state.view === "pi") {
+    return `<button class="button primary" onclick="document.querySelector('#piQuestion')?.focus()">${icon("spark", 18)}Ask Pi</button>`;
+  }
   if (state.view === "tf-reviews") {
     return `<button class="button primary" onclick="refreshTfReviews()">${icon("database", 18)}Refresh reviews</button>`;
   }
@@ -3964,7 +4044,7 @@ function appLayout() {
 function mobileNav(nav) {
   const priorityIds =
     isStudentRole()
-      ? ["dashboard", "planner", "groups", "support", "appointments"]
+      ? ["dashboard", "pi", "planner", "support", "appointments"]
       : state.role === "reviewer"
         ? ["dashboard", "tf-reviews"]
         : canView("tf-reviews")
@@ -3992,6 +4072,8 @@ function mobileNav(nav) {
 
 function renderView() {
   switch (state.view) {
+    case "pi":
+      return renderPi();
     case "calendar":
       return renderCalendar();
     case "planner":
@@ -4023,6 +4105,312 @@ function renderView() {
     default:
       return renderDashboard();
   }
+}
+
+function piAudience() {
+  if (state.pi.audience !== "auto") return state.pi.audience;
+  if (state.role === "student") return "student";
+  if (state.role === "tutor" || state.role === "head-tutor") return "tutor";
+  if (state.role === "lecturer") return "lecturer";
+  return "staff";
+}
+
+function piCurrentBlock() {
+  const now = new Date();
+  const iso = now.toISOString().slice(0, 10);
+  return (
+    state.blocks.find((item) => item.start <= iso && item.end >= iso) ||
+    state.blocks.find((item) => item.start >= iso) ||
+    activeBlock()
+  );
+}
+
+function piBlockSummary(block) {
+  if (!block) return { text: "No active or upcoming block is available in the current schedule.", bullets: [] };
+  const courses = (block.courses || []).map(course).filter(Boolean);
+  const bullets = courses.map((item) => {
+    const lecturer = person(item.lecturerId);
+    const tutors = (item.tutorIds || []).map(person).filter(Boolean);
+    const team = [lecturer?.name, ...tutors.map((tutor) => tutor.name)].filter(Boolean).join(", ");
+    return `${item.code} ${item.title}${team ? ` - ${team}` : " - teaching team not yet confirmed"}`;
+  });
+  return {
+    text: `${block.title} runs from ${dateLabel(block.start)} to ${dateLabel(block.end)}. ${block.note || ""}`.trim(),
+    bullets,
+  };
+}
+
+function piCourseAnswer(query) {
+  const q = query.toLowerCase();
+  const matched = state.courses.filter((item) =>
+    q.includes(item.code.toLowerCase()) || q.includes(item.title.toLowerCase()),
+  );
+  if (!matched.length) return null;
+  const item = matched[0];
+  const block = state.blocks.find((entry) => (entry.courses || []).includes(item.code));
+  const lecturer = person(item.lecturerId);
+  const tutors = (item.tutorIds || []).map(person).filter(Boolean);
+  return {
+    title: `${item.code} ${item.title}`,
+    text: item.outcomes || "Course outcomes have not yet been recorded.",
+    bullets: [
+      `Schedule: ${block ? `${dateLabel(block.start)} to ${dateLabel(block.end)}` : "not yet scheduled"}`,
+      `Teaching team: ${[lecturer?.name, ...tutors.map((tutor) => tutor.name)].filter(Boolean).join(", ") || "not yet confirmed"}`,
+      `Contact hours: ${item.lectureHours || 0} lecture, ${item.tutorialPracticalHours || 0} tutorial/practical`,
+      `Prerequisite: ${item.prerequisites || "none recorded"}`,
+      `Software: ${item.software || "none specified"}`,
+    ],
+    source: `${PI_SOURCES.curriculum}; ${PI_SOURCES.liveApp}`,
+    action: ["courses", `Open ${item.code}`],
+  };
+}
+
+function piAnswer(rawQuery) {
+  const query = String(rawQuery || "").trim();
+  const q = query.toLowerCase();
+  const courseAnswer = piCourseAnswer(query);
+  if (courseAnswer) return courseAnswer;
+
+  if (/today|this week|current block|next block|schedule|timetable|calendar/.test(q)) {
+    const block = piCurrentBlock();
+    const summary = piBlockSummary(block);
+    return {
+      title: block?.title || "Programme schedule",
+      text: summary.text,
+      bullets: summary.bullets,
+      source: PI_SOURCES.liveApp,
+      action: ["calendar", "Open full calendar"],
+    };
+  }
+
+  if (/lecturer|tutor|teaching team|who teaches|contact/.test(q) && !/onboard|orientation|first day|getting started/.test(q)) {
+    const people = state.people.filter((item) =>
+      [item.name, item.email, item.kind, item.expertise, item.affiliation].join(" ").toLowerCase().includes(q.replace(/who|is|the|for|contact/g, "").trim()),
+    );
+    const current = piCurrentBlock();
+    const currentCodes = current?.courses || [];
+    const team = people.length
+      ? people
+      : state.people.filter((item) =>
+          state.courses.some(
+            (courseItem) =>
+              currentCodes.includes(courseItem.code) &&
+              (courseItem.lecturerId === item.id || (courseItem.tutorIds || []).includes(item.id)),
+          ),
+        );
+    return {
+      title: people.length ? "Matching people" : "Current teaching team",
+      text: team.length ? "These records match the current app data." : "No matching confirmed person was found.",
+      bullets: team.slice(0, 10).map((item) => `${item.name} - ${item.kind}${item.email ? ` - ${item.email}` : ""}`),
+      source: PI_SOURCES.liveApp,
+      action: ["people", "Open Lecturers & Tutors"],
+    };
+  }
+
+  const conduct = PI_CONDUCT_TOPICS
+    .map((topic) => ({ topic, weight: Math.max(0, ...topic.keys.filter((key) => q.includes(key)).map((key) => key.length)) }))
+    .filter((match) => match.weight)
+    .sort((a, b) => b.weight - a.weight)[0]?.topic;
+  if (conduct) {
+    return {
+      title: conduct.title,
+      text: conduct.text,
+      bullets: [],
+      source: PI_SOURCES.conduct,
+      action: ["support", "Open support routes"],
+    };
+  }
+
+  if (/attendance|grade|assessment|quiz|assignment|exam|distinction|pass/.test(q)) {
+    return {
+      title: "Academic expectations and assessment",
+      text: "MathEpi students are expected to maintain at least 70% lecture attendance, participate actively, submit work on time and uphold academic integrity. Assessment structures can differ by course and programme phase, so the active course outline and lecturer's published assessment plan are authoritative.",
+      bullets: [
+        "MathEpi curriculum framework: skills and elective courses use two quizzes, two individual assignments and a final exam or extended quiz.",
+        "Core courses use four quizzes, two individual assignments, a group presentation and a final exam or extended quiz.",
+        "Confirm exact dates and weights in the current course materials before advising a student.",
+      ],
+      source: `${PI_SOURCES.curriculum}; ${PI_SOURCES.tutorOrientation}`,
+      action: ["courses", "Open course records"],
+    };
+  }
+
+  if (/onboard|orientation|new student|new tutor|new lecturer|first day|getting started/.test(q)) {
+    const requestedAudience = /student/.test(q)
+      ? "student"
+      : /tutor/.test(q)
+        ? "tutor"
+        : /lecturer/.test(q)
+          ? "lecturer"
+          : /staff/.test(q)
+            ? "staff"
+            : piAudience();
+    return {
+      title: `${requestedAudience[0].toUpperCase()}${requestedAudience.slice(1)} orientation`,
+      text: "Pi has prepared a role-specific checklist using the live programme schedule. Complete it in the onboarding panel on this page.",
+      bullets: PI_ORIENTATION_STEPS[requestedAudience].map((step) => step[0]),
+      source: `${PI_SOURCES.curriculum}; ${PI_SOURCES.conduct}; ${PI_SOURCES.tutorOrientation}; ${PI_SOURCES.liveApp}`,
+    };
+  }
+
+  if (/aims ric|aims research|about aims|programme|mathepi/.test(q)) {
+    return {
+      title: "About the Mathematical Epidemiology programme",
+      text: "The full-time 16-month programme develops mathematical epidemiologists who can model disease dynamics, analyse outbreaks and evaluate interventions in African public-health settings. It combines a 10-month learning phase, a three-month internship and a three-month thesis or project write-up.",
+      bullets: [
+        "Core skills in mathematics, probability, statistics, R, Python and scientific computing.",
+        "Specialist training in epidemiology, modelling, model fitting, numerical methods and health data science.",
+        "Elective pathways and a work-integrated internship and thesis component.",
+      ],
+      source: PI_SOURCES.curriculum,
+      action: ["courses", "Explore the curriculum"],
+    };
+  }
+
+  return {
+    title: "I need a little more detail",
+    text: "I can help with the live timetable, courses, teaching teams, onboarding, academic expectations, the Student Code of Conduct, support routes and programme operations. Try naming a course code, person, policy topic or date.",
+    bullets: ["What is scheduled this week?", "Tell me about MEC02", "What does the Code of Conduct say about plagiarism?", "Start tutor orientation"],
+    source: "Pi help guide",
+  };
+}
+
+function askPi(prompt) {
+  const input = document.querySelector("#piQuestion");
+  const question = String(prompt || input?.value || "").trim();
+  if (!question) return;
+  state.pi.messages.push({ role: "user", text: question, at: new Date().toISOString() });
+  state.pi.messages.push({ role: "pi", answer: piAnswer(question), at: new Date().toISOString() });
+  state.pi.query = "";
+  save();
+  render();
+  requestAnimationFrame(() => document.querySelector(".pi-conversation")?.scrollTo(0, 99999));
+}
+
+function clearPiChat() {
+  state.pi.messages = [];
+  save();
+  render();
+}
+
+function setPiAudience(audience) {
+  state.pi.audience = audience;
+  save();
+  render();
+}
+
+function togglePiOnboarding(index) {
+  const audience = piAudience();
+  const key = `${audience}-${index}`;
+  state.pi.onboarding[key] = !state.pi.onboarding[key];
+  save();
+  render();
+}
+
+function renderPiAnswer(answer) {
+  return `
+    <article class="pi-answer">
+      <div class="pi-answer-mark">π</div>
+      <div>
+        <h4>${escapeHtml(answer.title)}</h4>
+        <p>${escapeHtml(answer.text)}</p>
+        ${answer.bullets?.length ? `<ul>${answer.bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}
+        <div class="pi-answer-footer">
+          <span>${icon("book", 14)} ${escapeHtml(answer.source || "Pi knowledge base")}</span>
+          ${answer.action ? `<button class="pi-text-action" onclick="setView('${answer.action[0]}')">${escapeHtml(answer.action[1])} ${icon("external", 13)}</button>` : ""}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderPi() {
+  const audience = piAudience();
+  const steps = PI_ORIENTATION_STEPS[audience] || PI_ORIENTATION_STEPS.staff;
+  const done = steps.filter((_, index) => state.pi.onboarding[`${audience}-${index}`]).length;
+  const block = piCurrentBlock();
+  const blockSummary = piBlockSummary(block);
+  const messages = state.pi.messages.length
+    ? state.pi.messages
+        .map((message) =>
+          message.role === "user"
+            ? `<div class="pi-user-message">${escapeHtml(message.text)}</div>`
+            : renderPiAnswer(message.answer),
+        )
+        .join("")
+    : renderPiAnswer({
+        title: `Hello, I am Pi`,
+        text: `I am your MathEpi digital assistant. I use the current app schedule and approved programme documents to guide ${audience}s through courses, orientation, conduct and day-to-day operations.`,
+        bullets: ["Ask what is happening now", "Look up a course or teaching team", "Start your role-specific orientation", "Check a policy or support route"],
+        source: "Pi knowledge base",
+      });
+  return `
+    <div class="view pi-view">
+      <section class="pi-hero">
+        <div class="pi-symbol" aria-hidden="true">π</div>
+        <div>
+          <span class="mission-eyebrow">AIMS RIC digital assistant</span>
+          <h2>Ask Pi. Find the right answer in the right context.</h2>
+          <p>Programme guidance grounded in the live MathEpi workspace, curriculum, orientation material and Student Code of Conduct.</p>
+        </div>
+        <label class="pi-audience-control">Guidance for
+          <select onchange="setPiAudience(this.value)">
+            <option value="auto" ${state.pi.audience === "auto" ? "selected" : ""}>My current role</option>
+            ${["student", "tutor", "lecturer", "staff"].map((item) => `<option value="${item}" ${state.pi.audience === item ? "selected" : ""}>${item[0].toUpperCase()}${item.slice(1)}</option>`).join("")}
+          </select>
+        </label>
+      </section>
+
+      <div class="pi-layout">
+        <section class="pi-chat-panel">
+          <div class="pi-panel-head">
+            <div><p class="eyebrow">Conversation</p><h3>How can I help?</h3></div>
+            <button class="button ghost" onclick="clearPiChat()">Clear</button>
+          </div>
+          <div class="pi-suggestions">
+            ${[
+              "What is scheduled this week?",
+              "Start my orientation",
+              "Explain the attendance rules",
+              "How do I report a concern?",
+            ].map((item) => `<button onclick="askPi('${item.replaceAll("'", "\\'")}')">${escapeHtml(item)}</button>`).join("")}
+          </div>
+          <div class="pi-conversation" aria-live="polite">${messages}</div>
+          <form class="pi-composer" onsubmit="event.preventDefault(); askPi()">
+            <input id="piQuestion" autocomplete="off" placeholder="Ask about a course, schedule, person, policy or next step" />
+            <button class="button primary" type="submit">${icon("spark", 18)} Ask Pi</button>
+          </form>
+          <p class="pi-disclaimer">Pi provides guidance from approved sources. Formal decisions, confidential matters and emergencies must follow the named institutional channel.</p>
+        </section>
+
+        <aside class="pi-side">
+          <section class="pi-context-card">
+            <p class="eyebrow">Live programme context</p>
+            <h3>${escapeHtml(block?.title || "Programme schedule")}</h3>
+            <p>${escapeHtml(blockSummary.text)}</p>
+            <div class="pi-context-list">
+              ${blockSummary.bullets.slice(0, 4).map((item) => `<div>${icon("calendar", 15)}<span>${escapeHtml(item)}</span></div>`).join("") || "<p>No course is currently listed.</p>"}
+            </div>
+            <button class="button ghost" onclick="setView('calendar')">Open calendar</button>
+          </section>
+
+          <section class="pi-onboarding-card">
+            <div class="pi-panel-head">
+              <div><p class="eyebrow">${escapeHtml(audience)} onboarding</p><h3>${done} of ${steps.length} complete</h3></div>
+              <span class="pi-progress-value">${Math.round((done / steps.length) * 100)}%</span>
+            </div>
+            <div class="pi-progress"><span style="width:${(done / steps.length) * 100}%"></span></div>
+            <div class="pi-checklist">
+              ${steps.map((step, index) => {
+                const checked = !!state.pi.onboarding[`${audience}-${index}`];
+                return `<label class="${checked ? "done" : ""}"><input type="checkbox" ${checked ? "checked" : ""} onchange="togglePiOnboarding(${index})" /><span><strong>${escapeHtml(step[0])}</strong><small>${escapeHtml(step[1])}</small></span></label>`;
+              }).join("")}
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  `;
 }
 
 function renderDashboard() {
@@ -8712,6 +9100,10 @@ window.setView = setView;
 window.setRole = setRole;
 window.setAuthenticatedRole = setAuthenticatedRole;
 window.toggleTheme = toggleTheme;
+window.askPi = askPi;
+window.clearPiChat = clearPiChat;
+window.setPiAudience = setPiAudience;
+window.togglePiOnboarding = togglePiOnboarding;
 window.openDrawer = openDrawer;
 window.closeDrawer = closeDrawer;
 window.updateCfaStatus = updateCfaStatus;
