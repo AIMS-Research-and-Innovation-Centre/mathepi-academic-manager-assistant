@@ -3679,6 +3679,207 @@ button {
   text-decoration: line-through;
 }
 
+.pi-draft {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #d4cec3;
+  border-left: 3px solid #2f7255;
+  background: #f8f7f3;
+}
+
+.pi-draft .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  color: #2f7255;
+}
+
+.pi-draft ul {
+  margin: 0 0 12px;
+}
+
+.pi-followups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.pi-followups button {
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid #d4cec3;
+  border-radius: 4px;
+  background: #fff;
+  color: #0c1940;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pi-followups button:hover {
+  border-color: #8d111c;
+  color: #8d111c;
+}
+
+.pi-send {
+  margin-top: 12px;
+}
+
+.pi-send span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #2f7255;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pi-rate {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.pi-rate button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #e2ddd3;
+  border-radius: 4px;
+  background: #fff;
+  color: #747067;
+  cursor: pointer;
+}
+
+.pi-rate button:hover,
+.pi-rate button.active {
+  border-color: #0c1940;
+  color: #0c1940;
+}
+
+.pi-thinking {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 18px;
+  color: #747067;
+  font-size: 13px;
+}
+
+.pi-thinking span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8d111c;
+  animation: pi-pulse 1s infinite ease-in-out;
+}
+
+.pi-thinking span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.pi-thinking span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.pi-thinking em {
+  margin-left: 6px;
+  font-style: normal;
+}
+
+@keyframes pi-pulse {
+  0%, 100% { opacity: 0.25; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pi-thinking span {
+    animation: none;
+  }
+}
+
+.pi-semantic {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0 24px 8px;
+  color: #5f5b53;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pi-semantic span {
+  color: #746f66;
+}
+
+.pi-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #8d111c;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.pi-queue-card {
+  padding: 22px;
+  border: 1px solid #e3ded4;
+  border-top: 3px solid #c7942f;
+  background: #fff;
+}
+
+.pi-queue-note {
+  margin: 8px 0 0;
+  color: #5f5b53;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.pi-queue-item {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #eeeae2;
+}
+
+.pi-queue-item strong {
+  color: #0c1940;
+  font-size: 14px;
+}
+
+.pi-queue-item small {
+  color: #69655e;
+  font-size: 12px;
+}
+
+.pi-queue-item textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cfc9bd;
+  border-radius: 4px;
+  color: #101828;
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.pi-queue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 @media (max-width: 1050px) {
   .pi-layout {
     grid-template-columns: 1fr;
@@ -3716,9 +3917,14 @@ button {
   .pi-chat-panel > .pi-panel-head,
   .pi-suggestions,
   .pi-conversation,
-  .pi-composer {
+  .pi-composer,
+  .pi-semantic {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .pi-rate {
+    margin-left: 0;
   }
 
   .pi-composer {

@@ -16,13 +16,14 @@
     <link rel="icon" href="assets/aims-ric-logo.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=35" />
+    <link rel="stylesheet" href="styles.css?v=36" />
   </head>
   <body>
     <div id="app"></div>
     <script>
       (function () {
-        var APP_SCRIPT = "app.js?v=66";
+        var APP_SCRIPT = "app.js?v=67";
+        var PI_ENGINE = "pi/pi-engine.js?v=1";
         var AUTH_BRIDGE = "auth/auth-bridge.js?v=27";
         var booted = false;
         var resetDone = false;
@@ -91,8 +92,10 @@
           booted = true;
           loadScript("auth/firebase-config.js?v=3", function () {
             loadScript(AUTH_BRIDGE, function () {
-              loadScript(APP_SCRIPT, function () {
-                window.setTimeout(showBootFallback, 2500);
+              loadScript(PI_ENGINE, function () {
+                loadScript(APP_SCRIPT, function () {
+                  window.setTimeout(showBootFallback, 2500);
+                });
               });
             });
           });

@@ -42,3 +42,16 @@ test("ticket notifications and study-group calendar integration are wired", () =
   assert.match(routes, /createItTicket/);
   assert.match(calendar, /study-group::/);
 });
+
+test("Pi community answers are wired and role-gated", () => {
+  const app = read("app.js");
+  const routes = read("apps-script/paste-small-files/01_Routes.gs");
+  const pi = read("apps-script/paste-small-files/14_PiKnowledge.gs");
+  for (const action of ["piSubmitQuestion", "piListQuestions", "piAnswerQuestion", "piListFaq"]) {
+    assert.match(routes, new RegExp(`action === "${action}"`));
+    assert.match(app, new RegExp(`"${action}"`));
+  }
+  assert.match(pi, /function piSubmitQuestion[\s\S]*?portalRequireRoles_\(payload\.token, \[\]\)/);
+  assert.match(pi, /function piAnswerQuestion[\s\S]*?portalRequireRoles_\(payload\.token, PI_ANSWER_ROLES\)/);
+  assert.match(read("sw.js"), /KEEP_CACHES = \["transformers-cache"\]/);
+});

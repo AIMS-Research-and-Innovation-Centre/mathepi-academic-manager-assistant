@@ -29,5 +29,8 @@ Paste these in order:
 10. `09_EmailOtpHelpers.gs`
 11. `10_TutorialFellowReviews.gs`
 12. `11_ProgrammeCalendar.gs`
+13. `12_PortalAccess.gs`
+14. `13_ItTicketsNotifications.gs`
+15. `14_PiKnowledge.gs` (Ask Pi community-taught answers; creates the `PiQuestions` sheet)
 
 Apps Script can run functions across multiple `.gs` files in the same project, so this is equivalent to the single `Code.gs` file.

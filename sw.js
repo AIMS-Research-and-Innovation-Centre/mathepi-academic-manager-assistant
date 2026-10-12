@@ -1,9 +1,14 @@
-const CACHE_NAME = "mathepi-academic-manager-v76";
+const CACHE_NAME = "mathepi-academic-manager-v77";
+// Pi's on-device model is cached by the library under this name; keep it
+// across app updates so it is downloaded only once.
+const KEEP_CACHES = ["transformers-cache"];
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=35",
-  "./app.js?v=66",
+  "./styles.css?v=36",
+  "./app.js?v=67",
+  "./pi/pi-engine.js?v=1",
+  "./pi/pi-semantic-worker.js?v=1",
   "./auth/firebase-config.js?v=3",
   "./auth/auth-bridge.js?v=27",
   "./manifest.webmanifest",
@@ -26,7 +31,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME && !KEEP_CACHES.includes(key)).map((key) => caches.delete(key))))
       .then(() => self.clients.claim()),
   );
 });

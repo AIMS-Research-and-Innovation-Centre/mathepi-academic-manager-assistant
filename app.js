@@ -2035,6 +2035,9 @@ const NAV = [
 
 const PI_CHAT_KEY = "mathepi-pi-chat-v1";
 const PI_ONBOARDING_KEY = "mathepi-pi-onboarding-v1";
+const PI_FAQ_KEY = "mathepi-pi-faq-v1";
+// Roles that answer community questions and so teach Pi.
+const PI_STAFF_ROLES = ["super-admin", "manager", "centre-coordinator", "head-tutor"];
 const PI_SOURCES = {
   curriculum: "MathEpi Curriculum v0.2",
   conduct: "KEMRI-AIMS Students Code of Conduct",
@@ -2045,26 +2048,31 @@ const PI_SOURCES = {
 const PI_CONDUCT_TOPICS = [
   {
     keys: ["conduct", "behaviour", "behavior", "rules", "discipline"],
+    examples: ["Is alcohol allowed on campus?", "Can I bring visitors to my room?", "What behaviour is expected of students?", "Do I need to carry my ID card?"],
     title: "Community conduct",
     text: "The KEMRI-AIMS learning community requires respect, integrity, discipline and courtesy. Discrimination, harassment, theft, vandalism, violence, alcohol or prohibited substances are not permitted. Students should carry their identification cards and follow campus, accommodation and safety procedures.",
   },
   {
     keys: ["plagiarism", "cheating", "academic integrity", "ai use"],
+    examples: ["Can I use ChatGPT for my assignment?", "Is copying code from the internet allowed?", "What counts as plagiarism?", "Can I work on an assignment with a friend?"],
     title: "Academic integrity",
     text: "Cheating, falsification and plagiarism are prohibited. Work drawn from another person or source must be acknowledged correctly. The curriculum also prohibits plagiarism and unauthorised AI use. Ask the lecturer what assistance and tools are permitted for each assessment before submitting work.",
   },
   {
     keys: ["harassment", "discrimination", "sexual", "respect"],
+    examples: ["A lecturer is treating me unfairly", "Someone made inappropriate comments to me", "Can students date tutors or staff?"],
     title: "Respect and safeguarding",
     text: "Discrimination and harassment in physical, verbal, written or sexual form are not permitted. Students may not engage in sexual behaviour with lecturers, tutors, researchers or administrative staff. Raise a concern through the appropriate academic or programme channel; urgent safety concerns should be reported immediately.",
   },
   {
     keys: ["grievance", "complaint", "dispute", "report", "incident"],
+    examples: ["Who do I complain to about a course?", "How do I report a problem with another student?", "Where do I report a security risk?"],
     title: "Raising a concern",
     text: "For a grievance arising in an academic setting, contact the Academic Director. For a dispute outside academic areas but on KEMRI-AIMS premises, contact the Programme Manager or the KEMRI-based Collaboration Co-Director. Security risks should be reported immediately to the Administration team.",
   },
   {
     keys: ["computer", "equipment", "laptop", "library", "it"],
+    examples: ["Can I borrow a laptop?", "Can I take a computer home?", "Can I eat in the computer lab?", "How do I borrow library books?"],
     title: "Equipment and learning resources",
     text: "AIMS equipment is for authorised students, tutors, lecturers, staff and official visitors. Do not remove equipment without permission, use it commercially, access offensive material, interfere with another person's files or email, or place food and drinks near IT equipment. Library materials must be handled carefully.",
   },
@@ -2321,7 +2329,7 @@ function googleBackendAvailable() {
 }
 
 function googleApi(action, payload = {}) {
-  const protectedActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "getProgrammeCalendarStatus", "updateCfaStatus", "listLecturerReviewData", "listReviewStaffingAssignments", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns", "createItTicket", "listItTickets", "updateItTicket", "listNotifications", "markNotificationRead"];
+  const protectedActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "getProgrammeCalendarStatus", "updateCfaStatus", "listLecturerReviewData", "listReviewStaffingAssignments", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns", "createItTicket", "listItTickets", "updateItTicket", "listNotifications", "markNotificationRead", "piSubmitQuestion", "piListFaq", "piListQuestions", "piAnswerQuestion"];
   const securedPayload = portalAccess?.token && protectedActions.includes(action) ? { ...payload, token: portalAccess.token } : payload;
   if (hasAppsScriptBridge()) {
     return new Promise((resolve, reject) => {
@@ -2561,6 +2569,10 @@ const state = {
     audience: safeStorageGet("mathepi-pi-audience") || "auto",
     messages: load(PI_CHAT_KEY, []),
     onboarding: load(PI_ONBOARDING_KEY, {}),
+    faq: load(PI_FAQ_KEY, []),
+    queue: [],
+    busy: false,
+    communityLoadedAt: 0,
   },
   tfReview: {
     session: load(TF_REVIEW_SESSION_KEY, null),
@@ -2870,7 +2882,9 @@ function load(key, fallback) {
 }
 
 function save() {
-  safeStorageSet(PI_CHAT_KEY, JSON.stringify(state.pi.messages.slice(-20)));
+  // Wellbeing and safeguarding messages are never written to storage, so
+  // they do not reappear on a shared device.
+  safeStorageSet(PI_CHAT_KEY, JSON.stringify(state.pi.messages.slice(-20).map((message) => (message.private ? { ...message, text: "(private message not saved)" } : message))));
   safeStorageSet(PI_ONBOARDING_KEY, JSON.stringify(state.pi.onboarding));
   safeStorageSet("mathepi-pi-audience", state.pi.audience);
   safeStorageSet("mathepi-courses", JSON.stringify(state.courses));
@@ -4107,6 +4121,18 @@ function renderView() {
   }
 }
 
+// ---------------------------------------------------------------- Ask Pi
+//
+// Pi answers from the live workspace, approved programme documents and
+// answers the programme team has published. Language understanding runs on
+// the device (pi/pi-engine.js, plus the optional embedding model in
+// pi/pi-semantic-worker.js), so there is no AI API cost and questions never
+// leave the browser unless the user chooses to send one to the team.
+
+function piEngine() {
+  return window.PiEngine;
+}
+
 function piAudience() {
   if (state.pi.audience !== "auto") return state.pi.audience;
   if (state.role === "student") return "student";
@@ -4115,23 +4141,36 @@ function piAudience() {
   return "staff";
 }
 
+function piTodayIso() {
+  return piEngine().isoDate(new Date());
+}
+
 function piCurrentBlock() {
-  const now = new Date();
-  const iso = now.toISOString().slice(0, 10);
+  const iso = piTodayIso();
   return (
+    state.blocks.find((item) => item.kind !== "onboarding" && item.start <= iso && item.end >= iso) ||
     state.blocks.find((item) => item.start <= iso && item.end >= iso) ||
-    state.blocks.find((item) => item.start >= iso) ||
+    state.blocks.filter((item) => item.start >= iso).sort((a, b) => a.start.localeCompare(b.start))[0] ||
     activeBlock()
   );
 }
 
+function piNextBlock(after = piTodayIso()) {
+  return state.blocks
+    .filter((item) => item.start > after && ["teaching", "assessment", "practical", "thesis"].includes(item.kind))
+    .sort((a, b) => a.start.localeCompare(b.start))[0];
+}
+
+function piCourseTeam(item) {
+  const lecturer = courseLecturerName(item, person(item.lecturerId));
+  const tutors = (item.tutorIds || []).map(person).filter(Boolean).map((tutor) => tutor.name);
+  return [...new Set([lecturer, ...tutors, ...(item.reviewTutorNames || [])].filter(Boolean))];
+}
+
 function piBlockSummary(block) {
   if (!block) return { text: "No active or upcoming block is available in the current schedule.", bullets: [] };
-  const courses = (block.courses || []).map(course).filter(Boolean);
-  const bullets = courses.map((item) => {
-    const lecturer = person(item.lecturerId);
-    const tutors = (item.tutorIds || []).map(person).filter(Boolean);
-    const team = [lecturer?.name, ...tutors.map((tutor) => tutor.name)].filter(Boolean).join(", ");
+  const bullets = (block.courses || []).map(course).filter(Boolean).map((item) => {
+    const team = piCourseTeam(item).join(", ");
     return `${item.code} ${item.title}${team ? ` - ${team}` : " - teaching team not yet confirmed"}`;
   });
   return {
@@ -4140,89 +4179,57 @@ function piBlockSummary(block) {
   };
 }
 
-function piCourseAnswer(query) {
-  const q = query.toLowerCase();
-  const matched = state.courses.filter((item) =>
-    q.includes(item.code.toLowerCase()) || q.includes(item.title.toLowerCase()),
-  );
-  if (!matched.length) return null;
-  const item = matched[0];
-  const block = state.blocks.find((entry) => (entry.courses || []).includes(item.code));
-  const lecturer = person(item.lecturerId);
-  const tutors = (item.tutorIds || []).map(person).filter(Boolean);
-  return {
-    title: `${item.code} ${item.title}`,
-    text: item.outcomes || "Course outcomes have not yet been recorded.",
-    bullets: [
-      `Schedule: ${block ? `${dateLabel(block.start)} to ${dateLabel(block.end)}` : "not yet scheduled"}`,
-      `Teaching team: ${[lecturer?.name, ...tutors.map((tutor) => tutor.name)].filter(Boolean).join(", ") || "not yet confirmed"}`,
-      `Contact hours: ${item.lectureHours || 0} lecture, ${item.tutorialPracticalHours || 0} tutorial/practical`,
-      `Prerequisite: ${item.prerequisites || "none recorded"}`,
-      `Software: ${item.software || "none specified"}`,
-    ],
-    source: `${PI_SOURCES.curriculum}; ${PI_SOURCES.liveApp}`,
-    action: ["courses", `Open ${item.code}`],
-  };
+function piSessionsOn(iso) {
+  const weekday = new Intl.DateTimeFormat("en", { weekday: "long" }).format(new Date(`${iso}T10:00:00`));
+  const blockIds = state.blocks.filter((item) => item.kind === "teaching" && item.start <= iso && item.end >= iso).map((item) => item.id);
+  return state.sessions
+    .filter((item) => blockIds.includes(item.blockId) && item.day === weekday)
+    .sort((a, b) => String(a.time).localeCompare(String(b.time)));
 }
 
-function piAnswer(rawQuery) {
-  const query = String(rawQuery || "").trim();
-  const q = query.toLowerCase();
-  const courseAnswer = piCourseAnswer(query);
-  if (courseAnswer) return courseAnswer;
+function piSessionLine(item) {
+  const info = course(item.courseCode);
+  return `${item.time} ${item.courseCode}${info ? ` ${info.title}` : ""} - ${item.type}${item.room ? `, ${item.room}` : ""}`;
+}
 
-  if (/today|this week|current block|next block|schedule|timetable|calendar/.test(q)) {
-    const block = piCurrentBlock();
-    const summary = piBlockSummary(block);
-    return {
-      title: block?.title || "Programme schedule",
-      text: summary.text,
-      bullets: summary.bullets,
-      source: PI_SOURCES.liveApp,
-      action: ["calendar", "Open full calendar"],
-    };
+function piPersonalItems(start, end) {
+  const inRange = (iso) => iso && iso >= start && iso <= end;
+  const items = [];
+  if (isStudentRole()) {
+    visibleTodos()
+      .filter((item) => item.status !== "Done" && inRange(item.due))
+      .forEach((item) => items.push({ date: item.due, text: `To-do due: ${item.title}` }));
+    visiblePlannerTasks()
+      .filter((item) => item.status !== "Done" && inRange(item.date))
+      .forEach((item) => items.push({ date: item.date, text: `Planned ${item.time || ""}: ${item.title}`.replace(" :", ":") }));
   }
+  const actor = currentActorId();
+  visibleAppointments()
+    .filter((item) => (item.requesterId === actor || item.targetId === actor) && !["Cancelled", "Completed", "No-show"].includes(item.status) && inRange(item.preferredDate))
+    .forEach((item) => {
+      const other = participantName(item.requesterId === actor ? item.targetId : item.requesterId);
+      items.push({ date: item.preferredDate, text: `Appointment ${item.time} with ${other} (${item.status})` });
+    });
+  return items.sort((a, b) => a.date.localeCompare(b.date));
+}
 
-  if (/lecturer|tutor|teaching team|who teaches|contact/.test(q) && !/onboard|orientation|first day|getting started/.test(q)) {
-    const people = state.people.filter((item) =>
-      [item.name, item.email, item.kind, item.expertise, item.affiliation].join(" ").toLowerCase().includes(q.replace(/who|is|the|for|contact/g, "").trim()),
-    );
-    const current = piCurrentBlock();
-    const currentCodes = current?.courses || [];
-    const team = people.length
-      ? people
-      : state.people.filter((item) =>
-          state.courses.some(
-            (courseItem) =>
-              currentCodes.includes(courseItem.code) &&
-              (courseItem.lecturerId === item.id || (courseItem.tutorIds || []).includes(item.id)),
-          ),
-        );
-    return {
-      title: people.length ? "Matching people" : "Current teaching team",
-      text: team.length ? "These records match the current app data." : "No matching confirmed person was found.",
-      bullets: team.slice(0, 10).map((item) => `${item.name} - ${item.kind}${item.email ? ` - ${item.email}` : ""}`),
-      source: PI_SOURCES.liveApp,
-      action: ["people", "Open Lecturers & Tutors"],
-    };
-  }
+// ---------------------------------------------------------------- knowledge
 
-  const conduct = PI_CONDUCT_TOPICS
-    .map((topic) => ({ topic, weight: Math.max(0, ...topic.keys.filter((key) => q.includes(key)).map((key) => key.length)) }))
-    .filter((match) => match.weight)
-    .sort((a, b) => b.weight - a.weight)[0]?.topic;
-  if (conduct) {
-    return {
-      title: conduct.title,
-      text: conduct.text,
-      bullets: [],
-      source: PI_SOURCES.conduct,
-      action: ["support", "Open support routes"],
-    };
-  }
-
-  if (/attendance|grade|assessment|quiz|assignment|exam|distinction|pass/.test(q)) {
-    return {
+function piStaticKnowledge() {
+  const docs = PI_CONDUCT_TOPICS.map((topic, index) => ({
+    id: `conduct-${index}`,
+    kind: "policy",
+    title: topic.title,
+    text: topic.text,
+    keywords: topic.keys,
+    examples: topic.examples || [],
+    source: PI_SOURCES.conduct,
+    action: ["support", "Open support routes"],
+  }));
+  docs.push(
+    {
+      id: "assessment",
+      kind: "policy",
       title: "Academic expectations and assessment",
       text: "MathEpi students are expected to maintain at least 70% lecture attendance, participate actively, submit work on time and uphold academic integrity. Assessment structures can differ by course and programme phase, so the active course outline and lecturer's published assessment plan are authoritative.",
       bullets: [
@@ -4230,31 +4237,24 @@ function piAnswer(rawQuery) {
         "Core courses use four quizzes, two individual assignments, a group presentation and a final exam or extended quiz.",
         "Confirm exact dates and weights in the current course materials before advising a student.",
       ],
+      keywords: ["assessment", "exam", "quiz", "assignment", "grade", "marks", "pass", "distinction", "deadline", "submission", "late"],
+      examples: ["How many quizzes are in a core course?", "How am I graded?", "What do I need to pass?", "When are assignments due?", "Is there a final exam?"],
       source: `${PI_SOURCES.curriculum}; ${PI_SOURCES.tutorOrientation}`,
       action: ["courses", "Open course records"],
-    };
-  }
-
-  if (/onboard|orientation|new student|new tutor|new lecturer|first day|getting started/.test(q)) {
-    const requestedAudience = /student/.test(q)
-      ? "student"
-      : /tutor/.test(q)
-        ? "tutor"
-        : /lecturer/.test(q)
-          ? "lecturer"
-          : /staff/.test(q)
-            ? "staff"
-            : piAudience();
-    return {
-      title: `${requestedAudience[0].toUpperCase()}${requestedAudience.slice(1)} orientation`,
-      text: "Pi has prepared a role-specific checklist using the live programme schedule. Complete it in the onboarding panel on this page.",
-      bullets: PI_ORIENTATION_STEPS[requestedAudience].map((step) => step[0]),
-      source: `${PI_SOURCES.curriculum}; ${PI_SOURCES.conduct}; ${PI_SOURCES.tutorOrientation}; ${PI_SOURCES.liveApp}`,
-    };
-  }
-
-  if (/aims ric|aims research|about aims|programme|mathepi/.test(q)) {
-    return {
+    },
+    {
+      id: "attendance",
+      kind: "policy",
+      title: "Attendance",
+      text: "Students are expected to maintain at least 70% lecture attendance, participate actively and seek help early. If you will miss a session, tell the lecturer or tutor for that course through the approved channels.",
+      keywords: ["attendance", "absent", "miss class", "sick", "late", "70%", "rules", "policy", "required"],
+      examples: ["What happens if I miss classes?", "I am sick and cannot come to class", "How many lectures can I miss?", "Is attendance compulsory?"],
+      source: `${PI_SOURCES.curriculum}; ${PI_SOURCES.tutorOrientation}`,
+      action: ["appointments", "Contact your teaching team"],
+    },
+    {
+      id: "programme",
+      kind: "programme",
       title: "About the Mathematical Epidemiology programme",
       text: "The full-time 16-month programme develops mathematical epidemiologists who can model disease dynamics, analyse outbreaks and evaluate interventions in African public-health settings. It combines a 10-month learning phase, a three-month internship and a three-month thesis or project write-up.",
       bullets: [
@@ -4262,28 +4262,620 @@ function piAnswer(rawQuery) {
         "Specialist training in epidemiology, modelling, model fitting, numerical methods and health data science.",
         "Elective pathways and a work-integrated internship and thesis component.",
       ],
+      keywords: ["programme", "mathepi", "aims ric", "kemri", "internship", "thesis", "duration", "how long", "months", "structure"],
+      examples: ["How long is the programme?", "What will I learn in MathEpi?", "What happens after the coursework?", "When is the internship?", "What courses will I take?"],
       source: PI_SOURCES.curriculum,
       action: ["courses", "Explore the curriculum"],
+    },
+    {
+      id: "support-routes",
+      kind: "how-to",
+      title: "Getting support",
+      text: "Use Support & Wellness to raise academic, teaching, wellbeing, logistics, accommodation, facilities or IT requests. Wellness and counselling requests are routed to confidential support. Academic, logistics and IT requests go only to the relevant support handlers, and you can track each request after you submit it.",
+      keywords: ["support", "help", "request", "wellness", "counselling", "logistics", "accommodation", "facilities", "it", "ticket"],
+      examples: ["Something is broken in my room", "Who do I ask for help with accommodation?", "There is no water in the hostel", "How do I get IT support?", "Where can I get help?"],
+      source: PI_SOURCES.liveApp,
+      action: ["support", "Open Support & Wellness"],
+    },
+    {
+      id: "appointments-how",
+      kind: "how-to",
+      title: "Booking an appointment",
+      text: "Open Appointments and choose Request appointment, or ask me to book one. Choose who you want to meet, the course, a reason, date, time and mode. Requests begin as Requested and can move through Awaiting confirmation, Confirmed, Reschedule proposed, Completed, Cancelled or No-show.",
+      keywords: ["appointment", "booking", "meeting", "office hours", "slot", "consultation"],
+      examples: ["How do I book a meeting with my lecturer?", "When are office hours?", "Can I meet my tutor one on one?"],
+      source: PI_SOURCES.liveApp,
+      action: ["appointments", "Open Appointments"],
+    },
+    {
+      id: "planner-how",
+      kind: "how-to",
+      title: "Planning your study time",
+      text: "The Student Planner holds to-dos and time-bound study blocks linked to courses. Keep planner blocks specific, time-bound and course-linked; a to-do can be converted into a planner block. Optional Google Calendar sync remains under your control.",
+      keywords: ["planner", "plan", "study", "revision", "to-do", "todo", "reminder", "organise"],
+      examples: ["How should I organise my study time?", "How do I plan my week?", "Can I sync my planner with Google Calendar?"],
+      source: PI_SOURCES.liveApp,
+      action: ["planner", "Open Student Planner"],
+    },
+    {
+      id: "pi-help",
+      kind: "how-to",
+      title: "What Pi can do",
+      text: "I answer from the live programme schedule, course records, people records, approved programme documents and answers published by the programme team. I can also prepare an appointment request, support or IT request, to-do or planner item for you to review and confirm. I run on your device, so your questions stay private unless you choose to send one to the programme team.",
+      keywords: ["pi", "assistant", "bot", "help", "what can you do", "privacy"],
+      examples: ["What can you help me with?", "Who are you?", "Is my chat with Pi private?"],
+      source: "Pi help guide",
+    },
+  );
+  Object.entries(PI_ORIENTATION_STEPS).forEach(([audience, steps]) => {
+    docs.push({
+      id: `orientation-${audience}`,
+      kind: "orientation",
+      title: `${audience[0].toUpperCase()}${audience.slice(1)} orientation`,
+      text: `Role-specific checklist for ${audience}s, tracked in the onboarding panel on this page.`,
+      bullets: steps.map((step) => `${step[0]}: ${step[1]}`),
+      keywords: ["orientation", "onboarding", "getting started", "first day", "new", audience],
+      examples: [`What should I do as a new ${audience}?`, "How do I get started?", "What do I need to do in my first week?"],
+      source: `${PI_SOURCES.curriculum}; ${PI_SOURCES.conduct}; ${PI_SOURCES.tutorOrientation}`,
+    });
+  });
+  return docs;
+}
+
+function piCourseDoc(item) {
+  const block = state.blocks.find((entry) => (entry.courses || []).includes(item.code));
+  const team = piCourseTeam(item);
+  return {
+    id: `course-${item.code}`,
+    kind: "course",
+    code: item.code,
+    title: `${item.code} ${item.title}`,
+    text: item.outcomes || "Course outcomes have not yet been recorded.",
+    bullets: [
+      `Schedule: ${block ? `${block.title}, ${dateLabel(block.start)} to ${dateLabel(block.end)}` : "not yet scheduled"}`,
+      `Teaching team: ${team.join(", ") || "not yet confirmed"}`,
+      `Contact hours: ${item.lectureHours || 0} lecture, ${item.tutorialPracticalHours || 0} tutorial/practical`,
+      `Prerequisite: ${item.prerequisites || "none recorded"}`,
+      `Software: ${item.software || "none specified"}`,
+    ],
+    keywords: [item.code, item.type, item.software].filter(Boolean),
+    examples: [`What is ${item.title} about?`, `When is ${item.title}?`],
+    source: `${PI_SOURCES.curriculum}; ${PI_SOURCES.liveApp}`,
+    action: ["courses", `Open ${item.code}`],
+  };
+}
+
+function piFaqDocs() {
+  return (state.pi.faq || []).map((item) => ({
+    id: `faq-${item.id}`,
+    kind: "faq",
+    title: item.question,
+    text: item.answer,
+    keywords: [],
+    examples: [item.question],
+    source: `Answered by the programme team${item.answeredAt ? `, ${dateLabel(String(item.answeredAt).slice(0, 10))}` : ""}`,
+  }));
+}
+
+function piKnowledgeDocs() {
+  return [...piStaticKnowledge(), ...state.courses.map(piCourseDoc), ...piFaqDocs()];
+}
+
+// ---------------------------------------------------------------- on-device model
+
+const PI_SEMANTIC_PREF_KEY = "mathepi-pi-semantic";
+const piSemantic = { worker: null, status: "off", progress: 0, error: "", vectors: new Map(), pending: new Map(), seq: 0 };
+
+function piSemanticSupported() {
+  return typeof Worker !== "undefined" && typeof WebAssembly === "object";
+}
+
+function piSemanticAutoAllowed() {
+  const connection = navigator.connection || {};
+  if (connection.saveData) return false;
+  return !/(^|-)2g$|^3g$/.test(connection.effectiveType || "");
+}
+
+function piStartSemantic(manual = false) {
+  const preference = safeStorageGet(PI_SEMANTIC_PREF_KEY) || "";
+  if (!piSemanticSupported()) {
+    piSemantic.status = "unsupported";
+    return;
+  }
+  if (piSemantic.worker) return;
+  if (!manual && (preference === "off" || (preference !== "on" && !piSemanticAutoAllowed()))) return;
+  if (manual) safeStorageSet(PI_SEMANTIC_PREF_KEY, "on");
+  try {
+    piSemantic.worker = new Worker("pi/pi-semantic-worker.js?v=1", { type: "module" });
+  } catch (error) {
+    piSemantic.status = "error";
+    piSemantic.error = error.message || String(error);
+    piUpdateSemanticStatus();
+    return;
+  }
+  piSemantic.status = "loading";
+  piSemantic.worker.onmessage = (event) => {
+    const message = event.data || {};
+    if (message.type === "progress") {
+      piSemantic.progress = message.total ? Math.round((message.loaded / message.total) * 100) : 0;
+      piUpdateSemanticStatus();
+    } else if (message.type === "ready") {
+      piSemantic.status = "ready";
+      piUpdateSemanticStatus();
+    } else if (message.type === "error") {
+      piSemantic.status = "error";
+      piSemantic.error = message.message || "The on-device model could not load.";
+      piUpdateSemanticStatus();
+    } else if (message.type === "embedded") {
+      const pending = piSemantic.pending.get(message.id);
+      if (!pending) return;
+      piSemantic.pending.delete(message.id);
+      if (message.error) pending.reject(new Error(message.error));
+      else pending.resolve(message.vectors);
+    }
+  };
+  piSemantic.worker.onerror = (event) => {
+    piSemantic.status = "error";
+    piSemantic.error = event.message || "The on-device model could not start.";
+    piUpdateSemanticStatus();
+  };
+  piSemantic.worker.postMessage({ type: "load" });
+  piUpdateSemanticStatus();
+}
+
+function piDisableSemantic() {
+  safeStorageSet(PI_SEMANTIC_PREF_KEY, "off");
+  if (piSemantic.worker) piSemantic.worker.terminate();
+  piSemantic.worker = null;
+  piSemantic.status = "off";
+  piSemantic.pending.forEach((pending) => pending.reject(new Error("Turned off")));
+  piSemantic.pending.clear();
+  piUpdateSemanticStatus();
+}
+
+function piEmbed(texts) {
+  if (!piSemantic.worker) return Promise.reject(new Error("Model not running"));
+  piSemantic.seq += 1;
+  const id = piSemantic.seq;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      piSemantic.pending.delete(id);
+      reject(new Error("Model timed out"));
+    }, 20000);
+    piSemantic.pending.set(id, {
+      resolve: (value) => { clearTimeout(timer); resolve(value); },
+      reject: (error) => { clearTimeout(timer); reject(error); },
+    });
+    piSemantic.worker.postMessage({ type: "embed", id, texts });
+  });
+}
+
+// Each article is represented by its text, its title and a few example
+// questions; a question is scored against the closest one. Small embedding
+// models compare question to question far better than question to article.
+function piSemanticTexts(doc) {
+  return [`${doc.title}. ${doc.text}`.slice(0, 600), doc.title, ...(doc.examples || [])];
+}
+
+async function piSemanticScores(question, docs) {
+  if (piSemantic.status !== "ready") return null;
+  const engine = piEngine();
+  const missing = [];
+  docs.forEach((doc) => piSemanticTexts(doc).forEach((text) => {
+    const key = engine.hashText(text);
+    if (!piSemantic.vectors.has(key)) missing.push({ key, text });
+  }));
+  if (missing.length) {
+    const vectors = await piEmbed(missing.map((item) => item.text));
+    missing.forEach((item, index) => piSemantic.vectors.set(item.key, vectors[index]));
+  }
+  const [queryVector] = await piEmbed([question]);
+  const scores = new Map();
+  docs.forEach((doc) => {
+    const best = Math.max(...piSemanticTexts(doc).map((text) => engine.cosine(queryVector, piSemantic.vectors.get(engine.hashText(text)))));
+    scores.set(doc.id, best);
+  });
+  return scores;
+}
+
+function piSemanticStatusHtml() {
+  const status = piSemantic.status;
+  if (status === "ready") return `${icon("check", 14)} On-device understanding is on`;
+  if (status === "loading") return `${icon("cloud", 14)} Preparing on-device understanding${piSemantic.progress ? ` ${piSemantic.progress}%` : ""}…`;
+  if (status === "unsupported") return `${icon("spark", 14)} Standard understanding (this browser cannot run the on-device model)`;
+  if (status === "error") return `${icon("alert", 14)} Standard understanding. <button class="pi-link" onclick="piStartSemantic(true)">Try the on-device model again</button>`;
+  return `${icon("spark", 14)} Standard understanding. <button class="pi-link" onclick="piStartSemantic(true)">Turn on smarter on-device understanding</button> <span>(about 30 MB, downloaded once)</span>`;
+}
+
+function piUpdateSemanticStatus() {
+  const element = document.querySelector("#piSemanticStatus");
+  if (element) element.innerHTML = piSemanticStatusHtml();
+}
+
+// ---------------------------------------------------------------- answers
+
+function piSensitiveAnswer(kind) {
+  if (kind === "emergency") {
+    return {
+      title: "Get help now",
+      text: "If you or someone else is in immediate danger, call local emergency services (999 or 112 in Kenya) and alert the Administration team straight away. Security risks must be reported immediately to the Administration team. I cannot respond to emergencies.",
+      bullets: ["Stay with someone you trust if you can.", "When you are safe, you can request confidential support below."],
+      source: PI_SOURCES.conduct,
+      action: ["support", "Open Support & Wellness"],
+      sensitive: true,
+    };
+  }
+  if (kind === "harassment") {
+    return {
+      title: "Respect and safeguarding",
+      text: "Discrimination and harassment in physical, verbal, written or sexual form are not permitted. You do not have to deal with this alone. For a grievance in an academic setting, contact the Academic Director; outside academic areas, contact the Programme Manager or the KEMRI-based Collaboration Co-Director. Urgent safety concerns should be reported immediately.",
+      bullets: ["A confidential support request goes only to the support counsellor, not the wider academic team.", "I have not saved or sent anything you wrote here."],
+      source: PI_SOURCES.conduct,
+      draft: canCreateSupportRequest() ? { type: "support", label: "Request confidential support", payload: { category: "Counselling referral", title: "Confidential support request", urgency: "Soon" }, lines: ["Category: Counselling referral (confidential)", "Your message is not copied into the request."] } : null,
+      sensitive: true,
+    };
+  }
+  return {
+    title: "You do not have to handle this alone",
+    text: "It is common to feel this way during an intensive programme, and support is available. Wellness and counselling requests are routed to confidential support, and you can also book time with the support counsellor.",
+    bullets: ["Your request goes only to confidential support.", "I have not saved or sent anything you wrote here."],
+    source: PI_SOURCES.liveApp,
+    draft: canCreateSupportRequest() ? { type: "support", label: "Request confidential support", payload: { category: "Counselling referral", title: "Wellbeing support", urgency: "Normal" }, lines: ["Category: Counselling referral (confidential)", "Your message is not copied into the request."] } : null,
+    sensitive: true,
+  };
+}
+
+function piBriefing() {
+  const engine = piEngine();
+  const iso = piTodayIso();
+  const bullets = [];
+  const firstBlock = [...state.blocks].sort((a, b) => a.start.localeCompare(b.start))[0];
+  const current = state.blocks.find((item) => item.kind !== "onboarding" && item.start <= iso && item.end >= iso);
+  let text;
+  if (firstBlock && iso < firstBlock.start) {
+    const days = Math.round((new Date(`${firstBlock.start}T10:00:00`) - new Date(`${iso}T10:00:00`)) / 86400000);
+    text = `The programme opens on ${dateLabel(firstBlock.start)}, ${days} day${days === 1 ? "" : "s"} from today.`;
+  } else if (current) {
+    const codes = (current.courses || []).join(", ");
+    text = `${current.title} runs until ${dateLabel(current.end)}${codes ? ` (${codes})` : ""}.`;
+  } else {
+    text = "No teaching block is running today.";
+  }
+  const next = piNextBlock(iso);
+  if (next && (!current || next.start <= engine.isoDate(new Date(Date.now() + 14 * 86400000)))) {
+    bullets.push(`Next: ${next.title} starts ${dateLabel(next.start)}${(next.courses || []).length ? ` with ${(next.courses || []).join(", ")}` : ""}.`);
+  }
+  const sessions = piSessionsOn(iso);
+  if (sessions.length) bullets.push(`Today: ${sessions.map(piSessionLine).join("; ")}.`);
+  const weekEnd = engine.isoDate(new Date(Date.now() + 7 * 86400000));
+  const personal = piPersonalItems(iso, weekEnd);
+  personal.slice(0, 4).forEach((item) => bullets.push(`${shortDate(item.date)}: ${item.text}`));
+  if (personal.length > 4) bullets.push(`…and ${personal.length - 4} more this week.`);
+  const unread = visibleNotifications().filter((item) => !item.read).length;
+  if (unread) bullets.push(`You have ${unread} unread notification${unread === 1 ? "" : "s"}.`);
+  const audience = piAudience();
+  const steps = PI_ORIENTATION_STEPS[audience] || PI_ORIENTATION_STEPS.staff;
+  const remaining = steps.filter((_, index) => !state.pi.onboarding[`${audience}-${index}`]).length;
+  if (remaining) bullets.push(`${remaining} onboarding step${remaining === 1 ? "" : "s"} left in your checklist.`);
+  if (piIsStaff() && (state.pi.queue || []).length) bullets.push(`${state.pi.queue.length} question${state.pi.queue.length === 1 ? " is" : "s are"} waiting for your answer in Teach Pi.`);
+  return {
+    title: `Good ${new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}. Here is your briefing`,
+    text,
+    bullets,
+    source: PI_SOURCES.liveApp,
+    suggestions: ["What is on this week?", "What is due next week?", "Start my orientation"],
+    kind: "briefing",
+  };
+}
+
+function piScheduleAnswer(range) {
+  const engine = piEngine();
+  const days = Math.round((new Date(`${range.end}T10:00:00`) - new Date(`${range.start}T10:00:00`)) / 86400000) + 1;
+  const blocks = state.blocks.filter((item) => item.start <= range.end && item.end >= range.start);
+  const bullets = [];
+  if (days <= 7) {
+    for (let offset = 0; offset < days; offset += 1) {
+      const iso = engine.isoDate(new Date(new Date(`${range.start}T10:00:00`).getTime() + offset * 86400000));
+      piSessionsOn(iso).forEach((item) => bullets.push(`${days > 1 ? `${shortDate(iso)}, ` : ""}${piSessionLine(item)}`));
+    }
+  }
+  const personal = piPersonalItems(range.start, range.end);
+  personal.forEach((item) => bullets.push(`${shortDate(item.date)}: ${item.text}`));
+  const label = /^\d{4}-/.test(range.label) ? dateLabel(range.start) : range.label;
+  let text;
+  if (!blocks.length) text = `Nothing in the programme calendar falls on ${label}.`;
+  else text = blocks.map((item) => `${item.title} (${shortDate(item.start)}–${shortDate(item.end)})${item.note ? `: ${item.note}` : ""}`.replace(/[.\s]*$/, ".")).join(" ");
+  if (blocks.length && days <= 7 && !bullets.length) bullets.push("No timetabled sessions or personal items on these dates.");
+  return {
+    title: `${label[0].toUpperCase()}${label.slice(1)}`,
+    text,
+    bullets: bullets.slice(0, 12),
+    source: PI_SOURCES.liveApp,
+    action: ["calendar", "Open full calendar"],
+  };
+}
+
+function piCourseAnswer(item, question) {
+  const doc = piCourseDoc(item);
+  const wantsTeam = /\b(who|teach\w*|lecturer|tutor|team|contact)\b/.test(piEngine().normalize(question));
+  if (wantsTeam) {
+    const team = piCourseTeam(item);
+    return {
+      title: `${item.code} teaching team`,
+      text: team.length ? `${item.code} ${item.title} is taught by ${team.join(", ")}.` : `The teaching team for ${item.code} ${item.title} has not been confirmed yet.`,
+      bullets: [doc.bullets[0]],
+      source: PI_SOURCES.liveApp,
+      action: ["people", "Open Lecturers & Tutors"],
+      suggestions: [`Book time about ${item.code}`, `Tell me about ${item.code}`],
+    };
+  }
+  return { title: doc.title, text: doc.text, bullets: doc.bullets, source: doc.source, action: doc.action, suggestions: [`Who teaches ${item.code}?`, `Book time about ${item.code}`] };
+}
+
+function piPersonAnswer(item) {
+  const courses = state.courses.filter((entry) => entry.lecturerId === item.id || (entry.tutorIds || []).includes(item.id) || courseLecturerName(entry) === item.name);
+  const bookable = appointmentTargetOptions().some((target) => target.id === item.id);
+  return {
+    title: item.name,
+    text: [item.kind, item.affiliation, item.expertise].filter(Boolean).join(" · ") || "Programme contact",
+    bullets: [
+      courses.length ? `Teaching: ${courses.map((entry) => `${entry.code} ${entry.title}`).join(", ")}` : "No course assignment is recorded yet.",
+      item.email ? `Email: ${item.email}` : "",
+      item.status ? `Status: ${item.status}` : "",
+    ].filter(Boolean),
+    source: PI_SOURCES.liveApp,
+    action: ["people", "Open Lecturers & Tutors"],
+    draft: bookable && canCreateAppointment()
+      ? { type: "appointment", label: `Request a meeting with ${item.name}`, payload: { targetId: item.id, courseCode: courses[0]?.code || "" }, lines: [`With: ${item.name}`, courses[0] ? `Course: ${courses[0].code}` : "Course: choose in the form"] }
+      : null,
+  };
+}
+
+function piAppointmentCategory(q) {
+  if (/\b(assignment|quiz|exam|assessment|grade|mark)/.test(q)) return "Assessment guidance";
+  if (/\bthesis|project\b/.test(q)) return "Thesis/project support";
+  if (/\binternship\b/.test(q)) return "Internship guidance";
+  if (/\bresearch\b/.test(q)) return "Research discussion";
+  if (/\btutorial\b/.test(q)) return "Tutorial support";
+  if (/\bworkload\b/.test(q)) return "Tutor workload";
+  return "";
+}
+
+function piDraftAnswer(action, question) {
+  const engine = piEngine();
+  const q = engine.normalize(question);
+  const range = engine.parseDate(question, new Date());
+  const time = engine.parseTime(question);
+  // Only a clear course reference fills the course field ("time" in "book
+  // time with my tutor" is not Time Series Analysis).
+  const matchedCourse = engine.matchCourses(question, state.courses).find((match) => match.by === "code" || match.score >= 0.7)?.course;
+
+  if (action.type === "appointment") {
+    if (!canCreateAppointment()) return { title: "Appointments", text: "Your current role cannot request appointments.", bullets: [], source: PI_SOURCES.liveApp };
+    const targets = appointmentTargetOptions();
+    let target = engine.matchPeople(question, targets)[0]?.person;
+    if (!target && matchedCourse) {
+      const wantsTutor = /\btutor\b/.test(q);
+      const team = wantsTutor ? (matchedCourse.tutorIds || []) : [matchedCourse.lecturerId, ...(matchedCourse.tutorIds || [])];
+      target = targets.find((entry) => team.includes(entry.id));
+    }
+    if (!target) {
+      const kind = /\bhead tutor\b/.test(q) ? "Head Tutor" : /\btutor\b/.test(q) ? "Tutor" : /\blecturer|prof/.test(q) ? "Lecturer" : /\bcounsell?or\b/.test(q) ? "Support / Counsellor" : /\bcoordinator\b/.test(q) ? "Centre Coordinator" : /\bmanager\b/.test(q) ? "Academic Manager" : "";
+      if (kind && kind !== "Tutor" && kind !== "Lecturer") target = targets.find((entry) => entry.kind === kind);
+    }
+    const payload = {
+      targetId: target?.id || "",
+      courseCode: matchedCourse?.code || "",
+      category: piAppointmentCategory(q) || (matchedCourse ? "Course clarification" : "General advising"),
+      preferredDate: range?.start || "",
+      time,
+      summary: action.asksHow ? "" : question,
+    };
+    return {
+      title: action.asksHow ? "Booking an appointment" : "Appointment request ready",
+      text: action.asksHow
+        ? "Choose who you want to meet, the course, a reason, date and time. I can fill the form in for you; review it and submit when it looks right."
+        : "I filled in what I understood. Review the request, change anything that is wrong, then submit it.",
+      bullets: [],
+      source: PI_SOURCES.liveApp,
+      draft: {
+        type: "appointment",
+        label: action.asksHow ? "Start an appointment request" : "Review and submit",
+        payload,
+        lines: [
+          `With: ${target ? `${target.name} (${target.kind})` : "choose in the form"}`,
+          `Course: ${matchedCourse ? `${matchedCourse.code} ${matchedCourse.title}` : "choose in the form"}`,
+          `When: ${range ? dateLabel(range.start) : "choose a date"}${time ? ` at ${time}` : ""}`,
+          `Reason: ${payload.category}`,
+        ],
+      },
+    };
+  }
+
+  if (action.type === "support") {
+    if (!canCreateSupportRequest()) return { title: "Support requests", text: "Your current role cannot submit support requests.", bullets: [], source: PI_SOURCES.liveApp };
+    const payload = { category: action.category, title: action.title || "Support request", urgency: action.urgency || "Normal", summary: question };
+    return {
+      title: action.category === "IT/technical support" ? "IT ticket ready" : "Support request ready",
+      text: action.category === "IT/technical support"
+        ? "I prepared an IT ticket. Add where it happens and on which device, then submit. You can follow its progress in Support & Wellness."
+        : "I prepared a support request for the right team. Check the details, then submit.",
+      bullets: [],
+      source: PI_SOURCES.liveApp,
+      draft: { type: "support", label: "Review and submit", payload, lines: [`Title: ${payload.title}`, `Category: ${payload.category}`, `Urgency: ${payload.urgency}`] },
+    };
+  }
+
+  if (action.type === "todo" || action.type === "planner") {
+    if (!isStudentRole()) {
+      return { title: "Student Planner", text: "To-dos and planner blocks belong to the Student Planner, which is available to students. Staff can track work in Tasks.", bullets: [], source: PI_SOURCES.liveApp, action: ["tasks", "Open Tasks"] };
+    }
+    const date = range?.start || piTodayIso();
+    if (action.type === "todo") {
+      const payload = { title: action.title || "New to-do", due: date, courseCode: matchedCourse?.code || "", priority: /\b(urgent|important|asap)\b/.test(q) ? "High" : "Medium" };
+      return {
+        title: "To-do ready",
+        text: "Here is the to-do I will add to your planner. Change anything you need, then add it.",
+        bullets: [],
+        source: PI_SOURCES.liveApp,
+        draft: { type: "todo", label: "Review and add", payload, lines: [`To-do: ${payload.title}`, `Due: ${dateLabel(date)}`, `Course: ${matchedCourse ? matchedCourse.code : "choose in the form"}`] },
+      };
+    }
+    const payload = { title: action.title || "Study session", date, time: time || "16:00", courseCode: matchedCourse?.code || "" };
+    return {
+      title: "Study block ready",
+      text: "Here is the planner block I prepared. Adjust the time or length if needed, then add it.",
+      bullets: [],
+      source: PI_SOURCES.liveApp,
+      draft: { type: "planner", label: "Review and add", payload, lines: [`Plan: ${payload.title}`, `When: ${dateLabel(date)} at ${payload.time}`, `Course: ${matchedCourse ? matchedCourse.code : "choose in the form"}`] },
+    };
+  }
+  return null;
+}
+
+async function piRespond(question) {
+  const engine = piEngine();
+  const q = engine.normalize(question);
+
+  const sensitive = engine.detectSensitive(question);
+  if (sensitive) return piSensitiveAnswer(sensitive.kind);
+
+  const greeting = /^(hi|hello|hey|good (morning|afternoon|evening)|habari|jambo)\b/.test(q) && q.split(" ").length <= 4;
+  if (greeting || /^(brief( me)?|briefing|my day|what'?s new|anything (due|new)( today| this week)?|what should i (do|focus on)( today| now| this week)?)[?.!]*$/.test(q)) return piBriefing();
+
+  const action = engine.detectAction(question);
+  if (action) {
+    const draft = piDraftAnswer(action, question);
+    if (draft) return draft;
+  }
+
+  const range = engine.parseDate(question, new Date());
+  const aboutTime = /\b(schedul\w*|happen\w*|on|class\w*|session\w*|lecture\w*|tutorial\w*|busy|free|timetable|calendar|due|deadline\w*|plan\w*|agenda|what'?s on|anything)\b/.test(q);
+  // A course title word inside an unrelated question ("can I take a computer
+  // home") is not a question about that course.
+  const aboutCourses = /\b(course|module|unit|class|lecture|teach\w*|learn\w*|study|about|outcome\w*|syllabus|content|prerequisite\w*|software|when|who|block)\b/.test(q);
+  const courseMatches = engine
+    .matchCourses(question, state.courses)
+    .filter((match) => match.by === "code" || match.score >= 0.7 || match.explained || aboutCourses);
+  if (range && (aboutTime || q.split(" ").length <= 4) && !courseMatches.length) return piScheduleAnswer(range);
+
+  if (!courseMatches.length && /\b(next block|following block)\b/.test(q)) {
+    const block = piNextBlock();
+    const summary = piBlockSummary(block);
+    return { title: block?.title || "Next block", text: summary.text, bullets: summary.bullets, source: PI_SOURCES.liveApp, action: ["calendar", "Open full calendar"] };
+  }
+  if (!courseMatches.length && /\b(current block|this block|timetable|schedule|calendar|what'?s on|this week)\b/.test(q)) {
+    const block = piCurrentBlock();
+    const summary = piBlockSummary(block);
+    return { title: block?.title || "Programme schedule", text: summary.text, bullets: summary.bullets, source: PI_SOURCES.liveApp, action: ["calendar", "Open full calendar"] };
+  }
+
+  if (courseMatches.length) {
+    const [top, second] = courseMatches;
+    if (second && top.by === "title" && top.score - second.score < 0.08) {
+      return {
+        title: "Which course do you mean?",
+        text: "More than one course matches your question.",
+        bullets: courseMatches.slice(0, 3).map((match) => `${match.course.code} ${match.course.title}`),
+        source: PI_SOURCES.curriculum,
+        suggestions: courseMatches.slice(0, 3).map((match) => `Tell me about ${match.course.code}`),
+      };
+    }
+    return piCourseAnswer(top.course, question);
+  }
+
+  const personMatch = engine.matchPeople(question, state.people)[0];
+  if (personMatch && personMatch.score >= 0.7) return piPersonAnswer(personMatch.person);
+
+  if (/\b(who (teaches|is teaching)|teaching team|my (tutor|lecturer)s?)\b/.test(q)) {
+    const current = piCurrentBlock();
+    const summary = piBlockSummary(current);
+    return { title: "Current teaching team", text: `${current?.title || "The current block"} courses and their teams:`, bullets: summary.bullets, source: PI_SOURCES.liveApp, action: ["people", "Open Lecturers & Tutors"] };
+  }
+
+  // Only the asker's own orientation checklist, unless they name another role.
+  const audience = piAudience();
+  const namedAudience = ["student", "tutor", "lecturer", "staff"].find((item) => new RegExp(`\\b${item}s?\\b`).test(q));
+  const docs = piKnowledgeDocs().filter((doc) => doc.kind !== "orientation" || doc.id === `orientation-${namedAudience || audience}`);
+  if (/\b(what can you do|who are you|what are you|how do you work|what do you know)\b/.test(q)) {
+    const help = docs.find((doc) => doc.id === "pi-help");
+    return { title: help.title, text: help.text, bullets: [], source: help.source, suggestions: ["Brief me", "Book time with my tutor", "What is on next week?"] };
+  }
+  const index = engine.buildIndex(docs);
+  let semantic = null;
+  try {
+    semantic = await piSemanticScores(question, docs);
+  } catch {
+    semantic = null;
+  }
+  const ranked = engine.search(index, question, { semantic, limit: 6 });
+  const best = ranked[0];
+  // Confident: answer. Partly sure: show the closest article but say so and
+  // offer to ask the team. Otherwise: say Pi does not know.
+  if (best && best.confidence >= 0.3) {
+    const doc = best.doc;
+    const confident = best.confidence >= 0.6;
+    if (doc.kind === "course" && confident) {
+      const item = course(doc.code);
+      if (item) return piCourseAnswer(item, question);
+    }
+    return {
+      title: confident ? doc.title : `This may help: ${doc.title}`,
+      text: doc.text,
+      bullets: doc.bullets || [],
+      source: doc.source,
+      action: doc.action,
+      suggestions: ranked.slice(1, 3).filter((result) => result.confidence >= 0.3).map((result) => result.doc.kind === "faq" ? result.doc.title : `Tell me about ${result.doc.title.toLowerCase()}`),
+      offerSend: !confident,
+      kind: doc.kind,
     };
   }
 
   return {
-    title: "I need a little more detail",
-    text: "I can help with the live timetable, courses, teaching teams, onboarding, academic expectations, the Student Code of Conduct, support routes and programme operations. Try naming a course code, person, policy topic or date.",
-    bullets: ["What is scheduled this week?", "Tell me about MEC02", "What does the Code of Conduct say about plagiarism?", "Start tutor orientation"],
+    title: "I am not sure yet",
+    text: "I could not find this in the schedule, course records or approved programme documents. You can send the question to the programme team; once they answer it, I will know the answer for everyone.",
+    bullets: ranked.slice(0, 3).map((result) => `Possibly related: ${result.doc.title}`),
     source: "Pi help guide",
+    offerSend: true,
+    suggestions: ["What can you do?", "What is on this week?"],
+    kind: "unknown",
   };
 }
 
-function askPi(prompt) {
+// ---------------------------------------------------------------- conversation
+
+async function askPi(prompt) {
   const input = document.querySelector("#piQuestion");
-  const question = String(prompt || input?.value || "").trim();
-  if (!question) return;
-  state.pi.messages.push({ role: "user", text: question, at: new Date().toISOString() });
-  state.pi.messages.push({ role: "pi", answer: piAnswer(question), at: new Date().toISOString() });
-  state.pi.query = "";
+  const question = String(prompt || input?.value || "").trim().slice(0, 500);
+  if (!question || state.pi.busy) return;
+  const sensitive = !!piEngine().detectSensitive(question);
+  state.pi.messages.push({ role: "user", text: question, private: sensitive, at: new Date().toISOString() });
+  state.pi.busy = true;
+  render();
+  piScrollConversation();
+  let answer;
+  try {
+    answer = await piRespond(question);
+  } catch (error) {
+    answer = { title: "Something went wrong", text: "I could not work that out just now. Please try again, or rephrase the question.", bullets: [], source: "Pi help guide" };
+  }
+  state.pi.messages.push({ role: "pi", answer, question: sensitive ? "" : question, at: new Date().toISOString() });
+  state.pi.busy = false;
   save();
   render();
+  piScrollConversation();
+  if (window.matchMedia && window.matchMedia("(pointer: fine)").matches) document.querySelector("#piQuestion")?.focus({ preventScroll: true });
+}
+
+// Re-render without losing the reader's place in the conversation.
+function piRerender() {
+  const top = document.querySelector(".pi-conversation")?.scrollTop;
+  render();
+  const conversation = document.querySelector(".pi-conversation");
+  if (conversation && top !== undefined) conversation.scrollTop = top;
+}
+
+function piScrollConversation() {
   requestAnimationFrame(() => document.querySelector(".pi-conversation")?.scrollTo(0, 99999));
 }
 
@@ -4307,7 +4899,99 @@ function togglePiOnboarding(index) {
   render();
 }
 
-function renderPiAnswer(answer) {
+function piOpenDraft(index) {
+  const draft = state.pi.messages[index]?.answer?.draft;
+  if (!draft) return;
+  const drawer = { appointment: "appointmentForm", support: "supportForm", todo: "todoForm", planner: "plannerForm" }[draft.type];
+  if (drawer) openDrawer(drawer, { ...draft.payload });
+}
+
+function piFeedback(index, helpful) {
+  const message = state.pi.messages[index];
+  if (!message || message.role !== "pi") return;
+  message.feedback = helpful ? "up" : "down";
+  save();
+  piRerender();
+}
+
+// ---------------------------------------------------------------- community-taught answers
+
+function piIsStaff() {
+  return PI_STAFF_ROLES.includes(state.role);
+}
+
+function piSignedIn() {
+  return !!(portalAccess?.token && portalAccess.status === "approved");
+}
+
+async function piSendQuestion(index) {
+  const message = state.pi.messages[index];
+  if (!message || !message.question || message.sent) return;
+  if (!piSignedIn() || !googleBackendAvailable()) {
+    toast("Sign in with your AIMS RIC account to send questions to the programme team.");
+    return;
+  }
+  message.sending = true;
+  piRerender();
+  try {
+    const result = await timedGoogleApi(googleApi("piSubmitQuestion", { question: message.question, audience: piAudience() }), "Sending is taking too long. Try again.", 20000);
+    if (!result?.ok) throw new Error(result?.error || "The question could not be sent.");
+    message.sent = true;
+    toast("Sent. You will get a notification when the programme team answers.");
+  } catch (error) {
+    toast(error.message || "The question could not be sent.");
+  }
+  message.sending = false;
+  save();
+  piRerender();
+}
+
+async function piRefreshCommunity(force = false) {
+  if (!piSignedIn() || !googleBackendAvailable()) return;
+  const now = Date.now();
+  if (!force && now - (state.pi.communityLoadedAt || 0) < 10 * 60 * 1000) return;
+  state.pi.communityLoadedAt = now;
+  try {
+    const faq = await timedGoogleApi(googleApi("piListFaq", {}), "Loading answers timed out.", 20000);
+    if (faq?.ok && Array.isArray(faq.faq)) {
+      state.pi.faq = faq.faq;
+      safeStorageSet(PI_FAQ_KEY, JSON.stringify(faq.faq));
+    }
+    if (piIsStaff()) {
+      const queue = await timedGoogleApi(googleApi("piListQuestions", {}), "Loading questions timed out.", 20000);
+      if (queue?.ok && Array.isArray(queue.questions)) state.pi.queue = queue.questions;
+    }
+    if (state.view === "pi") piRerender();
+  } catch {
+    // Pi keeps working from the cached answers.
+  }
+}
+
+async function piAnswerQuestion(id, publish) {
+  const field = document.querySelector(`#piReply-${CSS.escape(id)}`);
+  const answer = String(field?.value || "").trim();
+  if (publish && answer.length < 10) {
+    toast("Write an answer of at least a sentence before publishing.");
+    return;
+  }
+  try {
+    const result = await timedGoogleApi(googleApi("piAnswerQuestion", { id, answer, publish }), "Saving the answer timed out.", 20000);
+    if (!result?.ok) throw new Error(result?.error || "The answer could not be saved.");
+    state.pi.queue = (state.pi.queue || []).filter((item) => item.id !== id);
+    toast(publish ? "Published. Pi will now answer this for everyone." : "Question closed.");
+    await piRefreshCommunity(true);
+  } catch (error) {
+    toast(error.message || "The answer could not be saved.");
+  }
+  piRerender();
+}
+
+// ---------------------------------------------------------------- rendering
+
+function renderPiAnswer(answer, index = -1, message = {}) {
+  const draft = answer.draft;
+  const canRate = index >= 0 && !answer.sensitive && answer.kind !== "briefing";
+  const showSend = index >= 0 && message.question && (answer.offerSend || message.feedback === "down");
   return `
     <article class="pi-answer">
       <div class="pi-answer-mark">π</div>
@@ -4315,12 +4999,55 @@ function renderPiAnswer(answer) {
         <h4>${escapeHtml(answer.title)}</h4>
         <p>${escapeHtml(answer.text)}</p>
         ${answer.bullets?.length ? `<ul>${answer.bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}
+        ${draft && index >= 0 ? `
+          <div class="pi-draft">
+            <p class="eyebrow">${icon("check", 13)} Prepared for you to confirm</p>
+            <ul>${draft.lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+            <button class="button primary" onclick="piOpenDraft(${index})">${escapeHtml(draft.label)}</button>
+          </div>` : ""}
+        ${answer.suggestions?.length && index >= 0 ? `<div class="pi-followups">${answer.suggestions.map((item) => `<button data-q="${escapeHtml(item)}" onclick="askPi(this.dataset.q)">${escapeHtml(item)}</button>`).join("")}</div>` : ""}
+        ${showSend ? `
+          <div class="pi-send">
+            ${message.sent
+              ? `<span>${icon("check", 14)} Sent to the programme team. You will be notified when it is answered.</span>`
+              : `<button class="button ghost" ${message.sending ? "disabled" : ""} onclick="piSendQuestion(${index})">${icon("megaphone", 15)} ${message.sending ? "Sending…" : "Send this question to the programme team"}</button>`}
+          </div>` : ""}
         <div class="pi-answer-footer">
           <span>${icon("book", 14)} ${escapeHtml(answer.source || "Pi knowledge base")}</span>
           ${answer.action ? `<button class="pi-text-action" onclick="setView('${answer.action[0]}')">${escapeHtml(answer.action[1])} ${icon("external", 13)}</button>` : ""}
+          ${canRate ? `
+            <span class="pi-rate" role="group" aria-label="Was this helpful?">
+              <button class="${message.feedback === "up" ? "active" : ""}" aria-label="Helpful" title="Helpful" onclick="piFeedback(${index}, true)">${icon("check", 14)}</button>
+              <button class="${message.feedback === "down" ? "active" : ""}" aria-label="Not helpful" title="Not helpful" onclick="piFeedback(${index}, false)">${icon("x", 14)}</button>
+            </span>` : ""}
         </div>
       </div>
     </article>
+  `;
+}
+
+function renderPiQueue() {
+  if (!piIsStaff()) return "";
+  const queue = state.pi.queue || [];
+  return `
+    <section class="pi-queue-card">
+      <div class="pi-panel-head">
+        <div><p class="eyebrow">Teach Pi</p><h3>${queue.length ? `${queue.length} question${queue.length === 1 ? "" : "s"} waiting` : "No questions waiting"}</h3></div>
+        <button class="button ghost" onclick="piRefreshCommunity(true)">Refresh</button>
+      </div>
+      <p class="pi-queue-note">Questions Pi could not answer. Publish an answer once and Pi will use it for everyone; the person who asked is notified.</p>
+      ${!piSignedIn() ? `<p class="pi-queue-note">Sign in with your AIMS RIC account to load the question queue.</p>` : ""}
+      ${queue.map((item) => `
+        <div class="pi-queue-item">
+          <strong>${escapeHtml(item.question)}</strong>
+          <small>${escapeHtml(item.audience || "")} · ${escapeHtml(item.askedAt ? dateLabel(String(item.askedAt).slice(0, 10)) : "")}</small>
+          <textarea id="piReply-${escapeHtml(item.id)}" rows="3" placeholder="Write the answer everyone should get"></textarea>
+          <div class="pi-queue-actions">
+            <button class="button ghost" onclick="piAnswerQuestion('${escapeHtml(item.id)}', false)">Close without answer</button>
+            <button class="button primary" onclick="piAnswerQuestion('${escapeHtml(item.id)}', true)">Publish answer</button>
+          </div>
+        </div>`).join("")}
+    </section>
   `;
 }
 
@@ -4330,20 +5057,21 @@ function renderPi() {
   const done = steps.filter((_, index) => state.pi.onboarding[`${audience}-${index}`]).length;
   const block = piCurrentBlock();
   const blockSummary = piBlockSummary(block);
+  // Pi speaks first: an empty conversation opens with today's briefing.
   const messages = state.pi.messages.length
     ? state.pi.messages
-        .map((message) =>
+        .map((message, index) =>
           message.role === "user"
             ? `<div class="pi-user-message">${escapeHtml(message.text)}</div>`
-            : renderPiAnswer(message.answer),
+            : renderPiAnswer(message.answer, index, message),
         )
         .join("")
-    : renderPiAnswer({
-        title: `Hello, I am Pi`,
-        text: `I am your MathEpi digital assistant. I use the current app schedule and approved programme documents to guide ${audience}s through courses, orientation, conduct and day-to-day operations.`,
-        bullets: ["Ask what is happening now", "Look up a course or teaching team", "Start your role-specific orientation", "Check a policy or support route"],
-        source: "Pi knowledge base",
-      });
+    : renderPiAnswer(piBriefing());
+  setTimeout(() => {
+    piStartSemantic(false);
+    piUpdateSemanticStatus();
+    piRefreshCommunity(false);
+  }, 0);
   return `
     <div class="view pi-view">
       <section class="pi-hero">
@@ -4351,7 +5079,7 @@ function renderPi() {
         <div>
           <span class="mission-eyebrow">AIMS RIC digital assistant</span>
           <h2>Ask Pi. Find the right answer in the right context.</h2>
-          <p>Programme guidance grounded in the live MathEpi workspace, curriculum, orientation material and Student Code of Conduct.</p>
+          <p>Programme guidance grounded in the live MathEpi workspace, curriculum, orientation material, Student Code of Conduct and answers from the programme team.</p>
         </div>
         <label class="pi-audience-control">Guidance for
           <select onchange="setPiAudience(this.value)">
@@ -4369,21 +5097,25 @@ function renderPi() {
           </div>
           <div class="pi-suggestions">
             ${[
-              "What is scheduled this week?",
-              "Start my orientation",
+              "Brief me",
+              "What is on tomorrow?",
+              "Book time with my tutor",
+              "Remind me to revise on Friday",
               "Explain the attendance rules",
-              "How do I report a concern?",
-            ].map((item) => `<button onclick="askPi('${item.replaceAll("'", "\\'")}')">${escapeHtml(item)}</button>`).join("")}
+              "The Wi-Fi is not working",
+            ].map((item) => `<button data-q="${escapeHtml(item)}" onclick="askPi(this.dataset.q)">${escapeHtml(item)}</button>`).join("")}
           </div>
-          <div class="pi-conversation" aria-live="polite">${messages}</div>
+          <div class="pi-conversation" aria-live="polite">${messages}${state.pi.busy ? `<div class="pi-thinking" role="status"><span></span><span></span><span></span><em>Pi is thinking</em></div>` : ""}</div>
           <form class="pi-composer" onsubmit="event.preventDefault(); askPi()">
-            <input id="piQuestion" autocomplete="off" placeholder="Ask about a course, schedule, person, policy or next step" />
-            <button class="button primary" type="submit">${icon("spark", 18)} Ask Pi</button>
+            <input id="piQuestion" autocomplete="off" maxlength="500" placeholder="Ask anything, or tell Pi what to do" ${state.pi.busy ? "disabled" : ""} />
+            <button class="button primary" type="submit" ${state.pi.busy ? "disabled" : ""}>${icon("spark", 18)} Ask Pi</button>
           </form>
-          <p class="pi-disclaimer">Pi provides guidance from approved sources. Formal decisions, confidential matters and emergencies must follow the named institutional channel.</p>
+          <p class="pi-semantic" id="piSemanticStatus">${piSemanticStatusHtml()}</p>
+          <p class="pi-disclaimer">Pi runs on your device and answers from approved sources. Formal decisions, confidential matters and emergencies must follow the named institutional channel.</p>
         </section>
 
         <aside class="pi-side">
+          ${renderPiQueue()}
           <section class="pi-context-card">
             <p class="eyebrow">Live programme context</p>
             <h3>${escapeHtml(block?.title || "Programme schedule")}</h3>
@@ -8458,11 +9190,11 @@ function plannerFormDrawer(payload = {}) {
   const selectedCourse = payload?.courseCode || state.courses[0]?.code || "";
   const body = `
     <form id="plannerForm" class="form-grid">
-      <div class="field full"><label>Planner item</label><input name="title" placeholder="Prepare model notes" required /></div>
+      <div class="field full"><label>Planner item</label><input name="title" placeholder="Prepare model notes" value="${escapeHtml(payload?.title || "")}" required /></div>
       <div class="field"><label>Type</label><select name="type">${Object.keys(PLANNER_TYPES).map((type) => `<option>${type}</option>`).join("")}</select></div>
       <div class="field"><label>Course</label><select name="courseCode">${state.courses.map((c) => `<option value="${c.code}" ${c.code === selectedCourse ? "selected" : ""}>${c.code} ${c.title}</option>`).join("")}</select></div>
-      <div class="field"><label>Date</label><input name="date" type="date" value="2026-10-06" /></div>
-      <div class="field"><label>Start time</label><input name="time" type="time" value="16:00" /></div>
+      <div class="field"><label>Date</label><input name="date" type="date" value="${escapeHtml(payload?.date || "2026-10-06")}" /></div>
+      <div class="field"><label>Start time</label><input name="time" type="time" value="${escapeHtml(payload?.time || "16:00")}" /></div>
       <div class="field"><label>Duration</label><select name="duration"><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90" selected>90 min</option><option value="120">120 min</option></select></div>
       <div class="field"><label>Priority</label><select name="priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
       <div class="field full"><label>Notes</label><textarea name="notes" placeholder="What will make this block successful?">${payload?.summary || ""}</textarea></div>
@@ -8571,7 +9303,10 @@ function refreshAppointmentAvailability() {
 function appointmentFormDrawer(payload = {}) {
   const targets = appointmentTargetOptions();
   const selectedCourse = payload?.courseCode || state.courses[0]?.code || "";
-  const selectedTarget = payload?.targetId || targets[0]?.id || "";
+  // Pi passes targetId "" when it could not tell who to book; make the person choose.
+  const selectedTarget = payload?.targetId === "" ? "" : payload?.targetId || targets[0]?.id || "";
+  const preferredDate = payload?.preferredDate || "2026-10-07";
+  const preferredTime = payload?.time || "15:00";
   const body = `
     <form id="appointmentForm" class="form-grid">
       <div class="field">
@@ -8584,7 +9319,7 @@ function appointmentFormDrawer(payload = {}) {
       </div>
       <div class="field full">
         <label>Book with</label>
-        <select name="targetId" required onchange="refreshAppointmentAvailability()">${targets.map((p) => `<option value="${p.id}" ${p.id === selectedTarget ? "selected" : ""}>${p.name} - ${p.kind}</option>`).join("")}</select>
+        <select name="targetId" required onchange="refreshAppointmentAvailability()">${payload?.targetId === "" ? `<option value="" selected disabled>Choose who to meet</option>` : ""}${targets.map((p) => `<option value="${p.id}" ${p.id === selectedTarget ? "selected" : ""}>${p.name} - ${p.kind}</option>`).join("")}</select>
       </div>
       <div class="field">
         <label>Course</label>
@@ -8605,17 +9340,17 @@ function appointmentFormDrawer(payload = {}) {
             "Tutor workload",
             "General advising",
           ]
-            .map((category) => `<option>${category}</option>`)
+            .map((category) => `<option ${category === payload?.category ? "selected" : ""}>${category}</option>`)
             .join("")}
         </select>
       </div>
-      <div class="field"><label>Preferred date</label><input name="preferredDate" type="date" value="2026-10-07" onchange="refreshAppointmentAvailability()" /></div>
-      <div class="field"><label>Time</label><input name="time" type="time" value="15:00" onchange="refreshAppointmentAvailability()" /></div>
+      <div class="field"><label>Preferred date</label><input name="preferredDate" type="date" value="${escapeHtml(preferredDate)}" onchange="refreshAppointmentAvailability()" /></div>
+      <div class="field"><label>Time</label><input name="time" type="time" value="${escapeHtml(preferredTime)}" onchange="refreshAppointmentAvailability()" /></div>
       <div class="field"><label>Duration</label><select name="duration"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="45">45 min</option><option value="60">60 min</option></select></div>
       <div class="field"><label>Mode</label><select name="mode"><option>In person</option><option>Online</option><option>Hybrid</option></select></div>
-      <div class="field full"><label>Reason / agenda</label><textarea name="summary" placeholder="What should the meeting solve?">${payload?.summary || ""}</textarea></div>
+      <div class="field full"><label>Reason / agenda</label><textarea name="summary" placeholder="What should the meeting solve?">${escapeHtml(payload?.summary || "")}</textarea></div>
     </form>
-    <div id="appointmentAvailability">${appointmentAvailabilityPanel(selectedTarget, "2026-10-07", "15:00")}</div>
+    <div id="appointmentAvailability">${appointmentAvailabilityPanel(selectedTarget, preferredDate, preferredTime)}</div>
     <div class="timeline-item">
       <h4>Booking workflow</h4>
       <p>Requests begin as Requested and can move through Awaiting confirmation, Confirmed, Reschedule proposed, Completed, Cancelled, or No-show.</p>
@@ -8700,11 +9435,11 @@ function todoFormDrawer(payload = {}) {
   const selectedCourse = payload?.courseCode || state.courses[0]?.code || "";
   const body = `
     <form id="todoForm" class="form-grid">
-      <div class="field full"><label>To-do title</label><input name="title" placeholder="Finish reading notes" required /></div>
+      <div class="field full"><label>To-do title</label><input name="title" placeholder="Finish reading notes" value="${escapeHtml(payload?.title || "")}" required /></div>
       <div class="field"><label>Category</label><select name="category">${Object.keys(TODO_CATEGORIES).map((category) => `<option>${category}</option>`).join("")}</select></div>
       <div class="field"><label>Course</label><select name="courseCode">${state.courses.map((c) => `<option value="${c.code}" ${c.code === selectedCourse ? "selected" : ""}>${c.code} ${c.title}</option>`).join("")}</select></div>
-      <div class="field"><label>Due date</label><input name="due" type="date" value="2026-10-06" /></div>
-      <div class="field"><label>Priority</label><select name="priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div class="field"><label>Due date</label><input name="due" type="date" value="${escapeHtml(payload?.due || "2026-10-06")}" /></div>
+      <div class="field"><label>Priority</label><select name="priority">${["High", "Medium", "Low"].map((level) => `<option ${level === (payload?.priority || "Medium") ? "selected" : ""}>${level}</option>`).join("")}</select></div>
       <div class="field full"><label>Notes</label><textarea name="notes" placeholder="What needs to be done?"></textarea></div>
     </form>
   `;
@@ -8796,18 +9531,18 @@ function supportFormDrawer(payload = {}) {
         <label>Requestor role</label>
         <input value="${roleDef().label}" readonly />
       </div>
-      <div class="field full"><label>Support title</label><input name="title" placeholder="What support do you need?" required /></div>
+      <div class="field full"><label>Support title</label><input name="title" placeholder="What support do you need?" value="${escapeHtml(payload?.title || "")}" required /></div>
       <div class="field">
         <label>Category</label>
         <select name="category">${SUPPORT_CATEGORIES.map((item) => `<option ${item === category ? "selected" : ""}>${item}</option>`).join("")}</select>
       </div>
       <div class="field">
         <label>Urgency</label>
-        <select name="urgency"><option>Normal</option><option>Soon</option><option>Urgent</option><option>Critical</option></select>
+        <select name="urgency">${["Normal", "Soon", "Urgent", "Critical"].map((level) => `<option ${level === payload?.urgency ? "selected" : ""}>${level}</option>`).join("")}</select>
       </div>
       <div class="field full">
         <label>Optional notes</label>
-        <textarea name="summary" placeholder="Share only what is necessary. You do not need to disclose sensitive wellness details here."></textarea>
+        <textarea name="summary" placeholder="Share only what is necessary. You do not need to disclose sensitive wellness details here.">${escapeHtml(payload?.summary || "")}</textarea>
       </div>
       <div class="field"><label>Affected area</label><input name="affectedArea" placeholder="Login, calendar, Drive, classroom..." /></div>
       <div class="field"><label>Device / browser</label><input name="device" value="${escapeHtml(navigator.userAgent)}" /></div>
@@ -9104,6 +9839,13 @@ window.askPi = askPi;
 window.clearPiChat = clearPiChat;
 window.setPiAudience = setPiAudience;
 window.togglePiOnboarding = togglePiOnboarding;
+window.piOpenDraft = piOpenDraft;
+window.piFeedback = piFeedback;
+window.piSendQuestion = piSendQuestion;
+window.piAnswerQuestion = piAnswerQuestion;
+window.piRefreshCommunity = piRefreshCommunity;
+window.piStartSemantic = piStartSemantic;
+window.piDisableSemantic = piDisableSemantic;
 window.openDrawer = openDrawer;
 window.closeDrawer = closeDrawer;
 window.updateCfaStatus = updateCfaStatus;

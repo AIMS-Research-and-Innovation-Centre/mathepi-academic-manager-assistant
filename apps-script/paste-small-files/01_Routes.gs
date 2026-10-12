@@ -42,6 +42,10 @@ function apiPost(request) {
   if (action === "updateItTicket") return updateItTicket(payload);
   if (action === "listNotifications") return listNotifications(payload);
   if (action === "markNotificationRead") return markNotificationRead(payload);
+  if (action === "piSubmitQuestion") return piSubmitQuestion(payload);
+  if (action === "piListQuestions") return piListQuestions(payload);
+  if (action === "piAnswerQuestion") return piAnswerQuestion(payload);
+  if (action === "piListFaq") return piListFaq(payload);
   if (action === "setupWorkspace") return setupWorkspace(payload);
   if (action === "saveSnapshot") return saveSnapshot(payload);
   if (action === "getBootstrap") return getBootstrap();
