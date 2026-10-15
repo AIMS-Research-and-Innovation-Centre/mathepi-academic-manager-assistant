@@ -1921,6 +1921,7 @@ const ROLES = {
       "groups",
       "courses",
       "people",
+      "students",
       "cfa",
       "lecturer-reviews",
       "appointments",
@@ -1931,7 +1932,6 @@ const ROLES = {
       "tf-reviews",
       "google",
       "access",
-      "pi",
     ],
   },
   manager: {
@@ -1939,49 +1939,49 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "pi", "calendar", "courses", "people", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
+    views: ["dashboard", "calendar", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
     hint: "Manager-level visibility for coordination, without write access",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "pi", "calendar", "courses", "people", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+    views: ["dashboard", "calendar", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
   },
   reviewer: {
     label: "TF Reviewer",
     hint: "Tutorial Fellow review panel, notes, scores, and staged decisions",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "pi", "tf-reviews"],
+    views: ["dashboard", "tf-reviews"],
   },
   "head-tutor": {
     label: "Head Tutor",
     hint: "Tutor workload, tutor profiles, assigned work, and lecturer-course tracking",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "pi", "calendar", "courses", "people", "cfa", "appointments", "groups", "support", "contact", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "people", "students", "cfa", "appointments", "groups", "support", "contact", "timesheets", "tasks"],
   },
   lecturer: {
     label: "Lecturer",
     hint: "Assigned courses, timetable, materials, and confirmation",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "pi", "calendar", "courses", "appointments", "groups", "support", "contact"],
+    views: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "contact"],
   },
   tutor: {
     label: "Tutor",
     hint: "Assigned tutorials, course materials, timesheet logging, and workload balance",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "pi", "calendar", "courses", "appointments", "groups", "support", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "timesheets", "tasks"],
   },
   student: {
     label: "Student",
     hint: "Calendar, courses, teaching teams, planner, and appointment requests",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "pi", "calendar", "planner", "groups", "courses", "appointments", "support"],
+    views: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
   },
   "aims-ric-support": {
     label: "AIMS RIC Support",
@@ -1995,21 +1995,21 @@ const ROLES = {
     hint: "Confidential support triage, counselling referrals, and wellbeing requests",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "pi", "appointments", "support"],
+    views: ["dashboard", "appointments", "students", "support"],
   },
   "it-support": {
     label: "IT Support",
     hint: "Learning systems, Drive access, classroom technology, and technical tickets",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "pi", "appointments", "support", "tasks"],
+    views: ["dashboard", "appointments", "support", "tasks"],
   },
   viewer: {
     label: "Viewer / Partner",
     hint: "Read-only approved programme information",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "pi", "calendar", "courses"],
+    views: ["dashboard", "calendar", "courses"],
   },
 };
 
@@ -2020,6 +2020,7 @@ const NAV = [
   { id: "groups", label: "Study Groups", short: "Groups", icon: "group" },
   { id: "courses", label: "Courses", icon: "book" },
   { id: "people", label: "Lecturers & Tutors", short: "People", icon: "users" },
+  { id: "students", label: "Students", short: "Students", icon: "graduation" },
   { id: "cfa", label: "CFA", short: "CFA", icon: "megaphone" },
   { id: "lecturer-reviews", label: "Lecturer Review", short: "Lecturers", icon: "graduation" },
   { id: "tf-reviews", label: "TF Reviews", short: "Reviews", icon: "shield" },
@@ -2044,6 +2045,7 @@ const TAB_GUIDES = {
   groups: { purpose: "Coordinate opt-in study groups, invitations, agendas, and activities.", steps: ["Review existing groups or create a group if your role allows it.", "Respond to invitations and agree on an agenda.", "Keep activities connected to a course or learning goal."] },
   courses: { purpose: "Browse course outcomes, delivery blocks, prerequisites, and teaching teams.", steps: ["Search by course code or title.", "Open a course to inspect its full record.", "Use the teaching-team links to follow up on assignments."] },
   people: { purpose: "Review lecturer and tutor records, contacts, and follow-up status.", steps: ["Filter the directory by role or search by name.", "Open a person record to inspect status and assignments.", "Update follow-up information only when your role permits it."] },
+  students: { purpose: "Review the MathEpi student directory available to your assigned role.", steps: ["Search by student name, cohort, or interest.", "Open the recorded student contact and opt-in details.", "Use approved programme channels and protect student information."] },
   cfa: { purpose: "Track calls for applications and the next recruitment action.", steps: ["Review the status and requirements for each call.", "Open the canonical application form when available.", "Use the review modules for submitted applications."] },
   "lecturer-reviews": { purpose: "Review lecturer applications and record structured decisions.", steps: ["Choose an application from the review list.", "Inspect the application evidence and course fit.", "Save a decision with notes that explain the outcome."] },
   "tf-reviews": { purpose: "Review Tutorial Fellow applications through the staged panel workflow.", steps: ["Filter the applicant funnel by stage, course, or search.", "Review the application and evaluation tabs.", "Record scores, notes, and stage decisions with an audit trail."] },
@@ -2079,8 +2081,10 @@ function defaultViewPermissions() {
 function normalizeViewPermissions(raw) {
   const allowed = new Set(NAV.map((item) => item.id));
   const defaults = defaultViewPermissions();
+  const needsStudentsMigration = !Object.values(raw || {}).some((views) => Array.isArray(views) && views.includes("students"));
   Object.keys(defaults).forEach((role) => {
     const selected = Array.isArray(raw?.[role]) ? raw[role].filter((view) => allowed.has(view)) : defaults[role];
+    if (needsStudentsMigration && defaults[role].includes("students")) selected.push("students");
     defaults[role] = [...new Set(["dashboard", ...selected])];
   });
   return defaults;
@@ -3140,6 +3144,11 @@ function filteredPeople(kind = null) {
   });
 }
 
+function filteredStudents() {
+  const query = state.query.trim().toLowerCase();
+  return state.students.filter((item) => !query || [item.name, item.cohort, item.email, item.interests].join(" ").toLowerCase().includes(query));
+}
+
 function currentTutorId() {
   return "current-tutor";
 }
@@ -4178,6 +4187,8 @@ function renderView() {
       return renderCourses();
     case "people":
       return renderPeople();
+    case "students":
+      return renderStudents();
     case "cfa":
       return renderCfa();
     case "tf-reviews":
@@ -6109,6 +6120,24 @@ function renderCourseRow(item) {
       </div>
       <button class="button ghost" onclick="openDrawer('course', '${item.code}')">${icon("edit", 17)}Open</button>
     </article>
+  `;
+}
+
+function renderStudents() {
+  const students = filteredStudents();
+  return `
+    <div class="view">
+      <section class="section-heading">
+        <div><span class="mission-eyebrow">${icon("graduation", 16)} Student directory</span><h2>Students</h2><p>View the student records assigned to your role. Contact opt-in is shown so staff can use the approved communication route.</p></div>
+        <span class="badge blue">${students.length} visible</span>
+      </section>
+      <div class="student-directory-grid">
+        ${students.map((item) => `<article class="student-directory-card">
+          <div class="student-directory-avatar">${escapeHtml(initials(item.name))}</div>
+          <div class="student-directory-content"><div class="student-directory-title"><h3>${escapeHtml(item.name)}</h3><span class="badge gray">${escapeHtml(item.cohort || "Cohort not set")}</span></div><p>${escapeHtml(item.email || "No email recorded")}</p><p class="muted-note">${escapeHtml(item.interests || "No interests recorded")}</p><div class="row-tags"><span class="chip ${item.contactOptIn ? "green" : "gray"}">${item.contactOptIn ? "Contact opted in" : "Contact opt-in not recorded"}</span></div></div>
+        </article>`).join("") || `<div class="empty">No student matches your search.</div>`}
+      </div>
+    </div>
   `;
 }
 
@@ -8638,13 +8667,13 @@ function renderAccess() {
         <div class="card-header">
           <div>
             <h2>Role-Based Access</h2>
-            <p>These are the same role IDs the login bridge reads from Firebase claims.</p>
+            <p>Navigation visibility is configurable above. Data sensitivity and edit rights remain separate role controls.</p>
           </div>
           <span class="badge maroon">Claims ready</span>
         </div>
         <div class="card-body">
           <table class="mini-table">
-            <thead><tr><th>Role</th><th>Access</th><th>Sensitive Data</th></tr></thead>
+            <thead><tr><th>Role</th><th>Visible views</th><th>Edit data</th><th>Sensitive data</th></tr></thead>
             <tbody>
               ${Object.entries(ROLES)
                 .map(
@@ -8652,6 +8681,7 @@ function renderAccess() {
                   <tr>
                     <td><strong>${role.label}</strong></td>
                     <td>${assignedViews(roleId).map((v) => NAV.find((n) => n.id === v)?.label).join(", ")}</td>
+                    <td>${role.canEdit ? "Allowed" : "Read only"}</td>
                     <td>${role.canSensitive ? "Visible" : "Hidden"}</td>
                   </tr>
                 `,

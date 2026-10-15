@@ -32,6 +32,15 @@ test("production UI exposes installation, offline, and accessible status feedbac
   assert.doesNotMatch(app, /<h2>Email Accounts<\/h2>/);
 });
 
+test("student directory is an assignable role view", () => {
+  const app = read("app.js");
+  assert.match(app, /\{ id: "students", label: "Students"/);
+  assert.match(app, /function renderStudents\(\)/);
+  assert.match(app, /function setRoleViewPermission\(role, view, enabled\)/);
+  assert.match(app, /<h2>View access policy<\/h2>/);
+  assert.match(app, /<th>Edit data<\/th>/);
+});
+
 test("ticket notifications and study-group calendar integration are wired", () => {
   const app = read("app.js");
   const routes = read("apps-script/paste-small-files/01_Routes.gs");

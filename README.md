@@ -11,6 +11,7 @@ Open `index.html` in a browser. No build step is required.
 - Responsive dashboard for desktop, tablet, and phone
 - Seeded MathEpi academic calendar and timetable
 - Course, lecturer, tutor, and contact tracking modules
+- Role-scoped student directory with cohort, contact, interest, and contact-opt-in records
 - Role-aware navigation and actions
 - Installable PWA shell for Android and iPhone home-screen use
 - Firebase email/password account bridge with role-claim mapping

@@ -4903,6 +4903,16 @@ button {
 .view-toggle input:checked + span { background: var(--aims-maroon, #8d111c); }
 .view-toggle input:checked + span::after { transform: translateX(14px); }
 .view-toggle input:disabled + span { opacity: .55; cursor: not-allowed; }
+.student-directory-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.section-heading h2 { margin: 5px 0 6px; color: var(--ink, #0c1940); font-family: Georgia, "Times New Roman", serif; font-size: clamp(26px, 3vw, 38px); }
+.section-heading p { max-width: 760px; margin: 0; color: var(--muted, #6a675e); line-height: 1.5; }
+.student-directory-card { display: flex; gap: 13px; min-width: 0; padding: 16px; border: 1px solid var(--line, #dedbd3); border-radius: 8px; background: var(--panel, #fff); }
+.student-directory-avatar { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border-radius: 50%; background: #e8edf5; color: #0c1940; font-weight: 900; }
+.student-directory-content { min-width: 0; flex: 1; }
+.student-directory-title { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.student-directory-title h3 { margin: 0; color: var(--ink, #0c1940); font-size: 16px; }
+.student-directory-content > p { margin: 5px 0 0; overflow-wrap: anywhere; }
 
 /* Persistent, minimized Ask Pi helper. It stays clear of the main content and mobile nav. */
 .pi-floating { position: fixed; right: 22px; bottom: 22px; z-index: 42; display: grid; justify-items: end; gap: 10px; pointer-events: none; }
