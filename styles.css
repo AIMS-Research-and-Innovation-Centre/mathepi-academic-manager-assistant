@@ -4888,6 +4888,47 @@ button {
   }
 }
 
+/* Dynamic role view policy */
+.access-policy-scroll { overflow-x: auto; }
+.access-policy-table { min-width: 980px; }
+.access-policy-table th,
+.access-policy-table td { text-align: center; vertical-align: middle; }
+.access-policy-table th:first-child,
+.access-policy-table td:first-child { min-width: 180px; text-align: left; }
+.access-policy-table td:first-child small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; }
+.view-toggle { display: inline-grid; place-items: center; cursor: pointer; }
+.view-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.view-toggle span { width: 34px; height: 20px; border-radius: 999px; background: #d7d5cf; position: relative; transition: .18s ease; }
+.view-toggle span::after { content: ""; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: .18s ease; }
+.view-toggle input:checked + span { background: var(--aims-maroon, #8d111c); }
+.view-toggle input:checked + span::after { transform: translateX(14px); }
+.view-toggle input:disabled + span { opacity: .55; cursor: not-allowed; }
+
+/* Persistent, minimized Ask Pi helper. It stays clear of the main content and mobile nav. */
+.pi-floating { position: fixed; right: 22px; bottom: 22px; z-index: 42; display: grid; justify-items: end; gap: 10px; pointer-events: none; }
+.pi-floating > * { pointer-events: auto; }
+.pi-floating-launcher { display: inline-flex; align-items: center; gap: 9px; min-height: 46px; padding: 7px 15px 7px 8px; border: 1px solid rgba(12,25,64,.18); border-radius: 999px; background: #0c1940; color: #fff; box-shadow: 0 12px 30px rgba(12,25,64,.25); font: inherit; font-weight: 800; cursor: pointer; }
+.pi-floating-mark { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 50%; background: #d99b2b; color: #0c1940; font: 24px Georgia, serif; }
+.pi-floating-panel { width: min(370px, calc(100vw - 30px)); max-height: min(620px, calc(100vh - 120px)); display: grid; gap: 12px; padding: 16px; overflow: hidden; border: 1px solid #d9d6ce; border-radius: 14px; background: var(--surface, #fff); box-shadow: 0 20px 60px rgba(12,25,64,.22); }
+.pi-floating-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pi-floating-head h3 { margin: 2px 0 0; color: #0c1940; font-size: 20px; }
+.pi-floating-close { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: #f0eee9; color: #0c1940; cursor: pointer; }
+.pi-floating-scope, .pi-floating-empty { margin: 0; color: var(--muted, #6a675e); font-size: 12px; line-height: 1.45; }
+.pi-guide-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; border: 1px solid #d9d6ce; border-radius: 8px; background: #f8f6f1; color: #0c1940; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.pi-floating-conversation { display: grid; gap: 8px; max-height: 290px; overflow: auto; padding: 2px; }
+.pi-float-user { justify-self: end; max-width: 88%; padding: 8px 10px; border-radius: 10px 10px 2px 10px; background: #0c1940; color: #fff; font-size: 12px; line-height: 1.4; }
+.pi-float-answer { padding: 10px; border: 1px solid #e3e0d9; border-radius: 10px 10px 10px 2px; color: #3e3b36; font-size: 12px; line-height: 1.45; }
+.pi-float-answer strong { display: block; margin-bottom: 4px; color: #0c1940; }
+.pi-float-answer p { margin: 0; }
+.pi-float-answer ul { margin: 7px 0 0; padding-left: 16px; }
+.pi-floating-composer { display: grid; grid-template-columns: 1fr 38px; gap: 7px; }
+.pi-floating-composer input { min-width: 0; min-height: 38px; padding: 0 10px; border: 1px solid #d9d6ce; border-radius: 8px; background: var(--surface, #fff); color: inherit; font: inherit; font-size: 12px; }
+.pi-floating-composer button { display: grid; place-items: center; border: 0; border-radius: 8px; background: #8d111c; color: #fff; cursor: pointer; }
+@media (max-width: 700px) {
+  .pi-floating { right: 12px; bottom: calc(var(--mobile-nav, 74px) + 12px); }
+  .pi-floating-panel { max-height: calc(100vh - 170px); }
+}
+
 @media (max-width: 1024px) {
   .app-shell {
     display: block;

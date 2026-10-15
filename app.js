@@ -2015,7 +2015,6 @@ const ROLES = {
 
 const NAV = [
   { id: "dashboard", label: "Command", icon: "command" },
-  { id: "pi", label: "Ask Pi", short: "Pi", icon: "spark" },
   { id: "calendar", label: "Calendar", icon: "calendar" },
   { id: "planner", label: "Student Planner", short: "Planner", icon: "planner" },
   { id: "groups", label: "Study Groups", short: "Groups", icon: "group" },
@@ -2032,6 +2031,60 @@ const NAV = [
   { id: "google", label: "Sheets & Drive", short: "Sheets", icon: "cloud" },
   { id: "access", label: "Access Control", short: "Access", icon: "shield" },
 ];
+
+// View access is deliberately separate from the role descriptions. An admin
+// can now tailor the navigation for each role without changing the role's
+// identity or the underlying data permissions.
+const VIEW_PERMISSIONS_KEY = "mathepi-view-permissions-v1";
+const TAB_GUIDES = {
+  dashboard: { purpose: "See programme priorities, risks, upcoming work, and the quickest routes to action.", steps: ["Review the priority cards and programme pulse.", "Open the linked module when a follow-up needs action.", "Use Ask Pi for a grounded summary of the current workspace."] },
+  pi: { purpose: "Ask Pi questions about approved programme information and prepare requests for your confirmation.", steps: ["Ask a specific question or choose a suggested prompt.", "Check the cited source and any proposed action.", "Confirm any appointment, support, task, or planner draft before saving."] },
+  calendar: { purpose: "Review teaching blocks, sessions, course delivery, and programme dates.", steps: ["Choose Timeline, Week, or Agenda.", "Select a teaching block to narrow the schedule.", "Open a course or session for its recorded details."] },
+  planner: { purpose: "Plan student study time and turn to-dos into course-linked blocks.", steps: ["Create a to-do or planned study block.", "Link it to a course and add a due date or time.", "Review the week for balance and mark completed work."] },
+  groups: { purpose: "Coordinate opt-in study groups, invitations, agendas, and activities.", steps: ["Review existing groups or create a group if your role allows it.", "Respond to invitations and agree on an agenda.", "Keep activities connected to a course or learning goal."] },
+  courses: { purpose: "Browse course outcomes, delivery blocks, prerequisites, and teaching teams.", steps: ["Search by course code or title.", "Open a course to inspect its full record.", "Use the teaching-team links to follow up on assignments."] },
+  people: { purpose: "Review lecturer and tutor records, contacts, and follow-up status.", steps: ["Filter the directory by role or search by name.", "Open a person record to inspect status and assignments.", "Update follow-up information only when your role permits it."] },
+  cfa: { purpose: "Track calls for applications and the next recruitment action.", steps: ["Review the status and requirements for each call.", "Open the canonical application form when available.", "Use the review modules for submitted applications."] },
+  "lecturer-reviews": { purpose: "Review lecturer applications and record structured decisions.", steps: ["Choose an application from the review list.", "Inspect the application evidence and course fit.", "Save a decision with notes that explain the outcome."] },
+  "tf-reviews": { purpose: "Review Tutorial Fellow applications through the staged panel workflow.", steps: ["Filter the applicant funnel by stage, course, or search.", "Review the application and evaluation tabs.", "Record scores, notes, and stage decisions with an audit trail."] },
+  appointments: { purpose: "Request, confirm, and track meetings with the programme teaching and support team.", steps: ["Choose who you need to meet and why.", "Select an available date, time, and mode.", "Track the request until it is confirmed or completed."] },
+  support: { purpose: "Raise and track academic, wellbeing, logistics, facilities, and IT support requests.", steps: ["Choose the correct support category and urgency.", "Describe the issue without including unnecessary sensitive information.", "Follow the status and assigned handler in this workspace."] },
+  contact: { purpose: "Find programme contacts and follow up on people who need a response.", steps: ["Search for a person or filter by contact status.", "Open the contact record for the next follow-up date.", "Use the approved channel recorded for that person."] },
+  timesheets: { purpose: "Log and review tutor work, assignments, and workload balance.", steps: ["Open the assigned-work view for your role.", "Add a time entry with the relevant course or task.", "Review balance signals before approving or escalating work."] },
+  tasks: { purpose: "Track programme tasks, activities, owners, deadlines, and status.", steps: ["Filter tasks by owner, priority, or status.", "Open a task to inspect its details and deadline.", "Update status when the work moves forward."] },
+  google: { purpose: "Connect the portal to the Google Sheets and Drive workspace.", steps: ["Confirm the Apps Script Web App URL.", "Pull or initialize the approved workspace data.", "Use autosync only after checking the connected destination."] },
+  access: { purpose: "Approve accounts and control which navigation views each role receives.", steps: ["Review pending account requests.", "Assign the appropriate role during approval.", "Use View access policy to turn individual tabs on or off for each role."] },
+};
+
+const PI_GROUNDING_POLICY = {
+  objective: "Answer MathEpi questions using only the approved knowledge base.",
+  sources: ["live workspace records", "programme guides and policies", "course and people records", "tab guides", "published programme-team answers"],
+  rules: [
+    "Use only clear facts directly present in an approved source.",
+    "Do not browse externally, infer missing facts, or present uncertain matches as facts.",
+    "If the answer is absent, say: I do not have that information in the MathEpi knowledge base.",
+    "Name the source used for every substantive answer.",
+    "Prepare actions for user confirmation; never silently submit or change records.",
+  ],
+};
+
+function piGroundingDescription() {
+  return `I answer only from ${PI_GROUNDING_POLICY.sources.join(", ")}. If the answer is not explicitly present there, I will say: “I do not have that information in the MathEpi knowledge base.”`;
+}
+
+function defaultViewPermissions() {
+  return Object.fromEntries(Object.entries(ROLES).map(([role, definition]) => [role, [...definition.views]]));
+}
+
+function normalizeViewPermissions(raw) {
+  const allowed = new Set(NAV.map((item) => item.id));
+  const defaults = defaultViewPermissions();
+  Object.keys(defaults).forEach((role) => {
+    const selected = Array.isArray(raw?.[role]) ? raw[role].filter((view) => allowed.has(view)) : defaults[role];
+    defaults[role] = [...new Set(["dashboard", ...selected])];
+  });
+  return defaults;
+}
 
 const PI_CHAT_KEY = "mathepi-pi-chat-v1";
 const PI_ONBOARDING_KEY = "mathepi-pi-onboarding-v1";
@@ -2432,6 +2485,7 @@ function googleSnapshot() {
   return {
     datasets,
     cfaStatuses: state.cfaStatuses,
+    viewPermissions: state.viewPermissions,
     studentCalendarConnected: state.studentCalendarConnected,
     savedAt: new Date().toISOString(),
   };
@@ -2529,6 +2583,7 @@ async function pullGoogleBootstrap() {
       if (Array.isArray(datasets[tab])) state[key] = datasets[tab];
     });
     if (result?.cfaStatuses) state.cfaStatuses = result.cfaStatuses;
+    if (result?.viewPermissions) state.viewPermissions = normalizeViewPermissions(result.viewPermissions);
     state.googleConnected = true;
     migrateProgrammeData();
     save();
@@ -2545,6 +2600,7 @@ const initialHashView = window.location.hash ? window.location.hash.slice(1) : "
 const state = {
   view: NAV.some((item) => item.id === initialHashView) ? initialHashView : "dashboard",
   role: "manager",
+  viewPermissions: normalizeViewPermissions(load(VIEW_PERMISSIONS_KEY, defaultViewPermissions())),
   query: "",
   calendarMode: "timeline",
   plannerMode: "week",
@@ -2573,6 +2629,7 @@ const state = {
     queue: [],
     busy: false,
     communityLoadedAt: 0,
+    floatingOpen: false,
   },
   tfReview: {
     session: load(TF_REVIEW_SESSION_KEY, null),
@@ -2887,6 +2944,7 @@ function save() {
   safeStorageSet(PI_CHAT_KEY, JSON.stringify(state.pi.messages.slice(-20).map((message) => (message.private ? { ...message, text: "(private message not saved)" } : message))));
   safeStorageSet(PI_ONBOARDING_KEY, JSON.stringify(state.pi.onboarding));
   safeStorageSet("mathepi-pi-audience", state.pi.audience);
+  safeStorageSet(VIEW_PERMISSIONS_KEY, JSON.stringify(state.viewPermissions));
   safeStorageSet("mathepi-courses", JSON.stringify(state.courses));
   safeStorageSet("mathepi-people", JSON.stringify(state.people));
   safeStorageSet("mathepi-blocks", JSON.stringify(state.blocks));
@@ -2975,7 +3033,28 @@ function toggleTheme() {
 }
 
 function canView(view) {
-  return roleDef().views.includes(view);
+  return assignedViews(state.role).includes(view);
+}
+
+function assignedViews(role) {
+  return state.viewPermissions?.[role] || ROLES[role]?.views || ["dashboard"];
+}
+
+function canManageViewPermissions() {
+  return ["super-admin", "manager"].includes(state.role);
+}
+
+function setRoleViewPermission(role, view, enabled) {
+  if (!canManageViewPermissions() || !ROLES[role] || !NAV.some((item) => item.id === view)) return;
+  const current = new Set(assignedViews(role));
+  if (enabled) current.add(view);
+  else if (view !== "dashboard") current.delete(view);
+  current.add("dashboard");
+  state.viewPermissions[role] = NAV.map((item) => item.id).filter((id) => current.has(id));
+  if (role === state.role && !canView(state.view)) state.view = "dashboard";
+  save();
+  toast(`${ROLES[role].label}: ${NAV.find((item) => item.id === view)?.label || view} ${enabled ? "enabled" : "hidden"}.`);
+  render();
 }
 
 function canEdit() {
@@ -4048,6 +4127,7 @@ function appLayout() {
         <main class="main">${renderView()}</main>
       </section>
     </div>
+    ${renderPiWidget()}
     ${mobileNav(nav)}
     ${state.drawer ? renderDrawer() : ""}
     ${navigator.onLine ? "" : `<div class="connection-banner" role="status">${icon("cloud", 17)} Offline. Live changes will not save until the connection returns.</div>`}
@@ -4740,6 +4820,17 @@ async function piRespond(question) {
   const sensitive = engine.detectSensitive(question);
   if (sensitive) return piSensitiveAnswer(sensitive.kind);
 
+  if (/\b(guide me|how do i use|what is this tab|explain this tab|walk me through)\b/.test(q)) {
+    const guide = TAB_GUIDES[state.view] || TAB_GUIDES.dashboard;
+    return {
+      title: `${NAV.find((item) => item.id === state.view)?.label || "This tab"} guide`,
+      text: guide.purpose,
+      bullets: guide.steps,
+      source: "MathEpi tab guide",
+      kind: "guide",
+    };
+  }
+
   const greeting = /^(hi|hello|hey|good (morning|afternoon|evening)|habari|jambo)\b/.test(q) && q.split(" ").length <= 4;
   if (greeting || /^(brief( me)?|briefing|my day|what'?s new|anything (due|new)( today| this week)?|what should i (do|focus on)( today| now| this week)?)[?.!]*$/.test(q)) return piBriefing();
 
@@ -4833,7 +4924,7 @@ async function piRespond(question) {
 
   return {
     title: "I am not sure yet",
-    text: "I could not find this in the schedule, course records or approved programme documents. You can send the question to the programme team; once they answer it, I will know the answer for everyone.",
+    text: "I do not have that information in the MathEpi knowledge base. I will not guess or use outside information. You can send the question to the programme team; once they publish an answer, Pi can use it.",
     bullets: ranked.slice(0, 3).map((result) => `Possibly related: ${result.doc.title}`),
     source: "Pi help guide",
     offerSend: true,
@@ -4845,11 +4936,12 @@ async function piRespond(question) {
 // ---------------------------------------------------------------- conversation
 
 async function askPi(prompt) {
-  const input = document.querySelector("#piQuestion");
+  const input = document.querySelector("#piQuestion") || document.querySelector("#piFloatingQuestion");
   const question = String(prompt || input?.value || "").trim().slice(0, 500);
   if (!question || state.pi.busy) return;
   const sensitive = !!piEngine().detectSensitive(question);
   state.pi.messages.push({ role: "user", text: question, private: sensitive, at: new Date().toISOString() });
+  state.pi.floatingOpen = true;
   state.pi.busy = true;
   render();
   piScrollConversation();
@@ -4887,6 +4979,24 @@ function clearPiChat() {
 
 function setPiAudience(audience) {
   state.pi.audience = audience;
+  save();
+  render();
+}
+
+function togglePiWidget(force) {
+  state.pi.floatingOpen = typeof force === "boolean" ? force : !state.pi.floatingOpen;
+  render();
+  if (state.pi.floatingOpen) document.querySelector("#piFloatingQuestion")?.focus({ preventScroll: true });
+}
+
+function guideCurrentTab() {
+  const guide = TAB_GUIDES[state.view] || TAB_GUIDES.dashboard;
+  state.pi.messages.push({
+    role: "pi",
+    answer: { title: `${NAV.find((item) => item.id === state.view)?.label || "This tab"} guide`, text: guide.purpose, bullets: guide.steps, source: "MathEpi tab guide", kind: "guide" },
+    at: new Date().toISOString(),
+  });
+  state.pi.floatingOpen = true;
   save();
   render();
 }
@@ -5079,7 +5189,7 @@ function renderPi() {
         <div>
           <span class="mission-eyebrow">AIMS RIC digital assistant</span>
           <h2>Ask Pi. Find the right answer in the right context.</h2>
-          <p>Programme guidance grounded in the live MathEpi workspace, curriculum, orientation material, Student Code of Conduct and answers from the programme team.</p>
+          <p>${escapeHtml(piGroundingDescription())}</p>
         </div>
         <label class="pi-audience-control">Guidance for
           <select onchange="setPiAudience(this.value)">
@@ -5143,6 +5253,25 @@ function renderPi() {
       </div>
     </div>
   `;
+}
+
+function renderPiWidget() {
+  if (state.view === "pi") return "";
+  const guide = TAB_GUIDES[state.view] || TAB_GUIDES.dashboard;
+  const recent = state.pi.messages.slice(-3).map((message, index) => message.role === "user"
+    ? `<div class="pi-float-user">${escapeHtml(message.text)}</div>`
+    : `<div class="pi-float-answer"><strong>${escapeHtml(message.answer?.title || "Pi")}</strong><p>${escapeHtml(message.answer?.text || "")}</p>${message.answer?.bullets?.length ? `<ul>${message.answer.bullets.slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}</div>`).join("");
+  return `
+    <aside class="pi-floating ${state.pi.floatingOpen ? "is-open" : ""}" aria-label="Ask Pi assistant">
+      ${state.pi.floatingOpen ? `<div class="pi-floating-panel">
+        <div class="pi-floating-head"><div><span class="eyebrow">Grounded assistant</span><h3>Ask Pi</h3></div><button class="pi-floating-close" onclick="togglePiWidget(false)" aria-label="Minimize Ask Pi">${icon("x", 16)}</button></div>
+        <p class="pi-floating-scope">${escapeHtml(piGroundingDescription())}</p>
+        <button class="pi-guide-button" onclick="guideCurrentTab()">${icon("book", 15)} Guide me through ${escapeHtml(NAV.find((item) => item.id === state.view)?.label || "this tab")}</button>
+        <div class="pi-floating-conversation" aria-live="polite">${recent || `<p class="pi-floating-empty">Ask about this tab or choose the guide button.</p>`}</div>
+        <form class="pi-floating-composer" onsubmit="event.preventDefault(); askPi()"><input id="piFloatingQuestion" maxlength="500" autocomplete="off" placeholder="Ask from the knowledge base…" ${state.pi.busy ? "disabled" : ""} /><button type="submit" aria-label="Ask Pi" ${state.pi.busy ? "disabled" : ""}>${icon("spark", 16)}</button></form>
+      </div>` : ""}
+      <button class="pi-floating-launcher" onclick="togglePiWidget()" aria-label="${state.pi.floatingOpen ? "Minimize Ask Pi" : "Open Ask Pi"}" title="${state.pi.floatingOpen ? "Minimize Ask Pi" : "Open Ask Pi"}"><span class="pi-floating-mark">π</span><span>${state.pi.floatingOpen ? "Minimize" : "Ask Pi"}</span></button>
+    </aside>`;
 }
 
 function renderDashboard() {
@@ -8423,11 +8552,36 @@ function sheetDescription(tab) {
   return map[tab] || "";
 }
 
+function renderViewAccessPolicy() {
+  if (!canManageViewPermissions()) return "";
+  return `
+    <div class="card access-policy-card">
+      <div class="card-header">
+        <div>
+          <h2>View access policy</h2>
+          <p>Turn individual tabs on or off for each role. Dashboard is always available. Changes apply immediately; save them to the connected Google workspace to share the policy across accounts.</p>
+        </div>
+        <div class="card-header-actions"><span class="badge blue">Admin only</span><button class="button ghost" onclick="pushGoogleSnapshot('view-policy')" ${googleBackendAvailable() ? "" : "disabled"}>${icon("cloud", 15)}Save policy</button></div>
+      </div>
+      <div class="card-body access-policy-scroll">
+        <table class="mini-table access-policy-table">
+          <thead><tr><th>Role</th>${NAV.map((item) => `<th title="${escapeHtml(item.label)}">${escapeHtml(item.short || item.label)}</th>`).join("")}</tr></thead>
+          <tbody>${Object.entries(ROLES).map(([role, definition]) => `
+            <tr>
+              <td><strong>${escapeHtml(definition.label)}</strong><small>${escapeHtml(role)}</small></td>
+              ${NAV.map((item) => `<td><label class="view-toggle" title="${escapeHtml(`${definition.label}: ${item.label}`)}"><input type="checkbox" ${assignedViews(role).includes(item.id) ? "checked" : ""} ${item.id === "dashboard" ? "disabled" : ""} onchange="setRoleViewPermission('${role}', '${item.id}', this.checked)" /><span></span></label></td>`).join("")}
+            </tr>`).join("")}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
 function renderAccess() {
   const auth = window.mathepiAuth || { status: "unconfigured", user: null };
   const currentRole = auth.user?.role || state.role;
   return `
     <div class="view section-grid">
+      ${renderViewAccessPolicy()}
       <div class="card">
         <div class="card-header"><div><h2>Account approvals</h2><p>Only <strong>@aimsric.org</strong> accounts can request access. Review pending requests here.</p></div><button class="button ghost" onclick="loadPortalRequests()" ${state.portalRequestsLoading ? "disabled" : ""}>${state.portalRequestsLoading ? "Loading approvals..." : "Refresh approvals"}</button></div>
         <div class="card-body assistant-stack">${state.portalRequestsLoading && !portalRequests.length ? `<div class="empty">Loading pending access requests...</div>` : portalRequests.length ? portalRequests.map((request) => `<article class="access-request-card">
@@ -8492,12 +8646,12 @@ function renderAccess() {
           <table class="mini-table">
             <thead><tr><th>Role</th><th>Access</th><th>Sensitive Data</th></tr></thead>
             <tbody>
-              ${Object.values(ROLES)
+              ${Object.entries(ROLES)
                 .map(
-                  (role) => `
+                  ([roleId, role]) => `
                   <tr>
                     <td><strong>${role.label}</strong></td>
-                    <td>${role.views.map((v) => NAV.find((n) => n.id === v)?.label).join(", ")}</td>
+                    <td>${assignedViews(roleId).map((v) => NAV.find((n) => n.id === v)?.label).join(", ")}</td>
                     <td>${role.canSensitive ? "Visible" : "Hidden"}</td>
                   </tr>
                 `,
@@ -9833,11 +9987,14 @@ function render() {
 
 window.setView = setView;
 window.setRole = setRole;
+window.setRoleViewPermission = setRoleViewPermission;
 window.setAuthenticatedRole = setAuthenticatedRole;
 window.toggleTheme = toggleTheme;
 window.askPi = askPi;
 window.clearPiChat = clearPiChat;
 window.setPiAudience = setPiAudience;
+window.togglePiWidget = togglePiWidget;
+window.guideCurrentTab = guideCurrentTab;
 window.togglePiOnboarding = togglePiOnboarding;
 window.piOpenDraft = piOpenDraft;
 window.piFeedback = piFeedback;
@@ -9947,6 +10104,7 @@ window.addEventListener("hashchange", () => {
 migrateProgrammeData();
 save();
 applyTheme();
+if (!canView(state.view)) state.view = "dashboard";
 if (state.view === "tf-reviews") setView("tf-reviews");
 else render();
 if (portalAccess?.token) refreshPortalAccess();

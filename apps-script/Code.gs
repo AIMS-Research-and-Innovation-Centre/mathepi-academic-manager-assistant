@@ -243,10 +243,15 @@ function getBootstrap() {
   DATASET_TABS.forEach((tab) => {
     datasets[tab] = readJsonRecords(getSheet(spreadsheet, tab));
   });
+  const snapshots = readSheetObjects(getSheet(spreadsheet, "AppState"));
+  const latest = snapshots.find((row) => row.key === "latest_snapshot");
+  let viewPermissions = null;
+  try { viewPermissions = latest && latest.json ? JSON.parse(latest.json).viewPermissions || null : null; } catch (e) {}
   return {
     ok: true,
     datasets,
     cfaStatuses: readCfaStatuses(spreadsheet),
+    viewPermissions,
     spreadsheetId: spreadsheet.getId(),
     spreadsheetUrl: spreadsheet.getUrl(),
   };

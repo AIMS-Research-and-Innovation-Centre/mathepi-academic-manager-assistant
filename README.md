@@ -22,6 +22,8 @@ Open `index.html` in a browser. No build step is required.
 - Appointment and booking module across students, tutors, lecturers, Head Tutor, Centre Coordinators, and Academic & Research Manager
 - Whole-programme Support & Wellness hub for students, tutors, lecturers, coordinators, support/counsellor, and IT support workflows
 - Compact icon-only dark/light mode toggle for mobile and tablet space efficiency
+- Dynamic role view policies: administrators can assign visible tabs per role and publish the policy to the shared workspace
+- Persistent floating Ask Pi helper with strict knowledge-base grounding and tab-by-tab guidance
 - Tutor timesheets, assigned-work view, and workload balance signals
 - Pre-arrival Tasks & Activities board for travel, accommodation, facilities, meals, tutor hiring, and lecturer appointments
 - Google Apps Script backend package for Google Sheets data, Drive folders, CFA status, lecturer applications, and Tutorial Fellows applications
