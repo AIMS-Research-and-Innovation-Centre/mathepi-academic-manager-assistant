@@ -111,7 +111,9 @@ const DEFAULT_COURSES = [
     "assignmentHours": 5,
     "independentStudyHours": 15,
     "lecturerId": null,
-    "lecturerName": "Prof. Blaise Tchapnda",
+    "lecturerName": "Prof. Faraimunashe Chirove",
+    "manualAlternateLecturerName": "Prof. Blaise Tchapnda",
+    "alternateLecturerName": "Prof. Blaise Tchapnda",
     "lecturerStatus": "Confirmed programme assignment",
     "tutorIds": []
   },
@@ -452,7 +454,7 @@ const DEFAULT_PEOPLE = [
 
 const CONFIRMED_LECTURER_ASSIGNMENTS = {
   MES01: { lecturerName: "Dr Bernard Bainson" },
-  MES02: { lecturerName: "Prof. Blaise Tchapnda" },
+  MES02: { lecturerName: "Prof. Faraimunashe Chirove", manualAlternateLecturerName: "Prof. Blaise Tchapnda" },
   MES03: { lecturerName: "Prof. Cecil Ouma", manualAlternateLecturerName: "Eunice" },
   MEC06: { lecturerName: "Dr Issa Karambal" },
   MEC08: { lecturerName: "Ogwel" },
