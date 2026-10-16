@@ -98,6 +98,37 @@ function listPortalAccessRequests(payload) {
   return { ok: true, requests: portalStoredAccessRows_().filter(function (row) { return row.status === "pending"; }) };
 }
 
+function listPortalAccessUsers(payload) {
+  portalRequireSession_(payload && payload.token, true);
+  const users = portalStoredAccessRows_().filter(function (row) { return row.status !== "pending"; }).map(function (row) {
+    row.roles = JSON.parse(row.roles_json || "[]");
+    return row;
+  });
+  return { ok: true, users: users };
+}
+
+function updatePortalUserAccess(payload) {
+  payload = payload || {};
+  const admin = portalRequireSession_(payload.token, true);
+  const email = normalizeEmailAddress(payload.email);
+  const role = portalRole_(payload.role);
+  if (email === PORTAL_ADMIN_EMAIL && payload.active === false) throw new Error("The primary administrator account cannot be switched off.");
+  const found = portalStoredAccess_(email);
+  if (!found) throw new Error("Access record not found.");
+  const active = payload.active === true || String(payload.active).toLowerCase() === "true";
+  found.requested_role = role;
+  found.roles_json = JSON.stringify(active ? [role] : []);
+  found.status = active ? "approved" : "suspended";
+  found.decided_at = new Date().toISOString();
+  found.decided_by = admin.email;
+  found.notification_id = Utilities.getUuid();
+  found.notification_message = active
+    ? "Your MathEpi access is active as " + role + "."
+    : "Your MathEpi access has been switched off. Please contact the Academic Manager if you need access restored.";
+  portalStoreAccess_(found);
+  return { ok: true, email: email, status: found.status };
+}
+
 function decidePortalAccess(payload) {
   payload = payload || {};
   const admin = portalRequireSession_(payload.token, true);

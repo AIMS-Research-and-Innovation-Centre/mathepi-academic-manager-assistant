@@ -1,12 +1,12 @@
-const CACHE_NAME = "mathepi-academic-manager-v79";
+const CACHE_NAME = "mathepi-academic-manager-v80";
 // Pi's on-device model is cached by the library under this name; keep it
 // across app updates so it is downloaded only once.
 const KEEP_CACHES = ["transformers-cache"];
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=38",
-  "./app.js?v=69",
+  "./styles.css?v=39",
+  "./app.js?v=70",
   "./pi/pi-engine.js?v=1",
   "./pi/pi-semantic-worker.js?v=1",
   "./auth/firebase-config.js?v=3",

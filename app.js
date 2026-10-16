@@ -2302,6 +2302,7 @@ const TF_REVIEW_SESSION_KEY = "mathepi-tf-review-session-v1";
 const PORTAL_ACCESS_SESSION_KEY = "mathepi-portal-access-v1";
 let portalAccess = (() => { try { return JSON.parse(localStorage.getItem(PORTAL_ACCESS_SESSION_KEY) || "null"); } catch { return null; } })();
 let portalRequests = [];
+let portalUsers = [];
 const TF_REVIEW_STAGES = [
   { id: "all", label: "All applicants", target: 100 },
   { id: "screened", label: "Screened", target: 85 },
@@ -2976,7 +2977,9 @@ function icon(name, size = 20) {
 }
 
 function today() {
-  return new Date("2026-05-21T09:00:00+02:00");
+  const current = new Date();
+  current.setHours(0, 0, 0, 0);
+  return current;
 }
 
 function dateLabel(iso) {
@@ -3588,6 +3591,29 @@ function nextStartLabel() {
   return `${days} days`;
 }
 
+function programmePulse() {
+  const now = today();
+  const datedBlocks = state.blocks
+    .filter((item) => item.start && item.end)
+    .map((item) => ({
+      ...item,
+      startDate: new Date(`${item.start}T00:00:00`),
+      endDate: new Date(`${item.end}T23:59:59`),
+    }))
+    .sort((a, b) => a.startDate - b.startDate);
+  const active = datedBlocks.find((item) => now >= item.startDate && now <= item.endDate);
+  if (active) {
+    const daysRemaining = Math.max(0, Math.ceil((active.endDate - now) / 86400000));
+    return `${active.title} is active. ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} remaining.`;
+  }
+  const upcoming = datedBlocks.find((item) => item.startDate > now);
+  if (upcoming) {
+    const daysAway = Math.max(0, Math.ceil((upcoming.startDate - now) / 86400000));
+    return `${upcoming.title} begins in ${daysAway} day${daysAway === 1 ? "" : "s"}.`;
+  }
+  return datedBlocks.length ? "The scheduled programme blocks are complete." : "Programme dates are not yet available.";
+}
+
 function statusBadge(status) {
   return `<span class="badge ${STATUS_COLOR[status] || "gray"}">${status}</span>`;
 }
@@ -3769,7 +3795,7 @@ function setView(view) {
     history.replaceState(null, "", `#${state.view}`);
   }
   render();
-  if (state.view === "access" && ["super-admin", "manager"].includes(state.role)) loadPortalRequests();
+  if (state.view === "access" && ["super-admin", "manager"].includes(state.role)) loadPortalAccess();
   if (state.view === "calendar" || state.view === "courses") syncReviewStaffing({ quiet: true });
 }
 
@@ -4095,7 +4121,7 @@ function appLayout() {
           </div>
           <div class="assistant-pulse">
             <div class="pulse-top"><span>Operations pulse</span><span class="pulse-dot"></span></div>
-            <p class="pulse-copy">${overduePeople().length} follow-up${overduePeople().length === 1 ? "" : "s"} need attention. Block 1 begins in ${nextStartLabel()}.</p>
+            <p class="pulse-copy">${overduePeople().length} follow-up${overduePeople().length === 1 ? "" : "s"} need attention. ${programmePulse()}</p>
           </div>
         </div>
         <nav class="nav">
@@ -5737,7 +5763,7 @@ async function refreshPortalAccess(options = {}) {
     notifyPortalDecision(previousStatus, result);
     if (result.status === "approved") setAuthenticatedRoles(result.roles);
     else render();
-    if (state.view === "access") loadPortalRequests();
+    if (state.view === "access") loadPortalAccess();
   } catch (error) {
     if (!options.quiet) toast(error.message || "Status could not be refreshed.");
   }
@@ -8612,15 +8638,29 @@ function renderAccess() {
     <div class="view section-grid">
       ${renderViewAccessPolicy()}
       <div class="card">
-        <div class="card-header"><div><h2>Account approvals</h2><p>Only <strong>@aimsric.org</strong> accounts can request access. Review pending requests here.</p></div><button class="button ghost" onclick="loadPortalRequests()" ${state.portalRequestsLoading ? "disabled" : ""}>${state.portalRequestsLoading ? "Loading approvals..." : "Refresh approvals"}</button></div>
+        <div class="card-header"><div><h2>Account approvals</h2><p>Only <strong>@aimsric.org</strong> accounts can request access. Review pending requests here.</p></div><button class="button ghost" onclick="loadPortalAccess()" ${state.portalRequestsLoading ? "disabled" : ""}>${state.portalRequestsLoading ? "Loading access..." : "Refresh access"}</button></div>
         <div class="card-body assistant-stack">${state.portalRequestsLoading && !portalRequests.length ? `<div class="empty">Loading pending access requests...</div>` : portalRequests.length ? portalRequests.map((request) => `<article class="access-request-card">
           <div class="access-request-identity">
             <span class="access-request-avatar">${escapeHtml(String(request.email || "?").charAt(0).toUpperCase())}</span>
             <div><strong>${escapeHtml(request.email)}</strong><span class="badge gold">Pending approval</span><p>Requested role: ${escapeHtml(ROLES[request.requested_role]?.label || request.requested_role)}</p></div>
           </div>
           <div class="access-request-role"><label for="access-role-${request._row}">Assign role</label><select id="access-role-${request._row}">${Object.entries(ROLES).filter(([id]) => !["super-admin","reviewer"].includes(id)).map(([id,role]) => `<option value="${id}" ${id === request.requested_role ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></div>
-          <div class="access-request-actions"><button class="button primary" onclick="decidePortalRequest('${escapeHtml(request.email)}','approved','access-role-${request._row}')">${icon("check", 17)}Approve</button><button class="button ghost danger-action" onclick="decidePortalRequest('${escapeHtml(request.email)}','rejected','access-role-${request._row}')">${icon("x", 17)}Reject</button></div>
+          <div class="access-request-actions"><label class="sr-only" for="access-decision-${request._row}">Decision</label><select id="access-decision-${request._row}" aria-label="Decision for ${escapeHtml(request.email)}"><option value="approved">Approve access</option><option value="rejected">Reject request</option></select><button class="button primary" onclick="decidePortalRequestFromMenu('${escapeHtml(request.email)}','access-role-${request._row}','access-decision-${request._row}')">Apply</button></div>
         </article>`).join("") : `<div class="empty">No pending access requests.</div>`}</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div><h2>People with portal access</h2><p>Review assigned roles and switch a person's portal access on or off.</p></div><span class="badge blue">${portalUsers.length} user${portalUsers.length === 1 ? "" : "s"}</span></div>
+        <div class="card-body access-user-list">
+          ${state.portalRequestsLoading && !portalUsers.length ? `<div class="empty">Loading users...</div>` : portalUsers.length ? portalUsers.map((user) => {
+            const enabled = user.status === "approved";
+            const role = (Array.isArray(user.roles) && user.roles[0]) || user.requested_role || "viewer";
+            return `<article class="access-user-row">
+              <div class="access-request-identity"><span class="access-request-avatar">${escapeHtml(String(user.email || "?").charAt(0).toUpperCase())}</span><div><strong>${escapeHtml(user.email)}</strong><p>${escapeHtml(ROLES[role]?.label || role)} · ${enabled ? "Access on" : "Access off"}</p></div></div>
+              <div class="access-user-controls"><label for="user-role-${user._row}">Role</label><select id="user-role-${user._row}">${Object.entries(ROLES).filter(([id]) => !["super-admin","reviewer"].includes(id)).map(([id,item]) => `<option value="${id}" ${id === role ? "selected" : ""}>${escapeHtml(item.label)}</option>`).join("")}</select></div>
+              <label class="access-toggle"><input type="checkbox" ${enabled ? "checked" : ""} onchange="updatePortalUser('${escapeHtml(user.email)}','user-role-${user._row}',this.checked)"/><span aria-hidden="true"></span><b>${enabled ? "On" : "Off"}</b></label>
+            </article>`;
+          }).join("") : `<div class="empty">No approved or suspended users are recorded yet.</div>`}
+        </div>
       </div>
       <div class="card">
         <div class="card-header">
@@ -8730,9 +8770,45 @@ async function loadPortalRequests() {
   finally { state.portalRequestsLoading = false; render(); }
 }
 
+async function loadPortalUsers() {
+  if (!portalAccess?.token) return;
+  const result = await timedGoogleApi(googleApi("listPortalAccessUsers", { token: portalAccess.token }), "The user list is taking too long to load.", 20000);
+  if (!result.ok) throw new Error(result.error);
+  portalUsers = result.users || [];
+}
+
+async function loadPortalAccess() {
+  if (state.portalRequestsLoading) return;
+  if (!portalAccess?.token) return toast("Your admin session is not ready. Sign out and sign in again.");
+  state.portalRequestsLoading = true;
+  render();
+  try {
+    const result = await timedGoogleApi(googleApi("listPortalAccessRequests", { token: portalAccess.token }), "Approval requests are taking too long to load.", 20000);
+    if (!result.ok) throw new Error(result.error);
+    portalRequests = result.requests || [];
+    await loadPortalUsers();
+  } catch (error) { toast(error.message || "Access records could not be loaded."); }
+  finally { state.portalRequestsLoading = false; render(); }
+}
+
+function decidePortalRequestFromMenu(email, roleSelectId, decisionSelectId) {
+  const decision = document.getElementById(decisionSelectId)?.value || "approved";
+  return decidePortalRequest(email, decision, roleSelectId);
+}
+
+async function updatePortalUser(email, roleSelectId, active) {
+  const role = document.getElementById(roleSelectId)?.value || "viewer";
+  try {
+    const result = await googleApi("updatePortalUserAccess", { token: portalAccess?.token, email, role, active });
+    if (!result.ok) throw new Error(result.error);
+    toast(active ? "Portal access switched on." : "Portal access switched off.");
+    await loadPortalAccess();
+  } catch (error) { toast(error.message || "User access could not be updated."); }
+}
+
 async function decidePortalRequest(email, decision, selectId) {
   const role = document.getElementById(selectId)?.value || "viewer";
-  try { const result = await googleApi("decidePortalAccess", { token: portalAccess?.token, email, decision, role }); if (!result.ok) throw new Error(result.error); toast(decision === "approved" ? "Account approved. The user will be notified automatically." : "Access request rejected. The user will be notified automatically."); await loadPortalRequests(); }
+  try { const result = await googleApi("decidePortalAccess", { token: portalAccess?.token, email, decision, role }); if (!result.ok) throw new Error(result.error); toast(decision === "approved" ? "Account approved. The user will be notified automatically." : "Access request rejected. The user will be notified automatically."); await loadPortalAccess(); }
   catch (error) { toast(error.message || "Decision could not be saved."); }
 }
 
@@ -10127,7 +10203,7 @@ window.addEventListener("hashchange", () => {
     state.view = canView(nextView) ? nextView : "dashboard";
     state.drawer = null;
     render();
-    if (state.view === "access") loadPortalRequests();
+    if (state.view === "access") loadPortalAccess();
   }
 });
 

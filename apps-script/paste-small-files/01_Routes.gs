@@ -62,6 +62,8 @@ function apiPost(request) {
   if (action === "getPortalAccessSession") return getPortalAccessSession(payload);
   if (action === "listPortalAccessRequests") return listPortalAccessRequests(payload);
   if (action === "decidePortalAccess") return decidePortalAccess(payload);
+  if (action === "listPortalAccessUsers") return listPortalAccessUsers(payload);
+  if (action === "updatePortalUserAccess") return updatePortalUserAccess(payload);
   if (action === "requestReviewerOtp") return requestReviewerOtp(payload);
   if (action === "verifyReviewerOtp") return verifyReviewerOtp(payload);
   if (action === "getReviewerSession") return getReviewerSession(payload);
