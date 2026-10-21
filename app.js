@@ -149,6 +149,8 @@ const DEFAULT_COURSES = [
     "assignmentHours": 5,
     "independentStudyHours": 15,
     "lecturerId": null,
+    "lecturerName": "Prof. Thomas Achia",
+    "lecturerStatus": "Confirmed programme assignment",
     "tutorIds": []
   },
   {
@@ -441,6 +443,7 @@ const DEFAULT_COURSES = [
 ];
 
 const DEFAULT_PEOPLE = [
+  { id: "lecturer-thomas-achia", name: "Prof. Thomas Achia", kind: "Lecturer", affiliation: "", nationality: "", email: "", reference: "MES04", expertise: "Probability and Statistics", status: "Confirmed", workload: 1, nextFollowUp: "", scholarUrl: "https://scholar.google.com/citations?hl=en&user=davZwEUAAAAJ&view_op=list_works&sortby=pubdate" },
   { id: "lecturer-aklilu-zeleke", name: "Prof. Aklilu Zeleke", kind: "Lecturer", affiliation: "Michigan State University", nationality: "", email: "zeleke@msu.edu", reference: "MEE04", expertise: "Stochastic Models", status: "Confirmed", workload: 1, nextFollowUp: "2026-10-01" },
   { id: "tf-002", name: "Lucian Talu Mayabi", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Kenya", email: "talumayabi@gmail.com", reference: "TF-002", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
   { id: "tf-003", name: "Theophilus Asamoah", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Ghana", email: "asamoahkasamoah38@gmail.com", reference: "TF-003", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
@@ -456,6 +459,7 @@ const CONFIRMED_LECTURER_ASSIGNMENTS = {
   MES01: { lecturerName: "Dr Bernard Bainson" },
   MES02: { lecturerName: "Prof. Faraimunashe Chirove", manualAlternateLecturerName: "Prof. Blaise Tchapnda" },
   MES03: { lecturerName: "Prof. Cecil Ouma", manualAlternateLecturerName: "Eunice" },
+  MES04: { lecturerName: "Prof. Thomas Achia" },
   MEC06: { lecturerName: "Dr Issa Karambal" },
   MEC08: { lecturerName: "Ogwel" },
   MEC09: { lecturerName: "Whistler Cherubin", manualAlternateLecturerName: "Prof. Nyawira" },
