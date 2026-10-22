@@ -110,7 +110,11 @@ function saveLecturerApplication_(payload, recovered) {
   ensureDriveFolders(rootFolder);
 
   const application = payload.application || {};
+  requireEmailVerification(payload.emailVerification, application.email, "lecturer");
   const submittedAt = application.submittedAt || new Date().toISOString();
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error("Another application is being processed. Please wait a moment and try again.");
+  try {
   const duplicate = findDuplicateLecturerApplication_(spreadsheet, application);
   if (duplicate) {
     return {
@@ -132,8 +136,13 @@ function saveLecturerApplication_(payload, recovered) {
 
   const applicationId = makeLecturerApplicationReference_(submittedAt);
   const folder = getOrCreateNestedFolder(rootFolder, ["CFA", "Lecturer Applications", applicationId]);
-  const bytes = Utilities.base64Decode(passport.dataBase64);
-  const blob = Utilities.newBlob(bytes, passport.mimeType || "application/octet-stream", passport.name || "passport");
+  const validatedPassport = validateApplicationFile_(passport, {
+    label: "Passport biodata page",
+    required: true,
+    maxBytes: 5 * 1024 * 1024,
+    allowedMimeTypes: ["application/pdf", "image/jpeg", "image/png"],
+  });
+  const blob = Utilities.newBlob(validatedPassport.bytes, validatedPassport.mimeType, applicationId + "-passport" + validatedPassport.extension);
   const file = folder.createFile(blob);
   const driveFileUrl = file.getUrl();
   const driveFileId = file.getId();
@@ -143,7 +152,7 @@ function saveLecturerApplication_(payload, recovered) {
       document_id: Utilities.getUuid(),
       type: "Lecturer passport biodata page",
       related_id: applicationId,
-      file_name: passport.name || application.passport || "",
+      file_name: validatedPassport.safeName,
       drive_file_id: driveFileId,
       url: driveFileUrl,
       created_at: submittedAt,
@@ -170,12 +179,15 @@ function saveLecturerApplication_(payload, recovered) {
     driveFileId,
     sheetRow,
   };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function appendLecturerApplicationRow_(sheet, row) {
   const headers = getHeaders(sheet);
   if (!headers.length) throw new Error("LecturerApplications is missing its header row.");
-  sheet.appendRow(headers.map((header) => row[header] || ""));
+  sheet.appendRow(headers.map((header) => safeSheetValue_(row[header])));
   return sheet.getLastRow();
 }
 

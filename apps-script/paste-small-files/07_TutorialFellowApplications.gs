@@ -6,6 +6,9 @@ function submitTutorialFellowApplication(payload) {
 
   const application = payload.application || {};
   requireEmailVerification(payload.emailVerification, application.email, "tutorial-fellow");
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error("Another application is being processed. Please wait a moment and try again.");
+  try {
   const applicationId = Utilities.getUuid();
   const submittedAt = application.submittedAt || new Date().toISOString();
   const folder = getOrCreateNestedFolder(rootFolder, ["CFA", "Tutorial Fellow Applications", applicationId]);
@@ -55,7 +58,10 @@ function submitTutorialFellowApplication(payload) {
     },
   ]);
 
-  return { ok: true, applicationId, passportDriveUrl: passport.url || "", phdCertificateDriveUrl: phdCertificate.url || "" };
+  return { ok: true, success: true, applicationId, passportDriveUrl: passport.url || "", phdCertificateDriveUrl: phdCertificate.url || "" };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function referencePayload(application, index) {
@@ -72,19 +78,50 @@ function referencePayload(application, index) {
 
 function saveApplicationFile(spreadsheet, folder, filePayload, applicationId, type, submittedAt) {
   if (!filePayload || !filePayload.dataBase64) return {};
-  const bytes = Utilities.base64Decode(filePayload.dataBase64);
-  const blob = Utilities.newBlob(bytes, filePayload.mimeType || "application/octet-stream", filePayload.name || type);
+  const isCertificate = /certificate/i.test(type);
+  const validated = validateApplicationFile_(filePayload, {
+    label: type,
+    required: false,
+    maxBytes: 5 * 1024 * 1024,
+    allowedMimeTypes: isCertificate ? ["application/pdf"] : ["application/pdf", "image/jpeg", "image/png"],
+  });
+  const blob = Utilities.newBlob(validated.bytes, validated.mimeType, applicationId + (isCertificate ? "-phd-certificate" : "-passport") + validated.extension);
   const file = folder.createFile(blob);
   appendRows(getSheet(spreadsheet, "DriveDocuments"), [
     {
       document_id: Utilities.getUuid(),
       type,
       related_id: applicationId,
-      file_name: filePayload.name || "",
+      file_name: validated.safeName,
       drive_file_id: file.getId(),
       url: file.getUrl(),
       created_at: submittedAt,
     },
   ]);
   return { id: file.getId(), url: file.getUrl() };
+}
+
+function validateApplicationFile_(filePayload, options) {
+  options = options || {};
+  const label = String(options.label || "Application file");
+  if (!filePayload || !filePayload.dataBase64) {
+    if (options.required) throw new Error(label + " is required.");
+    return null;
+  }
+  const base64 = String(filePayload.dataBase64 || "").replace(/\s/g, "");
+  const maxBytes = Number(options.maxBytes || 5 * 1024 * 1024);
+  if (!base64 || base64.length > Math.ceil(maxBytes * 4 / 3) + 8) throw new Error(label + " must be 5 MB or smaller.");
+  let bytes;
+  try { bytes = Utilities.base64Decode(base64); } catch (error) { throw new Error(label + " is not a valid encoded file."); }
+  if (!bytes.length || bytes.length > maxBytes) throw new Error(label + " must be 5 MB or smaller.");
+
+  const unsigned = bytes.slice(0, 8).map(function (value) { return value < 0 ? value + 256 : value; });
+  const isPdf = unsigned[0] === 0x25 && unsigned[1] === 0x50 && unsigned[2] === 0x44 && unsigned[3] === 0x46 && unsigned[4] === 0x2d;
+  const isJpeg = unsigned[0] === 0xff && unsigned[1] === 0xd8 && unsigned[2] === 0xff;
+  const isPng = unsigned[0] === 0x89 && unsigned[1] === 0x50 && unsigned[2] === 0x4e && unsigned[3] === 0x47 && unsigned[4] === 0x0d && unsigned[5] === 0x0a && unsigned[6] === 0x1a && unsigned[7] === 0x0a;
+  const detectedMime = isPdf ? "application/pdf" : isJpeg ? "image/jpeg" : isPng ? "image/png" : "";
+  if (!detectedMime || (options.allowedMimeTypes || []).indexOf(detectedMime) < 0) throw new Error(label + " must be an allowed PDF, JPEG, or PNG file.");
+  const extension = detectedMime === "application/pdf" ? ".pdf" : detectedMime === "image/png" ? ".png" : ".jpg";
+  const originalName = String(filePayload.name || label).replace(/[\r\n]/g, " ").slice(0, 180);
+  return { bytes: bytes, mimeType: detectedMime, extension: extension, safeName: originalName };
 }

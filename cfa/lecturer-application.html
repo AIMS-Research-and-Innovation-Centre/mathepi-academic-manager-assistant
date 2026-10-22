@@ -1497,6 +1497,9 @@ const blankPlan = () => [
 ];
 const state = {
   email: "",
+  emailVerified: false,
+  verifiedEmail: "",
+  emailVerificationToken: "",
   lecturer: {
     title: "",
     name: "",
@@ -1929,7 +1932,8 @@ function renderForm() {
   }
   const step = steps[current];
   let body = "";
-  if (step.id === "email")
+  if (step.id === "email") {
+    const emailVerified = state.emailVerified && String(state.verifiedEmail || "").toLowerCase() === String(state.email || "").trim().toLowerCase();
     body = input({
       scope: "root",
       key: "email",
@@ -1939,8 +1943,12 @@ function renderForm() {
       autocomplete: "email",
       inputmode: "email",
       placeholder: "name@example.org",
-      help: "A copy of the submission would be sent to this email address.",
-    });
+      help: "Verify this address before continuing. A copy of the submission will be sent here.",
+    }) +
+      (emailVerified
+        ? '<div class="recovery-banner"><strong>Email verified</strong><p>This address can be used for submission.</p></div>'
+        : '<div class="grid2"><button class="btn-ghost" type="button" data-send-email-code>Send verification code</button><div class="field"><label for="lecturerEmailCode">Verification code</label><input class="input" id="lecturerEmailCode" inputmode="numeric" maxlength="6" placeholder="6-digit code"></div></div><button class="btn-primary" type="button" data-verify-email-code>Verify email</button><p class="field-help" id="lecturerEmailStatus" aria-live="polite"></p>');
+  }
   if (step.id === "lecturer") {
     const l = state.lecturer;
     body =
@@ -2704,6 +2712,10 @@ function renderFormKeepScroll() {
 $("stepArea").addEventListener("input", (e) => {
   const t = e.target;
   if (t.dataset.scope) {
+    if (t.dataset.scope === "root" && t.dataset.key === "email" && String(t.value || "").trim().toLowerCase() !== String(state.verifiedEmail || "").toLowerCase()) {
+      state.emailVerified = false;
+      state.emailVerificationToken = "";
+    }
     updateValue(t);
     return;
   }
@@ -2790,6 +2802,14 @@ $("stepArea").addEventListener("keydown", (e) => {
 });
 
 $("stepArea").addEventListener("click", (e) => {
+  if (e.target.closest("[data-send-email-code]")) {
+    sendLecturerEmailCode();
+    return;
+  }
+  if (e.target.closest("[data-verify-email-code]")) {
+    verifyLecturerEmailCode();
+    return;
+  }
   const s = e.target.closest(".seg[data-step]");
   if (s) {
     goToStep(+s.dataset.step);
@@ -2996,7 +3016,7 @@ function stepErrors(id) {
     if (bad) errs.push(sel);
   };
   if (id === "email") {
-    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email || "");
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email || "") && state.emailVerified && String(state.verifiedEmail || "").toLowerCase() === String(state.email || "").trim().toLowerCase();
     push('[data-wrap="root-email"]', !ok);
   }
   if (id === "lecturer") {
@@ -3163,10 +3183,18 @@ function clearCurrent() {
   if (id === "host") state.host = { firstHost: "", secondHost: "" };
   if (id === "academic") state.academic = blankAcademic();
   if (id === "lecturer") state.lecturer = blankLecturer();
-  if (id === "email") state.email = "";
+  if (id === "email") {
+    state.email = "";
+    state.emailVerified = false;
+    state.verifiedEmail = "";
+    state.emailVerificationToken = "";
+  }
 }
 function resetAll() {
   state.email = "";
+  state.emailVerified = false;
+  state.verifiedEmail = "";
+  state.emailVerificationToken = "";
   state.lecturer = blankLecturer();
   state.academic = blankAcademic();
   state.host = { firstHost: "", secondHost: "" };
@@ -3278,6 +3306,43 @@ function transactionSuccessHtml(snapshot, result, recovered) {
   );
 }
 
+async function sendLecturerEmailCode() {
+  const email = String(state.email || "").trim().toLowerCase();
+  const status = document.querySelector("#lecturerEmailStatus");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (status) status.textContent = "Enter a valid email address first.";
+    return;
+  }
+  try {
+    if (status) status.textContent = "Sending code...";
+    const result = await googleApi("requestEmailOtp", { email, purpose: "lecturer" });
+    if (!result || result.ok === false) throw new Error((result && result.error) || "The code could not be sent.");
+    if (status) status.textContent = "Code sent. Check your inbox and spam folder.";
+  } catch (error) {
+    if (status) status.textContent = error.message || String(error);
+  }
+}
+
+async function verifyLecturerEmailCode() {
+  const email = String(state.email || "").trim().toLowerCase();
+  const codeInput = document.querySelector("#lecturerEmailCode");
+  const code = String(codeInput ? codeInput.value : "").trim();
+  const status = document.querySelector("#lecturerEmailStatus");
+  try {
+    if (!/^\d{6}$/.test(code)) throw new Error("Enter the 6-digit verification code.");
+    if (status) status.textContent = "Verifying email...";
+    const result = await googleApi("verifyEmailOtp", { email, code, purpose: "lecturer" });
+    if (!result || result.ok === false || !result.verificationToken) throw new Error((result && result.error) || "The code was not accepted.");
+    state.emailVerified = true;
+    state.verifiedEmail = email;
+    state.emailVerificationToken = result.verificationToken;
+    persistDraft();
+    renderForm();
+  } catch (error) {
+    if (status) status.textContent = error.message || String(error);
+  }
+}
+
 async function submit(options = {}) {
   const recoverySubmit = !!(options.recovery || recoveryMode || syncMeta.syncStatus === SYNC_FAILED);
   if (!callIsOpen() && !recoverySubmit) {
@@ -3325,6 +3390,11 @@ async function submit(options = {}) {
     const result = await googleApi(action, {
       application: snapshot,
       state,
+      emailVerification: {
+        email: state.email,
+        token: state.emailVerificationToken,
+        purpose: "lecturer",
+      },
       passportFile: passportPayload,
       metadata: {
         recovery: recoverySubmit,

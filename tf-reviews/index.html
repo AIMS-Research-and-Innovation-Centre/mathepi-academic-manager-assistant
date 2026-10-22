@@ -1971,49 +1971,23 @@
         }
 
         function jsonp(action, payload, timeoutMs) {
-          return new Promise(function (resolve, reject) {
-            var callbackName = "mathepiReview_" + Date.now() + "_" + Math.random().toString(36).slice(2);
-            var script = document.createElement("script");
-            var done = false;
-            var timer = setTimeout(function () {
-              finish();
-              reject(new Error("Google Apps Script is taking too long to respond. It may still be writing to Google Sheets. Wait a moment, click Refresh from Sheets, then retry only if the review is not shown."));
-            }, timeoutMs || 30000);
-
-            function finish() {
-              if (done) return;
-              done = true;
-              clearTimeout(timer);
-              try {
-                delete window[callbackName];
-              } catch (error) {
-                window[callbackName] = undefined;
-              }
-              if (script.parentNode) script.parentNode.removeChild(script);
-            }
-
-            window[callbackName] = function (result) {
-              finish();
-              if (result && result.ok === false) reject(new Error(result.error || "Apps Script request failed."));
-              else resolve(result || {});
-            };
-
-            script.onerror = function () {
-              finish();
-              reject(new Error("Could not reach Apps Script. Check the Web App deployment."));
-            };
-
-            script.src =
-              APPS_SCRIPT_URL +
-              "?" +
-              [
-                "action=" + encodeURIComponent(action),
-                "payload=" + encodeURIComponent(JSON.stringify(payload || {})),
-                "callback=" + encodeURIComponent(callbackName),
-                "_=" + Date.now()
-              ].join("&");
-            document.head.appendChild(script);
-          });
+          var controller = new AbortController();
+          var timer = setTimeout(function () { controller.abort(); }, timeoutMs || 30000);
+          return fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: action, payload: payload || {} }),
+            signal: controller.signal
+          }).then(function (response) {
+            if (!response.ok) throw new Error("Apps Script request failed: " + response.status);
+            return response.json();
+          }).then(function (result) {
+            if (result && result.ok === false) throw new Error(result.error || "Apps Script request failed.");
+            return result || {};
+          }).catch(function (error) {
+            if (error && error.name === "AbortError") throw new Error("Google Apps Script is taking too long to respond. Wait a moment, refresh from Sheets, and retry only if the change is not shown.");
+            throw error;
+          }).finally(function () { clearTimeout(timer); });
         }
 
         function looksLikeEmail(value) {

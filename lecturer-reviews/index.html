@@ -1180,47 +1180,25 @@
         }
 
         function jsonp(action, payload) {
-          return new Promise(function (resolve, reject) {
-            var endpoint = apiEndpoint();
-            if (!endpoint) {
-              reject(new Error("Apps Script Web App URL is not configured."));
-              return;
-            }
-            var callback = "mathepiLecturerReview_" + Date.now() + "_" + Math.random().toString(36).slice(2);
-            var script = document.createElement("script");
-            var separator = endpoint.indexOf("?") >= 0 ? "&" : "?";
-            var timer = setTimeout(function () {
-              cleanup();
-              reject(new Error("Apps Script did not respond. Redeploy the Apps Script backend, then refresh this page."));
-            }, 30000);
-
-            function cleanup() {
-              clearTimeout(timer);
-              delete window[callback];
-              if (script.parentNode) script.parentNode.removeChild(script);
-            }
-
-            window[callback] = function (result) {
-              cleanup();
-              if (result && result.ok === false) reject(new Error(result.error || "Apps Script request failed."));
-              else resolve(result || {});
-            };
-
-            script.onerror = function () {
-              cleanup();
-              reject(new Error("Could not reach Apps Script. Check the deployment URL and access settings."));
-            };
+          var endpoint = apiEndpoint();
+          if (!endpoint) return Promise.reject(new Error("Apps Script Web App URL is not configured."));
             var session = {};
             try { session = JSON.parse(localStorage.getItem("mathepi-portal-access-v1") || "{}"); } catch (error) {}
             payload = Object.assign({}, payload || {}, { token: session.token || "" });
-            script.src = endpoint + separator + new URLSearchParams({
-              action: action,
-              payload: JSON.stringify(payload || {}),
-              callback: callback,
-              _: String(Date.now()),
-            }).toString();
-            document.head.appendChild(script);
-          });
+          var controller = new AbortController();
+          var timer = setTimeout(function () { controller.abort(); }, 30000);
+          return fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: action, payload: payload }),
+            signal: controller.signal
+          }).then(function (response) {
+            if (!response.ok) throw new Error("Apps Script request failed: " + response.status);
+            return response.json();
+          }).then(function (result) {
+            if (result && result.ok === false) throw new Error(result.error || "Apps Script request failed.");
+            return result || {};
+          }).finally(function () { clearTimeout(timer); });
         }
 
         function loadData() {

@@ -2409,10 +2409,6 @@ function googleApi(action, payload = {}) {
 }
 
 function googleEndpointApi(endpoint, action, payload = {}) {
-  const payloadText = JSON.stringify(payload || {});
-  if (payloadText.length < 6500 && /script\.google\.com\/macros\/s\//i.test(endpoint)) {
-    return googleJsonpApi(endpoint, action, payload);
-  }
   return fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },

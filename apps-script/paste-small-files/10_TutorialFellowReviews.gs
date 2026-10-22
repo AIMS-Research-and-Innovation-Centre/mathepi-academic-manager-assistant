@@ -32,15 +32,21 @@ function listReviewApplicants(payload) {
   const applications = readTutorialReviewApplications(spreadsheet);
   const assignments = readReviewSheetObjects(spreadsheet, "ReviewAssignments");
   const visibleApplications = filterReviewApplicationsForReviewer(applications, assignments, reviewer);
+  const visibleIds = {};
+  visibleApplications.forEach(function (application) { visibleIds[application.applicationId] = true; });
+  const filterVisible = function (rows) { return reviewerCanManage(reviewer) ? rows : rows.filter(function (row) { return !!visibleIds[row.application_id]; }); };
   return {
     ok: true,
     reviewer,
     applications: visibleApplications,
-    scores: readReviewSheetObjects(spreadsheet, "ReviewScores"),
-    analyses: readReviewSheetObjects(spreadsheet, "ReviewAnalyses"),
-    notes: readReviewSheetObjects(spreadsheet, "ReviewNotes"),
-    stages: readReviewSheetObjects(spreadsheet, "ReviewStages"),
-    assignments,
+    scores: filterVisible(readReviewSheetObjects(spreadsheet, "ReviewScores")),
+    analyses: filterVisible(readReviewSheetObjects(spreadsheet, "ReviewAnalyses")),
+    notes: filterVisible(readReviewSheetObjects(spreadsheet, "ReviewNotes")),
+    stages: filterVisible(readReviewSheetObjects(spreadsheet, "ReviewStages")),
+    assignments: reviewerCanManage(reviewer) ? assignments : assignments.filter(function (row) {
+      const email = row.reviewer_email || row.email;
+      return email && normalizeEmailAddress(email) === reviewer.email;
+    }),
     config: reviewConfig(spreadsheet),
     reviewers: reviewerCanManage(reviewer) ? readReviewSheetObjects(spreadsheet, "Reviewers") : [],
     syncedAt: new Date().toISOString(),
@@ -54,6 +60,7 @@ function saveReviewScore(payload) {
   ensureSheets(spreadsheet);
   const applicationId = String(payload.applicationId || "").trim();
   if (!applicationId) throw new Error("Application id is required.");
+  requireReviewerApplicationAccess_(spreadsheet, reviewer, applicationId);
   const reason = String(payload.reason || "").trim();
   if (!reason) throw new Error("A reason is required before saving score revisions.");
   const scoreId = applicationId + "::" + reviewer.email;
@@ -88,6 +95,7 @@ function saveReviewAnalysis(payload) {
   ensureSheets(spreadsheet);
   const applicationId = String(payload.applicationId || "").trim();
   if (!applicationId) throw new Error("Application id is required.");
+  requireReviewerApplicationAccess_(spreadsheet, reviewer, applicationId);
   const sheet = getSheet(spreadsheet, "ReviewAnalyses");
   const analysisId = applicationId + "::" + reviewer.email;
   const before = findSheetObject(sheet, analysisId);
@@ -135,6 +143,7 @@ function submitPanelReview(payload) {
   ensureSheets(spreadsheet);
   const applicationId = String(payload.applicationId || "").trim();
   if (!applicationId) throw new Error("Application id is required.");
+  requireReviewerApplicationAccess_(spreadsheet, reviewer, applicationId);
   const reason = String(payload.reason || "").trim();
   if (!reason) throw new Error("A reason is required before submitting a review.");
   const now = new Date().toISOString();
@@ -261,6 +270,7 @@ function saveReviewNote(payload) {
   const applicationId = String(payload.applicationId || "").trim();
   const noteText = String(payload.note || "").trim();
   if (!applicationId) throw new Error("Application id is required.");
+  requireReviewerApplicationAccess_(spreadsheet, reviewer, applicationId);
   if (!noteText) throw new Error("A note cannot be empty.");
   const sheet = getSheet(spreadsheet, "ReviewNotes");
   const noteId = String(payload.noteId || Utilities.getUuid());
@@ -307,6 +317,7 @@ function withdrawReviewNote(payload) {
   const noteId = String(payload.noteId || "");
   const before = findSheetObject(sheet, noteId);
   if (!before) throw new Error("Review note not found.");
+  requireReviewerApplicationAccess_(spreadsheet, reviewer, before.application_id);
   if (before.author_email !== reviewer.email && !reviewerCanManage(reviewer)) {
     throw new Error("Only the author or a review manager can withdraw this note.");
   }
@@ -439,14 +450,22 @@ function findReviewerInNamedSpreadsheet_(target, currentSpreadsheetId) {
 
 function reviewerCanManage(reviewer) {
   const role = String(reviewer && reviewer.role || "").toLowerCase();
-  const identity = String([reviewer && reviewer.name, reviewer && reviewer.email].filter(Boolean).join(" ")).toLowerCase();
   return role === "academic manager" ||
     role === "review manager" ||
     role === "manager" ||
     role === "admin" ||
     role === "super admin" ||
-    role === "chair" ||
-    identity.indexOf("cecil") >= 0;
+    role === "chair";
+}
+
+function requireReviewerApplicationAccess_(spreadsheet, reviewer, applicationId) {
+  const applications = readTutorialReviewApplications(spreadsheet);
+  if (!applications.some(function (application) { return application.applicationId === applicationId; })) throw new Error("Application not found.");
+  if (reviewerCanManage(reviewer)) return true;
+  const assignments = readReviewSheetObjects(spreadsheet, "ReviewAssignments");
+  const visible = filterReviewApplicationsForReviewer(applications, assignments, reviewer);
+  if (!visible.some(function (application) { return application.applicationId === applicationId; })) throw new Error("You are not assigned to review this application.");
+  return true;
 }
 
 function filterReviewApplicationsForReviewer(applications, assignments, reviewer) {

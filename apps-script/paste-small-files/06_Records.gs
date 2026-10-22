@@ -50,7 +50,7 @@ function upsertRows(sheet, objects) {
   }
   objects.forEach((object) => {
     const key = object[headers[0]];
-    const values = headers.map((header) => object[header] || "");
+    const values = headers.map((header) => safeSheetValue_(object[header]));
     if (key && existing[key]) sheet.getRange(existing[key], 1, 1, headers.length).setValues([values]);
     else sheet.appendRow(values);
   });
@@ -60,7 +60,15 @@ function appendRows(sheet, objects) {
   if (!objects || !objects.length) return;
   const headers = getHeaders(sheet);
   if (!headers.length) throw new Error("Sheet " + sheet.getName() + " is missing its header row.");
-  objects.forEach((object) => sheet.appendRow(headers.map((header) => object[header] || "")));
+  objects.forEach((object) => sheet.appendRow(headers.map((header) => safeSheetValue_(object[header]))));
+}
+
+function safeSheetValue_(value) {
+  if (value === null || value === undefined) return "";
+  if (typeof value !== "string") return value;
+  // Google Sheets treats these prefixes as formulas, even when the value came
+  // from an application or reviewer text field.
+  return /^[\s\u0000-\u001f]*[=+\-@]/.test(value) ? "'" + value : value;
 }
 
 function getHeaders(sheet) {

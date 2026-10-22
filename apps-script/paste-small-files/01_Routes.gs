@@ -2,8 +2,7 @@ function doGet(e) {
   try {
     const action = e && e.parameter && e.parameter.action;
     if (action) {
-      const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : e.parameter;
-      return routeResponse(apiPost({ action, payload }), e);
+      throw new Error("API actions must use POST. Sensitive payloads and session tokens are not accepted in URLs.");
     }
     return HtmlService.createHtmlOutput(
       "<h1>MathEpi Apps Script Backend</h1><p>Deploy this Web App URL into the MathEpi portal Sheets & Drive settings.</p>",

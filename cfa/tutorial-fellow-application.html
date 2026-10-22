@@ -845,6 +845,17 @@ function onFile(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
   const kind = event.target.dataset.file;
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Please attach a file that is 5 MB or smaller.");
+    event.target.value = "";
+    return;
+  }
+  const lowerName = file.name.toLowerCase();
+  if (kind === "passport" && !(["application/pdf", "image/jpeg", "image/png"].includes(file.type) || /\.(pdf|jpe?g|png)$/.test(lowerName))) {
+    alert("Please attach the passport biodata page as a PDF, JPEG, or PNG file.");
+    event.target.value = "";
+    return;
+  }
   if (kind === "phdCertificate" && file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
     alert("Please attach the PhD certificate as a legible PDF.");
     event.target.value = "";
@@ -890,10 +901,10 @@ async function submitApplication() {
     return;
   }
   const application = snapshot();
-  let message = "Your Tutorial Fellows application has been recorded locally.";
+  let result;
   try {
-    if (googleBackendAvailable()) {
-      const result = await googleApi("submitTutorialFellowApplication", {
+    if (!googleBackendAvailable()) throw new Error("The AIMS submission service is not configured.");
+      result = await googleApi("submitTutorialFellowApplication", {
         application,
         state: application,
         emailVerification: {
@@ -904,13 +915,18 @@ async function submitApplication() {
         passportFile: passportPayload,
         phdCertificateFile: phdCertificatePayload,
       });
-      if (result && result.ok) message = "Your Tutorial Fellows application has been submitted to Google Sheets and supporting files have been saved to Drive.";
-    } else {
-      message = "Your Tutorial Fellows application has been saved locally. Add the Apps Script URL in the main portal to submit to Google.";
-    }
+      if (!result || result.ok === false || result.success !== true || !result.applicationId) throw new Error("AIMS did not confirm receipt of the application.");
   } catch (error) {
-    message = "Your application was saved locally, but Google sync failed: " + (error.message || error);
+    application.syncStatus = "Failed";
+    application.lastSyncAttempt = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.assign({}, state, application)));
+    document.querySelector("#stepArea").innerHTML = `<div class="done-wrap"><div class="done-badge">!</div><h2>We could not deliver your application to AIMS.</h2><p>Your application remains safely preserved on this device. Please retry after the connection is restored.</p><p>${escapeHtml(error.message || String(error))}</p><button class="btn-primary" type="button" data-nav="form">Return to application</button></div>`;
+    bindNav();
+    return;
   }
+  application.syncStatus = "Submitted";
+  application.applicationId = result.applicationId;
+  application.lastSyncAttempt = new Date().toISOString();
   const submissions = load(SUBMISSIONS_KEY, { items: [] });
   submissions.items = submissions.items || [];
   submissions.items.unshift(application);
@@ -919,7 +935,7 @@ async function submitApplication() {
   state = Object.assign({}, defaults, { status: state.status });
   passportPayload = null;
   phdCertificatePayload = null;
-  document.querySelector("#stepArea").innerHTML = `<div class="done-wrap"><div class="done-badge">OK</div><h2>Application submitted</h2><p>${escapeHtml(message)}</p><button class="btn-primary" type="button" data-nav="dashboard">View saved applications</button></div>`;
+  document.querySelector("#stepArea").innerHTML = `<div class="done-wrap"><div class="done-badge">OK</div><h2>Your Tutorial Fellow application has been successfully received by AIMS.</h2><p>Application reference: <strong>${escapeHtml(result.applicationId)}</strong></p><button class="btn-primary" type="button" data-nav="dashboard">View saved applications</button></div>`;
   bindNav();
 }
 

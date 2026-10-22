@@ -1,3 +1,4 @@
+// ---- 00_Config.gs ----
 const MATHEPI = {
   spreadsheetName: "MathEpi Academic Operations",
   rootFolderName: "MathEpi Academic Operations",
@@ -34,11 +35,18 @@ const DATASET_TABS = [
   "Appointments",
   "Availability",
   "SupportRequests",
+  "ItTickets",
+  "TicketHistory",
+  "Notifications",
 ];
 
 const TAB_HEADERS = {
   AppState: ["key", "json", "updated_at"],
   CfaStatuses: ["id", "status", "updated_at"],
+  TicketHistory: ["event_id", "ticket_id", "event", "actor_email", "detail", "created_at"],
+  PiQuestions: ["id", "question", "audience", "asked_by", "asked_at", "status", "answer", "answered_by", "answered_at", "published"],
+  Notifications: ["notification_id", "recipient_email", "recipient_role", "title", "message", "type", "ticket_id", "read", "created_at"],
+  ItTickets: ["id", "ticketRef", "requester_email", "requesterId", "title", "category", "urgency", "status", "visibility", "assignedTo", "date", "summary", "affectedArea", "device", "resolutionSummary", "created_at", "updated_at"],
   LecturerApplications: [
     "application_id", "submitted_at", "recovery_status", "email", "title", "applicant",
     "gender", "affiliation", "designation", "address", "country_of_residence",
@@ -104,12 +112,12 @@ DATASET_TABS.forEach((tab) => {
   TAB_HEADERS[tab] = ["record_id", "json", "updated_at"];
 });
 
+// ---- 01_Routes.gs ----
 function doGet(e) {
   try {
     const action = e && e.parameter && e.parameter.action;
     if (action) {
-      const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : e.parameter;
-      return routeResponse(apiPost({ action, payload }), e);
+      throw new Error("API actions must use POST. Sensitive payloads and session tokens are not accepted in URLs.");
     }
     return HtmlService.createHtmlOutput(
       "<h1>MathEpi Apps Script Backend</h1><p>Deploy this Web App URL into the MathEpi portal Sheets & Drive settings.</p>",
@@ -139,6 +147,19 @@ function parseRouteRequestBody(body) {
 function apiPost(request) {
   const action = request && request.action;
   const payload = (request && request.payload) || {};
+  const managerActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "updateCfaStatus", "listLecturerReviewData", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns"];
+  const approvedActions = ["getProgrammeCalendarStatus", "listReviewStaffingAssignments"];
+  if (managerActions.indexOf(action) >= 0) portalRequireRoles_(payload.token, ["super-admin", "manager"]);
+  if (approvedActions.indexOf(action) >= 0) portalRequireRoles_(payload.token, []);
+  if (action === "createItTicket") return createItTicket(payload);
+  if (action === "listItTickets") return listItTickets(payload);
+  if (action === "updateItTicket") return updateItTicket(payload);
+  if (action === "listNotifications") return listNotifications(payload);
+  if (action === "markNotificationRead") return markNotificationRead(payload);
+  if (action === "piSubmitQuestion") return piSubmitQuestion(payload);
+  if (action === "piListQuestions") return piListQuestions(payload);
+  if (action === "piAnswerQuestion") return piAnswerQuestion(payload);
+  if (action === "piListFaq") return piListFaq(payload);
   if (action === "setupWorkspace") return setupWorkspace(payload);
   if (action === "saveSnapshot") return saveSnapshot(payload);
   if (action === "getBootstrap") return getBootstrap();
@@ -149,6 +170,14 @@ function apiPost(request) {
   if (action === "diagnoseEmailOtp") return diagnoseEmailOtp(payload);
   if (action === "requestEmailOtp") return requestEmailOtp(payload);
   if (action === "verifyEmailOtp") return verifyEmailOtp(payload);
+  if (action === "requestPortalAccessOtp") return requestPortalAccessOtp(payload);
+  if (action === "verifyPortalAccessOtp") return verifyPortalAccessOtp(payload);
+  if (action === "establishGooglePortalAccess") return establishGooglePortalAccess(payload);
+  if (action === "getPortalAccessSession") return getPortalAccessSession(payload);
+  if (action === "listPortalAccessRequests") return listPortalAccessRequests(payload);
+  if (action === "decidePortalAccess") return decidePortalAccess(payload);
+  if (action === "listPortalAccessUsers") return listPortalAccessUsers(payload);
+  if (action === "updatePortalUserAccess") return updatePortalUserAccess(payload);
   if (action === "requestReviewerOtp") return requestReviewerOtp(payload);
   if (action === "verifyReviewerOtp") return verifyReviewerOtp(payload);
   if (action === "getReviewerSession") return getReviewerSession(payload);
@@ -194,6 +223,7 @@ function jsonpResponse(callback, data) {
   return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
+// ---- 02_Workspace.gs ----
 function setupWorkspace(payload) {
   const spreadsheet = getOrCreateSpreadsheet();
   const rootFolder = getOrCreateRootFolder();
@@ -244,19 +274,20 @@ function getBootstrap() {
     datasets[tab] = readJsonRecords(getSheet(spreadsheet, tab));
   });
   const snapshots = readSheetObjects(getSheet(spreadsheet, "AppState"));
-  const latest = snapshots.find((row) => row.key === "latest_snapshot");
+  const latest = snapshots.filter(function (row) { return row.key === "latest_snapshot"; })[0];
   let viewPermissions = null;
-  try { viewPermissions = latest && latest.json ? JSON.parse(latest.json).viewPermissions || null : null; } catch (e) {}
+  try { viewPermissions = latest && latest.json ? JSON.parse(latest.json).viewPermissions || null : null; } catch (error) {}
   return {
     ok: true,
     datasets,
     cfaStatuses: readCfaStatuses(spreadsheet),
-    viewPermissions,
+    viewPermissions: viewPermissions,
     spreadsheetId: spreadsheet.getId(),
     spreadsheetUrl: spreadsheet.getUrl(),
   };
 }
 
+// ---- 03_Cfa.gs ----
 function updateCfaStatus(payload) {
   const spreadsheet = getOrCreateSpreadsheet();
   ensureSheets(spreadsheet);
@@ -300,6 +331,7 @@ function readCfaStatuses(spreadsheet) {
   return statuses;
 }
 
+// ---- 04_LecturerApplications.gs ----
 function submitLecturerApplication(payload) {
   return saveLecturerApplication_(payload || {}, false);
 }
@@ -340,22 +372,18 @@ function listReviewStaffingAssignments(payload) {
     }))
     .filter((row) => row.name && row.courseCode);
 
-  const applications = readSheetObjects(getSheet(spreadsheet, "TutorialFellowApplications"));
   const applicationById = {};
-  applications.forEach((row) => {
+  readSheetObjects(getSheet(spreadsheet, "TutorialFellowApplications")).forEach((row) => {
     applicationById[String(row.application_id || "")] = row;
   });
   const decisionIds = {};
   readSheetObjects(getSheet(spreadsheet, "ReviewStages")).forEach((row) => {
-    if (String(row.stage || "").trim() === "Decision" && !/reject|do not/i.test(String(row.decision || ""))) {
-      decisionIds[String(row.application_id || "")] = row;
-    }
+    if (String(row.stage || "").trim() === "Decision" && !/reject|do not/i.test(String(row.decision || ""))) decisionIds[String(row.application_id || "")] = row;
   });
   const latestScores = {};
   readSheetObjects(getSheet(spreadsheet, "ReviewScores")).forEach((row) => {
     const id = String(row.application_id || "");
-    if (!decisionIds[id]) return;
-    if (!latestScores[id] || String(row.updated_at || "") > String(latestScores[id].updated_at || "")) latestScores[id] = row;
+    if (decisionIds[id] && (!latestScores[id] || String(row.updated_at || "") > String(latestScores[id].updated_at || ""))) latestScores[id] = row;
   });
   const tutorAssignments = [];
   Object.keys(latestScores).forEach((applicationId) => {
@@ -365,14 +393,7 @@ function listReviewStaffingAssignments(payload) {
     const application = applicationById[applicationId] || {};
     Object.keys(verdicts || {}).forEach((courseCode) => {
       if (verdicts[courseCode] !== "Can tutor" && verdicts[courseCode] !== "Can lecture") return;
-      tutorAssignments.push({
-        applicationId,
-        name: String(application.applicant || "").trim(),
-        courseCode: String(courseCode || "").trim().toUpperCase(),
-        role: "Tutor",
-        status: "Decision",
-        updatedAt: String(score.updated_at || decisionIds[applicationId].updated_at || ""),
-      });
+      tutorAssignments.push({ applicationId, name: String(application.applicant || "").trim(), courseCode: String(courseCode || "").trim().toUpperCase(), role: "Tutor", status: "Decision", updatedAt: String(score.updated_at || decisionIds[applicationId].updated_at || "") });
     });
   });
   return { ok: true, lecturerAssignments, tutorAssignments, syncedAt: new Date().toISOString() };
@@ -423,7 +444,11 @@ function saveLecturerApplication_(payload, recovered) {
   ensureDriveFolders(rootFolder);
 
   const application = payload.application || {};
+  requireEmailVerification(payload.emailVerification, application.email, "lecturer");
   const submittedAt = application.submittedAt || new Date().toISOString();
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error("Another application is being processed. Please wait a moment and try again.");
+  try {
   const duplicate = findDuplicateLecturerApplication_(spreadsheet, application);
   if (duplicate) {
     return {
@@ -445,8 +470,13 @@ function saveLecturerApplication_(payload, recovered) {
 
   const applicationId = makeLecturerApplicationReference_(submittedAt);
   const folder = getOrCreateNestedFolder(rootFolder, ["CFA", "Lecturer Applications", applicationId]);
-  const bytes = Utilities.base64Decode(passport.dataBase64);
-  const blob = Utilities.newBlob(bytes, passport.mimeType || "application/octet-stream", passport.name || "passport");
+  const validatedPassport = validateApplicationFile_(passport, {
+    label: "Passport biodata page",
+    required: true,
+    maxBytes: 5 * 1024 * 1024,
+    allowedMimeTypes: ["application/pdf", "image/jpeg", "image/png"],
+  });
+  const blob = Utilities.newBlob(validatedPassport.bytes, validatedPassport.mimeType, applicationId + "-passport" + validatedPassport.extension);
   const file = folder.createFile(blob);
   const driveFileUrl = file.getUrl();
   const driveFileId = file.getId();
@@ -456,7 +486,7 @@ function saveLecturerApplication_(payload, recovered) {
       document_id: Utilities.getUuid(),
       type: "Lecturer passport biodata page",
       related_id: applicationId,
-      file_name: passport.name || application.passport || "",
+      file_name: validatedPassport.safeName,
       drive_file_id: driveFileId,
       url: driveFileUrl,
       created_at: submittedAt,
@@ -483,12 +513,15 @@ function saveLecturerApplication_(payload, recovered) {
     driveFileId,
     sheetRow,
   };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function appendLecturerApplicationRow_(sheet, row) {
   const headers = getHeaders(sheet);
   if (!headers.length) throw new Error("LecturerApplications is missing its header row.");
-  sheet.appendRow(headers.map((header) => row[header] || ""));
+  sheet.appendRow(headers.map((header) => safeSheetValue_(row[header])));
   return sheet.getLastRow();
 }
 
@@ -704,6 +737,7 @@ function makeLecturerApplicationReference_(submittedAt) {
   return "MATHEPI-" + year + "-" + number;
 }
 
+// ---- 05_Storage.gs ----
 function getOrCreateSpreadsheet() {
   const props = PropertiesService.getScriptProperties();
   const existingId = props.getProperty(MATHEPI.properties.spreadsheetId);
@@ -823,6 +857,7 @@ function getOrCreateNestedFolder(root, path) {
   }, root);
 }
 
+// ---- 06_Records.gs ----
 function writeDatasets(spreadsheet, datasets) {
   let count = 0;
   DATASET_TABS.forEach((tab) => {
@@ -875,7 +910,7 @@ function upsertRows(sheet, objects) {
   }
   objects.forEach((object) => {
     const key = object[headers[0]];
-    const values = headers.map((header) => object[header] || "");
+    const values = headers.map((header) => safeSheetValue_(object[header]));
     if (key && existing[key]) sheet.getRange(existing[key], 1, 1, headers.length).setValues([values]);
     else sheet.appendRow(values);
   });
@@ -885,7 +920,15 @@ function appendRows(sheet, objects) {
   if (!objects || !objects.length) return;
   const headers = getHeaders(sheet);
   if (!headers.length) throw new Error("Sheet " + sheet.getName() + " is missing its header row.");
-  objects.forEach((object) => sheet.appendRow(headers.map((header) => object[header] || "")));
+  objects.forEach((object) => sheet.appendRow(headers.map((header) => safeSheetValue_(object[header]))));
+}
+
+function safeSheetValue_(value) {
+  if (value === null || value === undefined) return "";
+  if (typeof value !== "string") return value;
+  // Google Sheets treats these prefixes as formulas, even when the value came
+  // from an application or reviewer text field.
+  return /^[\s\u0000-\u001f]*[=+\-@]/.test(value) ? "'" + value : value;
 }
 
 function getHeaders(sheet) {
@@ -913,6 +956,7 @@ function clearBody(sheet) {
   if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, lastColumn).clearContent();
 }
 
+// ---- 07_TutorialFellowApplications.gs ----
 function submitTutorialFellowApplication(payload) {
   const spreadsheet = getOrCreateSpreadsheet();
   const rootFolder = getOrCreateRootFolder();
@@ -921,6 +965,9 @@ function submitTutorialFellowApplication(payload) {
 
   const application = payload.application || {};
   requireEmailVerification(payload.emailVerification, application.email, "tutorial-fellow");
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error("Another application is being processed. Please wait a moment and try again.");
+  try {
   const applicationId = Utilities.getUuid();
   const submittedAt = application.submittedAt || new Date().toISOString();
   const folder = getOrCreateNestedFolder(rootFolder, ["CFA", "Tutorial Fellow Applications", applicationId]);
@@ -970,7 +1017,10 @@ function submitTutorialFellowApplication(payload) {
     },
   ]);
 
-  return { ok: true, applicationId, passportDriveUrl: passport.url || "", phdCertificateDriveUrl: phdCertificate.url || "" };
+  return { ok: true, success: true, applicationId, passportDriveUrl: passport.url || "", phdCertificateDriveUrl: phdCertificate.url || "" };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function referencePayload(application, index) {
@@ -987,15 +1037,21 @@ function referencePayload(application, index) {
 
 function saveApplicationFile(spreadsheet, folder, filePayload, applicationId, type, submittedAt) {
   if (!filePayload || !filePayload.dataBase64) return {};
-  const bytes = Utilities.base64Decode(filePayload.dataBase64);
-  const blob = Utilities.newBlob(bytes, filePayload.mimeType || "application/octet-stream", filePayload.name || type);
+  const isCertificate = /certificate/i.test(type);
+  const validated = validateApplicationFile_(filePayload, {
+    label: type,
+    required: false,
+    maxBytes: 5 * 1024 * 1024,
+    allowedMimeTypes: isCertificate ? ["application/pdf"] : ["application/pdf", "image/jpeg", "image/png"],
+  });
+  const blob = Utilities.newBlob(validated.bytes, validated.mimeType, applicationId + (isCertificate ? "-phd-certificate" : "-passport") + validated.extension);
   const file = folder.createFile(blob);
   appendRows(getSheet(spreadsheet, "DriveDocuments"), [
     {
       document_id: Utilities.getUuid(),
       type,
       related_id: applicationId,
-      file_name: filePayload.name || "",
+      file_name: validated.safeName,
       drive_file_id: file.getId(),
       url: file.getUrl(),
       created_at: submittedAt,
@@ -1004,6 +1060,32 @@ function saveApplicationFile(spreadsheet, folder, filePayload, applicationId, ty
   return { id: file.getId(), url: file.getUrl() };
 }
 
+function validateApplicationFile_(filePayload, options) {
+  options = options || {};
+  const label = String(options.label || "Application file");
+  if (!filePayload || !filePayload.dataBase64) {
+    if (options.required) throw new Error(label + " is required.");
+    return null;
+  }
+  const base64 = String(filePayload.dataBase64 || "").replace(/\s/g, "");
+  const maxBytes = Number(options.maxBytes || 5 * 1024 * 1024);
+  if (!base64 || base64.length > Math.ceil(maxBytes * 4 / 3) + 8) throw new Error(label + " must be 5 MB or smaller.");
+  let bytes;
+  try { bytes = Utilities.base64Decode(base64); } catch (error) { throw new Error(label + " is not a valid encoded file."); }
+  if (!bytes.length || bytes.length > maxBytes) throw new Error(label + " must be 5 MB or smaller.");
+
+  const unsigned = bytes.slice(0, 8).map(function (value) { return value < 0 ? value + 256 : value; });
+  const isPdf = unsigned[0] === 0x25 && unsigned[1] === 0x50 && unsigned[2] === 0x44 && unsigned[3] === 0x46 && unsigned[4] === 0x2d;
+  const isJpeg = unsigned[0] === 0xff && unsigned[1] === 0xd8 && unsigned[2] === 0xff;
+  const isPng = unsigned[0] === 0x89 && unsigned[1] === 0x50 && unsigned[2] === 0x4e && unsigned[3] === 0x47 && unsigned[4] === 0x0d && unsigned[5] === 0x0a && unsigned[6] === 0x1a && unsigned[7] === 0x0a;
+  const detectedMime = isPdf ? "application/pdf" : isJpeg ? "image/jpeg" : isPng ? "image/png" : "";
+  if (!detectedMime || (options.allowedMimeTypes || []).indexOf(detectedMime) < 0) throw new Error(label + " must be an allowed PDF, JPEG, or PNG file.");
+  const extension = detectedMime === "application/pdf" ? ".pdf" : detectedMime === "image/png" ? ".png" : ".jpg";
+  const originalName = String(filePayload.name || label).replace(/[\r\n]/g, " ").slice(0, 180);
+  return { bytes: bytes, mimeType: detectedMime, extension: extension, safeName: originalName };
+}
+
+// ---- 08_EmailOtp.gs ----
 function authorizeEmailOtp() {
   return MailApp.getRemainingDailyQuota();
 }
@@ -1027,11 +1109,10 @@ function diagnoseEmailOtp(payload) {
 function sendEmailOtpMessage(email, code) {
   MailApp.sendEmail({
     to: email,
+    subject: "Your MathEpi application verification code",
+    body: "Your MathEpi application verification code is: " + code + "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email.",
     name: "MathEpi Academic Operations",
     noReply: true,
-    subject: "Your MathEpi application verification code",
-    body: "Your MathEpi application verification code is: " + code +
-      "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email.",
     htmlBody:
       "<p>Your MathEpi application verification code is:</p>" +
       "<p style=\"font-size:24px;font-weight:700;letter-spacing:3px;\">" + code + "</p>" +
@@ -1139,6 +1220,7 @@ function emailOtpErrorResponse(error) {
   return { ok: false, error: error && error.message ? error.message : String(error || "Email verification failed.") };
 }
 
+// ---- 09_EmailOtpHelpers.gs ----
 function requireEmailVerification(verification, email, purpose) {
   const verifiedEmail = normalizeEmailAddress(email);
   const token = verification && verification.token;
@@ -1184,6 +1266,7 @@ function emailOtpSecret() {
   return secret;
 }
 
+// ---- 10_TutorialFellowReviews.gs ----
 function requestReviewerOtp(payload) {
   payload = payload || {};
   const email = normalizeEmailAddress(payload.email);
@@ -1218,16 +1301,21 @@ function listReviewApplicants(payload) {
   const applications = readTutorialReviewApplications(spreadsheet);
   const assignments = readReviewSheetObjects(spreadsheet, "ReviewAssignments");
   const visibleApplications = filterReviewApplicationsForReviewer(applications, assignments, reviewer);
-  const visibleApplicationIds = reviewApplicationIdSet_(visibleApplications);
+  const visibleIds = {};
+  visibleApplications.forEach(function (application) { visibleIds[application.applicationId] = true; });
+  const filterVisible = function (rows) { return reviewerCanManage(reviewer) ? rows : rows.filter(function (row) { return !!visibleIds[row.application_id]; }); };
   return {
     ok: true,
     reviewer,
     applications: visibleApplications,
-    scores: filterReviewRowsForApplications_(readReviewSheetObjects(spreadsheet, "ReviewScores"), visibleApplicationIds),
-    analyses: filterReviewRowsForApplications_(readReviewSheetObjects(spreadsheet, "ReviewAnalyses"), visibleApplicationIds),
-    notes: filterReviewRowsForApplications_(readReviewSheetObjects(spreadsheet, "ReviewNotes"), visibleApplicationIds),
-    stages: filterReviewRowsForApplications_(readReviewSheetObjects(spreadsheet, "ReviewStages"), visibleApplicationIds),
-    assignments: filterReviewRowsForApplications_(assignments, visibleApplicationIds),
+    scores: filterVisible(readReviewSheetObjects(spreadsheet, "ReviewScores")),
+    analyses: filterVisible(readReviewSheetObjects(spreadsheet, "ReviewAnalyses")),
+    notes: filterVisible(readReviewSheetObjects(spreadsheet, "ReviewNotes")),
+    stages: filterVisible(readReviewSheetObjects(spreadsheet, "ReviewStages")),
+    assignments: reviewerCanManage(reviewer) ? assignments : assignments.filter(function (row) {
+      const email = row.reviewer_email || row.email;
+      return email && normalizeEmailAddress(email) === reviewer.email;
+    }),
     config: reviewConfig(spreadsheet),
     reviewers: reviewerCanManage(reviewer) ? readReviewSheetObjects(spreadsheet, "Reviewers") : [],
     syncedAt: new Date().toISOString(),
@@ -1241,6 +1329,7 @@ function saveReviewScore(payload) {
   ensureSheets(spreadsheet);
   const applicationId = String(payload.applicationId || "").trim();
   if (!applicationId) throw new Error("Application id is required.");
+  requireReviewerApplicationAccess_(spreadsheet, reviewer, applicationId);
   const reason = String(payload.reason || "").trim();
   if (!reason) throw new Error("A reason is required before saving score revisions.");
   const scoreId = applicationId + "::" + reviewer.email;
@@ -1275,6 +1364,7 @@ function saveReviewAnalysis(payload) {
   ensureSheets(spreadsheet);
   const applicationId = String(payload.applicationId || "").trim();
   if (!applicationId) throw new Error("Application id is required.");
+  requireReviewerApplicationAccess_(spreadsheet, reviewer, applicationId);
   const sheet = getSheet(spreadsheet, "ReviewAnalyses");
   const analysisId = applicationId + "::" + reviewer.email;
   const before = findSheetObject(sheet, analysisId);
@@ -1322,6 +1412,7 @@ function submitPanelReview(payload) {
   ensureSheets(spreadsheet);
   const applicationId = String(payload.applicationId || "").trim();
   if (!applicationId) throw new Error("Application id is required.");
+  requireReviewerApplicationAccess_(spreadsheet, reviewer, applicationId);
   const reason = String(payload.reason || "").trim();
   if (!reason) throw new Error("A reason is required before submitting a review.");
   const now = new Date().toISOString();
@@ -1448,6 +1539,7 @@ function saveReviewNote(payload) {
   const applicationId = String(payload.applicationId || "").trim();
   const noteText = String(payload.note || "").trim();
   if (!applicationId) throw new Error("Application id is required.");
+  requireReviewerApplicationAccess_(spreadsheet, reviewer, applicationId);
   if (!noteText) throw new Error("A note cannot be empty.");
   const sheet = getSheet(spreadsheet, "ReviewNotes");
   const noteId = String(payload.noteId || Utilities.getUuid());
@@ -1494,6 +1586,7 @@ function withdrawReviewNote(payload) {
   const noteId = String(payload.noteId || "");
   const before = findSheetObject(sheet, noteId);
   if (!before) throw new Error("Review note not found.");
+  requireReviewerApplicationAccess_(spreadsheet, reviewer, before.application_id);
   if (before.author_email !== reviewer.email && !reviewerCanManage(reviewer)) {
     throw new Error("Only the author or a review manager can withdraw this note.");
   }
@@ -1626,14 +1719,22 @@ function findReviewerInNamedSpreadsheet_(target, currentSpreadsheetId) {
 
 function reviewerCanManage(reviewer) {
   const role = String(reviewer && reviewer.role || "").toLowerCase();
-  const identity = String([reviewer && reviewer.name, reviewer && reviewer.email].filter(Boolean).join(" ")).toLowerCase();
   return role === "academic manager" ||
     role === "review manager" ||
     role === "manager" ||
     role === "admin" ||
     role === "super admin" ||
-    role === "chair" ||
-    identity.indexOf("cecil") >= 0;
+    role === "chair";
+}
+
+function requireReviewerApplicationAccess_(spreadsheet, reviewer, applicationId) {
+  const applications = readTutorialReviewApplications(spreadsheet);
+  if (!applications.some(function (application) { return application.applicationId === applicationId; })) throw new Error("Application not found.");
+  if (reviewerCanManage(reviewer)) return true;
+  const assignments = readReviewSheetObjects(spreadsheet, "ReviewAssignments");
+  const visible = filterReviewApplicationsForReviewer(applications, assignments, reviewer);
+  if (!visible.some(function (application) { return application.applicationId === applicationId; })) throw new Error("You are not assigned to review this application.");
+  return true;
 }
 
 function filterReviewApplicationsForReviewer(applications, assignments, reviewer) {
@@ -1649,23 +1750,6 @@ function filterReviewApplicationsForReviewer(applications, assignments, reviewer
   });
   if (!Object.keys(assignedIds).length) return [];
   return applications.filter((app) => assignedIds[app.applicationId]);
-}
-
-function reviewApplicationIdSet_(applications) {
-  const ids = {};
-  (applications || []).forEach((app) => {
-    const id = String(app.applicationId || app.application_id || "").trim();
-    if (id) ids[id] = true;
-  });
-  return ids;
-}
-
-function filterReviewRowsForApplications_(rows, applicationIds) {
-  if (!Object.keys(applicationIds || {}).length) return [];
-  return (rows || []).filter((row) => {
-    const id = String(row.application_id || row.applicationId || "").trim();
-    return id && applicationIds[id];
-  });
 }
 
 function readTutorialReviewApplications(spreadsheet) {
@@ -1839,4 +1923,697 @@ function appendReviewAudit(spreadsheet, reviewer, action, applicationId, before,
 function clampScore(value) {
   const number = Math.round(Number(value || 0));
   return Math.max(0, Math.min(100, number));
+}
+
+// ---- 11_ProgrammeCalendar.gs ----
+const PROGRAMME_CALENDAR_TRIGGER = "syncProgrammeCalendarFromSheets";
+const PROGRAMME_CALENDAR_TIMEZONE = "Africa/Kigali";
+
+function syncProgrammeCalendar(payload) {
+  const spreadsheet = getOrCreateSpreadsheet();
+  ensureSheets(spreadsheet);
+  if (payload && payload.datasets) writeDatasets(spreadsheet, payload.datasets);
+  return syncProgrammeCalendarData(payload && payload.datasets, spreadsheet);
+}
+
+function syncProgrammeCalendarFromSheets() {
+  return syncProgrammeCalendarData(null, getOrCreateSpreadsheet());
+}
+
+function tryProgrammeCalendarSync(payload, spreadsheet) {
+  try {
+    return syncProgrammeCalendarData(payload && payload.datasets, spreadsheet);
+  } catch (error) {
+    return { ok: false, error: error && error.message ? error.message : String(error) };
+  }
+}
+
+function getProgrammeCalendarStatus() {
+  const props = PropertiesService.getScriptProperties();
+  const calendarId = props.getProperty(MATHEPI.properties.calendarId) || "";
+  const calendar = calendarId ? CalendarApp.getCalendarById(calendarId) : null;
+  return {
+    ok: true,
+    connected: !!calendar,
+    calendarId: calendar ? calendar.getId() : "",
+    calendarName: calendar ? calendar.getName() : MATHEPI.calendarName,
+    calendarUrl: calendar ? programmeCalendarUrl(calendar.getId()) : "",
+    lastSyncedAt: props.getProperty("MATHEPI_PROGRAMME_CALENDAR_SYNCED_AT") || "",
+    eventCount: Number(props.getProperty("MATHEPI_PROGRAMME_CALENDAR_EVENT_COUNT") || 0),
+  };
+}
+
+function syncProgrammeCalendarData(datasets, spreadsheet) {
+  const data = datasets || {
+    CalendarBlocks: readJsonRecords(getSheet(spreadsheet, "CalendarBlocks")),
+    Courses: readJsonRecords(getSheet(spreadsheet, "Courses")),
+    Sessions: readJsonRecords(getSheet(spreadsheet, "Sessions")),
+    StudyGroupMeetings: readJsonRecords(getSheet(spreadsheet, "StudyGroupMeetings")),
+  };
+  const blocks = data.CalendarBlocks || [];
+  const courses = data.Courses || [];
+  const sessions = data.Sessions || [];
+  const groupMeetings = data.StudyGroupMeetings || [];
+  if (!blocks.length || !courses.length) throw new Error("Calendar blocks and courses must be synced before creating Google Calendar events.");
+
+  const calendar = getOrCreateProgrammeCalendar();
+  removeProgrammeCalendarTriggers_();
+  const ledgerSheet = getSheet(spreadsheet, "CalendarSyncEvents");
+  ensureSheetHeaders(ledgerSheet, TAB_HEADERS.CalendarSyncEvents);
+  const existing = readCalendarSyncLedger(ledgerSheet);
+  const desired = buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings);
+  clearProgrammeCalendarEvents_(calendar);
+  const retained = {};
+  let created = 0;
+  let updated = 0;
+  let unchanged = 0;
+
+  desired.forEach((item) => {
+    const event = createProgrammeCalendarEvent(calendar, item);
+    retained[item.sync_key] = {
+      sync_key: item.sync_key,
+      event_id: event.getId(),
+      fingerprint: item.fingerprint,
+      event_date: item.event_date,
+      updated_at: new Date().toISOString(),
+    };
+    created += 1;
+  });
+
+  let removed = 0;
+  Object.keys(existing).forEach((key) => {
+    if (retained[key]) return;
+    deleteCalendarEvent(calendar, existing[key].event_id);
+    removed += 1;
+  });
+  writeCalendarSyncLedger(ledgerSheet, Object.keys(retained).sort().map((key) => retained[key]));
+
+  const syncedAt = new Date().toISOString();
+  const props = PropertiesService.getScriptProperties();
+  props.setProperty("MATHEPI_PROGRAMME_CALENDAR_SYNCED_AT", syncedAt);
+  props.setProperty("MATHEPI_PROGRAMME_CALENDAR_EVENT_COUNT", String(desired.length));
+  return {
+    ok: true,
+    connected: true,
+    calendarId: calendar.getId(),
+    calendarName: calendar.getName(),
+    calendarUrl: programmeCalendarUrl(calendar.getId()),
+    lastSyncedAt: syncedAt,
+    eventCount: desired.length,
+    created: created,
+    updated: updated,
+    removed: removed,
+    unchanged: unchanged,
+  };
+}
+
+function getOrCreateProgrammeCalendar() {
+  const props = PropertiesService.getScriptProperties();
+  const existingId = props.getProperty(MATHEPI.properties.calendarId);
+  if (existingId) {
+    const existing = CalendarApp.getCalendarById(existingId);
+    if (existing) return existing;
+    props.deleteProperty(MATHEPI.properties.calendarId);
+  }
+  const matches = CalendarApp.getCalendarsByName(MATHEPI.calendarName);
+  const calendar = matches.length ? matches[0] : CalendarApp.createCalendar(MATHEPI.calendarName, {
+    summary: "Live teaching timetable for the MathEpi 2026-2027 programme.",
+    timeZone: PROGRAMME_CALENDAR_TIMEZONE,
+  });
+  props.setProperty(MATHEPI.properties.calendarId, calendar.getId());
+  return calendar;
+}
+
+function ensureProgrammeCalendarTrigger() {
+  const exists = ScriptApp.getProjectTriggers().some((trigger) => trigger.getHandlerFunction() === PROGRAMME_CALENDAR_TRIGGER);
+  if (!exists) ScriptApp.newTrigger(PROGRAMME_CALENDAR_TRIGGER).timeBased().everyMinutes(15).create();
+}
+
+function removeProgrammeCalendarTriggers_() {
+  ScriptApp.getProjectTriggers().forEach(function (trigger) {
+    if (trigger.getHandlerFunction() === PROGRAMME_CALENDAR_TRIGGER) ScriptApp.deleteTrigger(trigger);
+  });
+}
+
+function clearProgrammeCalendarEvents_(calendar) {
+  const start = new Date("2025-01-01T00:00:00Z");
+  const end = new Date("2029-12-31T23:59:59Z");
+  calendar.getEvents(start, end).forEach(function (event) { event.deleteEvent(); });
+}
+
+const PROGRAMME_COURSE_DELIVERY_WINDOWS = {
+  MES01: { start: "2026-10-26", end: "2026-11-13" },
+  MES06: { start: "2026-10-26", end: "2026-11-10" },
+  MES05: { start: "2026-11-11", end: "2026-11-27" },
+  MES03: { start: "2026-11-16", end: "2026-11-27" },
+};
+
+function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings) {
+  const blockMap = {};
+  const courseMap = {};
+  blocks.forEach((block) => { blockMap[String(block.id || block.block_id || "")] = block; });
+  courses.forEach((course) => { courseMap[String(course.code || course.id || "").toUpperCase()] = course; });
+  const events = [];
+
+  sessions.forEach((session) => {
+    const block = blockMap[String(session.blockId || session.block_id || "")];
+    const code = String(session.courseCode || session.course_code || "").toUpperCase();
+    const course = courseMap[code];
+    if (!block || !course || !block.start || !block.end || !session.day || !session.time) return;
+    const fixedWindow = PROGRAMME_COURSE_DELIVERY_WINDOWS[code] || {};
+    const deliveryStart = fixedWindow.start || course.deliveryStart || course.delivery_start || block.start;
+    const deliveryEnd = fixedWindow.end || course.deliveryEnd || course.delivery_end || block.end;
+    datesForWeekday(deliveryStart, deliveryEnd, session.day).forEach((date) => {
+      const start = dateAtTime(date, session.time);
+      const end = new Date(start.getTime() + Number(session.duration || 2) * 60 * 60 * 1000);
+      const lecturers = course.lecturerName || "To be confirmed";
+      const alternates = course.alternateLecturerName || "";
+      const tutors = (course.reviewTutorNames || []).join(", ");
+      const description = [
+        course.outcomes || course.description || "",
+        "Lecturer: " + lecturers,
+        alternates ? "Alternate: " + alternates : "",
+        tutors ? "Tutor(s): " + tutors : "",
+        "Block: " + (block.title || block.id || ""),
+        "Synced automatically from the MathEpi Academic Manager.",
+      ].filter(Boolean).join("\n\n");
+      const item = {
+        sync_key: "session::" + String(session.id || code + "-" + session.day + "-" + session.time) + "::" + formatProgrammeDate(date),
+        title: code + " " + course.title + " - " + (session.type || "Class"),
+        start: start,
+        end: end,
+        location: session.room || "",
+        description: description,
+        event_date: formatProgrammeDate(date),
+        all_day: false,
+      };
+      item.fingerprint = programmeCalendarFingerprint(item);
+      events.push(item);
+    });
+  });
+
+  blocks.filter((block) => block.kind && block.kind !== "teaching").forEach((block) => {
+    if (!block.start || !block.end) return;
+    const item = {
+      sync_key: "block::" + String(block.id || block.title),
+      title: block.title || "MathEpi programme milestone",
+      start: programmeDate(block.start),
+      end: addProgrammeDays(programmeDate(block.end), 1),
+      location: "",
+      description: [block.note || "", "Synced automatically from the MathEpi Academic Manager."].filter(Boolean).join("\n\n"),
+      event_date: String(block.start),
+      all_day: true,
+    };
+    item.fingerprint = programmeCalendarFingerprint(item);
+    events.push(item);
+  });
+  (groupMeetings || []).filter((meeting) => meeting.date && meeting.time && meeting.status !== "Cancelled").forEach((meeting) => {
+    const start = dateAtTime(programmeDate(meeting.date), meeting.time);
+    const end = new Date(start.getTime() + Number(meeting.duration || 90) * 60 * 1000);
+    const item = {
+      sync_key: "study-group::" + String(meeting.id || meeting.groupId + "-" + meeting.date + "-" + meeting.time),
+      title: "Study group: " + String(meeting.title || meeting.courseCode || "MathEpi"),
+      start: start,
+      end: end,
+      location: meeting.location || "",
+      description: [meeting.objective || "", meeting.courseCode ? "Course: " + meeting.courseCode : "", "Created from the MathEpi Study Groups workspace."].filter(Boolean).join("\n\n"),
+      event_date: formatProgrammeDate(start),
+      all_day: false,
+    };
+    item.fingerprint = programmeCalendarFingerprint(item);
+    events.push(item);
+  });
+  return events;
+}
+
+function createProgrammeCalendarEvent(calendar, item) {
+  if (item.all_day) return calendar.createAllDayEvent(item.title, item.start, item.end, { description: item.description });
+  return calendar.createEvent(item.title, item.start, item.end, { description: item.description, location: item.location });
+}
+
+function calendarEventExists(calendar, eventId) {
+  if (!eventId) return false;
+  try { return !!calendar.getEventById(eventId); } catch (error) { return false; }
+}
+
+function deleteCalendarEvent(calendar, eventId) {
+  if (!eventId) return;
+  try {
+    const event = calendar.getEventById(eventId);
+    if (event) event.deleteEvent();
+  } catch (error) {}
+}
+
+function readCalendarSyncLedger(sheet) {
+  const rows = readSheetObjects(sheet);
+  const result = {};
+  rows.forEach((row) => { if (row.sync_key) result[row.sync_key] = row; });
+  return result;
+}
+
+function writeCalendarSyncLedger(sheet, rows) {
+  clearBody(sheet);
+  if (!rows.length) return;
+  const headers = TAB_HEADERS.CalendarSyncEvents;
+  sheet.getRange(2, 1, rows.length, headers.length).setValues(rows.map((row) => headers.map((header) => row[header] || "")));
+}
+
+function datesForWeekday(startValue, endValue, dayName) {
+  const target = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(String(dayName));
+  if (target < 0) return [];
+  const current = programmeDate(startValue);
+  const end = programmeDate(endValue);
+  while (current.getDay() !== target && current <= end) current.setDate(current.getDate() + 1);
+  const dates = [];
+  while (current <= end) {
+    dates.push(new Date(current.getTime()));
+    current.setDate(current.getDate() + 7);
+  }
+  return dates;
+}
+
+function programmeDate(value) {
+  const parts = String(value).slice(0, 10).split("-").map(Number);
+  return new Date(parts[0], parts[1] - 1, parts[2]);
+}
+
+function dateAtTime(date, time) {
+  const parts = String(time).split(":").map(Number);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), parts[0] || 0, parts[1] || 0, 0, 0);
+}
+
+function addProgrammeDays(date, days) {
+  const result = new Date(date.getTime());
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+function formatProgrammeDate(date) {
+  return Utilities.formatDate(date, PROGRAMME_CALENDAR_TIMEZONE, "yyyy-MM-dd");
+}
+
+function programmeCalendarFingerprint(item) {
+  const raw = [item.title, item.start.toISOString(), item.end.toISOString(), item.location, item.description, item.all_day].join("|");
+  return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, raw)).replace(/=+$/, "");
+}
+
+function programmeCalendarUrl(calendarId) {
+  return "https://calendar.google.com/calendar/u/0?cid=" + encodeURIComponent(calendarId);
+}
+
+// ---- 12_PortalAccess.gs ----
+const PORTAL_ADMIN_EMAIL = "couma@aimsric.org";
+const PORTAL_ROLES = ["manager", "centre-coordinator", "head-tutor", "lecturer", "tutor", "student", "aims-ric-support", "support-counsellor", "it-support", "viewer"];
+const PORTAL_FIREBASE_API_KEY = "AIzaSyA_7_wqSyIk5cIShXN0wet3jEncNqwrThE";
+
+function establishGooglePortalAccess(payload) {
+  payload = payload || {};
+  const identity = payload.googleAccessToken
+    ? portalVerifyGoogleAccessToken_(payload.googleAccessToken)
+    : portalVerifyFirebaseGoogleToken_(payload.idToken);
+  const email = portalAllowedEmail_(identity.email);
+  let record = portalStoredAccess_(email);
+  if (!record) {
+    const admin = email === PORTAL_ADMIN_EMAIL;
+    const requestedRole = admin ? "manager" : portalRole_(payload.requestedRole);
+    const roles = admin ? ["super-admin", "manager"] : [];
+    record = { email: email, requested_role: requestedRole, roles_json: JSON.stringify(roles), status: admin ? "approved" : "pending", requested_at: new Date().toISOString(), decided_at: admin ? new Date().toISOString() : "", decided_by: admin ? email : "" };
+    portalStoreAccess_(record);
+  }
+  const token = Utilities.getUuid() + Utilities.getUuid();
+  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  portalStoreSession_(token, email, expires);
+  const result = portalSessionResult_(record, token, expires);
+  result.provider = "google";
+  result.displayName = identity.displayName;
+  return result;
+}
+
+function portalVerifyGoogleAccessToken_(accessToken) {
+  accessToken = String(accessToken || "").trim();
+  if (!accessToken) throw new Error("Google sign-in token is missing.");
+  const response = UrlFetchApp.fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: "Bearer " + accessToken },
+    muteHttpExceptions: true,
+  });
+  const data = JSON.parse(response.getContentText() || "{}");
+  if (response.getResponseCode() !== 200 || !data.sub || !data.email) throw new Error("Google sign-in could not be verified.");
+  if (data.email_verified !== true && data.email_verified !== "true") throw new Error("Your Google account email is not verified.");
+  return { uid: String(data.sub), email: String(data.email), displayName: String(data.name || data.email) };
+}
+
+function portalVerifyFirebaseGoogleToken_(idToken) {
+  idToken = String(idToken || "").trim();
+  if (!idToken) throw new Error("Google sign-in token is missing.");
+  const response = UrlFetchApp.fetch("https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo?key=" + encodeURIComponent(PORTAL_FIREBASE_API_KEY), {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({ idToken: idToken }),
+    muteHttpExceptions: true,
+  });
+  const data = JSON.parse(response.getContentText() || "{}");
+  const user = data.users && data.users[0];
+  if (response.getResponseCode() !== 200 || !user) throw new Error("Google sign-in could not be verified.");
+  if (!user.emailVerified) throw new Error("Your Google account email is not verified.");
+  const providers = user.providerUserInfo || [];
+  if (!providers.some(function (provider) { return provider.providerId === "google.com"; })) throw new Error("Use Sign in with Google for MathEpi access.");
+  return { uid: String(user.localId || ""), email: String(user.email || ""), displayName: String(user.displayName || user.email || "") };
+}
+
+function requestPortalAccessOtp(payload) {
+  payload = payload || {};
+  const email = portalAllowedEmail_(payload && payload.email);
+  const requestedRole = portalRole_(payload.requestedRole);
+  const result = requestEmailOtp({ email: email, purpose: "portal-access" });
+  if (result && result.ok) result.requestedRole = requestedRole;
+  return result;
+}
+
+function verifyPortalAccessOtp(payload) {
+  payload = payload || {};
+  const email = portalAllowedEmail_(payload.email);
+  const requestedRole = portalRole_(payload.requestedRole);
+  const verified = verifyEmailOtp({ email: email, code: payload.code, purpose: "portal-access" });
+  if (!verified.ok) return verified;
+  const sheet = portalSheet_("AccessRoles", ["email", "requested_role", "roles_json", "status", "requested_at", "decided_at", "decided_by"]);
+  let record = portalFind_(sheet, email);
+  if (!record) {
+    const admin = email === PORTAL_ADMIN_EMAIL;
+    const roles = admin ? ["super-admin", "manager"] : [];
+    sheet.appendRow([email, requestedRole, JSON.stringify(roles), admin ? "approved" : "pending", new Date(), admin ? new Date() : "", admin ? email : ""]);
+    record = { email: email, requested_role: requestedRole, roles_json: JSON.stringify(roles), status: admin ? "approved" : "pending" };
+    portalSend_(email, "MathEpi account request received", admin
+      ? "Your MathEpi administrator account is active."
+      : "Your MathEpi account request has been received and is awaiting approval.");
+  }
+  const token = Utilities.getUuid() + Utilities.getUuid();
+  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  portalSheet_("AccessSessions", ["token_hash", "email", "expires_at", "created_at"]).appendRow([portalHash_(token), email, expires, new Date()]);
+  return portalSessionResult_(record, token, expires);
+}
+
+function getPortalAccessSession(payload) {
+  const session = portalRequireSession_(payload && payload.token, false);
+  return portalSessionResult_(session.access, payload.token, session.expires);
+}
+
+function listPortalAccessRequests(payload) {
+  portalRequireSession_(payload && payload.token, true);
+  return { ok: true, requests: portalStoredAccessRows_().filter(function (row) { return row.status === "pending"; }) };
+}
+
+function listPortalAccessUsers(payload) {
+  portalRequireSession_(payload && payload.token, true);
+  const users = portalStoredAccessRows_().filter(function (row) { return row.status !== "pending"; }).map(function (row) {
+    row.roles = JSON.parse(row.roles_json || "[]");
+    return row;
+  });
+  return { ok: true, users: users };
+}
+
+function updatePortalUserAccess(payload) {
+  payload = payload || {};
+  const admin = portalRequireSession_(payload.token, true);
+  const email = normalizeEmailAddress(payload.email);
+  const role = portalRole_(payload.role);
+  if (email === PORTAL_ADMIN_EMAIL && payload.active === false) throw new Error("The primary administrator account cannot be switched off.");
+  const found = portalStoredAccess_(email);
+  if (!found) throw new Error("Access record not found.");
+  const active = payload.active === true || String(payload.active).toLowerCase() === "true";
+  found.requested_role = role;
+  found.roles_json = JSON.stringify(active ? [role] : []);
+  found.status = active ? "approved" : "suspended";
+  found.decided_at = new Date().toISOString();
+  found.decided_by = admin.email;
+  found.notification_id = Utilities.getUuid();
+  found.notification_message = active
+    ? "Your MathEpi access is active as " + role + "."
+    : "Your MathEpi access has been switched off. Please contact the Academic Manager if you need access restored.";
+  portalStoreAccess_(found);
+  return { ok: true, email: email, status: found.status };
+}
+
+function decidePortalAccess(payload) {
+  payload = payload || {};
+  const admin = portalRequireSession_(payload.token, true);
+  const email = normalizeEmailAddress(payload.email);
+  const decision = String(payload.decision || "").toLowerCase();
+  if (["approved", "rejected"].indexOf(decision) < 0) throw new Error("Choose Approve or Reject.");
+  const role = portalRole_(payload.role);
+  const found = portalStoredAccess_(email);
+  if (!found) throw new Error("Access request not found.");
+  found.requested_role = role;
+  found.roles_json = JSON.stringify(decision === "approved" ? [role] : []);
+  found.status = decision;
+  found.decided_at = new Date().toISOString();
+  found.decided_by = admin.email;
+  found.notification_id = Utilities.getUuid();
+  found.notification_message = decision === "approved"
+    ? "Your MathEpi access has been approved as " + role + "."
+    : "Your MathEpi access request was not approved. Please contact the Academic Manager.";
+  portalStoreAccess_(found);
+  return { ok: true, notificationId: found.notification_id };
+}
+
+function portalRequireSession_(token, adminOnly) {
+  const session = portalStoredSession_(token);
+  if (!session || new Date(session.expires_at).getTime() <= Date.now()) throw new Error("Your session has expired. Sign in with Google again.");
+  const access = portalStoredAccess_(session.email);
+  if (!access) throw new Error("Access record not found.");
+  const roles = JSON.parse(access.roles_json || "[]");
+  if (adminOnly && session.email !== PORTAL_ADMIN_EMAIL && roles.indexOf("super-admin") < 0 && roles.indexOf("manager") < 0) throw new Error("Administrator access is required.");
+  return { email: session.email, access: access, expires: session.expires_at };
+}
+
+function portalRequireRoles_(token, allowedRoles) {
+  const session = portalRequireSession_(token, false);
+  if (session.access.status !== "approved") throw new Error("Approved MathEpi access is required.");
+  const roles = JSON.parse(session.access.roles_json || "[]");
+  if (allowedRoles && allowedRoles.length && !roles.some(function (role) { return allowedRoles.indexOf(role) >= 0; })) throw new Error("Your assigned role cannot perform this action.");
+  return session;
+}
+
+function portalSessionResult_(record, token, expires) {
+  return {
+    ok: true,
+    token: token,
+    email: record.email,
+    status: record.status,
+    requestedRole: record.requested_role,
+    roles: JSON.parse(record.roles_json || "[]"),
+    expiresAt: expires,
+    decidedAt: record.decided_at || "",
+    notificationId: record.notification_id || "",
+    notificationMessage: record.notification_message || "",
+  };
+}
+
+function portalStore_() { return PropertiesService.getScriptProperties(); }
+function portalAccessKey_(email) { return "portal_access_" + portalHash_(normalizeEmailAddress(email)); }
+function portalSessionKey_(token) { return "portal_session_" + portalHash_(String(token || "")); }
+function portalStoredAccess_(email) {
+  const value = portalStore_().getProperty(portalAccessKey_(email));
+  return value ? JSON.parse(value) : null;
+}
+function portalStoreAccess_(record) { portalStore_().setProperty(portalAccessKey_(record.email), JSON.stringify(record)); }
+function portalStoredAccessRows_() {
+  const properties = portalStore_().getProperties();
+  return Object.keys(properties).filter(function (key) { return key.indexOf("portal_access_") === 0; }).map(function (key, index) {
+    const record = JSON.parse(properties[key]);
+    record._row = index + 1;
+    return record;
+  });
+}
+function portalStoreSession_(token, email, expires) {
+  portalStore_().setProperty(portalSessionKey_(token), JSON.stringify({ email: email, expires_at: expires.toISOString(), created_at: new Date().toISOString() }));
+}
+function portalStoredSession_(token) {
+  const value = portalStore_().getProperty(portalSessionKey_(token));
+  return value ? JSON.parse(value) : null;
+}
+
+function portalAllowedEmail_(email) {
+  email = normalizeEmailAddress(email);
+  if (!/@aimsric\.org$/i.test(email)) throw new Error("Only an @aimsric.org email address can request MathEpi access.");
+  return email;
+}
+function portalRole_(role) { role = String(role || "").trim(); if (PORTAL_ROLES.indexOf(role) < 0) throw new Error("Choose a valid role before requesting a code."); return role; }
+function portalHash_(value) { return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, value)); }
+function portalSheet_(name, headers) { const ss = getOrCreateSpreadsheet(); let sh = ss.getSheetByName(name); if (!sh) sh = ss.insertSheet(name); if (!sh.getLastRow()) sh.appendRow(headers); return sh; }
+function portalRows_(sheet) { const values = sheet.getDataRange().getValues(); if (values.length < 2) return []; const heads = values[0]; return values.slice(1).map(function (row, i) { const out = {_row:i+2}; heads.forEach(function(h,j){out[h]=row[j];}); return out; }); }
+function portalFind_(sheet, email) { return portalRows_(sheet).filter(function(row){return String(row.email).toLowerCase() === email;})[0] || null; }
+function portalSend_(email, subject, message) { MailApp.sendEmail({to:email, subject:subject, body:message, name:"MathEpi Academic Operations", noReply:true}); }
+
+// ---- 13_ItTicketsNotifications.gs ----
+function createItTicket(payload) {
+  const session = portalRequireRoles_(payload && payload.token, []);
+  const spreadsheet = getOrCreateSpreadsheet();
+  ensureSheets(spreadsheet);
+  const ticket = Object.assign({}, payload.ticket || {});
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const ticketSheet = getSheet(spreadsheet, "ItTickets");
+    const sequence = Math.max(1, ticketSheet.getLastRow());
+    ticket.ticketRef = "IT-" + new Date().getFullYear() + "-" + String(sequence).padStart(4, "0");
+    ticket.id = String(ticket.id || "sup-" + Date.now());
+    ticket.requester_email = session.email;
+    ticket.visibility = "technical";
+    ticket.status = "New";
+    ticket.created_at = ticket.created_at || new Date().toISOString();
+    upsertRows(ticketSheet, [ticket]);
+  } finally {
+    lock.releaseLock();
+  }
+  appendTicketEvent_(spreadsheet, ticket.id, "Created", session.email, ticket.title || "");
+  appendTicketNotification_(spreadsheet, session.email, "", "Ticket submitted", (ticket.ticketRef || ticket.id) + " was submitted.", "success", ticket.id);
+  appendTicketNotification_(spreadsheet, "", "it-support", "New IT ticket", (ticket.ticketRef || ticket.id) + ": " + (ticket.title || "Technical issue"), ticket.urgency === "Critical" ? "critical" : "info", ticket.id);
+  return { ok: true, ticket: ticket };
+}
+
+function listItTickets(payload) {
+  const session = portalRequireRoles_(payload && payload.token, []);
+  const roles = JSON.parse(session.access.roles_json || "[]");
+  const canManage = roles.some(function (role) { return ["super-admin", "manager", "it-support", "aims-ric-support"].indexOf(role) >= 0; });
+  const rows = readSheetObjects(getSheet(getOrCreateSpreadsheet(), "ItTickets"));
+  return { ok: true, tickets: canManage ? rows : rows.filter(function (row) { return normalizeEmailAddress(row.requester_email) === session.email; }) };
+}
+
+function updateItTicket(payload) {
+  const session = portalRequireRoles_(payload && payload.token, ["super-admin", "manager", "it-support", "aims-ric-support"]);
+  const spreadsheet = getOrCreateSpreadsheet();
+  const ticket = Object.assign({}, payload.ticket || {});
+  if (!ticket.id) throw new Error("Ticket id is required.");
+  if (["Resolved", "Closed"].indexOf(ticket.status) >= 0 && !String(ticket.resolutionSummary || "").trim()) throw new Error("A resolution summary is required.");
+  ticket.updated_at = new Date().toISOString();
+  upsertRows(getSheet(spreadsheet, "ItTickets"), [ticket]);
+  appendTicketEvent_(spreadsheet, ticket.id, "Status changed to " + ticket.status, session.email, ticket.resolutionSummary || "");
+  appendTicketNotification_(spreadsheet, ticket.requester_email || "", "", (ticket.ticketRef || ticket.id) + ": " + ticket.status, ticket.resolutionSummary || "Your ticket was updated.", ticket.status === "Resolved" ? "success" : "info", ticket.id);
+  return { ok: true, ticket: ticket };
+}
+
+function listNotifications(payload) {
+  const session = portalRequireRoles_(payload && payload.token, []);
+  const roles = JSON.parse(session.access.roles_json || "[]");
+  const rows = readSheetObjects(getSheet(getOrCreateSpreadsheet(), "Notifications"));
+  return { ok: true, notifications: rows.filter(function (row) { return normalizeEmailAddress(row.recipient_email) === session.email || (row.recipient_role && roles.indexOf(row.recipient_role) >= 0); }) };
+}
+
+function markNotificationRead(payload) {
+  const session = portalRequireRoles_(payload && payload.token, []);
+  const spreadsheet = getOrCreateSpreadsheet();
+  const rows = listNotifications(payload).notifications;
+  const row = rows.filter(function (item) { return item.notification_id === payload.notificationId; })[0];
+  if (!row) throw new Error("Notification not found.");
+  row.read = true;
+  row.read_at = new Date().toISOString();
+  row.read_by = session.email;
+  upsertRows(getSheet(spreadsheet, "Notifications"), [row]);
+  return { ok: true };
+}
+
+function appendTicketEvent_(spreadsheet, ticketId, event, actor, detail) {
+  upsertRows(getSheet(spreadsheet, "TicketHistory"), [{ event_id: Utilities.getUuid(), ticket_id: ticketId, event: event, actor_email: actor, detail: detail, created_at: new Date().toISOString() }]);
+}
+
+function appendTicketNotification_(spreadsheet, email, role, title, message, type, ticketId) {
+  upsertRows(getSheet(spreadsheet, "Notifications"), [{ notification_id: Utilities.getUuid(), recipient_email: email, recipient_role: role, title: title, message: message, type: type, ticket_id: ticketId, read: false, created_at: new Date().toISOString() }]);
+}
+
+// ---- 14_PiKnowledge.gs ----
+// Community-taught Pi.
+//
+// When Pi cannot answer, a signed-in user can send the question here. Staff
+// answer it once in the Ask Pi tab; published answers are served back to every
+// user's Pi, and the person who asked is notified. Only questions a user
+// explicitly sends are stored.
+
+const PI_ANSWER_ROLES = ["super-admin", "manager", "centre-coordinator", "head-tutor"];
+const PI_DAILY_QUESTION_LIMIT = 10;
+
+function piQuestionSheet_() {
+  const spreadsheet = getOrCreateSpreadsheet();
+  const sheet = getSheet(spreadsheet, "PiQuestions");
+  ensureSheetHeaders(sheet, TAB_HEADERS.PiQuestions);
+  return { spreadsheet: spreadsheet, sheet: sheet };
+}
+
+function piIso_(value) {
+  if (value instanceof Date) return value.toISOString();
+  return String(value || "");
+}
+
+function piPublished_(value) {
+  return value === true || String(value).toUpperCase() === "TRUE";
+}
+
+function piSubmitQuestion(payload) {
+  payload = payload || {};
+  const session = portalRequireRoles_(payload.token, []);
+  const question = String(payload.question || "").replace(/\s+/g, " ").trim().slice(0, 500);
+  if (question.length < 3) throw new Error("Write a question before sending it.");
+  const context = piQuestionSheet_();
+  const today = new Date().toISOString().slice(0, 10);
+  const sentToday = readSheetObjects(context.sheet).filter(function (row) {
+    return normalizeEmailAddress(row.asked_by) === session.email && piIso_(row.asked_at).slice(0, 10) === today;
+  }).length;
+  if (sentToday >= PI_DAILY_QUESTION_LIMIT) throw new Error("You have sent " + PI_DAILY_QUESTION_LIMIT + " questions today. Please try again tomorrow.");
+  const record = {
+    id: "piq-" + Utilities.getUuid(),
+    question: question,
+    audience: String(payload.audience || "").slice(0, 40),
+    asked_by: session.email,
+    asked_at: new Date().toISOString(),
+    status: "open",
+    answer: "",
+    answered_by: "",
+    answered_at: "",
+    published: false,
+  };
+  upsertRows(context.sheet, [record]);
+  appendTicketNotification_(context.spreadsheet, "", "manager", "New question for Pi", question, "info", record.id);
+  return { ok: true, id: record.id };
+}
+
+function piListQuestions(payload) {
+  portalRequireRoles_(payload && payload.token, PI_ANSWER_ROLES);
+  const rows = readSheetObjects(piQuestionSheet_().sheet);
+  return {
+    ok: true,
+    questions: rows
+      .filter(function (row) { return row.status === "open"; })
+      .map(function (row) { return { id: row.id, question: row.question, audience: row.audience, askedAt: piIso_(row.asked_at) }; }),
+  };
+}
+
+function piAnswerQuestion(payload) {
+  payload = payload || {};
+  const session = portalRequireRoles_(payload.token, PI_ANSWER_ROLES);
+  const publish = payload.publish === true;
+  const answer = String(payload.answer || "").trim().slice(0, 2000);
+  if (publish && answer.length < 10) throw new Error("Write an answer of at least a sentence before publishing.");
+  const context = piQuestionSheet_();
+  const row = readSheetObjects(context.sheet).filter(function (item) { return item.id === payload.id; })[0];
+  if (!row) throw new Error("Question not found.");
+  row.status = publish ? "published" : "closed";
+  row.answer = publish ? answer : "";
+  row.published = publish;
+  row.answered_by = session.email;
+  row.answered_at = new Date().toISOString();
+  upsertRows(context.sheet, [row]);
+  if (publish && row.asked_by) {
+    appendTicketNotification_(context.spreadsheet, row.asked_by, "", "Pi has an answer for you", row.question + " - " + answer.slice(0, 300), "success", row.id);
+  }
+  return { ok: true };
+}
+
+function piListFaq(payload) {
+  portalRequireRoles_(payload && payload.token, []);
+  const rows = readSheetObjects(piQuestionSheet_().sheet);
+  return {
+    ok: true,
+    faq: rows
+      .filter(function (row) { return piPublished_(row.published) && String(row.answer || "").trim(); })
+      .map(function (row) { return { id: row.id, question: row.question, answer: row.answer, answeredAt: piIso_(row.answered_at) }; }),
+  };
 }

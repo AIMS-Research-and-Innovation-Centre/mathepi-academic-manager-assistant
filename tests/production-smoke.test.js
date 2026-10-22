@@ -11,8 +11,48 @@ test("programme dates match the approved 2026/27 calendar", () => {
   assert.match(app, /"start": "2026-10-26"/);
   assert.match(app, /"end": "2027-05-14"/);
   assert.match(app, /"start": "2027-05-31"/);
-  assert.match(app, /MES02: \{ lecturerName: "Prof\. Blaise Tchapnda"/);
+  assert.match(app, /MES02: \{ lecturerName: "Prof\. Faraimunashe Chirove"/);
   assert.match(app, /MEE04: \{ lecturerName: "Prof\. Aklilu Zeleke"/);
+});
+
+test("review authorization is enforced for every applicant record", () => {
+  const reviews = read("apps-script/paste-small-files/10_TutorialFellowReviews.gs");
+  assert.match(reviews, /function requireReviewerApplicationAccess_/);
+  assert.match(reviews, /scores: filterVisible/);
+  assert.match(reviews, /analyses: filterVisible/);
+  assert.match(reviews, /notes: filterVisible/);
+  assert.doesNotMatch(reviews, /identity\.indexOf\("cecil"\)/);
+});
+
+test("application submissions enforce identity, file, and spreadsheet safety", () => {
+  const lecturer = read("apps-script/paste-small-files/04_LecturerApplications.gs");
+  const tutorial = read("apps-script/paste-small-files/07_TutorialFellowApplications.gs");
+  const records = read("apps-script/paste-small-files/06_Records.gs");
+  assert.match(lecturer, /requireEmailVerification\(payload\.emailVerification, application\.email, "lecturer"\)/);
+  assert.match(lecturer, /validateApplicationFile_/);
+  assert.match(tutorial, /function validateApplicationFile_/);
+  assert.match(tutorial, /maxBytes: 5 \* 1024 \* 1024/);
+  assert.match(records, /function safeSheetValue_/);
+});
+
+test("review portal credentials are sent in POST bodies", () => {
+  const routes = read("apps-script/paste-small-files/01_Routes.gs");
+  const tfReviews = read("tf-reviews/index.html");
+  const lecturerReviews = read("lecturer-reviews/index.html");
+  const app = read("app.js");
+  assert.match(tfReviews, /method: "POST"/);
+  assert.match(lecturerReviews, /method: "POST"/);
+  assert.doesNotMatch(tfReviews, /"payload=" \+ encodeURIComponent/);
+  assert.doesNotMatch(lecturerReviews, /script\.src = endpoint/);
+  assert.doesNotMatch(app, /return googleJsonpApi\(endpoint, action, payload\)/);
+  assert.match(routes, /API actions must use POST/);
+});
+
+test("Tutorial Fellow submission only shows success after backend confirmation", () => {
+  const form = read("cfa/tutorial-fellow-application.html");
+  assert.match(form, /result\.success !== true/);
+  assert.match(form, /We could not deliver your application to AIMS/);
+  assert.match(form, /successfully received by AIMS/);
 });
 
 test("operational routes enforce approved roles", () => {
