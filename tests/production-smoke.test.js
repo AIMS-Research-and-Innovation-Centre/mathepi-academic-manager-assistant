@@ -71,6 +71,8 @@ test("production UI exposes installation, offline, and accessible status feedbac
   assert.match(app, /Install MathEpi/);
   assert.match(app, /Offline\. Live changes will not save/);
   assert.match(app, /aria-live="polite"/);
+  assert.match(app, /The MathEpi backend deployment is unavailable/);
+  assert.match(app, /function retryFirebasePortalAccess\(\)/);
   assert.doesNotMatch(app, /<h2>Email Accounts<\/h2>/);
 });
 
