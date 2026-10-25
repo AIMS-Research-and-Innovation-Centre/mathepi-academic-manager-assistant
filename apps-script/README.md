@@ -27,6 +27,8 @@ This folder contains the Google backend for the MathEpi Academic Manager portal.
 
 If the Apps Script editor or browser only lets you paste a small number of lines, use the split files in `paste-small-files/` instead of the single `Code.gs`. Paste `00_Config.gs` into the default `Code.gs`, then create one script file for each remaining chunk.
 
+For a simpler two-file deployment, keep `00_Config.gs` as the configuration file and paste `Code_Runtime.gs` into the Apps Script `Code.gs` file. Delete the numbered runtime files `01_Routes.gs` through `15_Authorization.gs` before using this option, otherwise functions and constants will be duplicated.
+
 ## Runtime Behavior
 
 - Main app edits can be pushed manually or synced automatically when `Autosync app edits to Google Sheets` is enabled.
