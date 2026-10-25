@@ -32,10 +32,7 @@ function parseRouteRequestBody(body) {
 function apiPost(request) {
   const action = request && request.action;
   const payload = (request && request.payload) || {};
-  const managerActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "updateCfaStatus", "listLecturerReviewData", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns"];
-  const approvedActions = ["getProgrammeCalendarStatus", "listReviewStaffingAssignments"];
-  if (managerActions.indexOf(action) >= 0) portalRequireRoles_(payload.token, ["super-admin", "manager"]);
-  if (approvedActions.indexOf(action) >= 0) portalRequireRoles_(payload.token, []);
+  authorizePortalAction_(action, payload);
   if (action === "createItTicket") return createItTicket(payload);
   if (action === "listItTickets") return listItTickets(payload);
   if (action === "updateItTicket") return updateItTicket(payload);
@@ -47,7 +44,7 @@ function apiPost(request) {
   if (action === "piListFaq") return piListFaq(payload);
   if (action === "setupWorkspace") return setupWorkspace(payload);
   if (action === "saveSnapshot") return saveSnapshot(payload);
-  if (action === "getBootstrap") return getBootstrap();
+  if (action === "getBootstrap") return getBootstrap(payload);
   if (action === "syncProgrammeCalendar") return syncProgrammeCalendar(payload);
   if (action === "getProgrammeCalendarStatus") return getProgrammeCalendarStatus();
   if (action === "updateCfaStatus") return updateCfaStatus(payload);
@@ -59,6 +56,7 @@ function apiPost(request) {
   if (action === "verifyPortalAccessOtp") return verifyPortalAccessOtp(payload);
   if (action === "establishGooglePortalAccess") return establishGooglePortalAccess(payload);
   if (action === "getPortalAccessSession") return getPortalAccessSession(payload);
+  if (action === "revokePortalSession") return revokePortalSession(payload);
   if (action === "listPortalAccessRequests") return listPortalAccessRequests(payload);
   if (action === "decidePortalAccess") return decidePortalAccess(payload);
   if (action === "listPortalAccessUsers") return listPortalAccessUsers(payload);

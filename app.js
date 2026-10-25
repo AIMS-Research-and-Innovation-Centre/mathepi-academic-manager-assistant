@@ -442,18 +442,8 @@ const DEFAULT_COURSES = [
   }
 ];
 
-const DEFAULT_PEOPLE = [
-  { id: "lecturer-thomas-achia", name: "Prof. Thomas Achia", kind: "Lecturer", affiliation: "", nationality: "", email: "", reference: "MES04", expertise: "Probability and Statistics", status: "Confirmed", workload: 1, nextFollowUp: "", scholarUrl: "https://scholar.google.com/citations?hl=en&user=davZwEUAAAAJ&view_op=list_works&sortby=pubdate" },
-  { id: "lecturer-aklilu-zeleke", name: "Prof. Aklilu Zeleke", kind: "Lecturer", affiliation: "Michigan State University", nationality: "", email: "zeleke@msu.edu", reference: "MEE04", expertise: "Stochastic Models", status: "Confirmed", workload: 1, nextFollowUp: "2026-10-01" },
-  { id: "tf-002", name: "Lucian Talu Mayabi", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Kenya", email: "talumayabi@gmail.com", reference: "TF-002", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
-  { id: "tf-003", name: "Theophilus Asamoah", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Ghana", email: "asamoahkasamoah38@gmail.com", reference: "TF-003", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
-  { id: "tf-004", name: "Gassan Ali Mohamed Osman Farah", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Sudan", email: "gassan.ncr2014@gmail.com", reference: "TF-004", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
-  { id: "tf-005", name: "Leul Mekonnen Anteneh", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Ethiopia", email: "amleul117@gmail.com", reference: "TF-005", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
-  { id: "tf-006", name: "Grace Mumbanu", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Kenya", email: "gracemumbanu1@gmail.com", reference: "TF-006", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
-  { id: "tf-007", name: "Glory Kawira Mutua", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Kenya", email: "kawira.glory@embuni.ac.ke", reference: "TF-007", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
-  { id: "tf-008", name: "Boris Rosmes Tchioffo", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Cameroon", email: "boristchioffo@gmail.com", reference: "TF-008", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
-  { id: "tf-009", name: "Munkaila Dasumani", kind: "Tutor", affiliation: "Tutorial Fellow", nationality: "Ghana", email: "munkaila5@gmail.com", reference: "TF-009", expertise: "Tutorial support", status: "Confirmed", workload: 0, nextFollowUp: "2026-10-01" },
-];
+// People records are loaded only after the backend authorizes the signed-in role.
+const DEFAULT_PEOPLE = [];
 
 const CONFIRMED_LECTURER_ASSIGNMENTS = {
   MES01: { lecturerName: "Dr Bernard Bainson" },
@@ -1949,10 +1939,10 @@ const ROLES = {
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
-    hint: "Manager-level visibility for coordination, without write access",
+    hint: "Programme coordination, timetable, staffing, appointments, and tasks",
     canEdit: false,
-    canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google"],
+    canSensitive: false,
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "tasks"],
   },
   reviewer: {
     label: "TF Reviewer",
@@ -1965,8 +1955,8 @@ const ROLES = {
     label: "Head Tutor",
     hint: "Tutor workload, tutor profiles, assigned work, and lecturer-course tracking",
     canEdit: false,
-    canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "students", "cfa", "appointments", "groups", "support", "contact", "timesheets", "tasks"],
+    canSensitive: false,
+    views: ["dashboard", "calendar", "courses", "people", "students", "appointments", "groups", "timesheets", "tasks"],
   },
   lecturer: {
     label: "Lecturer",
@@ -2393,7 +2383,7 @@ function googleBackendAvailable() {
 }
 
 function googleApi(action, payload = {}) {
-  const protectedActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "getProgrammeCalendarStatus", "updateCfaStatus", "listLecturerReviewData", "listReviewStaffingAssignments", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns", "createItTicket", "listItTickets", "updateItTicket", "listNotifications", "markNotificationRead", "piSubmitQuestion", "piListFaq", "piListQuestions", "piAnswerQuestion"];
+  const protectedActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "getProgrammeCalendarStatus", "updateCfaStatus", "listLecturerReviewData", "listReviewStaffingAssignments", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns", "createItTicket", "listItTickets", "updateItTicket", "listNotifications", "markNotificationRead", "piSubmitQuestion", "piListFaq", "piListQuestions", "piAnswerQuestion", "revokePortalSession"];
   const securedPayload = portalAccess?.token && protectedActions.includes(action) ? { ...payload, token: portalAccess.token } : payload;
   if (hasAppsScriptBridge()) {
     return new Promise((resolve, reject) => {
@@ -2591,6 +2581,11 @@ async function pullGoogleBootstrap() {
     });
     if (result?.cfaStatuses) state.cfaStatuses = result.cfaStatuses;
     if (result?.viewPermissions) state.viewPermissions = normalizeViewPermissions(result.viewPermissions);
+    if (portalAccess && Array.isArray(result?.allowedViews)) {
+      portalAccess.allowedViews = result.allowedViews;
+      portalAccess.permissions = result.permissions || [];
+      localStorage.setItem(PORTAL_ACCESS_SESSION_KEY, JSON.stringify(portalAccess));
+    }
     state.googleConnected = true;
     migrateProgrammeData();
     save();
@@ -2953,22 +2948,15 @@ function save() {
   safeStorageSet("mathepi-pi-audience", state.pi.audience);
   safeStorageSet(VIEW_PERMISSIONS_KEY, JSON.stringify(state.viewPermissions));
   safeStorageSet("mathepi-courses", JSON.stringify(state.courses));
-  safeStorageSet("mathepi-people", JSON.stringify(state.people));
   safeStorageSet("mathepi-blocks", JSON.stringify(state.blocks));
   safeStorageSet("mathepi-sessions", JSON.stringify(state.sessions));
-  safeStorageSet("mathepi-timesheets", JSON.stringify(state.timesheets));
-  safeStorageSet("mathepi-tasks", JSON.stringify(state.tasks));
-  safeStorageSet("mathepi-planner-tasks", JSON.stringify(state.plannerTasks));
-  safeStorageSet("mathepi-student-todos", JSON.stringify(state.studentTodos));
-  safeStorageSet("mathepi-students", JSON.stringify(state.students));
-  safeStorageSet("mathepi-study-groups", JSON.stringify(state.studyGroups));
-  safeStorageSet("mathepi-study-group-invitations", JSON.stringify(state.studyGroupInvitations));
-  safeStorageSet("mathepi-study-group-activities", JSON.stringify(state.studyGroupActivities));
-  safeStorageSet("mathepi-study-group-meetings", JSON.stringify(state.studyGroupMeetings));
-  safeStorageSet("mathepi-appointments", JSON.stringify(state.appointments));
-  safeStorageSet("mathepi-availability", JSON.stringify(state.availability));
-  safeStorageSet("mathepi-support-requests", JSON.stringify(state.supportRequests));
-  safeStorageSet("mathepi-notifications", JSON.stringify(state.notifications));
+  [
+    "mathepi-people", "mathepi-timesheets", "mathepi-tasks", "mathepi-planner-tasks",
+    "mathepi-student-todos", "mathepi-students", "mathepi-study-groups",
+    "mathepi-study-group-invitations", "mathepi-study-group-activities",
+    "mathepi-study-group-meetings", "mathepi-appointments", "mathepi-availability",
+    "mathepi-support-requests", "mathepi-notifications",
+  ].forEach(safeStorageRemove);
   safeStorageSet("mathepi-student-calendar", String(state.studentCalendarConnected));
   safeStorageSet(CFA_STATUS_KEY, JSON.stringify(state.cfaStatuses));
   scheduleGoogleSync();
@@ -3042,11 +3030,14 @@ function toggleTheme() {
 }
 
 function canView(view) {
-  return assignedViews(state.role).includes(view);
+  const serverViews = Array.isArray(portalAccess?.allowedViews) ? portalAccess.allowedViews : null;
+  return assignedViews(state.role).includes(view) && (!serverViews || serverViews.includes(view));
 }
 
 function assignedViews(role) {
-  return state.viewPermissions?.[role] || ROLES[role]?.views || ["dashboard"];
+  const configured = state.viewPermissions?.[role] || ROLES[role]?.views || ["dashboard"];
+  if (role !== state.role || !Array.isArray(portalAccess?.allowedViews)) return configured;
+  return configured.filter((view) => portalAccess.allowedViews.includes(view));
 }
 
 function canManageViewPermissions() {
@@ -3778,6 +3769,15 @@ async function syncNotifications() {
 }
 
 function setView(view) {
+  if (!canView(view)) {
+    state.view = "dashboard";
+    state.mobileMenuOpen = false;
+    state.drawer = null;
+    toast("You do not have access to that protected area.");
+    if (window.location.hash !== "#dashboard") history.replaceState(null, "", "#dashboard");
+    render();
+    return;
+  }
   if (view === "tf-reviews") {
     const reviewUrl = new URL("./tf-reviews/", window.location.href);
     reviewUrl.searchParams.set("t", String(Date.now()));
@@ -3790,7 +3790,7 @@ function setView(view) {
     window.location.href = lecturerReviewUrl.toString();
     return;
   }
-  state.view = canView(view) ? view : "dashboard";
+  state.view = view;
   state.mobileMenuOpen = false;
   state.drawer = null;
   if (window.location.hash !== `#${state.view}`) {
@@ -3836,9 +3836,19 @@ function setAuthenticatedRole(role) {
   setRole(role, { source: "auth" });
 }
 
+function clearProtectedWorkspaceState() {
+  GOOGLE_DATASETS.forEach(([key]) => { state[key] = []; });
+}
+
 function setAuthenticatedRoles(roles) {
   const granted = Array.isArray(roles) ? roles.filter((role) => ROLES[role]) : [];
+  // Never show records retained by a previous browser session while the
+  // backend is calculating the newly signed-in user's authorized dataset.
+  clearProtectedWorkspaceState();
   setRole(granted[0] || "viewer", { source: "auth" });
+  if (portalAccess?.token && portalAccess.status === "approved") {
+    pullGoogleBootstrap().catch(() => {});
+  }
 }
 
 function switchAuthenticatedRole(role) {
@@ -5771,7 +5781,19 @@ async function refreshPortalAccess(options = {}) {
   }
 }
 
-function portalSignOut() { portalAccess = null; state.portalOtpSent = false; state.portalOtpSending = false; state.portalOtpCooldownUntil = 0; state.portalEmail = ""; state.portalRequestedRole = ""; localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY); render(); }
+function portalSignOut() {
+  const token = portalAccess?.token;
+  if (token) googleApi("revokePortalSession", { token }).catch(() => {});
+  portalAccess = null;
+  state.portalOtpSent = false;
+  state.portalOtpSending = false;
+  state.portalOtpCooldownUntil = 0;
+  state.portalEmail = "";
+  state.portalRequestedRole = "";
+  clearProtectedWorkspaceState();
+  localStorage.removeItem(PORTAL_ACCESS_SESSION_KEY);
+  render();
+}
 
 async function authResetPassword() {
   const auth = authState();
@@ -8615,20 +8637,23 @@ function renderViewAccessPolicy() {
     <div class="card access-policy-card">
       <div class="card-header">
         <div>
-          <h2>View access policy</h2>
-          <p>Turn individual tabs on or off for each role. Dashboard is always available. Changes apply immediately; save them to the connected Google workspace to share the policy across accounts.</p>
+          <h2>Role access policy</h2>
+          <p>Access is enforced by Apps Script for every protected request. Assign the appropriate role below; users receive only the views and data approved for that role.</p>
         </div>
-        <div class="card-header-actions"><span class="badge blue">Admin only</span><button class="button ghost" onclick="pushGoogleSnapshot('view-policy')" ${googleBackendAvailable() ? "" : "disabled"}>${icon("cloud", 15)}Save policy</button></div>
+        <span class="badge green">Backend enforced</span>
       </div>
-      <div class="card-body access-policy-scroll">
-        <table class="mini-table access-policy-table">
-          <thead><tr><th>Role</th>${NAV.map((item) => `<th title="${escapeHtml(item.label)}">${escapeHtml(item.short || item.label)}</th>`).join("")}</tr></thead>
-          <tbody>${Object.entries(ROLES).map(([role, definition]) => `
-            <tr>
-              <td><strong>${escapeHtml(definition.label)}</strong><small>${escapeHtml(role)}</small></td>
-              ${NAV.map((item) => `<td><label class="view-toggle" title="${escapeHtml(`${definition.label}: ${item.label}`)}"><input type="checkbox" ${assignedViews(role).includes(item.id) ? "checked" : ""} ${item.id === "dashboard" ? "disabled" : ""} onchange="setRoleViewPermission('${role}', '${item.id}', this.checked)" /><span></span></label></td>`).join("")}
-            </tr>`).join("")}</tbody>
-        </table>
+      <div class="card-body access-user-list">
+        ${Object.entries(ROLES).map(([role, definition]) => `
+          <article class="access-user-row">
+            <div class="access-request-identity">
+              <span class="access-request-avatar">${escapeHtml(definition.label.charAt(0))}</span>
+              <div><strong>${escapeHtml(definition.label)}</strong><p>${escapeHtml(definition.hint)}</p></div>
+            </div>
+            <div class="access-user-controls">
+              <span class="eyebrow">Approved views</span>
+              <p>${definition.views.map((view) => escapeHtml(NAV.find((item) => item.id === view)?.short || NAV.find((item) => item.id === view)?.label || view)).join(" · ")}</p>
+            </div>
+          </article>`).join("")}
       </div>
     </div>`;
 }
@@ -8709,7 +8734,7 @@ function renderAccess() {
         <div class="card-header">
           <div>
             <h2>Role-Based Access</h2>
-            <p>Navigation visibility is configurable above. Data sensitivity and edit rights remain separate role controls.</p>
+            <p>Navigation, data visibility, and edit rights are enforced by the backend role policy.</p>
           </div>
           <span class="badge maroon">Claims ready</span>
         </div>

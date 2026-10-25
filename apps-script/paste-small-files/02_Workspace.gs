@@ -40,23 +40,25 @@ function saveSnapshot(payload) {
   return { ok: true, tabsUpdated, spreadsheetUrl: spreadsheet.getUrl(), driveRootUrl: rootFolder.getUrl(), calendarSync };
 }
 
-function getBootstrap() {
+function getBootstrap(payload) {
+  const context = requirePermission_(payload && payload.token, "workspace.read");
   const spreadsheet = getOrCreateSpreadsheet();
   ensureSheets(spreadsheet);
-  const datasets = {};
-  DATASET_TABS.forEach((tab) => {
-    datasets[tab] = readJsonRecords(getSheet(spreadsheet, tab));
-  });
+  const datasets = roleFilteredBootstrap_(spreadsheet, context);
   const snapshots = readSheetObjects(getSheet(spreadsheet, "AppState"));
   const latest = snapshots.filter(function (row) { return row.key === "latest_snapshot"; })[0];
   let viewPermissions = null;
-  try { viewPermissions = latest && latest.json ? JSON.parse(latest.json).viewPermissions || null : null; } catch (error) {}
+  if (portalHasPermission_(context, "workspace.write")) {
+    try { viewPermissions = latest && latest.json ? JSON.parse(latest.json).viewPermissions || null : null; } catch (error) {}
+  }
   return {
     ok: true,
     datasets,
     cfaStatuses: readCfaStatuses(spreadsheet),
     viewPermissions: viewPermissions,
-    spreadsheetId: spreadsheet.getId(),
-    spreadsheetUrl: spreadsheet.getUrl(),
+    allowedViews: portalAllowedViewsForRoles_(context.roles),
+    permissions: portalPermissionsForRoles_(context.roles),
+    spreadsheetId: portalHasPermission_(context, "workspace.write") ? spreadsheet.getId() : "",
+    spreadsheetUrl: portalHasPermission_(context, "workspace.write") ? spreadsheet.getUrl() : "",
   };
 }

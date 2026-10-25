@@ -17,7 +17,7 @@ function establishGooglePortalAccess(payload) {
     portalStoreAccess_(record);
   }
   const token = Utilities.getUuid() + Utilities.getUuid();
-  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const expires = new Date(Date.now() + 8 * 60 * 60 * 1000);
   portalStoreSession_(token, email, expires);
   const result = portalSessionResult_(record, token, expires);
   result.provider = "google";
@@ -83,7 +83,8 @@ function verifyPortalAccessOtp(payload) {
       : "Your MathEpi account request has been received and is awaiting approval.");
   }
   const token = Utilities.getUuid() + Utilities.getUuid();
-  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const expires = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  portalStoreSession_(token, email, expires);
   portalSheet_("AccessSessions", ["token_hash", "email", "expires_at", "created_at"]).appendRow([portalHash_(token), email, expires, new Date()]);
   return portalSessionResult_(record, token, expires);
 }
@@ -126,6 +127,7 @@ function updatePortalUserAccess(payload) {
     ? "Your MathEpi access is active as " + role + "."
     : "Your MathEpi access has been switched off. Please contact the Academic Manager if you need access restored.";
   portalStoreAccess_(found);
+  portalRevokeSessionsForEmail_(email);
   return { ok: true, email: email, status: found.status };
 }
 
@@ -148,6 +150,7 @@ function decidePortalAccess(payload) {
     ? "Your MathEpi access has been approved as " + role + "."
     : "Your MathEpi access request was not approved. Please contact the Academic Manager.";
   portalStoreAccess_(found);
+  portalRevokeSessionsForEmail_(email);
   return { ok: true, notificationId: found.notification_id };
 }
 
@@ -170,13 +173,16 @@ function portalRequireRoles_(token, allowedRoles) {
 }
 
 function portalSessionResult_(record, token, expires) {
+  const roles = JSON.parse(record.roles_json || "[]");
   return {
     ok: true,
     token: token,
     email: record.email,
     status: record.status,
     requestedRole: record.requested_role,
-    roles: JSON.parse(record.roles_json || "[]"),
+    roles: roles,
+    permissions: portalPermissionsForRoles_(roles),
+    allowedViews: portalAllowedViewsForRoles_(roles),
     expiresAt: expires,
     decidedAt: record.decided_at || "",
     notificationId: record.notification_id || "",

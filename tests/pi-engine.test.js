@@ -9,7 +9,11 @@ const root = path.resolve(__dirname, "..");
 const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
 const seed = (name) => eval(app.match(new RegExp(`const ${name} = (\\[[\\s\\S]*?\\n\\]);`))[1]);
 const courses = seed("DEFAULT_COURSES");
-const people = seed("DEFAULT_PEOPLE");
+const people = [
+  { name: "Grace Mumbanu" },
+  { name: "Gassan Ali Mohamed Osman Farah" },
+  { name: "Prof. Aklilu Zeleke" },
+];
 // Monday 12 October 2026, 10:00 local time.
 const NOW = new Date(2026, 9, 12, 10);
 

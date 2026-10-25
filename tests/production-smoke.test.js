@@ -58,8 +58,10 @@ test("Tutorial Fellow submission only shows success after backend confirmation",
 test("operational routes enforce approved roles", () => {
   const routes = read("apps-script/paste-small-files/01_Routes.gs");
   const access = read("apps-script/paste-small-files/12_PortalAccess.gs");
-  assert.match(routes, /managerActions/);
-  assert.match(routes, /portalRequireRoles_\(payload\.token/);
+  const authorization = read("apps-script/paste-small-files/15_Authorization.gs");
+  assert.match(routes, /authorizePortalAction_\(action, payload\)/);
+  assert.match(authorization, /requirePermission_\(payload && payload\.token/);
+  assert.match(authorization, /roleFilteredBootstrap_/);
   assert.match(access, /status !== "approved"/);
   assert.match(access, /Your assigned role cannot perform this action/);
 });
@@ -72,12 +74,15 @@ test("production UI exposes installation, offline, and accessible status feedbac
   assert.doesNotMatch(app, /<h2>Email Accounts<\/h2>/);
 });
 
-test("student directory is an assignable role view", () => {
+test("role access is summarized and backend enforced", () => {
   const app = read("app.js");
   assert.match(app, /\{ id: "students", label: "Students"/);
   assert.match(app, /function renderStudents\(\)/);
-  assert.match(app, /function setRoleViewPermission\(role, view, enabled\)/);
-  assert.match(app, /<h2>View access policy<\/h2>/);
+  assert.match(app, /<h2>Role access policy<\/h2>/);
+  assert.match(app, /Backend enforced/);
+  assert.match(app, /You do not have access to that protected area/);
+  assert.doesNotMatch(app, /safeStorageSet\("mathepi-people"/);
+  assert.doesNotMatch(app, /safeStorageSet\("mathepi-students"/);
   assert.match(app, /<th>Edit data<\/th>/);
 });
 

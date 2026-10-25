@@ -1,4 +1,3 @@
-// ---- 00_Config.gs ----
 const MATHEPI = {
   spreadsheetName: "MathEpi Academic Operations",
   rootFolderName: "MathEpi Academic Operations",
@@ -112,7 +111,6 @@ DATASET_TABS.forEach((tab) => {
   TAB_HEADERS[tab] = ["record_id", "json", "updated_at"];
 });
 
-// ---- 01_Routes.gs ----
 function doGet(e) {
   try {
     const action = e && e.parameter && e.parameter.action;
@@ -147,10 +145,7 @@ function parseRouteRequestBody(body) {
 function apiPost(request) {
   const action = request && request.action;
   const payload = (request && request.payload) || {};
-  const managerActions = ["setupWorkspace", "saveSnapshot", "getBootstrap", "syncProgrammeCalendar", "updateCfaStatus", "listLecturerReviewData", "saveLecturerReviewDecision", "backfillLecturerApplicationColumns"];
-  const approvedActions = ["getProgrammeCalendarStatus", "listReviewStaffingAssignments"];
-  if (managerActions.indexOf(action) >= 0) portalRequireRoles_(payload.token, ["super-admin", "manager"]);
-  if (approvedActions.indexOf(action) >= 0) portalRequireRoles_(payload.token, []);
+  authorizePortalAction_(action, payload);
   if (action === "createItTicket") return createItTicket(payload);
   if (action === "listItTickets") return listItTickets(payload);
   if (action === "updateItTicket") return updateItTicket(payload);
@@ -162,7 +157,7 @@ function apiPost(request) {
   if (action === "piListFaq") return piListFaq(payload);
   if (action === "setupWorkspace") return setupWorkspace(payload);
   if (action === "saveSnapshot") return saveSnapshot(payload);
-  if (action === "getBootstrap") return getBootstrap();
+  if (action === "getBootstrap") return getBootstrap(payload);
   if (action === "syncProgrammeCalendar") return syncProgrammeCalendar(payload);
   if (action === "getProgrammeCalendarStatus") return getProgrammeCalendarStatus();
   if (action === "updateCfaStatus") return updateCfaStatus(payload);
@@ -174,6 +169,7 @@ function apiPost(request) {
   if (action === "verifyPortalAccessOtp") return verifyPortalAccessOtp(payload);
   if (action === "establishGooglePortalAccess") return establishGooglePortalAccess(payload);
   if (action === "getPortalAccessSession") return getPortalAccessSession(payload);
+  if (action === "revokePortalSession") return revokePortalSession(payload);
   if (action === "listPortalAccessRequests") return listPortalAccessRequests(payload);
   if (action === "decidePortalAccess") return decidePortalAccess(payload);
   if (action === "listPortalAccessUsers") return listPortalAccessUsers(payload);
@@ -223,7 +219,6 @@ function jsonpResponse(callback, data) {
   return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
-// ---- 02_Workspace.gs ----
 function setupWorkspace(payload) {
   const spreadsheet = getOrCreateSpreadsheet();
   const rootFolder = getOrCreateRootFolder();
@@ -266,28 +261,29 @@ function saveSnapshot(payload) {
   return { ok: true, tabsUpdated, spreadsheetUrl: spreadsheet.getUrl(), driveRootUrl: rootFolder.getUrl(), calendarSync };
 }
 
-function getBootstrap() {
+function getBootstrap(payload) {
+  const context = requirePermission_(payload && payload.token, "workspace.read");
   const spreadsheet = getOrCreateSpreadsheet();
   ensureSheets(spreadsheet);
-  const datasets = {};
-  DATASET_TABS.forEach((tab) => {
-    datasets[tab] = readJsonRecords(getSheet(spreadsheet, tab));
-  });
+  const datasets = roleFilteredBootstrap_(spreadsheet, context);
   const snapshots = readSheetObjects(getSheet(spreadsheet, "AppState"));
   const latest = snapshots.filter(function (row) { return row.key === "latest_snapshot"; })[0];
   let viewPermissions = null;
-  try { viewPermissions = latest && latest.json ? JSON.parse(latest.json).viewPermissions || null : null; } catch (error) {}
+  if (portalHasPermission_(context, "workspace.write")) {
+    try { viewPermissions = latest && latest.json ? JSON.parse(latest.json).viewPermissions || null : null; } catch (error) {}
+  }
   return {
     ok: true,
     datasets,
     cfaStatuses: readCfaStatuses(spreadsheet),
     viewPermissions: viewPermissions,
-    spreadsheetId: spreadsheet.getId(),
-    spreadsheetUrl: spreadsheet.getUrl(),
+    allowedViews: portalAllowedViewsForRoles_(context.roles),
+    permissions: portalPermissionsForRoles_(context.roles),
+    spreadsheetId: portalHasPermission_(context, "workspace.write") ? spreadsheet.getId() : "",
+    spreadsheetUrl: portalHasPermission_(context, "workspace.write") ? spreadsheet.getUrl() : "",
   };
 }
 
-// ---- 03_Cfa.gs ----
 function updateCfaStatus(payload) {
   const spreadsheet = getOrCreateSpreadsheet();
   ensureSheets(spreadsheet);
@@ -331,7 +327,6 @@ function readCfaStatuses(spreadsheet) {
   return statuses;
 }
 
-// ---- 04_LecturerApplications.gs ----
 function submitLecturerApplication(payload) {
   return saveLecturerApplication_(payload || {}, false);
 }
@@ -737,7 +732,6 @@ function makeLecturerApplicationReference_(submittedAt) {
   return "MATHEPI-" + year + "-" + number;
 }
 
-// ---- 05_Storage.gs ----
 function getOrCreateSpreadsheet() {
   const props = PropertiesService.getScriptProperties();
   const existingId = props.getProperty(MATHEPI.properties.spreadsheetId);
@@ -857,7 +851,6 @@ function getOrCreateNestedFolder(root, path) {
   }, root);
 }
 
-// ---- 06_Records.gs ----
 function writeDatasets(spreadsheet, datasets) {
   let count = 0;
   DATASET_TABS.forEach((tab) => {
@@ -956,7 +949,6 @@ function clearBody(sheet) {
   if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, lastColumn).clearContent();
 }
 
-// ---- 07_TutorialFellowApplications.gs ----
 function submitTutorialFellowApplication(payload) {
   const spreadsheet = getOrCreateSpreadsheet();
   const rootFolder = getOrCreateRootFolder();
@@ -1085,7 +1077,6 @@ function validateApplicationFile_(filePayload, options) {
   return { bytes: bytes, mimeType: detectedMime, extension: extension, safeName: originalName };
 }
 
-// ---- 08_EmailOtp.gs ----
 function authorizeEmailOtp() {
   return MailApp.getRemainingDailyQuota();
 }
@@ -1220,7 +1211,6 @@ function emailOtpErrorResponse(error) {
   return { ok: false, error: error && error.message ? error.message : String(error || "Email verification failed.") };
 }
 
-// ---- 09_EmailOtpHelpers.gs ----
 function requireEmailVerification(verification, email, purpose) {
   const verifiedEmail = normalizeEmailAddress(email);
   const token = verification && verification.token;
@@ -1266,7 +1256,6 @@ function emailOtpSecret() {
   return secret;
 }
 
-// ---- 10_TutorialFellowReviews.gs ----
 function requestReviewerOtp(payload) {
   payload = payload || {};
   const email = normalizeEmailAddress(payload.email);
@@ -1925,7 +1914,6 @@ function clampScore(value) {
   return Math.max(0, Math.min(100, number));
 }
 
-// ---- 11_ProgrammeCalendar.gs ----
 const PROGRAMME_CALENDAR_TRIGGER = "syncProgrammeCalendarFromSheets";
 const PROGRAMME_CALENDAR_TIMEZONE = "Africa/Kigali";
 
@@ -2221,7 +2209,6 @@ function programmeCalendarUrl(calendarId) {
   return "https://calendar.google.com/calendar/u/0?cid=" + encodeURIComponent(calendarId);
 }
 
-// ---- 12_PortalAccess.gs ----
 const PORTAL_ADMIN_EMAIL = "couma@aimsric.org";
 const PORTAL_ROLES = ["manager", "centre-coordinator", "head-tutor", "lecturer", "tutor", "student", "aims-ric-support", "support-counsellor", "it-support", "viewer"];
 const PORTAL_FIREBASE_API_KEY = "AIzaSyA_7_wqSyIk5cIShXN0wet3jEncNqwrThE";
@@ -2241,7 +2228,7 @@ function establishGooglePortalAccess(payload) {
     portalStoreAccess_(record);
   }
   const token = Utilities.getUuid() + Utilities.getUuid();
-  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const expires = new Date(Date.now() + 8 * 60 * 60 * 1000);
   portalStoreSession_(token, email, expires);
   const result = portalSessionResult_(record, token, expires);
   result.provider = "google";
@@ -2307,7 +2294,8 @@ function verifyPortalAccessOtp(payload) {
       : "Your MathEpi account request has been received and is awaiting approval.");
   }
   const token = Utilities.getUuid() + Utilities.getUuid();
-  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const expires = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  portalStoreSession_(token, email, expires);
   portalSheet_("AccessSessions", ["token_hash", "email", "expires_at", "created_at"]).appendRow([portalHash_(token), email, expires, new Date()]);
   return portalSessionResult_(record, token, expires);
 }
@@ -2350,6 +2338,7 @@ function updatePortalUserAccess(payload) {
     ? "Your MathEpi access is active as " + role + "."
     : "Your MathEpi access has been switched off. Please contact the Academic Manager if you need access restored.";
   portalStoreAccess_(found);
+  portalRevokeSessionsForEmail_(email);
   return { ok: true, email: email, status: found.status };
 }
 
@@ -2372,6 +2361,7 @@ function decidePortalAccess(payload) {
     ? "Your MathEpi access has been approved as " + role + "."
     : "Your MathEpi access request was not approved. Please contact the Academic Manager.";
   portalStoreAccess_(found);
+  portalRevokeSessionsForEmail_(email);
   return { ok: true, notificationId: found.notification_id };
 }
 
@@ -2394,13 +2384,16 @@ function portalRequireRoles_(token, allowedRoles) {
 }
 
 function portalSessionResult_(record, token, expires) {
+  const roles = JSON.parse(record.roles_json || "[]");
   return {
     ok: true,
     token: token,
     email: record.email,
     status: record.status,
     requestedRole: record.requested_role,
-    roles: JSON.parse(record.roles_json || "[]"),
+    roles: roles,
+    permissions: portalPermissionsForRoles_(roles),
+    allowedViews: portalAllowedViewsForRoles_(roles),
     expiresAt: expires,
     decidedAt: record.decided_at || "",
     notificationId: record.notification_id || "",
@@ -2444,7 +2437,6 @@ function portalRows_(sheet) { const values = sheet.getDataRange().getValues(); i
 function portalFind_(sheet, email) { return portalRows_(sheet).filter(function(row){return String(row.email).toLowerCase() === email;})[0] || null; }
 function portalSend_(email, subject, message) { MailApp.sendEmail({to:email, subject:subject, body:message, name:"MathEpi Academic Operations", noReply:true}); }
 
-// ---- 13_ItTicketsNotifications.gs ----
 function createItTicket(payload) {
   const session = portalRequireRoles_(payload && payload.token, []);
   const spreadsheet = getOrCreateSpreadsheet();
@@ -2520,7 +2512,6 @@ function appendTicketNotification_(spreadsheet, email, role, title, message, typ
   upsertRows(getSheet(spreadsheet, "Notifications"), [{ notification_id: Utilities.getUuid(), recipient_email: email, recipient_role: role, title: title, message: message, type: type, ticket_id: ticketId, read: false, created_at: new Date().toISOString() }]);
 }
 
-// ---- 14_PiKnowledge.gs ----
 // Community-taught Pi.
 //
 // When Pi cannot answer, a signed-in user can send the question here. Staff
@@ -2616,4 +2607,177 @@ function piListFaq(payload) {
       .filter(function (row) { return piPublished_(row.published) && String(row.answer || "").trim(); })
       .map(function (row) { return { id: row.id, question: row.question, answer: row.answer, answeredAt: piIso_(row.answered_at) }; }),
   };
+}
+
+const PORTAL_ROLE_PERMISSIONS = {
+  "super-admin": ["*"],
+  manager: ["workspace.read", "workspace.write", "applications.read", "applications.manage", "applications.export", "reviews.read-all", "reviews.manage", "reviews.export", "staffing.read", "people.read", "students.read-all", "support.read-all", "access.manage", "audit.read"],
+  reviewer: ["reviews.read-assigned", "reviews.write-assigned"],
+  "centre-coordinator": ["workspace.read", "staffing.read", "people.read"],
+  "head-tutor": ["workspace.read", "staffing.read", "people.read", "students.read-all"],
+  lecturer: ["workspace.read", "people.read", "records.read-own"],
+  tutor: ["workspace.read", "people.read", "records.read-own"],
+  student: ["workspace.read", "records.read-own"],
+  "aims-ric-support": ["workspace.read", "records.read-own"],
+  "support-counsellor": ["workspace.read", "support.read-assigned", "students.read-minimal"],
+  "it-support": ["workspace.read", "it.read-assigned"],
+  viewer: ["workspace.read"],
+};
+
+const PORTAL_ROLE_VIEWS = {
+  "super-admin": ["dashboard", "calendar", "planner", "groups", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "support", "contact", "timesheets", "tasks", "google", "access"],
+  manager: ["dashboard", "calendar", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
+  reviewer: ["dashboard", "tf-reviews"],
+  "centre-coordinator": ["dashboard", "calendar", "courses", "people", "appointments", "tasks"],
+  "head-tutor": ["dashboard", "calendar", "courses", "people", "students", "appointments", "groups", "timesheets", "tasks"],
+  lecturer: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "contact"],
+  tutor: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "timesheets", "tasks"],
+  student: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
+  "aims-ric-support": ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
+  "support-counsellor": ["dashboard", "appointments", "support"],
+  "it-support": ["dashboard", "appointments", "support", "tasks"],
+  viewer: ["dashboard", "calendar", "courses"],
+};
+
+const PORTAL_DATASET_POLICY = {
+  CalendarBlocks: ["workspace.read"],
+  Courses: ["workspace.read"],
+  Sessions: ["workspace.read"],
+  People: ["people.read", "workspace.read"],
+  Students: ["students.read-all", "students.read-minimal", "records.read-own"],
+  Timesheets: ["workspace.write", "records.read-own", "staffing.read"],
+  Tasks: ["workspace.write", "records.read-own", "staffing.read", "it.read-assigned"],
+  StudentPlanner: ["workspace.write", "records.read-own"],
+  StudentTodos: ["workspace.write", "records.read-own"],
+  PlannerTasks: ["workspace.write", "records.read-own"],
+  StudyGroups: ["workspace.write", "records.read-own"],
+  StudyGroupMembers: ["workspace.write", "records.read-own"],
+  StudyGroupInvitations: ["workspace.write", "records.read-own"],
+  StudyGroupActivities: ["workspace.write", "records.read-own"],
+  StudyGroupMeetings: ["workspace.write", "records.read-own"],
+  StudyGroupTaskAssignments: ["workspace.write", "records.read-own"],
+  Appointments: ["workspace.write", "records.read-own", "staffing.read", "support.read-assigned", "it.read-assigned"],
+  Availability: ["workspace.write", "records.read-own", "staffing.read"],
+  SupportRequests: ["workspace.write", "records.read-own", "support.read-all", "support.read-assigned"],
+  ItTickets: ["workspace.write", "records.read-own", "it.read-assigned"],
+  TicketHistory: ["workspace.write", "records.read-own", "it.read-assigned"],
+  Notifications: ["workspace.write", "records.read-own"],
+};
+
+function portalSessionContext_(token) {
+  const session = portalRequireRoles_(token, []);
+  const roles = JSON.parse(session.access.roles_json || "[]");
+  return { email: session.email, roles: roles, access: session.access, expires: session.expires };
+}
+
+function portalPermissionsForRoles_(roles) {
+  const permissions = {};
+  (roles || []).forEach(function (role) {
+    (PORTAL_ROLE_PERMISSIONS[role] || []).forEach(function (permission) { permissions[permission] = true; });
+  });
+  return Object.keys(permissions);
+}
+
+function portalAllowedViewsForRoles_(roles) {
+  const views = {};
+  (roles || []).forEach(function (role) {
+    (PORTAL_ROLE_VIEWS[role] || []).forEach(function (view) { views[view] = true; });
+  });
+  views.dashboard = true;
+  return Object.keys(views);
+}
+
+function portalHasPermission_(context, permission) {
+  const permissions = portalPermissionsForRoles_(context.roles);
+  return permissions.indexOf("*") >= 0 || permissions.indexOf(permission) >= 0;
+}
+
+function requirePermission_(token, permission) {
+  const context = portalSessionContext_(token);
+  if (!portalHasPermission_(context, permission)) throw new Error("Your assigned role cannot access this protected area.");
+  return context;
+}
+
+function authorizePortalAction_(action, payload) {
+  const policy = {
+    setupWorkspace: "workspace.write",
+    saveSnapshot: "workspace.write",
+    getBootstrap: "workspace.read",
+    syncProgrammeCalendar: "workspace.write",
+    getProgrammeCalendarStatus: "workspace.read",
+    updateCfaStatus: "applications.manage",
+    listLecturerReviewData: "applications.read",
+    saveLecturerReviewDecision: "applications.manage",
+    backfillLecturerApplicationColumns: "applications.manage",
+    listReviewStaffingAssignments: "staffing.read",
+    listPortalAccessRequests: "access.manage",
+    decidePortalAccess: "access.manage",
+    listPortalAccessUsers: "access.manage",
+    updatePortalUserAccess: "access.manage",
+  };
+  return policy[action] ? requirePermission_(payload && payload.token, policy[action]) : null;
+}
+
+function roleFilteredBootstrap_(spreadsheet, context) {
+  const datasets = {};
+  DATASET_TABS.forEach(function (tab) {
+    const permittedBy = PORTAL_DATASET_POLICY[tab] || [];
+    if (!permittedBy.some(function (permission) { return portalHasPermission_(context, permission); })) {
+      datasets[tab] = [];
+      return;
+    }
+    const rows = readJsonRecords(getSheet(spreadsheet, tab));
+    datasets[tab] = filterDatasetRowsForSession_(tab, rows, context);
+  });
+  return datasets;
+}
+
+function filterDatasetRowsForSession_(tab, rows, context) {
+  if (portalHasPermission_(context, "workspace.write") || portalHasPermission_(context, "support.read-all")) return rows;
+  if (tab === "People") return rows.map(redactPersonRecord_);
+  if (tab === "Students") {
+    if (portalHasPermission_(context, "students.read-all")) return rows.map(redactStudentRecord_);
+    if (portalHasPermission_(context, "students.read-minimal")) return rows.map(function (row) { return { id: row.id || "", name: row.name || "", cohort: row.cohort || "", status: row.status || "" }; });
+    return rows.filter(function (row) { return recordBelongsToSession_(row, context.email); }).map(redactStudentRecord_);
+  }
+  const publicTabs = ["CalendarBlocks", "Courses", "Sessions"];
+  if (publicTabs.indexOf(tab) >= 0) return rows;
+  if (portalHasPermission_(context, "staffing.read") && ["Timesheets", "Tasks", "Appointments", "Availability"].indexOf(tab) >= 0) return rows;
+  return rows.filter(function (row) { return recordBelongsToSession_(row, context.email); });
+}
+
+function recordBelongsToSession_(record, email) {
+  const target = normalizeEmailAddress(email);
+  const emailKeys = ["email", "requester_email", "recipient_email", "student_email", "owner_email", "author_email", "created_by_email", "assigned_email"];
+  return emailKeys.some(function (key) { return record[key] && String(record[key]).trim().toLowerCase() === target; });
+}
+
+function redactPersonRecord_(row) {
+  return { id: row.id || "", name: row.name || "", kind: row.kind || "", affiliation: row.affiliation || "", reference: row.reference || "", expertise: row.expertise || "", status: row.status || "" };
+}
+
+function redactStudentRecord_(row) {
+  return { id: row.id || "", name: row.name || "", email: row.email || "", cohort: row.cohort || "", status: row.status || "", interests: row.interests || [] };
+}
+
+function portalRevokeSessionsForEmail_(email) {
+  const target = normalizeEmailAddress(email);
+  const properties = portalStore_().getProperties();
+  Object.keys(properties).forEach(function (key) {
+    if (key.indexOf("portal_session_") !== 0) return;
+    try {
+      const session = JSON.parse(properties[key]);
+      if (normalizeEmailAddress(session.email) === target) portalStore_().deleteProperty(key);
+    } catch (error) {}
+  });
+  const sheet = portalSheet_("AccessSessions", ["token_hash", "email", "expires_at", "created_at"]);
+  for (let row = sheet.getLastRow(); row >= 2; row -= 1) {
+    if (String(sheet.getRange(row, 2).getValue() || "").trim().toLowerCase() === target) sheet.deleteRow(row);
+  }
+}
+
+function revokePortalSession(payload) {
+  const session = portalRequireSession_(payload && payload.token, false);
+  portalRevokeSessionsForEmail_(session.email);
+  return { ok: true };
 }
