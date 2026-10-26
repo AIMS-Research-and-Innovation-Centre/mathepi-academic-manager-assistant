@@ -344,6 +344,21 @@ button {
   background: var(--panel);
 }
 
+.install-steps article.current-platform {
+  border-color: #2f7a57;
+  box-shadow: inset 4px 0 0 #2f7a57;
+}
+
+.install-feedback {
+  padding: 12px 14px;
+  border-left: 4px solid var(--aims-maroon);
+  background: #f8e9eb;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
 .install-steps span {
   margin-bottom: 4px;
   color: var(--aims-maroon);

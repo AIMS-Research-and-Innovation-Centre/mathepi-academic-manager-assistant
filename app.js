@@ -3590,7 +3590,9 @@ function startBlock() {
 function nextStartLabel() {
   const start = startBlock();
   const days = daysUntil(start.start);
-  return `${days} days`;
+  if (days < 0) return "In progress";
+  if (days === 0) return "Today";
+  return `${days} day${days === 1 ? "" : "s"}`;
 }
 
 function programmePulse() {
@@ -3600,20 +3602,38 @@ function programmePulse() {
     .map((item) => ({
       ...item,
       startDate: new Date(`${item.start}T00:00:00`),
-      endDate: new Date(`${item.end}T23:59:59`),
+      endDate: new Date(`${item.end}T00:00:00`),
     }))
     .sort((a, b) => a.startDate - b.startDate);
-  const active = datedBlocks.find((item) => now >= item.startDate && now <= item.endDate);
+  const activeItems = datedBlocks.filter((item) => now >= item.startDate && now <= item.endDate);
+  const active = activeItems.find((item) => item.kind === "onboarding") || activeItems.find((item) => item.kind === "teaching") || activeItems[0];
   if (active) {
-    const daysRemaining = Math.max(0, Math.ceil((active.endDate - now) / 86400000));
-    return `${active.title} is active. ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} remaining.`;
+    const daysRemaining = Math.max(0, Math.round((active.endDate - now) / 86400000));
+    const timing = daysRemaining === 0
+      ? `It ends today, ${dateLabel(active.end)}.`
+      : `It ends on ${dateLabel(active.end)}, in ${daysRemaining} calendar day${daysRemaining === 1 ? "" : "s"}.`;
+    return `${active.title} is in progress. ${timing}`;
   }
   const upcoming = datedBlocks.find((item) => item.startDate > now);
   if (upcoming) {
     const daysAway = Math.max(0, Math.ceil((upcoming.startDate - now) / 86400000));
-    return `${upcoming.title} begins in ${daysAway} day${daysAway === 1 ? "" : "s"}.`;
+    return `${upcoming.title} begins on ${dateLabel(upcoming.start)}, in ${daysAway} calendar day${daysAway === 1 ? "" : "s"}.`;
   }
-  return datedBlocks.length ? "The scheduled programme blocks are complete." : "Programme dates are not yet available.";
+  const last = datedBlocks[datedBlocks.length - 1];
+  return last ? `The published programme concluded on ${dateLabel(last.end)}.` : "Programme dates are not yet available.";
+}
+
+function rolePulsePrefix() {
+  if (isStudentRole()) {
+    const pending = visibleTodos().filter((item) => item.status !== "Done").length;
+    return `${pending} study task${pending === 1 ? "" : "s"} open.`;
+  }
+  if (state.role === "lecturer" || state.role === "tutor") {
+    const label = state.role === "lecturer" ? "teaching" : "tutorial";
+    return `Your ${label} schedule is current.`;
+  }
+  const count = overduePeople().length;
+  return `${count} follow-up${count === 1 ? "" : "s"} need attention.`;
 }
 
 function statusBadge(status) {
@@ -4143,7 +4163,7 @@ function appLayout() {
           </div>
           <div class="assistant-pulse">
             <div class="pulse-top"><span>Operations pulse</span><span class="pulse-dot"></span></div>
-            <p class="pulse-copy">${overduePeople().length} follow-up${overduePeople().length === 1 ? "" : "s"} need attention. ${programmePulse()}</p>
+            <p class="pulse-copy">${rolePulsePrefix()} ${programmePulse()}</p>
           </div>
         </div>
         <nav class="nav">
@@ -5334,9 +5354,13 @@ function renderPiWidget() {
 }
 
 function renderDashboard() {
-  const active = activeBlock();
+  const iso = new Date().toISOString().slice(0, 10);
+  const active = state.blocks.find((item) => item.kind === "teaching" && item.start <= iso && item.end >= iso)
+    || state.blocks.filter((item) => item.kind === "teaching" && item.start > iso).sort((a, b) => a.start.localeCompare(b.start))[0]
+    || activeBlock();
   const risks = conflicts();
   const activeCourses = active.courses.map(course).filter(Boolean);
+  if (isStudentRole()) return renderStudentDashboard(active, activeCourses);
   return `
     <div class="view">
       <section class="hero-strip">
@@ -5421,6 +5445,35 @@ function renderDashboard() {
       </section>
     </div>
   `;
+}
+
+function renderStudentDashboard(active, activeCourses) {
+  const openTasks = visibleTodos().filter((item) => item.status !== "Done");
+  const upcomingMeetings = state.studyGroupMeetings.filter((item) => item.date >= new Date().toISOString().slice(0, 10));
+  return `
+    <div class="view">
+      <section class="hero-strip">
+        <div class="card mission-card"><div class="card-body">
+          <div><span class="mission-eyebrow">${icon("calendar", 16)} My MathEpi programme</span><h2>Keep your learning, timetable, and support in one place.</h2><p>${programmePulse()} Review your sessions, organise study time, work with your group, or request support.</p></div>
+          <div class="hero-actions"><button class="button primary" onclick="setView('calendar')">${icon("calendar", 18)}View timetable</button><button class="button ghost" onclick="setView('planner')">${icon("planner", 18)}Open planner</button></div>
+        </div></div>
+        <div class="kpi-grid">
+          ${kpi("Current block", active.title, `${dateLabel(active.start)} to ${dateLabel(active.end)}`, "book", "blue")}
+          ${kpi("Courses", activeCourses.length, "In the selected block", "book", "green")}
+          ${kpi("Study tasks", openTasks.length, "Still to complete", "check", "gold")}
+          ${kpi("Group meetings", upcomingMeetings.length, "Upcoming", "users", "teal")}
+        </div>
+      </section>
+      <section class="quick-grid">${dashboardQuickActions().map((item) => quick(item.title, item.text, item.icon, item.color, item.action)).join("")}</section>
+      <section class="section-grid">
+        <div class="card"><div class="card-header"><div><h2>${escapeHtml(active.title)}</h2><p>${dateLabel(active.start)} to ${dateLabel(active.end)}</p></div><span class="badge maroon">My courses</span></div><div class="card-body"><div class="timeline">
+          ${activeCourses.length ? activeCourses.map((item) => `<article class="course-row"><div><h4>${escapeHtml(item.code)} ${escapeHtml(item.title)}</h4><p>${escapeHtml(item.outcomes)}</p><div class="row-tags">${typeBadge(item.type)}<span class="chip gray">${item.hours} hours</span></div></div><button class="button ghost" onclick="openDrawer('course', '${item.code}')">Open course</button></article>`).join("") : `<div class="empty">No courses are listed for this block.</div>`}
+        </div></div></div>
+        <div class="card"><div class="card-header"><div><h2>My next steps</h2><p>Study actions visible to you.</p></div><span class="badge blue">${openTasks.length} open</span></div><div class="card-body assistant-stack">
+          ${openTasks.slice(0, 4).map((item) => `<div class="priority"><span class="icon-box blue">${icon("check", 18)}</span><div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.courseCode || "Programme")} · due ${dateLabel(item.due)}</span></div></div>`).join("") || `<div class="empty">You have no open study tasks.</div>`}
+        </div></div>
+      </section>
+    </div>`;
 }
 
 function dashboardQuickActions() {
@@ -8916,22 +8969,37 @@ function notificationsDrawer() {
 }
 
 let deferredInstallPrompt = null;
+let installFeedback = "";
+
+function installEnvironment() {
+  const ua = navigator.userAgent || "";
+  return {
+    standalone: window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true,
+    ios: /iPad|iPhone|iPod/.test(ua),
+    android: /Android/.test(ua),
+    windows: /Windows/.test(ua),
+    linux: /Linux/.test(ua) && !/Android/.test(ua),
+  };
+}
 
 function installAppDrawer() {
   const canPrompt = Boolean(deferredInstallPrompt);
+  const environment = installEnvironment();
+  const status = environment.standalone ? "MathEpi is already installed on this device." : canPrompt ? "This browser is ready to install MathEpi." : "Use the instructions for your device below.";
   const body = `
     <div class="install-intro">
       <span class="icon-box maroon">${icon("install", 22)}</span>
-      <div><strong>MathEpi works as an installed app</strong><p>Use the same secure account and role on your phone, tablet, or computer.</p></div>
+      <div><strong>${escapeHtml(status)}</strong><p>Installation adds a convenient app icon. Your secure account, approved role, and live programme data remain the same.</p></div>
     </div>
+    ${installFeedback ? `<div class="install-feedback" role="status">${escapeHtml(installFeedback)}</div>` : ""}
     <div class="install-steps">
-      <article><span>Phone or tablet</span><strong>Android: Chrome menu &gt; Install app</strong><p>On iPhone or iPad, open this site in Safari, tap Share, then Add to Home Screen.</p></article>
-      <article><span>Laptop or desktop</span><strong>Chrome or Edge: Install MathEpi</strong><p>Use the install icon in the address bar or choose Install app from the browser menu.</p></article>
-      <article><span>After installation</span><strong>Open MathEpi from your home screen or apps</strong><p>Your approved role is loaded after you sign in. Internet access is required for live operational data.</p></article>
+      <article class="${environment.windows ? "current-platform" : ""}"><span>Windows</span><strong>Install from Microsoft Edge or Google Chrome</strong><p>Select the install icon in the address bar, or open the browser menu and choose Apps, then Install MathEpi.</p></article>
+      <article class="${environment.linux ? "current-platform" : ""}"><span>Debian or Ubuntu</span><strong>Install the browser app from Chrome or Chromium</strong><p>Open the browser menu and choose Install MathEpi. A separate .deb package has not been published, so the portal does not show a misleading download.</p></article>
+      <article class="${environment.android ? "current-platform" : ""}"><span>Android phone or tablet</span><strong>Chrome menu, then Install app</strong><p>If Install app is not shown, choose Add to Home screen.</p></article>
+      <article class="${environment.ios ? "current-platform" : ""}"><span>iPhone or iPad</span><strong>Safari Share, then Add to Home Screen</strong><p>Apple devices install this web app through Safari rather than a downloaded file.</p></article>
+      <article><span>Live data</span><strong>Internet access is still required</strong><p>The installed app can open quickly, but schedules, access changes, and operational records are loaded securely from the live service.</p></article>
     </div>`;
-  const footer = canPrompt
-    ? `<button class="button ghost" onclick="closeDrawer()">Not now</button><button class="button primary" onclick="runInstallPrompt()">${icon("install", 17)}Install MathEpi</button>`
-    : `<button class="button primary" onclick="closeDrawer()">Done</button>`;
+  const footer = environment.standalone ? `<button class="button primary" onclick="closeDrawer()">Done</button>` : canPrompt ? `<button class="button ghost" onclick="closeDrawer()">Not now</button><button class="button primary" onclick="runInstallPrompt()">${icon("install", 17)}Install on this device</button>` : `<button class="button ghost" onclick="copyCurrentAppLink()">${icon("link", 17)}Copy app link</button><button class="button primary" onclick="closeDrawer()">Done</button>`;
   return drawerShell("Install MathEpi", "Add the app to this device for faster access.", body, footer);
 }
 
@@ -8940,11 +9008,25 @@ function installMathEpiApp() {
 }
 
 async function runInstallPrompt() {
-  if (!deferredInstallPrompt) return installMathEpiApp();
+  if (!deferredInstallPrompt) {
+    installFeedback = "The automatic installer is not available in this browser. Follow the matching device instructions below.";
+    return render();
+  }
   deferredInstallPrompt.prompt();
-  await deferredInstallPrompt.userChoice;
+  const result = await deferredInstallPrompt.userChoice;
   deferredInstallPrompt = null;
-  closeDrawer();
+  installFeedback = result.outcome === "accepted" ? "Installation accepted. Your device will finish adding MathEpi." : "Installation was not completed. You can try again from the browser menu.";
+  render();
+}
+
+async function copyCurrentAppLink() {
+  try {
+    await navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}`);
+    installFeedback = "The MathEpi app link was copied.";
+  } catch (_) {
+    installFeedback = "Copy the address from your browser address bar.";
+  }
+  render();
 }
 
 function cfaCallDrawer(id) {
@@ -10231,10 +10313,17 @@ window.syncReviewStaffing = syncReviewStaffing;
 window.state = state;
 window.installMathEpiApp = installMathEpiApp;
 window.runInstallPrompt = runInstallPrompt;
+window.copyCurrentAppLink = copyCurrentAppLink;
 
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   deferredInstallPrompt = event;
+  if (state.drawer?.type === "install") render();
+});
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  installFeedback = "MathEpi was installed successfully.";
+  if (state.drawer?.type === "install") render();
 });
 window.addEventListener("online", () => { toast("Connection restored. Live data is available again."); render(); });
 window.addEventListener("offline", () => render());
