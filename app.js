@@ -3114,9 +3114,22 @@ function person(id) {
   return state.people.find((item) => item.id === id);
 }
 
+function courseTutorIds(item) {
+  if (Array.isArray(item?.tutorIds)) return item.tutorIds.filter(Boolean);
+  const raw = String(item?.tutorIds || "").trim();
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.filter(Boolean);
+  } catch (_) {
+    // Older Sheet rows may contain comma- or semicolon-separated IDs.
+  }
+  return raw.split(/[;,]/).map((id) => id.trim()).filter(Boolean);
+}
+
 function assignedCourses(personId) {
   return state.courses.filter(
-    (item) => item.lecturerId === personId || item.tutorIds.includes(personId),
+    (item) => item.lecturerId === personId || courseTutorIds(item).includes(personId),
   );
 }
 
@@ -3134,6 +3147,7 @@ function filteredCourses() {
 function filteredPeople(kind = null) {
   const query = state.query.trim().toLowerCase();
   return state.people.filter((item) => {
+    if (!item || !String(item.name || "").trim()) return false;
     const kindOk = kind ? item.kind === kind : true;
     const text = [
       item.name,
@@ -3657,7 +3671,9 @@ function typeBadge(type) {
 }
 
 function initials(name) {
-  return name
+  const safeName = String(name || "").trim();
+  if (!safeName) return "?";
+  return safeName
     .split(/\s+/)
     .map((part) => part[0])
     .join("")
@@ -3685,7 +3701,7 @@ function overduePeople() {
 }
 
 function missingTutorCourses() {
-  return state.courses.filter((item) => item.tutorIds.length === 0 && item.type !== "practical");
+  return state.courses.filter((item) => courseTutorIds(item).length === 0 && item.type !== "practical");
 }
 
 function unconfirmedLecturerCourses() {
@@ -6227,7 +6243,7 @@ function courseStaffingChips(item, lead, tutors) {
 function renderCourseRow(item) {
   const lead = person(item.lecturerId);
   const lecturerName = courseLecturerName(item, lead);
-  const tutors = item.tutorIds.map(person).filter(Boolean);
+  const tutors = courseTutorIds(item).map(person).filter(Boolean);
   const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
   const staffing =
     isStudentRole()
@@ -9077,7 +9093,7 @@ function courseDrawer(code) {
   const item = course(code);
   if (!item) return drawerShell("Course not found", "The selected course is no longer available.", "");
   const lead = person(item.lecturerId);
-  const tutors = item.tutorIds.map(person).filter(Boolean);
+  const tutors = courseTutorIds(item).map(person).filter(Boolean);
   const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
   const lecturerOptions = state.people.filter((entry) => entry.kind === "Lecturer");
   const tutorOptions = state.people.filter((entry) => entry.kind === "Tutor");
@@ -9121,7 +9137,7 @@ function courseDrawer(code) {
                     .map(
                       (entry) => `
                         <label class="check-card">
-                          <input type="checkbox" ${item.tutorIds.includes(entry.id) ? "checked" : ""} onchange="updateCourseTutor('${item.code}', '${entry.id}', this.checked)" />
+                          <input type="checkbox" ${courseTutorIds(item).includes(entry.id) ? "checked" : ""} onchange="updateCourseTutor('${item.code}', '${entry.id}', this.checked)" />
                           <span><strong>${entry.name}</strong><small>${personStatusText(entry)} - ${entry.expertise}</small></span>
                         </label>
                       `,
