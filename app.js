@@ -2585,7 +2585,14 @@ async function pullGoogleBootstrap() {
     const datasets = result?.datasets || {};
     googleSyncSuspended = true;
     GOOGLE_DATASETS.forEach(([key, tab]) => {
-      if (Array.isArray(datasets[tab])) state[key] = datasets[tab];
+      if (!Array.isArray(datasets[tab])) return;
+      const canonical = {
+        Courses: [DEFAULT_COURSES, ["code", "id"]],
+        People: [canonicalProgrammePeople(), ["id", "name"]],
+        CalendarBlocks: [DEFAULT_BLOCKS, ["id"]],
+        Sessions: [DEFAULT_SESSIONS, ["id"]],
+      }[tab];
+      state[key] = canonical ? mergeCanonicalRecords(canonical[0], datasets[tab], canonical[1]) : datasets[tab];
     });
     if (result?.cfaStatuses) state.cfaStatuses = result.cfaStatuses;
     if (result?.viewPermissions) state.viewPermissions = normalizeViewPermissions(result.viewPermissions);
@@ -2604,6 +2611,43 @@ async function pullGoogleBootstrap() {
     googleSyncSuspended = false;
     toast(error.message || "Google pull failed.");
   }
+}
+
+function mergeCanonicalRecords(defaults, incoming, identityKeys) {
+  const merged = safeClone(Array.isArray(defaults) ? defaults : []);
+  (Array.isArray(incoming) ? incoming : []).forEach((record) => {
+    if (!record || typeof record !== "object") return;
+    const identityKey = identityKeys.find((key) => String(record[key] || "").trim());
+    if (!identityKey) return;
+    const identity = String(record[identityKey]).trim().toLowerCase();
+    const index = merged.findIndex((item) => String(item?.[identityKey] || "").trim().toLowerCase() === identity);
+    if (index >= 0) merged[index] = { ...merged[index], ...record };
+    else merged.push(safeClone(record));
+  });
+  return merged;
+}
+
+function canonicalProgrammePeople() {
+  const records = safeClone(DEFAULT_PEOPLE);
+  const known = new Set(records.map((item) => String(item.name || "").trim().toLowerCase()).filter(Boolean));
+  Object.entries(CONFIRMED_LECTURER_ASSIGNMENTS).forEach(([courseCode, assignment]) => {
+    const name = String(assignment?.lecturerName || "").trim();
+    if (!name || known.has(name.toLowerCase())) return;
+    known.add(name.toLowerCase());
+    records.push({
+      id: `lecturer-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
+      name,
+      kind: "Lecturer",
+      affiliation: "MathEpi programme",
+      email: courseCode === "MEE04" ? "zeleke@msu.edu" : "",
+      reference: courseCode,
+      expertise: DEFAULT_COURSES.find((item) => item.code === courseCode)?.title || courseCode,
+      status: "Confirmed",
+      workload: 1,
+      nextFollowUp: "2026-10-27",
+    });
+  });
+  return records;
 }
 
 const initialHashView = window.location.hash ? window.location.hash.slice(1) : "";
@@ -3858,7 +3902,7 @@ function setView(view) {
   }
   render();
   if (state.view === "access" && ["super-admin", "manager"].includes(state.role)) loadPortalAccess();
-  if (state.view === "calendar" || state.view === "courses") syncReviewStaffing({ quiet: true });
+  if (["calendar", "courses", "people"].includes(state.view)) syncReviewStaffing({ quiet: true });
 }
 
 function toggleMobileMenu(force) {
@@ -3896,16 +3940,28 @@ function setAuthenticatedRole(role) {
   setRole(role, { source: "auth" });
 }
 
-function clearProtectedWorkspaceState() {
+function clearProtectedWorkspaceState(role = state.role) {
   GOOGLE_DATASETS.forEach(([key]) => { state[key] = []; });
+  const visibleViews = ROLES[role]?.views || [];
+  if (visibleViews.some((view) => ["dashboard", "calendar", "courses"].includes(view))) {
+    state.courses = safeClone(DEFAULT_COURSES);
+    state.blocks = safeClone(DEFAULT_BLOCKS);
+    state.sessions = safeClone(DEFAULT_SESSIONS);
+  }
+  if (visibleViews.some((view) => ["dashboard", "calendar", "courses", "people"].includes(view))) {
+    state.people = canonicalProgrammePeople();
+  }
 }
 
 function setAuthenticatedRoles(roles) {
   const granted = Array.isArray(roles) ? roles.filter((role) => ROLES[role]) : [];
+  const activeRole = granted[0] || "viewer";
   // Never show records retained by a previous browser session while the
   // backend is calculating the newly signed-in user's authorized dataset.
-  clearProtectedWorkspaceState();
-  setRole(granted[0] || "viewer", { source: "auth" });
+  // Canonical curriculum and teaching-team records remain available because
+  // they are programme reference data, not records owned by the prior user.
+  clearProtectedWorkspaceState(activeRole);
+  setRole(activeRole, { source: "auth" });
   if (portalAccess?.token && portalAccess.status === "approved") {
     pullGoogleBootstrap().catch(() => {});
   }
