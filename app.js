@@ -3127,6 +3127,20 @@ function courseTutorIds(item) {
   return raw.split(/[;,]/).map((id) => id.trim()).filter(Boolean);
 }
 
+function courseReviewTutorNames(item) {
+  const value = item?.reviewTutorNames;
+  if (Array.isArray(value)) return value.filter(Boolean);
+  const raw = String(value || "").trim();
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.filter(Boolean);
+  } catch (_) {
+    // Google Sheets may provide a plain comma- or semicolon-separated value.
+  }
+  return raw.split(/[;,]/).map((name) => name.trim()).filter(Boolean);
+}
+
 function assignedCourses(personId) {
   return state.courses.filter(
     (item) => item.lecturerId === personId || courseTutorIds(item).includes(personId),
@@ -3135,8 +3149,9 @@ function assignedCourses(personId) {
 
 function filteredCourses() {
   const query = state.query.trim().toLowerCase();
-  if (!query) return state.courses;
-  return state.courses.filter((item) =>
+  const courses = state.courses.filter((item) => item && String(item.code || item.title || "").trim());
+  if (!query) return courses;
+  return courses.filter((item) =>
     [item.code, item.title, item.block, item.type, item.software]
       .join(" ")
       .toLowerCase()
@@ -4338,8 +4353,8 @@ function piNextBlock(after = piTodayIso()) {
 
 function piCourseTeam(item) {
   const lecturer = courseLecturerName(item, person(item.lecturerId));
-  const tutors = (item.tutorIds || []).map(person).filter(Boolean).map((tutor) => tutor.name);
-  return [...new Set([lecturer, ...tutors, ...(item.reviewTutorNames || [])].filter(Boolean))];
+  const tutors = courseTutorIds(item).map(person).filter(Boolean).map((tutor) => tutor.name);
+  return [...new Set([lecturer, ...tutors, ...courseReviewTutorNames(item)].filter(Boolean))];
 }
 
 function piBlockSummary(block) {
@@ -4788,7 +4803,7 @@ function piCourseAnswer(item, question) {
 }
 
 function piPersonAnswer(item) {
-  const courses = state.courses.filter((entry) => entry.lecturerId === item.id || (entry.tutorIds || []).includes(item.id) || courseLecturerName(entry) === item.name);
+  const courses = state.courses.filter((entry) => entry.lecturerId === item.id || courseTutorIds(entry).includes(item.id) || courseLecturerName(entry) === item.name);
   const bookable = appointmentTargetOptions().some((target) => target.id === item.id);
   return {
     title: item.name,
@@ -6216,7 +6231,7 @@ function courseLecturerName(item, lead = person(item.lecturerId)) {
 
 function studentCourseTeamChips(item, lead, tutors) {
   const lecturerName = courseLecturerName(item, lead);
-  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
+  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...courseReviewTutorNames(item)])];
   const tutorText = tutorNames.length ? tutorNames.join(", ") : "Tutor not assigned";
   return `
     <span class="chip ${lecturerName ? "blue" : "danger"}">Lecturer: ${lecturerName ? lecturerNameWithLinks(lecturerName) : "Not assigned"}</span>
@@ -6226,7 +6241,7 @@ function studentCourseTeamChips(item, lead, tutors) {
 }
 
 function courseStaffingChips(item, lead, tutors) {
-  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
+  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...courseReviewTutorNames(item)])];
   const tutorCount = tutorNames.length;
   const lecturerName = courseLecturerName(item, lead);
   return `
@@ -6244,7 +6259,7 @@ function renderCourseRow(item) {
   const lead = person(item.lecturerId);
   const lecturerName = courseLecturerName(item, lead);
   const tutors = courseTutorIds(item).map(person).filter(Boolean);
-  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
+  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...courseReviewTutorNames(item)])];
   const staffing =
     isStudentRole()
       ? studentCourseTeamChips(item, lead, tutors)
@@ -9094,7 +9109,7 @@ function courseDrawer(code) {
   if (!item) return drawerShell("Course not found", "The selected course is no longer available.", "");
   const lead = person(item.lecturerId);
   const tutors = courseTutorIds(item).map(person).filter(Boolean);
-  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...(item.reviewTutorNames || [])])];
+  const tutorNames = [...new Set([...tutors.map((t) => t.name), ...courseReviewTutorNames(item)])];
   const lecturerOptions = state.people.filter((entry) => entry.kind === "Lecturer");
   const tutorOptions = state.people.filter((entry) => entry.kind === "Tutor");
   const detail = COURSE_DETAILS[item.code];
@@ -9320,7 +9335,7 @@ function updateCourseLecturer(code, lecturerId) {
 function updateCourseTutor(code, tutorId, checked) {
   const item = course(code);
   if (!item) return;
-  const current = new Set(item.tutorIds || []);
+  const current = new Set(courseTutorIds(item));
   if (checked) current.add(tutorId);
   else current.delete(tutorId);
   item.tutorIds = [...current];
