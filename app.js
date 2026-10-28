@@ -450,13 +450,28 @@ const CONFIRMED_LECTURER_ASSIGNMENTS = {
   MES02: { lecturerName: "Prof. Faraimunashe Chirove", manualAlternateLecturerName: "Prof. Blaise Tchapnda" },
   MES03: { lecturerName: "Prof. Cecil Ouma", manualAlternateLecturerName: "Eunice" },
   MES04: { lecturerName: "Prof. Thomas Achia" },
-  MES05: { lecturerName: "Lema" },
-  MEC01: { lecturerName: "Dr George Omondi Paul" },
+  MES05: { lecturerName: "Dr. Lema LOGAMOU SEKNEWNA" },
+  MES06: { lecturerName: "Dr. Joseph Malinzi" },
+  MEC01: { lecturerName: "Dr. George Omondi Paul" },
+  MEC02: { lecturerName: "Dr. Simon Peter Musinguzi" },
+  MEC03: { lecturerName: "Prof. Sansao Pedro" },
+  MEC04: { lecturerName: "Prof. Getachew Tilahun" },
+  MEC05: { lecturerName: "Dr. Miracle Amadi" },
   MEC06: { lecturerName: "Dr Issa Karambal" },
-  MEC08: { lecturerName: "Ogwel" },
+  MEC07: { lecturerName: "Dr. Arsénio Nhacolo" },
+  MEC08: { lecturerName: "Dr. Billy Ogwel" },
   MEC09: { lecturerName: "Whistler Cherubin", manualAlternateLecturerName: "Prof. Nyawira" },
-  MEC10: { lecturerName: "Birma" },
+  MEC10: { lecturerName: "Dr. Yusuf Brima" },
+  MEE01: { lecturerName: "Dr. Nelson Owuor Onyango" },
+  MEE02: { lecturerName: "Prof. Emmanuel Afolabi BAKARE" },
+  MEE03: { lecturerName: "Dr. ETSE YAWO DZAKPA" },
   MEE04: { lecturerName: "Prof. Aklilu Zeleke" },
+};
+
+const LECTURER_NAME_ALIASES = {
+  lema: "Dr. Lema LOGAMOU SEKNEWNA",
+  ogwel: "Dr. Billy Ogwel",
+  birma: "Dr. Yusuf Brima",
 };
 
 const COURSE_DELIVERY_WINDOWS = {
@@ -2920,6 +2935,17 @@ function migrateProgrammeData() {
   state.courses.forEach((course) => {
     if (courseToBlock[course.code]) course.block = courseToBlock[course.code];
   });
+
+  state.people.forEach((personItem) => {
+    const replacement = LECTURER_NAME_ALIASES[String(personItem.name || "").trim().toLowerCase()];
+    if (replacement) personItem.name = replacement;
+  });
+  state.people = state.people.reduce((records, personItem) => {
+    const duplicate = records.find((item) => String(item.kind || "").toLowerCase() === String(personItem.kind || "").toLowerCase() && String(item.name || "").toLowerCase() === String(personItem.name || "").toLowerCase());
+    if (duplicate) Object.assign(duplicate, personItem);
+    else records.push(personItem);
+    return records;
+  }, []);
 
   Object.entries(CONFIRMED_LECTURER_ASSIGNMENTS).forEach(([code, assignment]) => {
     const item = state.courses.find((course) => course.code === code);

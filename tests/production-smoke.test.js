@@ -12,8 +12,11 @@ test("programme dates match the approved 2026/27 calendar", () => {
   assert.match(app, /"end": "2027-05-14"/);
   assert.match(app, /"start": "2027-05-31"/);
   assert.match(app, /MES02: \{ lecturerName: "Prof\. Faraimunashe Chirove"/);
-  assert.match(app, /MES05: \{ lecturerName: "Lema"/);
-  assert.match(app, /MEC01: \{ lecturerName: "Dr George Omondi Paul"/);
+  assert.match(app, /MES05: \{ lecturerName: "Dr\. Lema LOGAMOU SEKNEWNA"/);
+  assert.match(app, /MEC01: \{ lecturerName: "Dr\. George Omondi Paul"/);
+  assert.match(app, /MEC07: \{ lecturerName: "Dr\. Arsénio Nhacolo"/);
+  assert.match(app, /MEE03: \{ lecturerName: "Dr\. ETSE YAWO DZAKPA"/);
+  assert.match(app, /MEC10: \{ lecturerName: "Dr\. Yusuf Brima"/);
   assert.match(app, /MEE04: \{ lecturerName: "Prof\. Aklilu Zeleke"/);
   assert.match(app, /!String\(item\.lecturerName \|\| ""\)\.trim\(\) && item\.reviewLecturerNames\.length/);
 });
