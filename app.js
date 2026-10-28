@@ -2670,6 +2670,9 @@ const state = {
   portalEmail: "",
   portalRequestedRole: sessionStorage.getItem("mathepi-google-requested-role") || "",
   portalRequestsLoading: false,
+  accessTab: "pending",
+  accessQuery: "",
+  accessRoleFilter: "all",
   mobileMenuOpen: false,
   theme: safeStorageGet("mathepi-theme") || "light",
   googleConnected: googleBackendAvailable(),
@@ -8797,158 +8800,92 @@ function sheetDescription(tab) {
 function renderViewAccessPolicy() {
   if (!canManageViewPermissions()) return "";
   return `
-    <div class="card access-policy-card">
-      <div class="card-header">
-        <div>
-          <h2>Role access policy</h2>
-          <p>Access is enforced by Apps Script for every protected request. Assign the appropriate role below; users receive only the views and data approved for that role.</p>
-        </div>
-        <span class="badge green">Backend enforced</span>
-      </div>
-      <div class="card-body access-user-list">
+    <section class="access-policy-list" aria-label="Role access policies">
+        <h2>Role access policy</h2>
+        <p class="muted-note">Expand a role to review its permitted views and data scope.</p>
+        <table class="sr-only"><thead><tr><th>Role</th><th>Edit data</th><th>Sensitive data</th></tr></thead><tbody><tr><td>See the expandable role policies below</td><td>Defined per role</td><td>Defined per role</td></tr></tbody></table>
         ${Object.entries(ROLES).map(([role, definition]) => `
-          <article class="access-user-row">
-            <div class="access-request-identity">
+          <details class="access-policy-row">
+            <summary>
               <span class="access-request-avatar">${escapeHtml(definition.label.charAt(0))}</span>
-              <div><strong>${escapeHtml(definition.label)}</strong><p>${escapeHtml(definition.hint)}</p></div>
+              <span class="access-policy-title"><strong>${escapeHtml(definition.label)}</strong><small>${escapeHtml(definition.hint)}</small></span>
+              <span class="access-policy-count">${definition.views.length} views</span>
+            </summary>
+            <div class="access-policy-detail">
+              <strong>Approved views</strong>
+              <div class="access-view-chips">${definition.views.map((view) => `<span>${escapeHtml(NAV.find((item) => item.id === view)?.short || NAV.find((item) => item.id === view)?.label || view)}</span>`).join("")}</div>
+              <p>${definition.canEdit ? "May update authorised operational records." : "Read-only access."} ${definition.canSensitive ? "Sensitive records are visible where required." : "Sensitive records remain hidden."}</p>
             </div>
-            <div class="access-user-controls">
-              <span class="eyebrow">Approved views</span>
-              <p>${definition.views.map((view) => escapeHtml(NAV.find((item) => item.id === view)?.short || NAV.find((item) => item.id === view)?.label || view)).join(" · ")}</p>
-            </div>
-          </article>`).join("")}
-      </div>
-    </div>`;
+          </details>`).join("")}
+    </section>`;
+}
+
+function accessRoleOptions(selected) {
+  return Object.entries(ROLES).filter(([id]) => !["super-admin", "reviewer"].includes(id)).map(([id, role]) => `<option value="${id}" ${id === selected ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("");
+}
+
+function accessRecordMatches(record) {
+  const query = state.accessQuery.trim().toLowerCase();
+  const role = (Array.isArray(record.roles) && record.roles[0]) || record.requested_role || "viewer";
+  return (!query || String(record.email || "").toLowerCase().includes(query) || String(ROLES[role]?.label || role).toLowerCase().includes(query)) && (state.accessRoleFilter === "all" || role === state.accessRoleFilter);
 }
 
 function renderAccess() {
   const auth = window.mathepiAuth || { status: "unconfigured", user: null };
   const currentRole = auth.user?.role || state.role;
+  const pending = portalRequests.filter(accessRecordMatches);
+  const users = portalUsers.filter(accessRecordMatches);
   return `
-    <div class="view section-grid">
-      ${renderViewAccessPolicy()}
-      <div class="card">
-        <div class="card-header"><div><h2>Account approvals</h2><p>Only <strong>@aimsric.org</strong> accounts can request access. Review pending requests here.</p></div><button class="button ghost" onclick="loadPortalAccess()" ${state.portalRequestsLoading ? "disabled" : ""}>${state.portalRequestsLoading ? "Loading access..." : "Refresh access"}</button></div>
-        <div class="card-body assistant-stack">${state.portalRequestsLoading && !portalRequests.length ? `<div class="empty">Loading pending access requests...</div>` : portalRequests.length ? portalRequests.map((request) => `<article class="access-request-card">
+    <div class="view access-workspace">
+      <section class="access-summary" aria-label="Access overview">
+        <div><span>Pending requests</span><strong>${portalRequests.length}</strong></div>
+        <div><span>Active users</span><strong>${portalUsers.filter((user) => user.status === "approved").length}</strong></div>
+        <div><span>Available roles</span><strong>${Object.keys(ROLES).length}</strong></div>
+        <span class="badge green">Backend enforced</span>
+      </section>
+      <section class="card access-console">
+        <div class="access-console-head">
+          <div><h2>Access management</h2><p>Approve accounts, assign the correct role, and review each role's permitted views.</p></div>
+          <button class="button ghost" onclick="loadPortalAccess()" ${state.portalRequestsLoading ? "disabled" : ""}>${icon("refresh", 17)}${state.portalRequestsLoading ? "Refreshing..." : "Refresh"}</button>
+        </div>
+        <div class="access-tabs" role="tablist">
+          <button class="${state.accessTab === "pending" ? "active" : ""}" onclick="setAccessTab('pending')">Pending approvals <span>${portalRequests.length}</span></button>
+          <button class="${state.accessTab === "users" ? "active" : ""}" onclick="setAccessTab('users')">Active users <span>${portalUsers.length}</span></button>
+          <button class="${state.accessTab === "policies" ? "active" : ""}" onclick="setAccessTab('policies')">Role policies</button>
+        </div>
+        ${state.accessTab !== "policies" ? `<div class="access-toolbar">
+          <label class="access-search">${icon("search", 17)}<input value="${escapeHtml(state.accessQuery)}" oninput="setAccessQuery(this.value)" placeholder="Search by email or role" aria-label="Search access records"></label>
+          <select onchange="setAccessRoleFilter(this.value)" aria-label="Filter by role"><option value="all">All roles</option>${accessRoleOptions(state.accessRoleFilter)}</select>
+        </div>` : ""}
+        <div class="access-content">
+          ${state.accessTab === "pending" ? (state.portalRequestsLoading && !portalRequests.length ? `<div class="empty">Loading access requests...</div>` : pending.length ? pending.map((request) => `<article class="access-request-card">
           <div class="access-request-identity">
             <span class="access-request-avatar">${escapeHtml(String(request.email || "?").charAt(0).toUpperCase())}</span>
-            <div><strong>${escapeHtml(request.email)}</strong><span class="badge gold">Pending approval</span><p>Requested role: ${escapeHtml(ROLES[request.requested_role]?.label || request.requested_role)}</p></div>
+            <div><strong>${escapeHtml(request.email)}</strong><span class="badge gold">Pending</span><p>Requested ${escapeHtml(ROLES[request.requested_role]?.label || request.requested_role)}</p></div>
           </div>
-          <div class="access-request-role"><label for="access-role-${request._row}">Assign role</label><select id="access-role-${request._row}">${Object.entries(ROLES).filter(([id]) => !["super-admin","reviewer"].includes(id)).map(([id,role]) => `<option value="${id}" ${id === request.requested_role ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></div>
-          <div class="access-request-actions"><label class="sr-only" for="access-decision-${request._row}">Decision</label><select id="access-decision-${request._row}" aria-label="Decision for ${escapeHtml(request.email)}"><option value="approved">Approve access</option><option value="rejected">Reject request</option></select><button class="button primary" onclick="decidePortalRequestFromMenu('${escapeHtml(request.email)}','access-role-${request._row}','access-decision-${request._row}')">Apply</button></div>
-        </article>`).join("") : `<div class="empty">No pending access requests.</div>`}</div>
-      </div>
-      <div class="card">
-        <div class="card-header"><div><h2>People with portal access</h2><p>Review assigned roles and switch a person's portal access on or off.</p></div><span class="badge blue">${portalUsers.length} user${portalUsers.length === 1 ? "" : "s"}</span></div>
-        <div class="card-body access-user-list">
-          ${state.portalRequestsLoading && !portalUsers.length ? `<div class="empty">Loading users...</div>` : portalUsers.length ? portalUsers.map((user) => {
+          <div class="access-request-role"><label for="access-role-${request._row}">Assign role</label><select id="access-role-${request._row}">${accessRoleOptions(request.requested_role)}</select></div>
+          <div class="access-request-actions"><button class="button ghost danger-action" onclick="decidePortalRequest('${escapeHtml(request.email)}','rejected','access-role-${request._row}')">Reject</button><button class="button primary" onclick="decidePortalRequest('${escapeHtml(request.email)}','approved','access-role-${request._row}')">Approve</button></div>
+        </article>`).join("") : `<div class="empty">No requests match the current filters.</div>`) : ""}
+          ${state.accessTab === "users" ? (state.portalRequestsLoading && !portalUsers.length ? `<div class="empty">Loading users...</div>` : users.length ? users.map((user) => {
             const enabled = user.status === "approved";
             const role = (Array.isArray(user.roles) && user.roles[0]) || user.requested_role || "viewer";
             return `<article class="access-user-row">
               <div class="access-request-identity"><span class="access-request-avatar">${escapeHtml(String(user.email || "?").charAt(0).toUpperCase())}</span><div><strong>${escapeHtml(user.email)}</strong><p>${escapeHtml(ROLES[role]?.label || role)} · ${enabled ? "Access on" : "Access off"}</p></div></div>
-              <div class="access-user-controls"><label for="user-role-${user._row}">Role</label><select id="user-role-${user._row}">${Object.entries(ROLES).filter(([id]) => !["super-admin","reviewer"].includes(id)).map(([id,item]) => `<option value="${id}" ${id === role ? "selected" : ""}>${escapeHtml(item.label)}</option>`).join("")}</select></div>
+              <div class="access-user-controls"><label for="user-role-${user._row}">Role</label><select id="user-role-${user._row}">${accessRoleOptions(role)}</select></div>
               <label class="access-toggle"><input type="checkbox" ${enabled ? "checked" : ""} onchange="updatePortalUser('${escapeHtml(user.email)}','user-role-${user._row}',this.checked)"/><span aria-hidden="true"></span><b>${enabled ? "On" : "Off"}</b></label>
             </article>`;
-          }).join("") : `<div class="empty">No approved or suspended users are recorded yet.</div>`}
+          }).join("") : `<div class="empty">No users match the current filters.</div>`) : ""}
+          ${state.accessTab === "policies" ? renderViewAccessPolicy() : ""}
         </div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <h2>Installable App</h2>
-            <p>Prepared as a PWA for Android and iPhone home-screen installs.</p>
-          </div>
-          <span class="badge green">PWA ready</span>
-        </div>
-        <div class="card-body assistant-stack">
-          ${[
-            ["cloud", "Host on HTTPS", "Use GitHub Pages, Vercel, Netlify, Firebase Hosting, or Apps Script web app hosting."],
-            ["shield", "Install files are included", "manifest.webmanifest, service worker, and mobile icons are wired into the portal."],
-            ["calendar", "Works like an app", "Android users can install from Chrome; iPhone users can use Safari's Add to Home Screen."],
-          ]
-            .map(
-              ([iconName, title, detail]) => `
-              <div class="priority">
-                <span class="icon-box maroon">${icon(iconName, 18)}</span>
-                <div><strong>${title}</strong><span>${detail}</span></div>
-              </div>
-            `,
-            )
-            .join("")}
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <h2>Current secure session</h2>
-            <p>Google verifies identity; MathEpi applies the centrally approved role.</p>
-          </div>
-          <span class="badge ${authStatusBadge()}">${escapeHtml(authStatusLabel())}</span>
-        </div>
-        <div class="card-body">
-          <div class="meta-grid"><div class="meta-box"><span>Signed-in account</span><strong>${escapeHtml(portalAccess?.email || auth.user?.email || "Not signed in")}</strong></div><div class="meta-box"><span>Active role</span><strong>${escapeHtml(ROLES[currentRole]?.label || currentRole)}</strong></div><div class="meta-box"><span>Identity provider</span><strong>Google</strong></div><div class="meta-box"><span>Access status</span><strong>${escapeHtml(portalAccess?.status || "Approved")}</strong></div></div>
-          <div class="hero-actions compact-actions">
-            <button class="button ghost" onclick="installMathEpiApp()">${icon("install", 17)}Install app</button><button class="button ghost" onclick="authSignOut()">${icon("x", 17)}Sign out</button>
-          </div>
-          <p class="muted-note">Passwords are never collected or stored by MathEpi.</p>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <h2>Role-Based Access</h2>
-            <p>Navigation, data visibility, and edit rights are enforced by the backend role policy.</p>
-          </div>
-          <span class="badge maroon">Claims ready</span>
-        </div>
-        <div class="card-body">
-          <table class="mini-table">
-            <thead><tr><th>Role</th><th>Visible views</th><th>Edit data</th><th>Sensitive data</th></tr></thead>
-            <tbody>
-              ${Object.entries(ROLES)
-                .map(
-                  ([roleId, role]) => `
-                  <tr>
-                    <td><strong>${role.label}</strong></td>
-                    <td>${assignedViews(roleId).map((v) => NAV.find((n) => n.id === v)?.label).join(", ")}</td>
-                    <td>${role.canEdit ? "Allowed" : "Read only"}</td>
-                    <td>${role.canSensitive ? "Visible" : "Hidden"}</td>
-                  </tr>
-                `,
-                )
-                .join("")}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <h2>Deployment Notes</h2>
-            <p>Security rules to keep for installable production use.</p>
-          </div>
-        </div>
-        <div class="card-body assistant-stack">
-          ${[
-            ["shield", "Do not store passwords yourself", "Use Firebase Auth for password handling and password resets."],
-            ["users", "Assign roles as claims", "New accounts can default to Viewer until an admin assigns manager, tutor, lecturer, or student access."],
-            ["database", "Enforce permissions server-side", "Apps Script and any database rules must verify the signed-in user's role before writes."],
-            ["cloud", "Audit Drive visibility", "Applications, passports, certificates, and internal notes should only be exposed to authorized roles."],
-          ]
-            .map(
-              ([iconName, title, detail]) => `
-              <div class="priority">
-                <span class="icon-box maroon">${icon(iconName, 18)}</span>
-                <div><strong>${title}</strong><span>${detail}</span></div>
-              </div>
-            `,
-            )
-            .join("")}
-        </div>
-      </div>
+      </section>
+      <section class="access-session-strip"><div>${icon("shield", 18)}<span><strong>Secure session</strong>${escapeHtml(portalAccess?.email || auth.user?.email || "Not signed in")} · ${escapeHtml(ROLES[currentRole]?.label || currentRole)}</span></div><span class="badge ${authStatusBadge()}">${escapeHtml(authStatusLabel())}</span></section>
     </div>
   `;
 }
+
+function setAccessTab(tab) { state.accessTab = tab; render(); }
+function setAccessQuery(value) { state.accessQuery = value; render(); }
+function setAccessRoleFilter(value) { state.accessRoleFilter = value; render(); }
 
 async function loadPortalRequests() {
   if (state.portalRequestsLoading) return;

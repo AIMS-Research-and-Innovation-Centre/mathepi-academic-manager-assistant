@@ -3230,17 +3230,112 @@ button {
   gap: 12px;
 }
 
+.access-workspace {
+  display: grid;
+  gap: 18px;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.access-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr)) auto;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  overflow: hidden;
+}
+
+.access-summary > div {
+  display: grid;
+  gap: 4px;
+  padding: 18px 22px;
+  border-right: 1px solid var(--line);
+}
+
+.access-summary span { color: var(--muted); font-size: 12px; }
+.access-summary strong { font-size: 24px; color: var(--navy); }
+.access-summary > .badge { margin: 0 20px; color: var(--green); }
+
+.access-console { overflow: hidden; }
+
+.access-console-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 22px 24px 18px;
+}
+
+.access-console-head h2 { margin: 0 0 5px; font-size: 20px; }
+.access-console-head p { margin: 0; color: var(--muted); }
+.access-console-head .button { display: inline-flex; align-items: center; gap: 8px; }
+
+.access-tabs {
+  display: flex;
+  gap: 24px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.access-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 45px;
+  padding: 0 2px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.access-tabs button.active { color: var(--maroon); border-bottom-color: var(--maroon); }
+.access-tabs button span { min-width: 23px; padding: 2px 7px; border-radius: 999px; background: #f2e5e7; font-size: 11px; text-align: center; }
+
+.access-toolbar {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line);
+  background: #fafbfc;
+}
+
+.access-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1;
+  min-width: 180px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--muted);
+}
+
+.access-search input { width: 100%; height: 42px; border: 0; outline: 0; background: transparent; font: inherit; }
+.access-toolbar > select { min-width: 220px; height: 44px; padding: 0 36px 0 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font: inherit; }
+.access-content { padding: 16px 24px 24px; }
+
 .access-request-card {
   display: grid;
-  grid-template-columns: minmax(280px, 1.35fr) minmax(220px, 0.85fr) auto;
-  gap: 20px;
-  align-items: end;
-  padding: 20px;
+  grid-template-columns: minmax(260px, 1fr) minmax(210px, 0.55fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 16px 18px;
   border: 1px solid var(--line);
-  border-left: 4px solid var(--maroon);
   border-radius: var(--radius);
   background: #fff;
 }
+
+.access-request-card + .access-request-card { margin-top: 10px; }
 
 .access-request-identity {
   display: flex;
@@ -3403,7 +3498,27 @@ button {
   outline-offset: 2px;
 }
 
+.access-policy-list { display: grid; gap: 8px; }
+.access-policy-row { border: 1px solid var(--line); border-radius: 7px; background: #fff; }
+.access-policy-row summary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 13px; padding: 14px 16px; cursor: pointer; list-style: none; }
+.access-policy-row summary::-webkit-details-marker { display: none; }
+.access-policy-title { display: grid; gap: 3px; }
+.access-policy-title small { color: var(--muted); font-weight: 400; }
+.access-policy-count { color: var(--muted); font-size: 12px; }
+.access-policy-detail { padding: 0 16px 16px 73px; }
+.access-policy-detail > p { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+.access-view-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.access-view-chips span { padding: 5px 8px; border: 1px solid var(--line); border-radius: 5px; background: #f7f8fa; font-size: 12px; }
+
+.access-session-strip { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 18px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+.access-session-strip > div { display: flex; align-items: center; gap: 10px; color: var(--navy); }
+.access-session-strip strong { margin-right: 5px; }
+.access-session-strip span span { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+
 @media (max-width: 980px) {
+  .access-summary { grid-template-columns: repeat(3, 1fr); }
+  .access-summary > .badge { display: none; }
+
   .access-request-card {
     grid-template-columns: minmax(0, 1fr) minmax(210px, 0.8fr);
   }
@@ -3419,6 +3534,19 @@ button {
 }
 
 @media (max-width: 640px) {
+  .access-summary { grid-template-columns: repeat(3, 1fr); }
+  .access-summary > div { padding: 13px 10px; text-align: center; }
+  .access-summary > div:last-of-type { border-right: 0; }
+  .access-summary span { font-size: 10px; }
+  .access-summary strong { font-size: 20px; }
+  .access-console-head { padding: 18px 16px 14px; }
+  .access-console-head p { font-size: 13px; }
+  .access-console-head .button { flex: 0 0 auto; padding: 0 11px; }
+  .access-tabs { gap: 18px; padding: 0 16px; }
+  .access-toolbar { display: grid; padding: 12px 16px; }
+  .access-toolbar > select { width: 100%; min-width: 0; }
+  .access-content { padding: 12px 16px 18px; }
+
   .access-request-card {
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
@@ -3443,6 +3571,12 @@ button {
   .access-toggle {
     justify-self: start;
   }
+
+  .access-policy-row summary { padding: 12px; }
+  .access-policy-title small { display: none; }
+  .access-policy-detail { padding: 0 12px 14px; }
+  .access-session-strip { align-items: flex-start; }
+  .access-session-strip > .badge { display: none; }
 }
 
 /* Pi digital assistant */
