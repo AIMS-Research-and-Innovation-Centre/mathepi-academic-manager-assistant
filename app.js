@@ -450,6 +450,8 @@ const CONFIRMED_LECTURER_ASSIGNMENTS = {
   MES02: { lecturerName: "Prof. Faraimunashe Chirove", manualAlternateLecturerName: "Prof. Blaise Tchapnda" },
   MES03: { lecturerName: "Prof. Cecil Ouma", manualAlternateLecturerName: "Eunice" },
   MES04: { lecturerName: "Prof. Thomas Achia" },
+  MES05: { lecturerName: "Lema" },
+  MEC01: { lecturerName: "Dr George Omondi Paul" },
   MEC06: { lecturerName: "Dr Issa Karambal" },
   MEC08: { lecturerName: "Ogwel" },
   MEC09: { lecturerName: "Whistler Cherubin", manualAlternateLecturerName: "Prof. Nyawira" },
@@ -6049,13 +6051,16 @@ function applyReviewStaffingAssignments(result = {}) {
   });
   state.courses.forEach((item) => {
     if (hasLecturers) {
+      const confirmedAssignment = CONFIRMED_LECTURER_ASSIGNMENTS[item.code];
       const courseLecturers = lecturers.filter((row) => row.courseCode === item.code && !(item.code === "MES04" && /\byawo\b/i.test(String(row.name || ""))));
       const reviewLecturers = courseLecturers.filter((row) => String(row.status || "Approved") === "Approved").map((row) => row.name).filter(Boolean);
       const reviewAlternates = courseLecturers.filter((row) => String(row.status || "") === "Consider").map((row) => row.name).filter(Boolean);
       item.reviewLecturerNames = [...new Set(reviewLecturers)];
       item.reviewAlternateLecturerNames = [...new Set(reviewAlternates)];
       item.alternateLecturerName = [...new Set([item.manualAlternateLecturerName, ...item.reviewAlternateLecturerNames].filter(Boolean))].join(" / ");
-      if (item.reviewLecturerNames.length) {
+      if (confirmedAssignment) {
+        Object.assign(item, confirmedAssignment, { lecturerStatus: "Confirmed programme assignment" });
+      } else if (!String(item.lecturerName || "").trim() && item.reviewLecturerNames.length) {
         item.lecturerName = item.reviewLecturerNames.join(" / ");
         item.lecturerStatus = "Approved in lecturer review";
       } else if (item.lecturerStatus === "Approved in lecturer review") {
