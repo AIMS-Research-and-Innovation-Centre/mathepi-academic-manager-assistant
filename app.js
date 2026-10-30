@@ -1583,56 +1583,38 @@ const DEFAULT_STUDENT_TODOS = [
   },
 ];
 
-const DEFAULT_STUDENTS = [
-  {
-    id: "student-01",
-    name: "MathEpi Student",
-    cohort: "2026/27",
-    email: "student@mathepi.local",
-    interests: "Mathematical modelling, reproducible analysis",
-    contactOptIn: false,
-  },
-  {
-    id: "student-02",
-    name: "Amina Niyonsenga",
-    cohort: "2026/27",
-    email: "amina.n@example.org",
-    interests: "R programming, epidemiology, survival analysis",
-    contactOptIn: true,
-  },
-  {
-    id: "student-03",
-    name: "Brian Otieno",
-    cohort: "2026/27",
-    email: "brian.o@example.org",
-    interests: "Disease modelling, Python, stochastic simulation",
-    contactOptIn: false,
-  },
-  {
-    id: "student-04",
-    name: "Chipo Moyo",
-    cohort: "2026/27",
-    email: "chipo.m@example.org",
-    interests: "Statistics, clinical trial design, Bayesian methods",
-    contactOptIn: true,
-  },
-  {
-    id: "student-05",
-    name: "Daniel Kato",
-    cohort: "2026/27",
-    email: "daniel.k@example.org",
-    interests: "Scientific computing, LaTeX, data visualization",
-    contactOptIn: false,
-  },
-  {
-    id: "student-06",
-    name: "Esther Wanjiru",
-    cohort: "2026/27",
-    email: "esther.w@example.org",
-    interests: "Public health surveillance, time series, field data",
-    contactOptIn: true,
-  },
+const MATHEPI_GROUP_ROSTER = [
+  ["Brandol Okoth", "Vital Ukwitegetse", "Abigael Gachemi", "Cecilia Oppong", "Arielle Matessa"],
+  ["Brian Ngula", "Iraguha James", "Daizy Kiplagat", "Esi Abaka-quansah", "Kaone Sekao"],
+  ["Charles Obat", "Elijah Addi", "Henriette Habwikuzo", "Elizabeth Ndegwa", "Sarah Dogbo", "Resty Lalam"],
+  ["Donald Gekonge", "Wilham Drokow", "Mireille Shema", "Joy Mulinge", "Amandine Aroukoun"],
+  ["Joseph Manono", "David Ogero", "Uwera Aline", "Nell Ochieng", "Mpho Masiphole", "Fouzia Issahak"],
+  ["Lodung'a Lomoe", "Radson Kayira", "Wihogora Brigitte", "Gracia Zoungla", "Hind Gadkarim", "Sheila Ruguru"],
+  ["Pheroze Awene", "Senkima Joseph Seruwagi", "Lone Raphaladi", "Amira Ibrahim", "Zinat Adediran"],
 ];
+
+const MATHEPI_TUTORS = [
+  "Theophilus Asamoa",
+  "Boris Rosmes Tchioffo",
+  "Grace Mumbanu",
+  "Lucian Talu Mayabi",
+  "Glory Kawira Mut",
+  "Leul Mekonnen Anteneh",
+  "Gassan Ali Mohamed Osman Farah",
+];
+
+const MATHEPI_TUTOR_ROTATION = Array.from({ length: 7 }, (_, blockIndex) =>
+  MATHEPI_TUTORS.map((_, groupIndex) => MATHEPI_TUTORS[(blockIndex + groupIndex) % MATHEPI_TUTORS.length]),
+);
+
+const DEFAULT_STUDENTS = MATHEPI_GROUP_ROSTER.flat().map((name, index) => ({
+  id: `student-${String(index + 1).padStart(2, "0")}`,
+  name,
+  cohort: "2026/27",
+  email: "",
+  interests: "MathEpi taught-phase scholar",
+  contactOptIn: false,
+}));
 
 const STUDY_GROUP_PURPOSES = [
   "Revision",
@@ -1653,38 +1635,40 @@ const INVITATION_STATUS_COLOR = {
   Removed: "gray",
 };
 
-const DEFAULT_STUDY_GROUPS = [
-  {
-    id: "grp-001",
-    name: "R/Python Reproducibility Circle",
-    organizerId: "student-01",
-    courseCode: "MES05",
-    purpose: "Coding practice",
-    meetingDate: "2026-10-07",
-    meetingTime: "17:00",
-    mode: "Hybrid",
-    location: "KEMRI Computer Lab / Google Meet",
-    capacity: 6,
-    status: "Forming",
-    notes: "Work through setup issues, Quarto structure, and one reproducible mini-report.",
+const DEFAULT_STUDY_GROUPS = MATHEPI_GROUP_ROSTER.map((names, groupIndex) => {
+  const firstStudentIndex = MATHEPI_GROUP_ROSTER.slice(0, groupIndex).flat().length;
+  return {
+    id: `cohort-group-${groupIndex + 1}`,
+    groupNumber: groupIndex + 1,
+    name: `Group ${groupIndex + 1}`,
+    chosenName: "",
+    leaderId: "",
+    organizerId: "",
+    memberNames: [...names],
+    memberIds: names.map((_, memberIndex) => `student-${String(firstStudentIndex + memberIndex + 1).padStart(2, "0")}`),
+    purpose: "Taught-phase working group",
+    capacity: names.length,
+    status: "Active",
+    fixedMembership: true,
+    membershipLocked: true,
+    namingDeadline: "2026-10-30",
+    tutorRotation: MATHEPI_TUTOR_ROTATION.map((row) => row[groupIndex]),
+    notes: "Membership is fixed for the taught phase. Group changes and swaps are not permitted.",
     advisorIds: [],
-  },
-  {
-    id: "grp-002",
-    name: "Epidemiology Concepts Reading Group",
-    organizerId: "student-04",
-    courseCode: "MEC01",
-    purpose: "Reading group",
-    meetingDate: "2026-11-03",
-    meetingTime: "18:30",
-    mode: "Online",
-    location: "Google Meet",
-    capacity: 5,
-    status: "Confirmed",
-    notes: "Compare incidence, prevalence, study designs, and surveillance examples before MEC01 starts.",
-    advisorIds: [],
-  },
-];
+  };
+});
+
+const DEFAULT_TUTOR_STANDUPS = [{
+  id: "tutor-standup-series-2026-27",
+  title: "MathEpi tutor stand-up",
+  weekdays: ["Monday", "Thursday"],
+  durationMinutes: 15,
+  time: "",
+  location: "Mid-morning class break",
+  status: "Awaiting time confirmation",
+  attendees: MATHEPI_TUTORS,
+  agenda: "Group progress, students of concern, and support required from the programme team.",
+}];
 
 const DEFAULT_STUDY_GROUP_INVITATIONS = [
   {
@@ -2338,6 +2322,7 @@ const GOOGLE_DATASETS = [
   ["studyGroupInvitations", "StudyGroupInvitations"],
   ["studyGroupActivities", "StudyGroupActivities"],
   ["studyGroupMeetings", "StudyGroupMeetings"],
+  ["tutorStandups", "TutorStandups"],
   ["appointments", "Appointments"],
   ["availability", "Availability"],
   ["supportRequests", "SupportRequests"],
@@ -2742,6 +2727,7 @@ const state = {
   studyGroupInvitations: load("mathepi-study-group-invitations", DEFAULT_STUDY_GROUP_INVITATIONS),
   studyGroupActivities: load("mathepi-study-group-activities", DEFAULT_STUDY_GROUP_ACTIVITIES),
   studyGroupMeetings: load("mathepi-study-group-meetings", DEFAULT_STUDY_GROUP_MEETINGS),
+  tutorStandups: load("mathepi-tutor-standups", DEFAULT_TUTOR_STANDUPS),
   appointments: load("mathepi-appointments", DEFAULT_APPOINTMENTS),
   availability: load("mathepi-availability", DEFAULT_AVAILABILITY),
   supportRequests: load("mathepi-support-requests", DEFAULT_SUPPORT_REQUESTS),
@@ -2750,6 +2736,19 @@ const state = {
 };
 
 function migrateProgrammeData() {
+  const legacyGroups = state.studyGroups.length && state.studyGroups.every((item) => ["grp-001", "grp-002"].includes(item.id));
+  if (!state.studyGroups.length || legacyGroups) state.studyGroups = safeClone(DEFAULT_STUDY_GROUPS);
+  const legacyStudents = state.students.some((item) => item.email === "student@mathepi.local" || /@example\.org$/i.test(item.email || ""));
+  if (!state.students.length || legacyStudents) state.students = safeClone(DEFAULT_STUDENTS);
+  if (!state.tutorStandups.length) state.tutorStandups = safeClone(DEFAULT_TUTOR_STANDUPS);
+  state.studyGroups.filter((group) => group.fixedMembership).forEach((group) => {
+    const fallback = DEFAULT_STUDY_GROUPS.find((item) => item.id === group.id);
+    group.memberNames = group.memberNames?.length ? group.memberNames : fallback?.memberNames || [];
+    group.memberIds = group.memberNames.map((name, index) => {
+      const liveStudent = state.students.find((item) => String(item.name || "").toLowerCase() === String(name).toLowerCase());
+      return liveStudent?.id || fallback?.memberIds?.[index] || "";
+    }).filter(Boolean);
+  });
   const knownPeople = new Set(state.people.map((item) => String(item.name || "").toLowerCase()));
   DEFAULT_PEOPLE.forEach((item) => {
     if (!knownPeople.has(item.name.toLowerCase())) state.people.push(safeClone(item));
@@ -3263,7 +3262,8 @@ function currentTutorId() {
 }
 
 function currentStudentId() {
-  return "student-01";
+  const email = String(portalAccess?.email || "").toLowerCase();
+  return state.students.find((item) => String(item.email || "").toLowerCase() === email)?.id || "student-01";
 }
 
 function isStudentRole() {
@@ -3437,6 +3437,7 @@ function groupActivities(groupId) {
 
 function acceptedGroupMembers(groupId) {
   const group = studyGroup(groupId);
+  if (group?.fixedMembership) return [...(group.memberIds || [])];
   const accepted = groupInvitations(groupId)
     .filter((item) => item.status === "Accepted")
     .map((item) => item.invitedStudentId);
@@ -3457,18 +3458,45 @@ function visibleStudyGroups() {
   if (["manager", "super-admin", "centre-coordinator"].includes(state.role)) return state.studyGroups;
   if (isStudentRole()) {
     return state.studyGroups.filter((group) => {
+      if (group.fixedMembership) return (group.memberIds || []).includes(currentStudentId());
       const invite = groupInvitations(group.id).find((item) => item.invitedStudentId === currentStudentId());
       return group.organizerId === currentStudentId() || invite?.status === "Accepted";
     });
   }
   if (state.role === "tutor" || state.role === "lecturer" || state.role === "head-tutor") {
-    return state.studyGroups.filter((group) => group.advisorIds?.includes(actor));
+    if (state.role === "tutor") {
+      const portalEmail = String(portalAccess?.email || "").toLowerCase();
+      const tutorName = String(state.people.find((item) => String(item.email || "").toLowerCase() === portalEmail)?.name || participantName(actor)).toLowerCase();
+      return state.studyGroups.filter((group) => currentGroupTutor(group).toLowerCase() === tutorName || group.advisorIds?.includes(actor));
+    }
+    return state.studyGroups.filter((group) => group.fixedMembership || group.advisorIds?.includes(actor));
   }
   return [];
 }
 
 function canManageStudyGroup(group) {
-  return isStudentRole() && group.organizerId === currentStudentId();
+  return !group.fixedMembership && isStudentRole() && group.organizerId === currentStudentId();
+}
+
+function activeTeachingBlockNumber() {
+  const now = today();
+  const datedActive = state.blocks.find((block) => {
+    if (block.kind !== "teaching" || !block.start || !block.end) return false;
+    const start = new Date(`${block.start}T00:00:00`);
+    const end = new Date(`${block.end}T23:59:59`);
+    return now >= start && now <= end;
+  });
+  const match = String(datedActive?.id || state.blockId || "").match(/block-(\d+)/);
+  return Math.min(7, Math.max(1, Number(match?.[1] || 1)));
+}
+
+function currentGroupTutor(group) {
+  return group.tutorRotation?.[activeTeachingBlockNumber() - 1] || "To be confirmed";
+}
+
+function nextGroupTutor(group) {
+  const block = activeTeachingBlockNumber();
+  return block < 7 ? group.tutorRotation?.[block] || "To be confirmed" : "Research phase supervision follows";
 }
 
 function invitationStatusBadge(status) {
@@ -8478,92 +8506,82 @@ function renderSupportCard(item) {
 
 function renderStudyGroups() {
   const groups = visibleStudyGroups();
-  const pending = pendingStudyGroupInvites();
-  const activeByCourse = state.studyGroups.reduce((acc, group) => {
-    acc[group.courseCode] = (acc[group.courseCode] || 0) + 1;
-    return acc;
-  }, {});
-  const topCourse = Object.entries(activeByCourse).sort((a, b) => b[1] - a[1])[0];
+  const blockNumber = activeTeachingBlockNumber();
+  const standup = state.tutorStandups[0] || DEFAULT_TUTOR_STANDUPS[0];
+  const canSeeRotation = ["manager", "super-admin", "centre-coordinator", "tutor", "head-tutor"].includes(state.role);
   return `
     <div class="view groups-view">
       <section class="support-hero groups-hero">
         <div>
-          <span class="mission-eyebrow">${icon("group", 16)} Student-led study groups</span>
-          <h2>Let students form focused study circles, invite classmates, and turn good intentions into agendas.</h2>
-          <p>Invitations require approval before membership. Group plans stay visible to members, while managers see aggregate learning patterns rather than private group discussion.</p>
+          <span class="mission-eyebrow">${icon("group", 16)} MathEpi working groups</span>
+          <h2>Seven fixed teams supporting collaborative learning throughout the taught phase.</h2>
+          <p>Membership is fixed and swaps are not permitted. Tutors rotate each block so every group works with every tutor before the research phase.</p>
         </div>
         <div class="planner-metrics">
-          ${kpi("My groups", groups.length, "visible to this role", "group", "blue")}
-          ${kpi("Pending", pending.length, "invitations waiting", "mail", pending.length ? "gold" : "green")}
-          ${kpi("Top course", topCourse ? topCourse[0] : "None", "study group demand", "book", "teal")}
+          ${kpi("Scholars", 38, "across seven groups", "student", "blue")}
+          ${kpi("Current block", blockNumber, "of seven rotations", "calendar", "teal")}
+          ${kpi("Visible groups", groups.length, "for your role", "group", "green")}
         </div>
       </section>
 
-      ${
-        isStudentRole()
-          ? `<section class="quick-grid">
-              ${quick("Create group", "Invite classmates and propose an agenda.", "group", "maroon", "openDrawer('studyGroupForm')")}
-              ${quick("My invitations", "Accept, decline, or request another time.", "mail", "gold", "setView('groups')")}
-              ${quick("Planner links", "Use to-dos and planner blocks to suggest group topics.", "planner", "blue", "setView('planner')")}
-              ${quick("Book advisor", "Invite tutor or lecturer help when needed.", "appointment", "teal", "setView('appointments')")}
-            </section>`
-          : ""
-      }
-
-      <section class="section-grid">
-        <div class="card">
+      <section class="group-workspace-grid">
+        <div class="card group-roster-card">
           <div class="card-header">
             <div>
-              <h2>${isStudentRole() ? "My Study Groups" : "Study Group Overview"}</h2>
-              <p>${isStudentRole() ? "Groups you organize or have accepted." : "Aggregate view of active course study groups without private student discussion details."}</p>
+              <h2>${isStudentRole() ? "My working group" : "Working group roster"}</h2>
+              <p>Current tutor, next rotation, leader status, and fixed membership.</p>
             </div>
-            ${isStudentRole() ? `<button class="button primary" onclick="openDrawer('studyGroupForm')">${icon("plus", 17)}Group</button>` : `<span class="badge gray">Aggregate</span>`}
+            <span class="badge green">38 scholars</span>
           </div>
           <div class="card-body group-list">
-            ${groups.length ? groups.map(renderStudyGroupCard).join("") : `<div class="empty">No study groups visible yet.</div>`}
+            ${groups.length ? groups.map(renderStudyGroupCard).join("") : `<div class="empty">No working group is linked to this account. Ask the programme team to link your approved email to the roster.</div>`}
           </div>
         </div>
 
         <div class="card">
           <div class="card-header">
             <div>
-              <h2>${isStudentRole() ? "Invitations and Directory" : "Group Intelligence"}</h2>
-              <p>${isStudentRole() ? "Classmate invitations require consent before joining." : "Course demand and readiness signals."}</p>
+              <h2>Tutor coordination</h2>
+              <p>Recurring meetings and continuity expectations.</p>
             </div>
           </div>
           <div class="card-body assistant-stack">
-            ${isStudentRole() ? renderStudentInvitationsAndDirectory(pending) : renderGroupAggregateInsights()}
+            <div class="priority"><span class="icon-box blue">${icon("calendar", 18)}</span><div><strong>Monday and Thursday stand-ups</strong><span>${standup.durationMinutes} minutes during the mid-morning class break.</span></div></div>
+            <div class="priority"><span class="icon-box ${standup.time ? "green" : "gold"}">${icon(standup.time ? "check" : "clock", 18)}</span><div><strong>${standup.status}</strong><span>${standup.time ? `${standup.time} · synced through the programme calendar` : "A precise break time is required before Google Calendar events can be created."}</span></div></div>
+            <div class="priority"><span class="icon-box teal">${icon("research", 18)}</span><div><strong>Research progress meetings</strong><span>Twice monthly to review progress, next steps, supervision, data, compute, and writing support.</span></div></div>
           </div>
         </div>
       </section>
+      ${canSeeRotation ? renderTutorRotationMatrix() : ""}
     </div>
   `;
 }
 
 function renderStudyGroupCard(group) {
-  const readiness = groupReadiness(group);
   const members = acceptedGroupMembers(group.id);
-  const activities = groupActivities(group.id);
-  const isMemberView = isStudentRole();
+  const deadline = daysUntil(group.namingDeadline);
   return `
     <article class="group-card">
       <div class="group-main">
-        <span class="icon-box ${readiness.color}">${icon("group", 18)}</span>
+        <span class="icon-box blue">${group.groupNumber}</span>
         <div>
-          <h4>${group.name}</h4>
-          <p>${group.courseCode} ${course(group.courseCode)?.title || ""} &middot; ${group.purpose} &middot; ${dateLabel(group.meetingDate)} ${group.meetingTime}</p>
-          <p>${isMemberView ? group.notes : "Private discussion details hidden in aggregate view."}</p>
+          <h4>${group.chosenName || group.name}</h4>
+          <p><strong>Current tutor:</strong> ${currentGroupTutor(group)} &middot; <strong>Next:</strong> ${nextGroupTutor(group)}</p>
+          <div class="group-member-list">${members.map((id) => `<span class="chip gray">${escapeHtml(studentName(id))}</span>`).join("")}</div>
           <div class="row-tags">
-            <span class="badge ${readiness.color}">${readiness.label}</span>
-            <span class="chip blue">${members.length}/${group.capacity} accepted</span>
-            <span class="chip teal">${group.mode}</span>
-            <span class="chip gray">${activities.length} activities</span>
+            <span class="badge green">${members.length} members</span>
+            <span class="chip blue">${group.leaderId ? `Leader: ${studentName(group.leaderId)}` : "Leader not recorded"}</span>
+            <span class="chip ${group.chosenName ? "green" : deadline <= 0 ? "gold" : "gray"}">${group.chosenName ? "Group name recorded" : deadline === 0 ? "Name due today" : "Group name pending"}</span>
           </div>
         </div>
       </div>
-      <button class="button ghost" onclick="openDrawer('studyGroup', '${group.id}')">${icon("edit", 17)}Open</button>
+      <span class="badge gray">Membership locked</span>
     </article>
   `;
+}
+
+function renderTutorRotationMatrix() {
+  return `<section class="card rotation-card"><div class="card-header"><div><h2>Tutor rotation</h2><p>Each tutor works with every group once across Blocks 1–7.</p></div><span class="badge blue">Block ${activeTeachingBlockNumber()} active</span></div><div class="rotation-scroll"><table class="rotation-table"><thead><tr><th>Block</th>${DEFAULT_STUDY_GROUPS.map((group) => `<th>G${group.groupNumber}</th>`).join("")}</tr></thead><tbody>${MATHEPI_TUTOR_ROTATION.map((row, index) => `<tr class="${index + 1 === activeTeachingBlockNumber() ? "is-active" : ""}"><th>${index + 1}</th>${row.map((name) => `<td>${escapeHtml(name)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></section>`;
 }
 
 function renderStudentInvitationsAndDirectory(pending) {

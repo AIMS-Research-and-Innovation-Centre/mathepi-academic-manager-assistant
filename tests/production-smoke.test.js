@@ -105,6 +105,25 @@ test("ticket notifications and study-group calendar integration are wired", () =
   assert.match(calendar, /study-group::/);
 });
 
+test("the fixed 38-scholar groups and tutor rotation are calendar-ready", () => {
+  const app = read("app.js");
+  const config = read("apps-script/paste-small-files/00_Config.gs");
+  const authorization = read("apps-script/paste-small-files/15_Authorization.gs");
+  const calendar = read("apps-script/paste-small-files/11_ProgrammeCalendar.gs");
+  const rosterMatch = app.match(/const MATHEPI_GROUP_ROSTER = \[([\s\S]*?)\n\];/);
+  const tutorMatch = app.match(/const MATHEPI_TUTORS = \[([\s\S]*?)\n\];/);
+  assert.ok(rosterMatch);
+  assert.ok(tutorMatch);
+  assert.equal((rosterMatch[1].match(/"[^"]+"/g) || []).length, 38);
+  assert.equal((tutorMatch[1].match(/"[^"]+"/g) || []).length, 7);
+  assert.match(app, /fixedMembership: true/);
+  assert.match(app, /membershipLocked: true/);
+  assert.match(config, /"TutorStandups"/);
+  assert.match(authorization, /TutorStandups:/);
+  assert.match(calendar, /tutor-standup::/);
+  assert.match(calendar, /Awaiting time confirmation/);
+});
+
 test("Pi community answers are wired and role-gated", () => {
   const app = read("app.js");
   const routes = read("apps-script/paste-small-files/01_Routes.gs");

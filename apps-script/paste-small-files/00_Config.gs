@@ -30,6 +30,7 @@ const DATASET_TABS = [
   "StudyGroupInvitations",
   "StudyGroupActivities",
   "StudyGroupMeetings",
+  "TutorStandups",
   "StudyGroupTaskAssignments",
   "Appointments",
   "Availability",

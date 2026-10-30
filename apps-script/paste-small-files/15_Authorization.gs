@@ -44,6 +44,7 @@ const PORTAL_DATASET_POLICY = {
   StudyGroupInvitations: ["workspace.write", "records.read-own"],
   StudyGroupActivities: ["workspace.write", "records.read-own"],
   StudyGroupMeetings: ["workspace.write", "records.read-own"],
+  TutorStandups: ["workspace.write", "records.read-own", "staffing.read"],
   StudyGroupTaskAssignments: ["workspace.write", "records.read-own"],
   Appointments: ["workspace.write", "records.read-own", "staffing.read", "support.read-assigned", "it.read-assigned"],
   Availability: ["workspace.write", "records.read-own", "staffing.read"],

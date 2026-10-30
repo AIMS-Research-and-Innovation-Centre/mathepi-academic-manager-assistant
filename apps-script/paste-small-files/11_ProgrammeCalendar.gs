@@ -41,11 +41,13 @@ function syncProgrammeCalendarData(datasets, spreadsheet) {
     Courses: readJsonRecords(getSheet(spreadsheet, "Courses")),
     Sessions: readJsonRecords(getSheet(spreadsheet, "Sessions")),
     StudyGroupMeetings: readJsonRecords(getSheet(spreadsheet, "StudyGroupMeetings")),
+    TutorStandups: readJsonRecords(getSheet(spreadsheet, "TutorStandups")),
   };
   const blocks = data.CalendarBlocks || [];
   const courses = data.Courses || [];
   const sessions = data.Sessions || [];
   const groupMeetings = data.StudyGroupMeetings || [];
+  const tutorStandups = data.TutorStandups || [];
   if (!blocks.length || !courses.length) throw new Error("Calendar blocks and courses must be synced before creating Google Calendar events.");
 
   const calendar = getOrCreateProgrammeCalendar();
@@ -53,7 +55,7 @@ function syncProgrammeCalendarData(datasets, spreadsheet) {
   const ledgerSheet = getSheet(spreadsheet, "CalendarSyncEvents");
   ensureSheetHeaders(ledgerSheet, TAB_HEADERS.CalendarSyncEvents);
   const existing = readCalendarSyncLedger(ledgerSheet);
-  const desired = buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings);
+  const desired = buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings, tutorStandups);
   clearProgrammeCalendarEvents_(calendar);
   const retained = {};
   let created = 0;
@@ -140,7 +142,7 @@ const PROGRAMME_COURSE_DELIVERY_WINDOWS = {
   MES03: { start: "2026-11-16", end: "2026-11-27" },
 };
 
-function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings) {
+function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings, tutorStandups) {
   const blockMap = {};
   const courseMap = {};
   blocks.forEach((block) => { blockMap[String(block.id || block.block_id || "")] = block; });
@@ -214,6 +216,29 @@ function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings) 
     };
     item.fingerprint = programmeCalendarFingerprint(item);
     events.push(item);
+  });
+  (tutorStandups || []).filter((series) => series.time && series.status !== "Cancelled" && series.status !== "Awaiting time confirmation").forEach((series) => {
+    const weekdays = Array.isArray(series.weekdays) ? series.weekdays : String(series.weekdays || "").split(",").map(function (day) { return day.trim(); }).filter(Boolean);
+    blocks.filter(function (block) { return block.kind === "teaching" && block.start && block.end; }).forEach(function (block) {
+      weekdays.forEach(function (weekday) {
+        datesForWeekday(block.start, block.end, weekday).forEach(function (date) {
+          const start = dateAtTime(date, series.time);
+          const end = new Date(start.getTime() + Number(series.durationMinutes || 15) * 60 * 1000);
+          const item = {
+            sync_key: "tutor-standup::" + String(series.id || "series") + "::" + formatProgrammeDate(date),
+            title: series.title || "MathEpi tutor stand-up",
+            start: start,
+            end: end,
+            location: series.location || "",
+            description: [series.agenda || "", "Tutor coordination meeting for the active teaching block.", "Synced automatically from the MathEpi Academic Manager."].filter(Boolean).join("\n\n"),
+            event_date: formatProgrammeDate(date),
+            all_day: false,
+          };
+          item.fingerprint = programmeCalendarFingerprint(item);
+          events.push(item);
+        });
+      });
+    });
   });
   return events;
 }
