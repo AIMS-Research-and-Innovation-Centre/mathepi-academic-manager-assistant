@@ -6350,18 +6350,103 @@ function renderTimetableDay(block, week, day) {
 }
 
 function renderTimetableWeek(block, week) {
-  const datedCount = state.sessions.filter((session) =>
-    week.days.some((day) => sessionAppliesToDate(session, block, week, day)),
-  ).length;
+  const plan = buildBalancedWeekPlan(block, week);
   return `<section class="timetable-week-section">
     <header class="timetable-week-title">
       <div><span>Week ${week.number}</span><strong>${dateLabel(week.start)} to ${dateLabel(week.end)}</strong></div>
-      <small>${datedCount} confirmed dated session${datedCount === 1 ? "" : "s"}</small>
+      <small>${block.courses.length} course${block.courses.length === 1 ? "" : "s"} balanced across the teaching week</small>
     </header>
-    <div class="week-day-board">
-      ${week.days.map((day) => renderTimetableDay(block, week, day)).join("")}
+    <div class="balanced-timetable-scroll">
+      <div class="balanced-week-grid">
+        <div class="balanced-grid-head time-heading">Time</div>
+        ${week.days.map((day) => `<div class="balanced-grid-head"><strong>${day.name}</strong><span>${shortDate(day.date)}</span></div>`).join("")}
+        ${plan.slots.map((slot) => `
+          <div class="balanced-time-cell"><strong>${slot.time}</strong><span>${slot.label}</span></div>
+          ${week.days.map((day, dayIndex) => `<div class="balanced-grid-cell ${slot.kind}">${renderBalancedSlot(plan, slot, day, dayIndex)}</div>`).join("")}
+        `).join("")}
+      </div>
+    </div>
+    <div class="balanced-mobile-days">
+      ${week.days.map((day, dayIndex) => renderBalancedMobileDay(plan, day, dayIndex)).join("")}
     </div>
   </section>`;
+}
+
+function buildBalancedWeekPlan(block, week) {
+  const courses = block.courses.map(course).filter(Boolean);
+  const counts = Object.fromEntries(courses.map((item) => [item.code, 0]));
+  const teaching = Array.from({ length: 5 }, () => ({}));
+  const offset = courses.length ? (week.number - 1) % courses.length : 0;
+
+  for (let dayIndex = 0; dayIndex < 5; dayIndex += 1) {
+    const morning = courses.length ? courses[(dayIndex + offset) % courses.length] : null;
+    teaching[dayIndex].morning1 = morning;
+    teaching[dayIndex].morning2 = morning;
+    if (morning) counts[morning.code] += 2;
+  }
+
+  for (let dayIndex = 0; dayIndex < 5; dayIndex += 1) {
+    const morning = teaching[dayIndex].morning1;
+    const candidates = courses
+      .filter((item) => courses.length === 1 || item.code !== morning?.code)
+      .sort((a, b) => counts[a.code] - counts[b.code] || courses.indexOf(a) - courses.indexOf(b));
+    const afternoon = candidates[0] || morning || null;
+    teaching[dayIndex].afternoon = afternoon;
+    if (afternoon) counts[afternoon.code] += 1;
+  }
+
+  return {
+    block,
+    week,
+    courses,
+    counts,
+    teaching,
+    slots: [
+      { key: "morning1", time: "08:30-10:30", label: "Morning lesson 1", kind: "teaching" },
+      { key: "morning2", time: "10:30-12:30", label: "Morning lesson 2", kind: "teaching" },
+      { key: "lunch", time: "12:30-14:30", label: "Lunch", kind: "lunch" },
+      { key: "afternoon", time: "14:30-16:30", label: "Afternoon lesson", kind: "teaching" },
+      { key: "tutorial", time: "After dinner", label: "Evening tutorials", kind: "tutorial" },
+    ],
+  };
+}
+
+function renderBalancedSlot(plan, slot, day, dayIndex) {
+  if (!day.inBlock) return `<span class="balanced-empty">Outside this block</span>`;
+  if (slot.kind === "lunch") return `<span class="lunch-label">Lunch break</span>`;
+  if (slot.kind === "tutorial") {
+    return `<div class="tutorial-session"><strong>Tutorials</strong><span>${plan.courses.map((item) => item.code).join(" / ") || "Course support"}</span><small>After dinner</small></div>`;
+  }
+  if (isOrientationSlot(plan, day, slot)) {
+    return `<div class="balanced-session orientation"><strong>Orientation</strong><span>Week 1 programme orientation</span><small>${shortDate(day.date)} only</small></div>`;
+  }
+  return renderBalancedCourse(plan.teaching[dayIndex][slot.key], slot.label);
+}
+
+function isOrientationSlot(plan, day, slot) {
+  return plan.block.id === "block-1" && plan.week.number === 1 && slot.key === "afternoon" && ["Monday", "Wednesday"].includes(day.name);
+}
+
+function renderBalancedCourse(item, slotLabel) {
+  if (!item) return `<span class="balanced-empty">To be assigned</span>`;
+  const lecturer = courseLecturerName(item) || "Lecturer to be confirmed";
+  const tutors = item.reviewTutorNames || [];
+  return `<button class="balanced-session ${item.type || "skills"}" onclick="setView('courses'); window.setTimeout(() => openDrawer('course', '${escapeHtml(item.code)}'), 0)">
+    <strong>${escapeHtml(item.code)}</strong>
+    <span>${escapeHtml(item.title)}</span>
+    <small>${escapeHtml(slotLabel)}</small>
+    <em>Lecturer: ${escapeHtml(lecturer)}</em>
+    ${tutors.length ? `<em>Tutors: ${tutors.map(escapeHtml).join(", ")}</em>` : ""}
+  </button>`;
+}
+
+function renderBalancedMobileDay(plan, day, dayIndex) {
+  return `<details class="balanced-mobile-day" open>
+    <summary><span>${day.name}</span><strong>${shortDate(day.date)}</strong></summary>
+    <div>
+      ${plan.slots.map((slot) => `<section class="balanced-mobile-slot"><time>${slot.time}<small>${slot.label}</small></time><div>${renderBalancedSlot(plan, slot, day, dayIndex)}</div></section>`).join("")}
+    </div>
+  </details>`;
 }
 
 function renderUndatedSchedulingDetails(sessions) {

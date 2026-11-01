@@ -98,7 +98,12 @@ test("mobile navigation and week-sorted calendar remain functional", () => {
   assert.match(app, /Scheduling details to confirm/);
   assert.match(app, /have not been repeated across programme weeks/);
   assert.match(app, /View full block/);
-  assert.match(app, /class="week-day-board"/);
+  assert.match(app, /function buildBalancedWeekPlan\(block, week\)/);
+  assert.match(app, /08:30-10:30/);
+  assert.match(app, /12:30-14:30/);
+  assert.match(app, /After dinner/);
+  assert.match(app, /balanced-week-grid/);
+  assert.match(app, /balanced-mobile-days/);
   assert.match(app, /No scheduled teaching/);
   assert.match(styles, /display: grid !important;/);
   assert.match(styles, /bottom: max\(10px, env\(safe-area-inset-bottom\)\)/);

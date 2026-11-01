@@ -5993,6 +5993,158 @@ button {
   font-size: 12px;
 }
 
+.balanced-timetable-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.balanced-week-grid {
+  display: grid;
+  grid-template-columns: 155px repeat(5, minmax(190px, 1fr));
+  min-width: 1100px;
+  background: var(--line);
+  gap: 1px;
+}
+
+.balanced-grid-head,
+.balanced-time-cell,
+.balanced-grid-cell {
+  background: var(--panel);
+}
+
+.balanced-grid-head {
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+  color: var(--ink);
+}
+
+.balanced-grid-head span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.balanced-time-cell {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 145px;
+  padding: 12px;
+}
+
+.balanced-time-cell strong {
+  font-size: 13px;
+}
+
+.balanced-time-cell span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.balanced-grid-cell {
+  min-height: 145px;
+  padding: 10px;
+}
+
+.balanced-grid-cell.lunch {
+  min-height: 76px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--gold-soft) 58%, var(--panel));
+}
+
+.balanced-grid-cell.tutorial {
+  min-height: 94px;
+  padding: 0;
+  background: #26364a;
+}
+
+.balanced-session {
+  width: 100%;
+  min-height: 124px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+  color: #fff;
+  border: 0;
+  border-radius: 7px;
+  background: #35679f;
+}
+
+.balanced-session.specialization,
+.balanced-session.elective {
+  background: var(--aims-maroon);
+}
+
+.balanced-session.professional {
+  color: #342500;
+  background: #d7aa43;
+}
+
+.balanced-session.orientation {
+  color: #fff;
+  background: #956900;
+}
+
+.balanced-session strong {
+  font-size: 13px;
+}
+
+.balanced-session span,
+.balanced-session small,
+.balanced-session em {
+  font-size: 11px;
+  line-height: 1.35;
+  font-style: normal;
+}
+
+.balanced-session em {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 5px;
+  border-top: 1px solid rgba(255, 255, 255, 0.26);
+  font-weight: 750;
+}
+
+.lunch-label {
+  color: #6d5114;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tutorial-session {
+  height: 100%;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 12px;
+  color: #fff;
+}
+
+.tutorial-session span,
+.tutorial-session small {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.balanced-empty {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.balanced-mobile-days {
+  display: none;
+}
+
 .timetable-day {
   min-width: 0;
   border: 1px solid var(--line);
@@ -6172,6 +6324,85 @@ button {
   .week-day-board {
     grid-template-columns: 1fr;
     overflow: visible;
+  }
+
+  .balanced-timetable-scroll {
+    display: none;
+  }
+
+  .balanced-mobile-days {
+    display: grid;
+    gap: 10px;
+  }
+
+  .balanced-mobile-day {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+
+  .balanced-mobile-day > summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+    background: var(--panel-soft);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .balanced-mobile-day > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .balanced-mobile-day > div {
+    display: grid;
+  }
+
+  .balanced-mobile-slot {
+    display: grid;
+    grid-template-columns: 105px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .balanced-mobile-slot:last-child {
+    border-bottom: 0;
+  }
+
+  .balanced-mobile-slot time {
+    display: grid;
+    align-content: start;
+    gap: 3px;
+    color: var(--ink);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .balanced-mobile-slot time small {
+    color: var(--muted);
+    font-weight: 650;
+  }
+
+  .balanced-mobile-slot .balanced-session {
+    min-height: 0;
+  }
+
+  .balanced-mobile-slot .tutorial-session {
+    border-radius: 7px;
+    background: #26364a;
+  }
+
+  .balanced-mobile-slot:has(.lunch-label) > div {
+    min-height: 54px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: color-mix(in srgb, var(--gold-soft) 58%, var(--panel));
   }
 
   .timetable-day-header {
