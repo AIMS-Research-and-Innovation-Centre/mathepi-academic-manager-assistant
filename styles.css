@@ -5917,3 +5917,171 @@ button {
     font-size: 9px;
   }
 }
+
+/* Dated block timetable */
+.block-week-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.block-week-toolbar > div {
+  display: grid;
+  gap: 3px;
+  text-align: center;
+}
+
+.block-week-toolbar span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.block-week-toolbar strong {
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.week-day-board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(170px, 1fr));
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.timetable-day {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.timetable-day-header {
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+  cursor: pointer;
+  list-style: none;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-soft);
+}
+
+.timetable-day-header::-webkit-details-marker {
+  display: none;
+}
+
+.timetable-day-header span {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.timetable-day-header strong,
+.timetable-day-header small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.timetable-day-sessions {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+}
+
+.daily-session-card {
+  width: 100%;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 11px;
+  text-align: left;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--aims-maroon);
+  border-radius: 7px;
+  background: var(--panel);
+}
+
+.daily-session-card:hover,
+.daily-session-card:focus-visible {
+  border-color: var(--aims-maroon);
+  box-shadow: 0 5px 16px rgba(54, 36, 38, 0.1);
+}
+
+.daily-session-card > span,
+.daily-session-card small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.daily-session-card .daily-session-time {
+  color: var(--aims-maroon);
+  font-weight: 800;
+}
+
+.daily-empty {
+  min-height: 92px;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+}
+
+.timetable-day.outside-block {
+  opacity: 0.55;
+}
+
+/* Keep the role-aware navigation ribbon available on phones and tablets. */
+@media (max-width: 900px) {
+  .content {
+    padding-bottom: calc(var(--mobile-nav) + 34px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-bottom-nav {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    z-index: 90;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: auto;
+    height: var(--mobile-nav);
+    padding: 6px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 20px;
+    background: var(--aims-maroon-dark);
+    box-shadow: 0 16px 34px rgba(24, 25, 31, 0.24);
+  }
+
+  .week-day-board {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .timetable-day-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .timetable-day-header small {
+    grid-column: 1 / -1;
+  }
+
+  .daily-session-card {
+    min-height: 0;
+  }
+}

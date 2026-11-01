@@ -3,6 +3,8 @@ const ICONS = {
     '<path d="M22 12h-4l-3 7L9 5l-3 7H2"/><path d="M22 12h-4l-3 7L9 5l-3 7H2"/>',
   alert:
     '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  "chevron-left": '<path d="m15 18-6-6 6-6"/>',
+  "chevron-right": '<path d="m9 18 6-6-6-6"/>',
   appointment:
     '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><path d="m9 15 2 2 4-4"/>',
   book:
@@ -2662,6 +2664,7 @@ const state = {
   query: "",
   calendarMode: "timeline",
   calendarWeek: "all",
+  calendarBlockWeek: 1,
   plannerMode: "week",
   appointmentMode: "mine",
   blockId: "block-1",
@@ -3072,6 +3075,54 @@ function shortDate(iso) {
     month: "short",
     day: "numeric",
   }).format(new Date(`${iso}T10:00:00`));
+}
+
+function isoDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function localDate(iso) {
+  return new Date(`${iso}T10:00:00`);
+}
+
+function addCalendarDays(date, amount) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + amount);
+  return next;
+}
+
+function programmeBlockWeeks(block) {
+  if (!block?.start || !block?.end) return [];
+  const start = localDate(block.start);
+  const end = localDate(block.end);
+  const mondayOffset = (start.getDay() + 6) % 7;
+  let monday = addCalendarDays(start, -mondayOffset);
+  const weeks = [];
+  while (monday <= end) {
+    const days = [0, 1, 2, 3, 4].map((offset) => {
+      const date = addCalendarDays(monday, offset);
+      const value = isoDate(date);
+      return {
+        name: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"][offset],
+        date: value,
+        inBlock: value >= block.start && value <= block.end,
+      };
+    });
+    const visibleDays = days.filter((day) => day.inBlock);
+    if (visibleDays.length) {
+      weeks.push({
+        number: weeks.length + 1,
+        start: visibleDays[0].date,
+        end: visibleDays[visibleDays.length - 1].date,
+        days,
+      });
+    }
+    monday = addCalendarDays(monday, 7);
+  }
+  return weeks;
 }
 
 function daysUntil(iso) {
@@ -5792,7 +5843,7 @@ function renderCalendar() {
               ].map(([mode, label]) => `<button class="tab ${state.calendarMode === mode ? "active" : ""}" onclick="state.calendarMode='${mode}'; render()">${label}</button>`).join("")}
             </div>
             <label class="calendar-block-picker">Select block
-              <select class="button ghost" aria-label="Select timetable block" onchange="state.blockId=this.value; render()">
+              <select class="button ghost" aria-label="Select timetable block" onchange="state.blockId=this.value; state.calendarBlockWeek=1; render()">
               ${state.blocks
                 .filter((item) => item.kind === "teaching" || item.kind === "practical" || item.kind === "thesis")
                 .map((item) => `<option value="${item.id}" ${state.blockId === item.id ? "selected" : ""}>${item.title}</option>`)
@@ -5805,6 +5856,7 @@ function renderCalendar() {
                 ${WEEKLY_PROGRAMME.map((item) => `<option value="${escapeHtml(item.week)}" ${state.calendarWeek === item.week ? "selected" : ""}>${escapeHtml(item.week)} · ${escapeHtml(item.dates)}</option>`).join("")}
               </select>
             </label>` : ""}
+            ${state.calendarMode === "week" ? renderBlockWeekPicker(active) : ""}
           </div>
         </div>
         <div class="card-body">
@@ -5853,6 +5905,17 @@ function renderCalendar() {
       </section>
     </div>
   `;
+}
+
+function renderBlockWeekPicker(block) {
+  const weeks = programmeBlockWeeks(block);
+  const selected = Math.min(Math.max(Number(state.calendarBlockWeek) || 1, 1), Math.max(weeks.length, 1));
+  if (state.calendarBlockWeek !== selected) state.calendarBlockWeek = selected;
+  return `<label class="calendar-block-picker">Select block week
+    <select class="button ghost" aria-label="Select block week" onchange="state.calendarBlockWeek=Number(this.value); render()">
+      ${weeks.map((week) => `<option value="${week.number}" ${selected === week.number ? "selected" : ""}>Week ${week.number} · ${shortDate(week.start)}-${shortDate(week.end)}</option>`).join("")}
+    </select>
+  </label>`;
 }
 
 function renderTimeline() {
@@ -6221,55 +6284,73 @@ function renderProgrammeWeek(item) {
 }
 
 function renderWeek(block) {
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-  const slots = [
-    { key: "morning-1", time: "08:30-10:30", label: "Morning lesson 1" },
-    { key: "morning-2", time: "10:30-12:30", label: "Morning lesson 2" },
-    { key: "lunch", time: "12:30-14:30", label: "Lunch" },
-    { key: "afternoon", time: "14:30-16:30", label: "Afternoon lesson" },
-    { key: "tutorial", time: "After dinner", label: "Evening tutorials" },
-  ];
-  const blockCourses = block.courses.map(course).filter(Boolean);
-  const courseFor = (dayIndex, offset = 0) => blockCourses[(dayIndex + offset) % blockCourses.length];
-  const teachingCell = (item, label) => item
-    ? `<div class="programme-session ${item.type || "skills"}" title="${item.code} ${item.title}">
-        <strong>${item.code}</strong><span>${item.title}</span><small>${label}</small>
-        ${item.lecturerName || item.reviewTutorNames?.length || item.reviewReserveTutorNames?.length ? `<small class="programme-lecturer">${item.lecturerName ? `Lecturer: ${lecturerNameWithLinks(item.lecturerName)}` : ""}${canSeeLecturerAlternates() && item.alternateLecturerName ? ` · Alt: ${escapeHtml(item.alternateLecturerName)}` : ""}${item.reviewTutorNames?.length ? ` · Tutors: ${item.reviewTutorNames.join(", ")}` : ""}${item.reviewReserveTutorNames?.length ? ` · Reserve tutors: ${item.reviewReserveTutorNames.join(", ")}` : ""}</small>` : ""}
-      </div>`
-    : `<span class="programme-slot-empty">To be assigned</span>`;
+  const weeks = programmeBlockWeeks(block);
+  if (!weeks.length) return `<div class="empty">This block does not yet have valid timetable dates.</div>`;
+  const weekIndex = Math.min(Math.max(Number(state.calendarBlockWeek) || 1, 1), weeks.length) - 1;
+  const selectedWeek = weeks[weekIndex];
   return `
-    <div class="timetable-guidance">
-      <strong>Daily teaching rhythm</strong>
-      <span>Classes begin at 08:30. Two 2-hour morning lessons are followed by lunch from 12:30 to 14:30, one afternoon lesson, and tutorials after dinner.</span>
-      ${block.id === "block-1" ? `<span class="orientation-note">Week 1 exception: Orientation replaces the afternoon lesson on Monday 26 and Wednesday 28 October.</span>` : ""}
-    </div>
-    <div class="scroll-x">
-      <div class="week-grid">
-        <div class="week-head">Time</div>
-        ${days.map((day) => `<div class="week-head">${day}</div>`).join("")}
-        ${slots
-          .map(
-            (slot) => `
-            <div class="time-cell"><strong>${slot.time}</strong><span>${slot.label}</span></div>
-            ${days
-              .map((day, dayIndex) => {
-                if (slot.key === "lunch") return `<div class="week-cell lunch-cell"><span>Lunch break</span></div>`;
-                if (slot.key === "tutorial") {
-                  return `<div class="week-cell tutorial-cell"><strong>Tutorials</strong><span>${blockCourses.map((item) => item.code).join(" / ") || "Course support"}</span><small>After dinner</small></div>`;
-                }
-                if (slot.key === "afternoon" && block.id === "block-1" && (day === "Monday" || day === "Wednesday")) {
-                  return `<div class="week-cell"><div class="programme-session orientation"><strong>Orientation</strong><span>Week 1 programme orientation</span><small>${day === "Monday" ? "26 Oct" : "28 Oct"} only</small></div></div>`;
-                }
-                const item = slot.key.startsWith("morning") ? courseFor(dayIndex) : courseFor(dayIndex, 1);
-                return `<div class="week-cell">${teachingCell(item, slot.label)}</div>`;
-              })
-              .join("")}
-          `,
-          )
-          .join("")}
+    <div class="block-week-toolbar">
+      <button class="button ghost icon-only" aria-label="Previous week" ${weekIndex === 0 ? "disabled" : ""} onclick="state.calendarBlockWeek=${selectedWeek.number - 1}; render()">${icon("chevron-left", 18)}</button>
+      <div>
+        <span>${escapeHtml(block.title)} · Week ${selectedWeek.number} of ${weeks.length}</span>
+        <strong>${dateLabel(selectedWeek.start)} to ${dateLabel(selectedWeek.end)}</strong>
       </div>
+      <button class="button ghost icon-only" aria-label="Next week" ${weekIndex === weeks.length - 1 ? "disabled" : ""} onclick="state.calendarBlockWeek=${selectedWeek.number + 1}; render()">${icon("chevron-right", 18)}</button>
+    </div>
+    <div class="week-day-board">
+      ${selectedWeek.days.map((day) => renderTimetableDay(block, selectedWeek, day)).join("")}
     </div>
   `;
+}
+
+function sessionAppliesToDate(session, block, week, day) {
+  if (session.blockId !== block.id || !day.inBlock) return false;
+  if (session.date && session.date !== day.date) return false;
+  if (!session.date && session.day !== day.name) return false;
+  if (session.weekNumber && Number(session.weekNumber) !== week.number) return false;
+  return true;
+}
+
+function sessionEndTime(time, durationHours) {
+  const match = String(time || "").match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return "";
+  const minutes = Number(match[1]) * 60 + Number(match[2]) + Math.round(Number(durationHours || 0) * 60);
+  return `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+function renderTimetableDay(block, week, day) {
+  const sessions = state.sessions
+    .filter((session) => sessionAppliesToDate(session, block, week, day))
+    .sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
+  return `<details class="timetable-day ${day.inBlock ? "" : "outside-block"}" open>
+    <summary class="timetable-day-header">
+      <span>${day.name}</span>
+      <strong>${shortDate(day.date)}</strong>
+      <small>${sessions.length ? `${sessions.length} session${sessions.length === 1 ? "" : "s"}` : "No sessions"}</small>
+    </summary>
+    <div class="timetable-day-sessions">
+      ${day.inBlock
+        ? sessions.length
+          ? sessions.map(renderDailySession).join("")
+          : `<div class="daily-empty">No scheduled teaching</div>`
+        : `<div class="daily-empty">Outside this block</div>`}
+    </div>
+  </details>`;
+}
+
+function renderDailySession(session) {
+  const item = course(session.courseCode);
+  const owner = person(session.personId);
+  const lecturer = owner?.name || (item ? courseLecturerName(item) : "") || "Lecturer to be confirmed";
+  const tutors = item?.reviewTutorNames || [];
+  const endTime = sessionEndTime(session.time, session.duration);
+  return `<button class="daily-session-card ${item?.type || "skills"}" onclick="openDrawer('session', '${escapeHtml(session.id)}')">
+    <span class="daily-session-time">${escapeHtml(session.time || "Time TBC")}${endTime ? `-${endTime}` : ""}</span>
+    <strong>${escapeHtml(session.courseCode)} ${escapeHtml(item?.title || "")}</strong>
+    <span>${escapeHtml(session.type || "Session")} · ${escapeHtml(lecturer)}</span>
+    ${tutors.length ? `<small>Tutors: ${tutors.map(escapeHtml).join(", ")}</small>` : ""}
+    <small>${escapeHtml(session.room || "Room or mode to be confirmed")}</small>
+  </button>`;
 }
 
 function renderSession(session) {
@@ -6288,9 +6369,10 @@ function renderSession(session) {
 }
 
 function renderAgenda() {
+  const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const items = state.sessions
     .filter((session) => session.blockId === state.blockId)
-    .sort((a, b) => `${a.day}${a.time}`.localeCompare(`${b.day}${b.time}`));
+    .sort((a, b) => (dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day)) || String(a.time).localeCompare(String(b.time)));
   const meetings = state.studyGroupMeetings.slice().sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
   return `
     <div class="agenda-list">

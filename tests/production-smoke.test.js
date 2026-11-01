@@ -90,8 +90,14 @@ test("mobile navigation and week-sorted calendar remain functional", () => {
   assert.match(app, /calendarWeek: "all"/);
   assert.match(app, /All programme weeks/);
   assert.match(app, /selectedWeeks\.filter/);
+  assert.match(app, /calendarBlockWeek: 1/);
+  assert.match(app, /function programmeBlockWeeks\(block\)/);
+  assert.match(app, /function sessionAppliesToDate\(session, block, week, day\)/);
+  assert.match(app, /class="week-day-board"/);
+  assert.match(app, /No scheduled teaching/);
   assert.match(styles, /display: grid !important;/);
   assert.match(styles, /bottom: max\(10px, env\(safe-area-inset-bottom\)\)/);
+  assert.match(styles, /@media \(max-width: 900px\)/);
 });
 
 test("role access is summarized and backend enforced", () => {
