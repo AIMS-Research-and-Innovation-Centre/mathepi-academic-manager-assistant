@@ -82,6 +82,18 @@ test("production UI exposes installation, offline, and accessible status feedbac
   assert.doesNotMatch(app, /<h2>Email Accounts<\/h2>/);
 });
 
+test("mobile navigation and week-sorted calendar remain functional", () => {
+  const app = read("app.js");
+  const styles = read("styles.css");
+  assert.match(app, /aria-label="Primary mobile navigation"/);
+  assert.match(app, /<span>More<\/span>/);
+  assert.match(app, /calendarWeek: "all"/);
+  assert.match(app, /All programme weeks/);
+  assert.match(app, /selectedWeeks\.filter/);
+  assert.match(styles, /display: grid !important;/);
+  assert.match(styles, /bottom: max\(10px, env\(safe-area-inset-bottom\)\)/);
+});
+
 test("role access is summarized and backend enforced", () => {
   const app = read("app.js");
   assert.match(app, /\{ id: "students", label: "Students"/);

@@ -41,6 +41,8 @@ const ICONS = {
     '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
   menu:
     '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
+  more:
+    '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
   moon:
     '<path d="M12 3a6 6 0 0 0 9 7.4A9 9 0 1 1 12 3Z"/>',
   planner:
@@ -2659,6 +2661,7 @@ const state = {
   viewPermissions: normalizeViewPermissions(load(VIEW_PERMISSIONS_KEY, defaultViewPermissions())),
   query: "",
   calendarMode: "timeline",
+  calendarWeek: "all",
   plannerMode: "week",
   appointmentMode: "mine",
   blockId: "block-1",
@@ -4361,28 +4364,32 @@ function appLayout() {
 function mobileNav(nav) {
   const priorityIds =
     isStudentRole()
-      ? ["dashboard", "pi", "planner", "support", "appointments"]
+      ? ["dashboard", "planner", "groups", "calendar"]
       : state.role === "reviewer"
-        ? ["dashboard", "tf-reviews"]
+        ? ["dashboard", "tf-reviews", "calendar", "appointments"]
         : canView("tf-reviews")
-          ? ["dashboard", "lecturer-reviews", "tf-reviews", "cfa", "calendar"]
-          : ["dashboard", "calendar", "courses", "groups", "support"];
+          ? ["dashboard", "calendar", "lecturer-reviews", "tf-reviews"]
+          : ["dashboard", "calendar", "courses", "groups"];
   const priority = priorityIds.map((id) => nav.find((item) => item.id === id)).filter(Boolean);
-  const first = priority.length >= 5 ? priority.slice(0, 5) : nav.slice(0, 5);
+  const first = priority.length >= 4 ? priority.slice(0, 4) : nav.slice(0, 4);
   const active = nav.find((item) => item.id === state.view);
-  const mobile = active && !first.some((item) => item.id === active.id) ? [...first.slice(0, 4), active] : first;
+  const mobile = active && !first.some((item) => item.id === active.id) ? [...first.slice(0, 3), active] : first;
   return `
-    <nav class="mobile-bottom-nav">
+    <nav class="mobile-bottom-nav" aria-label="Primary mobile navigation">
       ${mobile
         .map(
           (item) => `
-          <button class="${state.view === item.id ? "active" : ""}" onclick="setView('${item.id}')">
+          <button class="${state.view === item.id ? "active" : ""}" onclick="setView('${item.id}')" aria-label="${escapeHtml(item.label)}">
             ${icon(item.icon, 21)}
             <span>${item.short || item.label.split(" ")[0]}</span>
           </button>
         `,
         )
         .join("")}
+      <button onclick="toggleMobileMenu(true)" aria-label="Open all sections">
+        ${icon("more", 21)}
+        <span>More</span>
+      </button>
     </nav>
   `;
 }
@@ -5779,8 +5786,8 @@ function renderCalendar() {
             ${calendarSync?.calendarUrl ? `<a class="button ghost" href="${escapeHtml(calendarSync.calendarUrl)}" target="_blank" rel="noopener">${icon("external", 17)}Open Google Calendar</a>` : ""}
             <div class="tabs">
               ${[
-                ["timeline", "Week by week"],
-                ["week", "Weekly timetable"],
+                ["timeline", "Programme weeks"],
+                ["week", "Block timetable"],
                 ["agenda", "Agenda"],
               ].map(([mode, label]) => `<button class="tab ${state.calendarMode === mode ? "active" : ""}" onclick="state.calendarMode='${mode}'; render()">${label}</button>`).join("")}
             </div>
@@ -5792,6 +5799,12 @@ function renderCalendar() {
                 .join("")}
               </select>
             </label>
+            ${state.calendarMode === "timeline" ? `<label class="calendar-block-picker">Select week
+              <select class="button ghost" aria-label="Select programme week" onchange="state.calendarWeek=this.value; render()">
+                <option value="all" ${state.calendarWeek === "all" ? "selected" : ""}>All programme weeks</option>
+                ${WEEKLY_PROGRAMME.map((item) => `<option value="${escapeHtml(item.week)}" ${state.calendarWeek === item.week ? "selected" : ""}>${escapeHtml(item.week)} · ${escapeHtml(item.dates)}</option>`).join("")}
+              </select>
+            </label>` : ""}
           </div>
         </div>
         <div class="card-body">
@@ -5844,6 +5857,9 @@ function renderCalendar() {
 
 function renderTimeline() {
   const phaseOrder = Object.keys(WEEKLY_PHASES);
+  const selectedWeeks = state.calendarWeek === "all"
+    ? WEEKLY_PROGRAMME
+    : WEEKLY_PROGRAMME.filter((item) => item.week === state.calendarWeek);
   return `
     <div class="programme-overview" aria-label="Programme summary">
       <div><span>Start</span><strong>26 Oct 2026</strong></div>
@@ -5855,7 +5871,7 @@ function renderTimeline() {
       ${phaseOrder
         .map((phaseId) => {
           const phase = WEEKLY_PHASES[phaseId];
-          const weeks = WEEKLY_PROGRAMME.filter((item) => item.phase === phaseId);
+          const weeks = selectedWeeks.filter((item) => item.phase === phaseId);
           if (!weeks.length) return "";
           return `
             <section class="weekly-phase weekly-phase-${phase.tone}">
