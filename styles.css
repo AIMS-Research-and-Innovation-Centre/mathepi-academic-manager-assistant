@@ -5957,6 +5957,42 @@ button {
   padding-bottom: 4px;
 }
 
+.block-weeks-list {
+  display: grid;
+  gap: 22px;
+}
+
+.timetable-week-section {
+  display: grid;
+  gap: 10px;
+}
+
+.timetable-week-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--aims-maroon);
+}
+
+.timetable-week-title > div {
+  display: grid;
+  gap: 2px;
+}
+
+.timetable-week-title span {
+  color: var(--aims-maroon);
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.timetable-week-title strong,
+.timetable-week-title small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .timetable-day {
   min-width: 0;
   border: 1px solid var(--line);
@@ -6044,6 +6080,71 @@ button {
   opacity: 0.55;
 }
 
+.scheduling-confirmation {
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.scheduling-confirmation > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  background: var(--panel-soft);
+  border-bottom: 1px solid var(--line);
+}
+
+.scheduling-confirmation h3,
+.scheduling-confirmation p {
+  margin: 0;
+}
+
+.scheduling-confirmation p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.scheduling-confirmation-list {
+  display: grid;
+}
+
+.undated-session-row {
+  display: grid;
+  grid-template-columns: minmax(145px, 0.7fr) minmax(220px, 1.4fr) minmax(180px, 1fr);
+  gap: 14px;
+  width: 100%;
+  padding: 13px 14px;
+  color: var(--ink);
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.undated-session-row:last-child {
+  border-bottom: 0;
+}
+
+.undated-session-row:hover,
+.undated-session-row:focus-visible {
+  background: var(--panel-soft);
+}
+
+.undated-session-row > span {
+  display: grid;
+  gap: 3px;
+}
+
+.undated-session-row small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
 /* Keep the role-aware navigation ribbon available on phones and tablets. */
 @media (max-width: 900px) {
   .content {
@@ -6083,5 +6184,19 @@ button {
 
   .daily-session-card {
     min-height: 0;
+  }
+
+  .timetable-week-title {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .scheduling-confirmation > header,
+  .undated-session-row {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduling-confirmation > header {
+    flex-direction: column;
   }
 }

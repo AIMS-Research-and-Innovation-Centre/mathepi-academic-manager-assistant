@@ -2665,6 +2665,7 @@ const state = {
   calendarMode: "timeline",
   calendarWeek: "all",
   calendarBlockWeek: 1,
+  calendarFullBlock: false,
   plannerMode: "week",
   appointmentMode: "mine",
   blockId: "block-1",
@@ -5843,7 +5844,7 @@ function renderCalendar() {
               ].map(([mode, label]) => `<button class="tab ${state.calendarMode === mode ? "active" : ""}" onclick="state.calendarMode='${mode}'; render()">${label}</button>`).join("")}
             </div>
             <label class="calendar-block-picker">Select block
-              <select class="button ghost" aria-label="Select timetable block" onchange="state.blockId=this.value; state.calendarBlockWeek=1; render()">
+              <select class="button ghost" aria-label="Select timetable block" onchange="state.blockId=this.value; state.calendarBlockWeek=1; state.calendarFullBlock=false; render()">
               ${state.blocks
                 .filter((item) => item.kind === "teaching" || item.kind === "practical" || item.kind === "thesis")
                 .map((item) => `<option value="${item.id}" ${state.blockId === item.id ? "selected" : ""}>${item.title}</option>`)
@@ -5915,7 +5916,8 @@ function renderBlockWeekPicker(block) {
     <select class="button ghost" aria-label="Select block week" onchange="state.calendarBlockWeek=Number(this.value); render()">
       ${weeks.map((week) => `<option value="${week.number}" ${selected === week.number ? "selected" : ""}>Week ${week.number} · ${shortDate(week.start)}-${shortDate(week.end)}</option>`).join("")}
     </select>
-  </label>`;
+  </label>
+  <button class="button ghost" aria-pressed="${state.calendarFullBlock}" onclick="state.calendarFullBlock=!state.calendarFullBlock; render()">${state.calendarFullBlock ? "View selected week" : "View full block"}</button>`;
 }
 
 function renderTimeline() {
@@ -6288,27 +6290,36 @@ function renderWeek(block) {
   if (!weeks.length) return `<div class="empty">This block does not yet have valid timetable dates.</div>`;
   const weekIndex = Math.min(Math.max(Number(state.calendarBlockWeek) || 1, 1), weeks.length) - 1;
   const selectedWeek = weeks[weekIndex];
+  const visibleWeeks = state.calendarFullBlock ? weeks : [selectedWeek];
+  const undatedSessions = state.sessions
+    .filter((session) => session.blockId === block.id && !session.date)
+    .sort(compareSessionSchedule);
   return `
     <div class="block-week-toolbar">
-      <button class="button ghost icon-only" aria-label="Previous week" ${weekIndex === 0 ? "disabled" : ""} onclick="state.calendarBlockWeek=${selectedWeek.number - 1}; render()">${icon("chevron-left", 18)}</button>
+      <button class="button ghost icon-only" aria-label="Previous week" ${state.calendarFullBlock || weekIndex === 0 ? "disabled" : ""} onclick="state.calendarBlockWeek=${selectedWeek.number - 1}; render()">${icon("chevron-left", 18)}</button>
       <div>
-        <span>${escapeHtml(block.title)} · Week ${selectedWeek.number} of ${weeks.length}</span>
-        <strong>${dateLabel(selectedWeek.start)} to ${dateLabel(selectedWeek.end)}</strong>
+        <span>${escapeHtml(block.title)} · ${state.calendarFullBlock ? `${weeks.length} programme weeks` : `Week ${selectedWeek.number} of ${weeks.length}`}</span>
+        <strong>${state.calendarFullBlock ? `${dateLabel(block.start)} to ${dateLabel(block.end)}` : `${dateLabel(selectedWeek.start)} to ${dateLabel(selectedWeek.end)}`}</strong>
       </div>
-      <button class="button ghost icon-only" aria-label="Next week" ${weekIndex === weeks.length - 1 ? "disabled" : ""} onclick="state.calendarBlockWeek=${selectedWeek.number + 1}; render()">${icon("chevron-right", 18)}</button>
+      <button class="button ghost icon-only" aria-label="Next week" ${state.calendarFullBlock || weekIndex === weeks.length - 1 ? "disabled" : ""} onclick="state.calendarBlockWeek=${selectedWeek.number + 1}; render()">${icon("chevron-right", 18)}</button>
     </div>
-    <div class="week-day-board">
-      ${selectedWeek.days.map((day) => renderTimetableDay(block, selectedWeek, day)).join("")}
+    <div class="block-weeks-list">
+      ${visibleWeeks.map((week) => renderTimetableWeek(block, week)).join("")}
     </div>
+    ${renderUndatedSchedulingDetails(undatedSessions)}
   `;
 }
 
 function sessionAppliesToDate(session, block, week, day) {
   if (session.blockId !== block.id || !day.inBlock) return false;
-  if (session.date && session.date !== day.date) return false;
-  if (!session.date && session.day !== day.name) return false;
+  if (!session.date || session.date !== day.date) return false;
   if (session.weekNumber && Number(session.weekNumber) !== week.number) return false;
   return true;
+}
+
+function compareSessionSchedule(a, b) {
+  const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  return (dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day)) || String(a.time || "").localeCompare(String(b.time || ""));
 }
 
 function sessionEndTime(time, durationHours) {
@@ -6336,6 +6347,43 @@ function renderTimetableDay(block, week, day) {
         : `<div class="daily-empty">Outside this block</div>`}
     </div>
   </details>`;
+}
+
+function renderTimetableWeek(block, week) {
+  const datedCount = state.sessions.filter((session) =>
+    week.days.some((day) => sessionAppliesToDate(session, block, week, day)),
+  ).length;
+  return `<section class="timetable-week-section">
+    <header class="timetable-week-title">
+      <div><span>Week ${week.number}</span><strong>${dateLabel(week.start)} to ${dateLabel(week.end)}</strong></div>
+      <small>${datedCount} confirmed dated session${datedCount === 1 ? "" : "s"}</small>
+    </header>
+    <div class="week-day-board">
+      ${week.days.map((day) => renderTimetableDay(block, week, day)).join("")}
+    </div>
+  </section>`;
+}
+
+function renderUndatedSchedulingDetails(sessions) {
+  if (!sessions.length) return "";
+  return `<section class="scheduling-confirmation">
+    <header>
+      <div><h3>Scheduling details to confirm</h3><p>These source records have a weekday and time but no calendar date. They are shown once and have not been repeated across programme weeks.</p></div>
+      <span class="chip gold">${sessions.length} undated</span>
+    </header>
+    <div class="scheduling-confirmation-list">
+      ${sessions.map((session) => {
+        const item = course(session.courseCode);
+        const owner = person(session.personId);
+        const lecturer = owner?.name || (item ? courseLecturerName(item) : "") || "Lecturer to be confirmed";
+        return `<button class="undated-session-row" onclick="openDrawer('session', '${escapeHtml(session.id)}')">
+          <span><strong>${escapeHtml(session.day || "Day to confirm")} · ${escapeHtml(session.time || "Time to confirm")}</strong><small>Date required</small></span>
+          <span><strong>${escapeHtml(session.courseCode)} ${escapeHtml(item?.title || "")}</strong><small>${escapeHtml(session.type || "Session")}</small></span>
+          <span><strong>${escapeHtml(lecturer)}</strong><small>${escapeHtml(session.room || "Room or mode to confirm")}</small></span>
+        </button>`;
+      }).join("")}
+    </div>
+  </section>`;
 }
 
 function renderDailySession(session) {
@@ -6369,10 +6417,9 @@ function renderSession(session) {
 }
 
 function renderAgenda() {
-  const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const items = state.sessions
     .filter((session) => session.blockId === state.blockId)
-    .sort((a, b) => (dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day)) || String(a.time).localeCompare(String(b.time)));
+    .sort(compareSessionSchedule);
   const meetings = state.studyGroupMeetings.slice().sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
   return `
     <div class="agenda-list">
