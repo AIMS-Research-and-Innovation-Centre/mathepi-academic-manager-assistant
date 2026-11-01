@@ -485,6 +485,19 @@ const COURSE_DELIVERY_WINDOWS = {
   MES03: { deliveryStart: "2026-11-16", deliveryEnd: "2026-11-27", deliveryLength: "2 intensive weeks" },
 };
 
+const MASTER_TIMETABLE_RULES = {
+  timezone: "Africa/Kigali",
+  teachingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+  slots: [
+    { key: "morning1", time: "08:30-10:30", label: "Morning lesson 1", kind: "teaching" },
+    { key: "morning2", time: "10:30-12:30", label: "Morning lesson 2", kind: "teaching" },
+    { key: "lunch", time: "12:30-14:30", label: "Lunch", kind: "lunch" },
+    { key: "afternoon", time: "14:30-16:30", label: "Afternoon lesson", kind: "teaching" },
+    { key: "tutorial", time: "After dinner", label: "Evening tutorials", kind: "tutorial" },
+  ],
+  orientationAfternoons: ["2026-10-26", "2026-10-28"],
+};
+
 const DEFAULT_BLOCKS = [
   {
     "id": "onboarding",
@@ -6295,6 +6308,7 @@ function renderWeek(block) {
     .filter((session) => session.blockId === block.id && !session.date)
     .sort(compareSessionSchedule);
   return `
+    ${renderMasterCalendarRules(block)}
     <div class="block-week-toolbar">
       <button class="button ghost icon-only" aria-label="Previous week" ${state.calendarFullBlock || weekIndex === 0 ? "disabled" : ""} onclick="state.calendarBlockWeek=${selectedWeek.number - 1}; render()">${icon("chevron-left", 18)}</button>
       <div>
@@ -6308,6 +6322,23 @@ function renderWeek(block) {
     </div>
     ${renderUndatedSchedulingDetails(undatedSessions)}
   `;
+}
+
+function renderMasterCalendarRules(block) {
+  const deliveryLines = state.courses
+    .filter((item) => (item.deliveryStart || item.delivery_start) && (item.deliveryEnd || item.delivery_end))
+    .filter((item) => {
+      const start = item.deliveryStart || item.delivery_start;
+      const end = item.deliveryEnd || item.delivery_end;
+      return end >= block.start && start <= block.end;
+    })
+    .map((item) => `${item.code}: ${shortDate(item.deliveryStart || item.delivery_start)}-${shortDate(item.deliveryEnd || item.delivery_end)}`);
+  return `<div class="timetable-guidance master-calendar-rules">
+    <strong>Master Calendar rules</strong>
+    <span>${escapeHtml(block.note || "Course delivery follows the approved block dates.")}</span>
+    <span>Teaching: ${MASTER_TIMETABLE_RULES.slots.slice(0, 4).map((slot) => slot.time).join(" · ")} · tutorials after dinner.</span>
+    ${deliveryLines.length ? `<span class="orientation-note">Delivery windows: ${escapeHtml(deliveryLines.join("; "))}. Course balance is calculated only among courses active on each date.</span>` : ""}
+  </div>`;
 }
 
 function sessionAppliesToDate(session, block, week, day) {
@@ -6354,7 +6385,7 @@ function renderTimetableWeek(block, week) {
   return `<section class="timetable-week-section">
     <header class="timetable-week-title">
       <div><span>Week ${week.number}</span><strong>${dateLabel(week.start)} to ${dateLabel(week.end)}</strong></div>
-      <small>${block.courses.length} course${block.courses.length === 1 ? "" : "s"} balanced across the teaching week</small>
+      <small>${plan.courses.length} active course${plan.courses.length === 1 ? "" : "s"} scheduled under Master Calendar rules</small>
     </header>
     <div class="balanced-timetable-scroll">
       <div class="balanced-week-grid">
@@ -6373,13 +6404,15 @@ function renderTimetableWeek(block, week) {
 }
 
 function buildBalancedWeekPlan(block, week) {
-  const courses = block.courses.map(course).filter(Boolean);
+  const dayCourses = week.days.map((day) => masterCoursesForDate(block, day.date));
+  const courses = [...new Map(dayCourses.flat().map((item) => [item.code, item])).values()];
   const counts = Object.fromEntries(courses.map((item) => [item.code, 0]));
   const teaching = Array.from({ length: 5 }, () => ({}));
   const offset = courses.length ? (week.number - 1) % courses.length : 0;
 
   for (let dayIndex = 0; dayIndex < 5; dayIndex += 1) {
-    const morning = courses.length ? courses[(dayIndex + offset) % courses.length] : null;
+    const available = dayCourses[dayIndex];
+    const morning = leastScheduledCourse(available, counts, null, offset + dayIndex);
     teaching[dayIndex].morning1 = morning;
     teaching[dayIndex].morning2 = morning;
     if (morning) counts[morning.code] += 2;
@@ -6387,10 +6420,8 @@ function buildBalancedWeekPlan(block, week) {
 
   for (let dayIndex = 0; dayIndex < 5; dayIndex += 1) {
     const morning = teaching[dayIndex].morning1;
-    const candidates = courses
-      .filter((item) => courses.length === 1 || item.code !== morning?.code)
-      .sort((a, b) => counts[a.code] - counts[b.code] || courses.indexOf(a) - courses.indexOf(b));
-    const afternoon = candidates[0] || morning || null;
+    const available = dayCourses[dayIndex];
+    const afternoon = leastScheduledCourse(available, counts, morning?.code, offset + dayIndex) || morning || null;
     teaching[dayIndex].afternoon = afternoon;
     if (afternoon) counts[afternoon.code] += 1;
   }
@@ -6399,23 +6430,40 @@ function buildBalancedWeekPlan(block, week) {
     block,
     week,
     courses,
+    dayCourses,
     counts,
     teaching,
-    slots: [
-      { key: "morning1", time: "08:30-10:30", label: "Morning lesson 1", kind: "teaching" },
-      { key: "morning2", time: "10:30-12:30", label: "Morning lesson 2", kind: "teaching" },
-      { key: "lunch", time: "12:30-14:30", label: "Lunch", kind: "lunch" },
-      { key: "afternoon", time: "14:30-16:30", label: "Afternoon lesson", kind: "teaching" },
-      { key: "tutorial", time: "After dinner", label: "Evening tutorials", kind: "tutorial" },
-    ],
+    slots: MASTER_TIMETABLE_RULES.slots,
   };
+}
+
+function masterCoursesForDate(block, date) {
+  if (date < block.start || date > block.end) return [];
+  const coursesWithWindows = state.courses.filter((item) => {
+    const start = item.deliveryStart || item.delivery_start;
+    const end = item.deliveryEnd || item.delivery_end;
+    return start && end && date >= start && date <= end;
+  });
+  const regularBlockCourses = (block.courses || [])
+    .map(course)
+    .filter((item) => item && !(item.deliveryStart || item.delivery_start));
+  return [...new Map([...coursesWithWindows, ...regularBlockCourses].map((item) => [item.code, item])).values()];
+}
+
+function leastScheduledCourse(courses, counts, excludedCode, rotation) {
+  if (!courses.length) return null;
+  const eligible = courses.filter((item) => courses.length === 1 || item.code !== excludedCode);
+  const rotated = eligible
+    .map((item, index) => ({ item, order: (index - rotation + eligible.length * 10) % eligible.length }))
+    .sort((a, b) => (counts[a.item.code] || 0) - (counts[b.item.code] || 0) || a.order - b.order);
+  return rotated[0]?.item || courses[0];
 }
 
 function renderBalancedSlot(plan, slot, day, dayIndex) {
   if (!day.inBlock) return `<span class="balanced-empty">Outside this block</span>`;
   if (slot.kind === "lunch") return `<span class="lunch-label">Lunch break</span>`;
   if (slot.kind === "tutorial") {
-    return `<div class="tutorial-session"><strong>Tutorials</strong><span>${plan.courses.map((item) => item.code).join(" / ") || "Course support"}</span><small>After dinner</small></div>`;
+    return `<div class="tutorial-session"><strong>Tutorials</strong><span>${plan.dayCourses[dayIndex].map((item) => item.code).join(" / ") || "No course scheduled"}</span><small>After dinner</small></div>`;
   }
   if (isOrientationSlot(plan, day, slot)) {
     return `<div class="balanced-session orientation"><strong>Orientation</strong><span>Week 1 programme orientation</span><small>${shortDate(day.date)} only</small></div>`;
@@ -6424,7 +6472,7 @@ function renderBalancedSlot(plan, slot, day, dayIndex) {
 }
 
 function isOrientationSlot(plan, day, slot) {
-  return plan.block.id === "block-1" && plan.week.number === 1 && slot.key === "afternoon" && ["Monday", "Wednesday"].includes(day.name);
+  return plan.block.id === "block-1" && slot.key === "afternoon" && MASTER_TIMETABLE_RULES.orientationAfternoons.includes(day.date);
 }
 
 function renderBalancedCourse(item, slotLabel) {

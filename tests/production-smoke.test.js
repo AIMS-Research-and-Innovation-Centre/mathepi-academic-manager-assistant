@@ -99,6 +99,10 @@ test("mobile navigation and week-sorted calendar remain functional", () => {
   assert.match(app, /have not been repeated across programme weeks/);
   assert.match(app, /View full block/);
   assert.match(app, /function buildBalancedWeekPlan\(block, week\)/);
+  assert.match(app, /const MASTER_TIMETABLE_RULES/);
+  assert.match(app, /function masterCoursesForDate\(block, date\)/);
+  assert.match(app, /Course balance is calculated only among courses active on each date/);
+  assert.match(app, /orientationAfternoons: \["2026-10-26", "2026-10-28"\]/);
   assert.match(app, /08:30-10:30/);
   assert.match(app, /12:30-14:30/);
   assert.match(app, /After dinner/);
