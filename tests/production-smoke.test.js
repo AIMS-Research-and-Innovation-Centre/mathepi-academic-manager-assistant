@@ -86,6 +86,9 @@ test("mobile navigation and week-sorted calendar remain functional", () => {
   const app = read("app.js");
   const styles = read("styles.css");
   assert.match(app, /aria-label="Primary mobile navigation"/);
+  assert.match(app, /function renderMobileSessionControl\(\)/);
+  assert.match(app, /aria-label="Sign out of MathEpi"/);
+  assert.match(styles, /\.mobile-session-control/);
   assert.match(app, /<span>More<\/span>/);
   assert.match(app, /calendarWeek: "all"/);
   assert.match(app, /All programme weeks/);

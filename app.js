@@ -4280,6 +4280,16 @@ function renderRoleControl() {
   `;
 }
 
+function renderMobileSessionControl() {
+  if (roleSimulationAllowed()) return "";
+  const auth = authState();
+  const account = auth.user?.email || portalAccess?.email || "Signed-in account";
+  return `<div class="mobile-session-control">
+    <span><small>Signed in as</small><strong>${escapeHtml(account)}</strong></span>
+    <button onclick="authSignOut()" aria-label="Sign out of MathEpi">${icon("x", 16)}<span>Sign out</span></button>
+  </div>`;
+}
+
 function authGateLayout() {
   const googleAuth = window.mathepiAuth || { status: "unconfigured", user: null, error: null };
   const googlePending = portalAccess?.status === "pending";
@@ -4379,6 +4389,7 @@ function appLayout() {
             <div class="pulse-top"><span>Operations pulse</span><span class="pulse-dot"></span></div>
             <p class="pulse-copy">${rolePulsePrefix()} ${programmePulse()}</p>
           </div>
+          ${renderMobileSessionControl()}
         </div>
         <nav class="nav">
           ${nav
