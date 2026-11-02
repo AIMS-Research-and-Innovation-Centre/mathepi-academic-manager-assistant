@@ -1936,6 +1936,7 @@ const ROLES = {
       "courses",
       "people",
       "students",
+      "recruitment",
       "cfa",
       "lecturer-reviews",
       "appointments",
@@ -1953,7 +1954,7 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
+    views: ["dashboard", "calendar", "courses", "people", "students", "recruitment", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
@@ -1967,7 +1968,7 @@ const ROLES = {
     hint: "Tutorial Fellow review panel, notes, scores, and staged decisions",
     canEdit: false,
     canSensitive: true,
-    views: ["dashboard", "tf-reviews"],
+    views: ["dashboard", "recruitment", "tf-reviews"],
   },
   "head-tutor": {
     label: "Head Tutor",
@@ -2035,9 +2036,10 @@ const NAV = [
   { id: "courses", label: "Courses", icon: "book" },
   { id: "people", label: "Lecturers & Tutors", short: "People", icon: "users" },
   { id: "students", label: "Students", short: "Students", icon: "graduation" },
-  { id: "cfa", label: "CFA", short: "CFA", icon: "megaphone" },
-  { id: "lecturer-reviews", label: "Lecturer Review", short: "Lecturers", icon: "graduation" },
-  { id: "tf-reviews", label: "TF Reviews", short: "Reviews", icon: "shield" },
+  { id: "recruitment", label: "Recruitment", short: "Recruit", icon: "users" },
+  { id: "cfa", label: "CFA", short: "CFA", icon: "megaphone", parent: "recruitment" },
+  { id: "lecturer-reviews", label: "Lecturer Review", short: "Lecturers", icon: "graduation", parent: "recruitment" },
+  { id: "tf-reviews", label: "TF Reviews", short: "Reviews", icon: "shield", parent: "recruitment" },
   { id: "appointments", label: "Appointments", icon: "appointment" },
   { id: "support", label: "Support & Wellness", short: "Support", icon: "support" },
   { id: "contact", label: "Contact Hub", icon: "mail" },
@@ -2675,6 +2677,7 @@ const state = {
   role: "manager",
   viewPermissions: normalizeViewPermissions(load(VIEW_PERMISSIONS_KEY, defaultViewPermissions())),
   query: "",
+  peopleKind: "Lecturer",
   calendarMode: "timeline",
   calendarWeek: "all",
   calendarBlockWeek: 1,
@@ -2794,6 +2797,23 @@ function migrateProgrammeData() {
     state.studyGroups = safeClone(DEFAULT_STUDY_GROUPS);
     safeStorageSet("mathepi-production-curriculum-v2", "1");
   }
+
+  MATHEPI_TUTORS.forEach((name) => {
+    if (state.people.some((item) => item.kind === "Tutor" && String(item.name || "").toLowerCase() === name.toLowerCase())) return;
+    state.people.push({
+      id: `tutor-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`,
+      name,
+      kind: "Tutor",
+      affiliation: "MathEpi Tutorial Fellow",
+      nationality: "",
+      email: "",
+      reference: "2026/27 tutor rotation",
+      expertise: "Working-group tutoring and academic support",
+      status: "Confirmed",
+      workload: 1,
+      nextFollowUp: "2026-11-05",
+    });
+  });
 
   const programmeSchedule = {
     onboarding: {
@@ -3181,8 +3201,25 @@ function toggleTheme() {
 }
 
 function canView(view) {
+  if (view === "recruitment") {
+    return ["cfa", "lecturer-reviews", "tf-reviews"].some((child) => canView(child));
+  }
   const serverViews = Array.isArray(portalAccess?.allowedViews) ? portalAccess.allowedViews : null;
   return assignedViews(state.role).includes(view) && (!serverViews || serverViews.includes(view));
+}
+
+let globalSearchTimer = null;
+function handleGlobalSearch(value) {
+  state.query = String(value || "").slice(0, 120);
+  window.clearTimeout(globalSearchTimer);
+  globalSearchTimer = window.setTimeout(() => {
+    render();
+    const input = document.getElementById("globalSearchInput");
+    if (input) {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
+  }, 220);
 }
 
 function assignedViews(role) {
@@ -3326,7 +3363,15 @@ function filteredStudents() {
 }
 
 function currentTutorId() {
-  return "current-tutor";
+  return currentTutorRecord()?.id || "";
+}
+
+function currentTutorRecord() {
+  const email = String(portalAccess?.email || "").trim().toLowerCase();
+  const accountName = String(portalAccess?.name || portalAccess?.displayName || "").trim().toLowerCase();
+  return state.people.find((item) => item.kind === "Tutor" && email && String(item.email || "").trim().toLowerCase() === email)
+    || state.people.find((item) => item.kind === "Tutor" && accountName && String(item.name || "").trim().toLowerCase() === accountName)
+    || null;
 }
 
 function currentStudentId() {
@@ -4386,7 +4431,7 @@ function authGateLayout() {
 
 function appLayout() {
   if (authGateRequired()) return authGateLayout();
-  const nav = NAV.filter((item) => canView(item.id));
+  const nav = NAV.filter((item) => canView(item.id) && !item.parent);
   const viewMeta = NAV.find((item) => item.id === state.view) || NAV[0];
   return `
     <div class="app-shell">
@@ -4430,7 +4475,7 @@ function appLayout() {
           <div class="top-actions">
             <div class="search">
               ${icon("search", 18)}
-              <input placeholder="Search courses, people, blocks..." value="${escapeHtml(state.query)}" oninput="state.query=this.value; render()" />
+              <input id="globalSearchInput" placeholder="Search courses, people, blocks..." value="${escapeHtml(state.query)}" oninput="handleGlobalSearch(this.value)" />
             </div>
             <button class="button ghost icon-only theme-toggle" onclick="toggleTheme()" aria-label="Switch to ${state.theme === "dark" ? "light" : "dark"} mode" title="Switch to ${state.theme === "dark" ? "light" : "dark"} mode">
               ${icon(state.theme === "dark" ? "sun" : "moon", 18)}
@@ -4474,18 +4519,53 @@ function mobileNav(nav) {
 }
 
 function mobilePrimaryItems(nav) {
+  const stored = loadMobileNavPreference().map((id) => nav.find((item) => item.id === id)).filter(Boolean);
   const priorityIds =
     isStudentRole()
       ? ["dashboard", "planner", "groups", "calendar"]
       : state.role === "reviewer"
-        ? ["dashboard", "tf-reviews", "calendar", "appointments"]
+        ? ["dashboard", "recruitment", "calendar", "appointments"]
         : canView("tf-reviews")
-          ? ["dashboard", "calendar", "lecturer-reviews", "tf-reviews"]
+          ? ["dashboard", "calendar", "people", "recruitment"]
           : ["dashboard", "calendar", "courses", "groups"];
   const priority = priorityIds.map((id) => nav.find((item) => item.id === id)).filter(Boolean);
-  const first = priority.length >= 4 ? priority.slice(0, 4) : nav.slice(0, 4);
+  const preferred = [...stored, ...priority, ...nav].filter((item, index, all) => all.findIndex((candidate) => candidate.id === item.id) === index);
+  const first = preferred.slice(0, 4);
   const active = nav.find((item) => item.id === state.view);
   return active && !first.some((item) => item.id === active.id) ? [...first.slice(0, 3), active] : first;
+}
+
+function mobileNavPreferenceKey() {
+  return `mathepi-mobile-nav-${String(portalAccess?.email || state.role || "user").toLowerCase()}`;
+}
+
+function loadMobileNavPreference() {
+  try {
+    const value = JSON.parse(safeStorageGet(mobileNavPreferenceKey(), "[]"));
+    return Array.isArray(value) ? value.slice(0, 4) : [];
+  } catch (_) { return []; }
+}
+
+function mobileNavSettingsDrawer() {
+  const choices = NAV.filter((item) => !item.parent && canView(item.id));
+  const current = mobilePrimaryItems(choices);
+  const selects = [0, 1, 2, 3].map((index) => `<div class="field"><label>Shortcut ${index + 1}</label><select id="mobileNavSlot${index}">${choices.map((item) => `<option value="${item.id}" ${current[index]?.id === item.id ? "selected" : ""}>${escapeHtml(item.label)}</option>`).join("")}</select></div>`).join("");
+  return drawerShell("Phone navigation", "Choose the four sections shown in your bottom ribbon on this device.", `<div class="form-grid">${selects}</div><p class="muted-note">Only sections approved for your role are available. More remains available for every other section.</p>`, `<button class="button ghost" onclick="resetMobileNavPreference()">Restore defaults</button><button class="button primary" onclick="saveMobileNavPreference()">${icon("check", 17)}Save shortcuts</button>`);
+}
+
+function saveMobileNavPreference() {
+  const ids = [0, 1, 2, 3].map((index) => document.getElementById(`mobileNavSlot${index}`)?.value).filter(Boolean);
+  safeStorageSet(mobileNavPreferenceKey(), JSON.stringify([...new Set(ids)]));
+  closeDrawer();
+  toast("Phone shortcuts saved on this device.");
+  render();
+}
+
+function resetMobileNavPreference() {
+  safeStorageRemove(mobileNavPreferenceKey());
+  closeDrawer();
+  toast("Default phone shortcuts restored.");
+  render();
 }
 
 function mobileMoreSheet(nav) {
@@ -4535,6 +4615,7 @@ function mobileMoreSheet(nav) {
       </div>
       <footer class="mobile-more-footer">
         ${roleSimulationAllowed() ? `<label>Preview role<select onchange="setRole(this.value)">${Object.entries(ROLES).map(([id, role]) => `<option value="${id}" ${state.role === id ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></label>` : grantedRoles.length > 1 ? `<label>Active role<select onchange="switchAuthenticatedRole(this.value)">${grantedRoles.map((role) => `<option value="${role}" ${state.role === role ? "selected" : ""}>${escapeHtml(ROLES[role].label)}</option>`).join("")}</select></label>` : ""}
+        <button onclick="closeMobileMenu(); openDrawer('mobileNavSettings')">${icon("settings", 17)}Customize phone navigation</button>
         <button onclick="installMathEpiApp()">${icon("install", 17)}Install app</button>
         ${roleSimulationAllowed() ? "" : `<button class="danger" onclick="authSignOut()">${icon("x", 17)}Sign out</button>`}
       </footer>
@@ -4546,6 +4627,8 @@ function renderView() {
   switch (state.view) {
     case "pi":
       return renderPi();
+    case "recruitment":
+      return renderRecruitment();
     case "calendar":
       return renderCalendar();
     case "planner":
@@ -5193,12 +5276,35 @@ function piDraftAnswer(action, question) {
   return null;
 }
 
+function piTutorOperationalAnswer(question) {
+  if (!['tutor', 'head-tutor'].includes(state.role)) return null;
+  const q = piEngine().normalize(question);
+  const tutor = currentTutorRecord();
+  const asksGroup = /\b(which|what|my)\s+(study\s+)?group\b|\bgroup\s+(am i|assignment|assigned)\b/.test(q);
+  const asksResponsibilities = /\b(my|tutor)\s+(role|responsibilit|duties)|\bwhat\s+(should|do)\s+i\s+do\b/.test(q);
+  if (!asksGroup && !asksResponsibilities) return null;
+  if (!tutor) {
+    return { title: "Tutor profile not linked", text: "Your signed-in email is approved, but it is not linked to a tutor profile in the MathEpi people directory. I cannot safely guess your group assignment.", bullets: ["Ask the programme team to add this exact email to your tutor profile.", "Your assignment will then appear automatically in Study Groups, Timesheets, and Pi."], source: PI_SOURCES.liveApp, action: ["groups", "Open Study Groups"] };
+  }
+  const block = activeTeachingBlockNumber();
+  const group = state.studyGroups.find((item) => currentGroupTutor(item).toLowerCase() === tutor.name.toLowerCase());
+  if (asksGroup) {
+    return group
+      ? { title: `Block ${block}: Group ${group.groupNumber}`, text: `${tutor.name}, you are assigned to ${group.chosenName || group.name} in Block ${block}.`, bullets: [group.memberNames?.length ? `Members: ${group.memberNames.join(", ")}` : `${acceptedGroupMembers(group.id).length} members`, `Next rotation: ${nextGroupTutor(group)}`], source: "Live MathEpi working-group rotation", action: ["groups", "Open my group"] }
+      : { title: "No current group assignment found", text: `Your tutor profile is linked, but no Group ${block} rotation entry matches ${tutor.name}.`, bullets: ["Ask the programme team to verify the spelling of your name in the tutor rotation."], source: PI_SOURCES.liveApp, action: ["groups", "Open Study Groups"] };
+  }
+  return { title: `Your Block ${block} tutor responsibilities`, text: `Support your assigned working group without doing assessed work for them. Keep brief continuity notes so the next tutor can pick up support cleanly.`, bullets: ["Meet the group during the first week and agree how and when you are available.", "Guide assignments by clarifying concepts, breaking down problems, and checking reasoning.", "Watch for uneven participation, students falling behind, language barriers, or tension, and escalate concerns early.", "Encourage at least one group meeting each week and join when useful.", "Record concise progress, engagement, and wellbeing notes for the handover to the next block tutor.", "Attend Monday and Thursday tutor stand-ups and the twice-monthly research progress meetings."], source: "MathEpi Tutorial Fellow orientation and live group rotation", action: ["groups", "Open Study Groups"] };
+}
+
 async function piRespond(question) {
   const engine = piEngine();
   const q = engine.normalize(question);
 
   const sensitive = engine.detectSensitive(question);
   if (sensitive) return piSensitiveAnswer(sensitive.kind);
+
+  const tutorOperational = piTutorOperationalAnswer(question);
+  if (tutorOperational) return tutorOperational;
 
   if (/\b(guide me|how do i use|what is this tab|explain this tab|walk me through)\b/.test(q)) {
     const guide = TAB_GUIDES[state.view] || TAB_GUIDES.dashboard;
@@ -5673,7 +5779,11 @@ function renderDashboard() {
               <p>Coordinate blocks, lecturers, tutors, course data, contacts, Drive documents, and Google Sheets-backed operations from one responsive command centre.</p>
             </div>
             <div class="hero-actions">
-              <button class="button primary" onclick="setView('contact')">${icon("mail", 18)}Review follow-ups</button>
+              ${canView("contact")
+                ? `<button class="button primary" onclick="setView('contact')">${icon("mail", 18)}Review follow-ups</button>`
+                : canView("groups")
+                  ? `<button class="button primary" onclick="setView('groups')">${icon("group", 18)}Open my working group</button>`
+                  : ""}
               <button class="button ghost" onclick="setView('calendar')">${icon("calendar", 18)}Open timetable</button>
             </div>
           </div>
@@ -6777,31 +6887,41 @@ function renderStudents() {
   `;
 }
 
+function renderRecruitment() {
+  const modules = [
+    { id: "cfa", title: "Calls for applications", text: "Open, close, and monitor approved recruitment calls.", icon: "megaphone" },
+    { id: "lecturer-reviews", title: "Lecturer selection", text: "Review lecturer applications and confirmed course recommendations.", icon: "graduation" },
+    { id: "tf-reviews", title: "Tutorial Fellow selection", text: "Complete panel scoring, comments, recommendations, and staged decisions.", icon: "shield" },
+  ].filter((item) => canView(item.id));
+  return `<div class="view"><section class="section-heading"><div><span class="mission-eyebrow">${icon("users", 16)} Recruitment</span><h2>Recruitment workspace</h2><p>Calls, lecturer selection, and Tutorial Fellow reviews are grouped here. Access remains limited by your approved role.</p></div></section><div class="recruitment-grid">${modules.map((item) => `<button class="recruitment-module" onclick="setView('${item.id}')"><span class="icon-box blue">${icon(item.icon, 21)}</span><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.text)}</small></span>${icon("chevron-right", 18)}</button>`).join("")}</div></div>`;
+}
+
+function setPeopleKind(kind) {
+  state.peopleKind = kind === "Tutor" ? "Tutor" : "Lecturer";
+  render();
+}
+
 function renderPeople() {
+  const kind = state.peopleKind === "Tutor" ? "Tutor" : "Lecturer";
+  const lecturers = filteredPeople("Lecturer");
+  const tutors = filteredPeople("Tutor");
+  const visible = kind === "Tutor" ? tutors : lecturers;
   return `
-    <div class="view section-grid">
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <h2>Lecturers</h2>
-            <p>Confirmation, expertise, contact data, and workload.</p>
-          </div>
-          ${canEdit() ? `<button class="button primary" onclick="openDrawer('personForm', {kind:'Lecturer'})">${icon("plus", 17)}Lecturer</button>` : ""}
-        </div>
-        <div class="card-body people-list">
-          ${filteredPeople("Lecturer").map(renderPersonRow).join("") || `<div class="empty">No lecturer matches your search.</div>`}
-        </div>
+    <div class="view">
+      <div class="people-kind-tabs" role="tablist" aria-label="Teaching team type">
+        <button class="${kind === "Lecturer" ? "active" : ""}" role="tab" aria-selected="${kind === "Lecturer"}" onclick="setPeopleKind('Lecturer')">${icon("graduation", 19)}<span>Lecturers</span><strong>${lecturers.length}</strong></button>
+        <button class="${kind === "Tutor" ? "active" : ""}" role="tab" aria-selected="${kind === "Tutor"}" onclick="setPeopleKind('Tutor')">${icon("users", 19)}<span>Tutors</span><strong>${tutors.length}</strong></button>
       </div>
-      <div class="card">
+      <div class="card people-kind-card">
         <div class="card-header">
           <div>
-            <h2>Tutors</h2>
-            <p>Coverage and tutorial readiness.</p>
+            <h2>${kind}s</h2>
+            <p>${kind === "Tutor" ? "Working-group rotation, tutorial readiness, assigned courses, and contact details." : "Confirmation, expertise, contact data, and assigned-course workload."}</p>
           </div>
-          ${canEdit() ? `<button class="button soft" onclick="openDrawer('personForm', {kind:'Tutor'})">${icon("plus", 17)}Tutor</button>` : ""}
+          ${canEdit() ? `<button class="button primary" onclick="openDrawer('personForm', {kind:'${kind}'})">${icon("plus", 17)}${kind}</button>` : ""}
         </div>
         <div class="card-body people-list">
-          ${filteredPeople("Tutor").map(renderPersonRow).join("") || `<div class="empty">No tutor matches your search.</div>`}
+          ${visible.map(renderPersonRow).join("") || `<div class="empty">No ${kind.toLowerCase()} matches your search.</div>`}
         </div>
       </div>
     </div>
@@ -8122,6 +8242,9 @@ function parseJson(value, fallback) {
 function renderPersonRow(item) {
   const assigned = assignedCourses(item.id);
   const sensitive = canSeeSensitive();
+  const tutorGroups = item.kind === "Tutor"
+    ? state.studyGroups.filter((group) => currentGroupTutor(group).toLowerCase() === String(item.name || "").toLowerCase())
+    : [];
   return `
     <article class="person-row">
       <div class="profile-head">
@@ -8132,6 +8255,7 @@ function renderPersonRow(item) {
           <div class="row-tags">
             ${personStatusBadge(item)}
             <span class="chip gray">${assigned.length} course${assigned.length === 1 ? "" : "s"}</span>
+            ${tutorGroups.map((group) => `<span class="chip teal">Block ${activeTeachingBlockNumber()} · Group ${group.groupNumber}</span>`).join("")}
             ${sensitive ? `<span class="chip blue">${item.email}</span>` : `<span class="chip gray">contact hidden</span>`}
           </div>
         </div>
@@ -8218,8 +8342,8 @@ function renderContact() {
 
 function renderTimesheets() {
   const rows = visibleTimesheets();
-  const tutor = person(currentTutorId());
-  const canLog = state.role === "tutor" || canEdit();
+  const tutor = currentTutorRecord();
+  const canLog = (state.role === "tutor" && !!tutor) || canEdit();
   const assignmentPanel =
     state.role === "tutor"
       ? renderTutorAssignments(tutor)
@@ -8277,6 +8401,9 @@ function renderTimesheets() {
 }
 
 function renderTutorAssignments(tutor) {
+  if (!tutor) {
+    return `<div class="card"><div class="card-header"><div><h2>My Assigned Work</h2><p>Your approved account is not yet linked to a tutor profile.</p></div><span class="badge gold">Profile link required</span></div><div class="card-body"><div class="priority"><span class="icon-box gold">${icon("alert", 18)}</span><div><strong>Ask the programme team to link your email</strong><span>Your timesheet remains available, but personal course and group assignments cannot be shown until the same email is recorded on your tutor profile.</span></div></div></div></div>`;
+  }
   const assigned = assignedCourses(tutor.id);
   const total = tutorHours(tutor.id);
   const balance = balanceLabel(total);
@@ -8921,13 +9048,16 @@ function renderStudyGroups() {
 function renderStudyGroupCard(group) {
   const members = acceptedGroupMembers(group.id);
   const deadline = daysUntil(group.namingDeadline);
+  const tutorName = currentGroupTutor(group);
+  const tutor = state.people.find((item) => item.kind === "Tutor" && String(item.name || "").toLowerCase() === tutorName.toLowerCase());
+  const tutorContact = tutor?.email ? `<a href="mailto:${escapeHtml(tutor.email)}" onclick="event.stopPropagation()">${escapeHtml(tutorName)}</a>` : escapeHtml(tutorName);
   return `
-    <article class="group-card">
+    <article class="group-card clickable" onclick="openDrawer('studyGroup', '${group.id}')" tabindex="0" onkeydown="if(event.key==='Enter') openDrawer('studyGroup', '${group.id}')">
       <div class="group-main">
         <span class="icon-box blue">${group.groupNumber}</span>
         <div>
           <h4>${group.chosenName || group.name}</h4>
-          <p><strong>Current tutor:</strong> ${currentGroupTutor(group)} &middot; <strong>Next:</strong> ${nextGroupTutor(group)}</p>
+          <p><strong>Current tutor:</strong> ${tutorContact} &middot; <strong>Next:</strong> ${escapeHtml(nextGroupTutor(group))}</p>
           <div class="group-member-list">${members.map((id) => `<span class="chip gray">${escapeHtml(studentName(id))}</span>`).join("")}</div>
           <div class="row-tags">
             <span class="badge green">${members.length} members</span>
@@ -8936,7 +9066,7 @@ function renderStudyGroupCard(group) {
           </div>
         </div>
       </div>
-      <span class="badge gray">Membership locked</span>
+      <span class="badge gray">Open group ${icon("chevron-right", 14)}</span>
     </article>
   `;
 }
@@ -9379,6 +9509,7 @@ function renderDrawer() {
   if (type === "tfReviewAudit") content = tfReviewAuditDrawer(payload);
   if (type === "install") content = installAppDrawer();
   if (type === "notifications") content = notificationsDrawer();
+  if (type === "mobileNavSettings") content = mobileNavSettingsDrawer();
   return `<div class="drawer-backdrop" onclick="if(event.target.classList.contains('drawer-backdrop')) closeDrawer()">${content}</div>`;
 }
 
