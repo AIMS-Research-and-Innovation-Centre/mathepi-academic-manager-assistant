@@ -4033,8 +4033,33 @@ function setView(view) {
 }
 
 function toggleMobileMenu(force) {
-  state.mobileMenuOpen = typeof force === "boolean" ? force : !state.mobileMenuOpen;
+  const opening = typeof force === "boolean" ? force : !state.mobileMenuOpen;
+  if (opening && !state.mobileMenuOpen) history.pushState({ ...(history.state || {}), mobileMenu: true }, "", window.location.href);
+  state.mobileMenuOpen = opening;
   render();
+  window.requestAnimationFrame(() => {
+    if (opening) document.querySelector(".mobile-more-close")?.focus();
+    else document.querySelector("#mobileMoreButton")?.focus();
+  });
+}
+
+function closeMobileMenu() {
+  if (!state.mobileMenuOpen) return;
+  state.mobileMenuOpen = false;
+  render();
+  if (history.state?.mobileMenu) history.back();
+  window.requestAnimationFrame(() => document.querySelector("#mobileMoreButton")?.focus());
+}
+
+let mobileMenuTouchStartY = 0;
+
+function mobileMenuTouchStart(event) {
+  mobileMenuTouchStartY = event.touches?.[0]?.clientY || 0;
+}
+
+function mobileMenuTouchEnd(event) {
+  const endY = event.changedTouches?.[0]?.clientY || 0;
+  if (endY - mobileMenuTouchStartY > 80) closeMobileMenu();
 }
 
 function openDrawer(type, payload = null) {
@@ -4280,16 +4305,6 @@ function renderRoleControl() {
   `;
 }
 
-function renderMobileSessionControl() {
-  if (roleSimulationAllowed()) return "";
-  const auth = authState();
-  const account = auth.user?.email || portalAccess?.email || "Signed-in account";
-  return `<div class="mobile-session-control">
-    <span><small>Signed in as</small><strong>${escapeHtml(account)}</strong></span>
-    <button onclick="authSignOut()" aria-label="Sign out of MathEpi">${icon("x", 16)}<span>Sign out</span></button>
-  </div>`;
-}
-
 function authGateLayout() {
   const googleAuth = window.mathepiAuth || { status: "unconfigured", user: null, error: null };
   const googlePending = portalAccess?.status === "pending";
@@ -4375,7 +4390,7 @@ function appLayout() {
   const viewMeta = NAV.find((item) => item.id === state.view) || NAV[0];
   return `
     <div class="app-shell">
-      <aside class="sidebar ${state.mobileMenuOpen ? "mobile-open" : ""}" aria-label="Application navigation">
+      <aside class="sidebar" aria-label="Application navigation">
         <div class="brand-panel">
           <div class="logo-lockup">
             <img src="assets/aims-ric-logo.png" alt="AIMS Research & Innovation Centre logo" />
@@ -4389,7 +4404,6 @@ function appLayout() {
             <div class="pulse-top"><span>Operations pulse</span><span class="pulse-dot"></span></div>
             <p class="pulse-copy">${rolePulsePrefix()} ${programmePulse()}</p>
           </div>
-          ${renderMobileSessionControl()}
         </div>
         <nav class="nav">
           ${nav
@@ -4406,7 +4420,6 @@ function appLayout() {
         </nav>
         ${renderRoleControl()}
       </aside>
-      ${state.mobileMenuOpen ? `<button class="mobile-drawer-backdrop" onclick="toggleMobileMenu(false)" aria-label="Close navigation"></button>` : ""}
       <section class="content">
         <header class="topbar">
           <button class="mobile-menu-button" onclick="toggleMobileMenu(true)" aria-label="Open navigation">${icon("menu", 22)}</button>
@@ -4431,6 +4444,7 @@ function appLayout() {
     </div>
     ${renderPiWidget()}
     ${mobileNav(nav)}
+    ${mobileMoreSheet(nav)}
     ${state.drawer ? renderDrawer() : ""}
     ${navigator.onLine ? "" : `<div class="connection-banner" role="status">${icon("cloud", 17)} Offline. Live changes will not save until the connection returns.</div>`}
     ${state.toast ? `<div class="toast" role="status" aria-live="polite">${icon("check", 18)}${escapeHtml(state.toast)}</div>` : ""}
@@ -4438,18 +4452,7 @@ function appLayout() {
 }
 
 function mobileNav(nav) {
-  const priorityIds =
-    isStudentRole()
-      ? ["dashboard", "planner", "groups", "calendar"]
-      : state.role === "reviewer"
-        ? ["dashboard", "tf-reviews", "calendar", "appointments"]
-        : canView("tf-reviews")
-          ? ["dashboard", "calendar", "lecturer-reviews", "tf-reviews"]
-          : ["dashboard", "calendar", "courses", "groups"];
-  const priority = priorityIds.map((id) => nav.find((item) => item.id === id)).filter(Boolean);
-  const first = priority.length >= 4 ? priority.slice(0, 4) : nav.slice(0, 4);
-  const active = nav.find((item) => item.id === state.view);
-  const mobile = active && !first.some((item) => item.id === active.id) ? [...first.slice(0, 3), active] : first;
+  const mobile = mobilePrimaryItems(nav);
   return `
     <nav class="mobile-bottom-nav" aria-label="Primary mobile navigation">
       ${mobile
@@ -4462,11 +4465,80 @@ function mobileNav(nav) {
         `,
         )
         .join("")}
-      <button onclick="toggleMobileMenu(true)" aria-label="Open all sections">
+      <button id="mobileMoreButton" onclick="toggleMobileMenu(true)" aria-label="Open all sections" aria-expanded="${state.mobileMenuOpen}">
         ${icon("more", 21)}
         <span>More</span>
       </button>
     </nav>
+  `;
+}
+
+function mobilePrimaryItems(nav) {
+  const priorityIds =
+    isStudentRole()
+      ? ["dashboard", "planner", "groups", "calendar"]
+      : state.role === "reviewer"
+        ? ["dashboard", "tf-reviews", "calendar", "appointments"]
+        : canView("tf-reviews")
+          ? ["dashboard", "calendar", "lecturer-reviews", "tf-reviews"]
+          : ["dashboard", "calendar", "courses", "groups"];
+  const priority = priorityIds.map((id) => nav.find((item) => item.id === id)).filter(Boolean);
+  const first = priority.length >= 4 ? priority.slice(0, 4) : nav.slice(0, 4);
+  const active = nav.find((item) => item.id === state.view);
+  return active && !first.some((item) => item.id === active.id) ? [...first.slice(0, 3), active] : first;
+}
+
+function mobileMoreSheet(nav) {
+  if (!state.mobileMenuOpen) return "";
+  const primaryIds = new Set(mobilePrimaryItems(nav).map((item) => item.id));
+  const groupDefinitions = [
+    ["Academic", ["calendar", "courses", "planner", "groups"]],
+    ["People", ["people", "students", "contact"]],
+    ["Operations", ["appointments", "tasks", "timesheets", "support"]],
+    ["Selection", ["cfa", "lecturer-reviews", "tf-reviews"]],
+    ["System", ["google", "access"]],
+  ];
+  const groupedIds = new Set(groupDefinitions.flatMap(([, ids]) => ids));
+  const groups = groupDefinitions
+    .map(([label, ids]) => [label, ids.filter((id) => !primaryIds.has(id)).map((id) => nav.find((item) => item.id === id)).filter(Boolean)])
+    .filter(([, items]) => items.length);
+  const other = nav.filter((item) => item.id !== "dashboard" && !primaryIds.has(item.id) && !groupedIds.has(item.id));
+  if (other.length) groups.push(["Other", other]);
+  const auth = authState();
+  const email = auth.user?.email || portalAccess?.email || "Signed-in account";
+  const displayName = portalAccess?.name || auth.user?.displayName || email.split("@")[0].replace(/[._-]+/g, " ");
+  const initials = displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "M";
+  const grantedRoles = Array.isArray(auth.user?.roles) ? auth.user.roles.filter((role) => ROLES[role]) : [];
+  return `
+    <button class="mobile-more-backdrop" onclick="closeMobileMenu()" aria-label="Close More menu"></button>
+    <section class="mobile-more-sheet" role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle" ontouchstart="mobileMenuTouchStart(event)" ontouchend="mobileMenuTouchEnd(event)">
+      <div class="mobile-more-handle" aria-hidden="true"></div>
+      <header class="mobile-more-header">
+        <div class="mobile-account-avatar">${escapeHtml(initials)}</div>
+        <div class="mobile-account-copy">
+          <h2 id="mobileMoreTitle">${escapeHtml(displayName)}</h2>
+          <p>${escapeHtml(email)}</p>
+          <span>${escapeHtml(roleDef().label)}</span>
+        </div>
+        ${roleSimulationAllowed() ? "" : `<button class="mobile-signout-icon" onclick="authSignOut()" aria-label="Sign out" title="Sign out">${icon("x", 18)}</button>`}
+        <button class="mobile-more-close" onclick="closeMobileMenu()" aria-label="Close menu">${icon("x", 20)}</button>
+      </header>
+      <div class="mobile-more-body">
+        ${groups.map(([label, items]) => `
+          <section class="mobile-more-group">
+            <h3>${escapeHtml(label)}</h3>
+            <div class="mobile-more-links">
+              ${items.map((item) => `<button class="${state.view === item.id ? "active" : ""}" onclick="setView('${item.id}')">${icon(item.icon, 19)}<span>${escapeHtml(item.label)}</span>${icon("chevron-right", 16)}</button>`).join("")}
+            </div>
+          </section>
+        `).join("")}
+      </div>
+      <footer class="mobile-more-footer">
+        ${roleSimulationAllowed() ? `<label>Preview role<select onchange="setRole(this.value)">${Object.entries(ROLES).map(([id, role]) => `<option value="${id}" ${state.role === id ? "selected" : ""}>${escapeHtml(role.label)}</option>`).join("")}</select></label>` : grantedRoles.length > 1 ? `<label>Active role<select onchange="switchAuthenticatedRole(this.value)">${grantedRoles.map((role) => `<option value="${role}" ${state.role === role ? "selected" : ""}>${escapeHtml(ROLES[role].label)}</option>`).join("")}</select></label>` : ""}
+        <button onclick="installMathEpiApp()">${icon("install", 17)}Install app</button>
+        ${roleSimulationAllowed() ? "" : `<button class="danger" onclick="authSignOut()">${icon("x", 17)}Sign out</button>`}
+      </footer>
+    </section>
   `;
 }
 
@@ -10689,6 +10761,35 @@ window.addEventListener("appinstalled", () => {
 });
 window.addEventListener("online", () => { toast("Connection restored. Live data is available again."); render(); });
 window.addEventListener("offline", () => render());
+
+window.addEventListener("popstate", () => {
+  if (!state.mobileMenuOpen) return;
+  state.mobileMenuOpen = false;
+  render();
+  window.requestAnimationFrame(() => document.querySelector("#mobileMoreButton")?.focus());
+});
+
+window.addEventListener("keydown", (event) => {
+  if (!state.mobileMenuOpen) return;
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeMobileMenu();
+    return;
+  }
+  if (event.key !== "Tab") return;
+  const sheet = document.querySelector(".mobile-more-sheet");
+  const focusable = [...(sheet?.querySelectorAll('button:not([disabled]), select:not([disabled]), [href], [tabindex]:not([tabindex="-1"])') || [])];
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+});
 
 window.addEventListener("hashchange", () => {
   const nextView = window.location.hash ? window.location.hash.slice(1) : "dashboard";
