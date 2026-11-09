@@ -14,14 +14,14 @@ const PORTAL_ROLE_PERMISSIONS = {
 };
 
 const PORTAL_ROLE_VIEWS = {
-  "super-admin": ["dashboard", "calendar", "planner", "groups", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "support", "contact", "timesheets", "tasks", "google", "access"],
-  manager: ["dashboard", "calendar", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
+  "super-admin": ["dashboard", "calendar", "planner", "groups", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "leave", "support", "contact", "timesheets", "tasks", "google", "access"],
+  manager: ["dashboard", "calendar", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "leave", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
   reviewer: ["dashboard", "tf-reviews"],
-  "centre-coordinator": ["dashboard", "calendar", "courses", "people", "appointments", "tasks"],
+  "centre-coordinator": ["dashboard", "calendar", "courses", "people", "appointments", "leave", "tasks"],
   "head-tutor": ["dashboard", "calendar", "courses", "people", "students", "appointments", "groups", "timesheets", "tasks"],
   lecturer: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "contact"],
   tutor: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "timesheets", "tasks"],
-  student: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
+  student: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "leave", "support"],
   "aims-ric-support": ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
   "support-counsellor": ["dashboard", "appointments", "support"],
   "it-support": ["dashboard", "appointments", "support", "tasks"],
@@ -49,6 +49,7 @@ const PORTAL_DATASET_POLICY = {
   Appointments: ["workspace.write", "records.read-own", "staffing.read", "support.read-assigned", "it.read-assigned"],
   Availability: ["workspace.write", "records.read-own", "staffing.read"],
   SupportRequests: ["workspace.write", "records.read-own", "support.read-all", "support.read-assigned"],
+  LeaveRequests: ["workspace.write", "records.read-own", "staffing.read"],
   ItTickets: ["workspace.write", "records.read-own", "it.read-assigned"],
   TicketHistory: ["workspace.write", "records.read-own", "it.read-assigned"],
   Notifications: ["workspace.write", "records.read-own"],
@@ -132,7 +133,7 @@ function filterDatasetRowsForSession_(tab, rows, context) {
   }
   const publicTabs = ["CalendarBlocks", "Courses", "Sessions"];
   if (publicTabs.indexOf(tab) >= 0) return rows;
-  if (portalHasPermission_(context, "staffing.read") && ["Timesheets", "Tasks", "Appointments", "Availability"].indexOf(tab) >= 0) return rows;
+  if (portalHasPermission_(context, "staffing.read") && ["Timesheets", "Tasks", "Appointments", "Availability", "LeaveRequests"].indexOf(tab) >= 0) return rows;
   return rows.filter(function (row) { return recordBelongsToSession_(row, context.email); });
 }
 

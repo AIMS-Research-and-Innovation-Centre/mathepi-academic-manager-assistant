@@ -30,10 +30,12 @@ const DATASET_TABS = [
   "StudyGroupInvitations",
   "StudyGroupActivities",
   "StudyGroupMeetings",
+  "TutorStandups",
   "StudyGroupTaskAssignments",
   "Appointments",
   "Availability",
   "SupportRequests",
+  "LeaveRequests",
   "ItTickets",
   "TicketHistory",
   "Notifications",
@@ -151,6 +153,9 @@ function apiPost(request) {
   if (action === "updateItTicket") return updateItTicket(payload);
   if (action === "listNotifications") return listNotifications(payload);
   if (action === "markNotificationRead") return markNotificationRead(payload);
+  if (action === "createLeaveRequest") return createLeaveRequest(payload);
+  if (action === "decideLeaveRequest") return decideLeaveRequest(payload);
+  if (action === "withdrawLeaveRequest") return withdrawLeaveRequest(payload);
   if (action === "piSubmitQuestion") return piSubmitQuestion(payload);
   if (action === "piListQuestions") return piListQuestions(payload);
   if (action === "piAnswerQuestion") return piAnswerQuestion(payload);
@@ -1957,11 +1962,13 @@ function syncProgrammeCalendarData(datasets, spreadsheet) {
     Courses: readJsonRecords(getSheet(spreadsheet, "Courses")),
     Sessions: readJsonRecords(getSheet(spreadsheet, "Sessions")),
     StudyGroupMeetings: readJsonRecords(getSheet(spreadsheet, "StudyGroupMeetings")),
+    TutorStandups: readJsonRecords(getSheet(spreadsheet, "TutorStandups")),
   };
   const blocks = data.CalendarBlocks || [];
   const courses = data.Courses || [];
   const sessions = data.Sessions || [];
   const groupMeetings = data.StudyGroupMeetings || [];
+  const tutorStandups = data.TutorStandups || [];
   if (!blocks.length || !courses.length) throw new Error("Calendar blocks and courses must be synced before creating Google Calendar events.");
 
   const calendar = getOrCreateProgrammeCalendar();
@@ -1969,7 +1976,7 @@ function syncProgrammeCalendarData(datasets, spreadsheet) {
   const ledgerSheet = getSheet(spreadsheet, "CalendarSyncEvents");
   ensureSheetHeaders(ledgerSheet, TAB_HEADERS.CalendarSyncEvents);
   const existing = readCalendarSyncLedger(ledgerSheet);
-  const desired = buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings);
+  const desired = buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings, tutorStandups);
   clearProgrammeCalendarEvents_(calendar);
   const retained = {};
   let created = 0;
@@ -2056,7 +2063,7 @@ const PROGRAMME_COURSE_DELIVERY_WINDOWS = {
   MES03: { start: "2026-11-16", end: "2026-11-27" },
 };
 
-function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings) {
+function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings, tutorStandups) {
   const blockMap = {};
   const courseMap = {};
   blocks.forEach((block) => { blockMap[String(block.id || block.block_id || "")] = block; });
@@ -2130,6 +2137,29 @@ function buildProgrammeCalendarEvents(blocks, courses, sessions, groupMeetings) 
     };
     item.fingerprint = programmeCalendarFingerprint(item);
     events.push(item);
+  });
+  (tutorStandups || []).filter((series) => series.time && series.status !== "Cancelled" && series.status !== "Awaiting time confirmation").forEach((series) => {
+    const weekdays = Array.isArray(series.weekdays) ? series.weekdays : String(series.weekdays || "").split(",").map(function (day) { return day.trim(); }).filter(Boolean);
+    blocks.filter(function (block) { return block.kind === "teaching" && block.start && block.end; }).forEach(function (block) {
+      weekdays.forEach(function (weekday) {
+        datesForWeekday(block.start, block.end, weekday).forEach(function (date) {
+          const start = dateAtTime(date, series.time);
+          const end = new Date(start.getTime() + Number(series.durationMinutes || 15) * 60 * 1000);
+          const item = {
+            sync_key: "tutor-standup::" + String(series.id || "series") + "::" + formatProgrammeDate(date),
+            title: series.title || "MathEpi tutor stand-up",
+            start: start,
+            end: end,
+            location: series.location || "",
+            description: [series.agenda || "", "Tutor coordination meeting for the active teaching block.", "Synced automatically from the MathEpi Academic Manager."].filter(Boolean).join("\n\n"),
+            event_date: formatProgrammeDate(date),
+            all_day: false,
+          };
+          item.fingerprint = programmeCalendarFingerprint(item);
+          events.push(item);
+        });
+      });
+    });
   });
   return events;
 }
@@ -2625,14 +2655,14 @@ const PORTAL_ROLE_PERMISSIONS = {
 };
 
 const PORTAL_ROLE_VIEWS = {
-  "super-admin": ["dashboard", "calendar", "planner", "groups", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "support", "contact", "timesheets", "tasks", "google", "access"],
-  manager: ["dashboard", "calendar", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
+  "super-admin": ["dashboard", "calendar", "planner", "groups", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "leave", "support", "contact", "timesheets", "tasks", "google", "access"],
+  manager: ["dashboard", "calendar", "courses", "people", "students", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "leave", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
   reviewer: ["dashboard", "tf-reviews"],
-  "centre-coordinator": ["dashboard", "calendar", "courses", "people", "appointments", "tasks"],
+  "centre-coordinator": ["dashboard", "calendar", "courses", "people", "appointments", "leave", "tasks"],
   "head-tutor": ["dashboard", "calendar", "courses", "people", "students", "appointments", "groups", "timesheets", "tasks"],
   lecturer: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "contact"],
   tutor: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "timesheets", "tasks"],
-  student: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
+  student: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "leave", "support"],
   "aims-ric-support": ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
   "support-counsellor": ["dashboard", "appointments", "support"],
   "it-support": ["dashboard", "appointments", "support", "tasks"],
@@ -2655,10 +2685,12 @@ const PORTAL_DATASET_POLICY = {
   StudyGroupInvitations: ["workspace.write", "records.read-own"],
   StudyGroupActivities: ["workspace.write", "records.read-own"],
   StudyGroupMeetings: ["workspace.write", "records.read-own"],
+  TutorStandups: ["workspace.write", "records.read-own", "staffing.read"],
   StudyGroupTaskAssignments: ["workspace.write", "records.read-own"],
   Appointments: ["workspace.write", "records.read-own", "staffing.read", "support.read-assigned", "it.read-assigned"],
   Availability: ["workspace.write", "records.read-own", "staffing.read"],
   SupportRequests: ["workspace.write", "records.read-own", "support.read-all", "support.read-assigned"],
+  LeaveRequests: ["workspace.write", "records.read-own", "staffing.read"],
   ItTickets: ["workspace.write", "records.read-own", "it.read-assigned"],
   TicketHistory: ["workspace.write", "records.read-own", "it.read-assigned"],
   Notifications: ["workspace.write", "records.read-own"],
@@ -2742,7 +2774,7 @@ function filterDatasetRowsForSession_(tab, rows, context) {
   }
   const publicTabs = ["CalendarBlocks", "Courses", "Sessions"];
   if (publicTabs.indexOf(tab) >= 0) return rows;
-  if (portalHasPermission_(context, "staffing.read") && ["Timesheets", "Tasks", "Appointments", "Availability"].indexOf(tab) >= 0) return rows;
+  if (portalHasPermission_(context, "staffing.read") && ["Timesheets", "Tasks", "Appointments", "Availability", "LeaveRequests"].indexOf(tab) >= 0) return rows;
   return rows.filter(function (row) { return recordBelongsToSession_(row, context.email); });
 }
 
@@ -2780,4 +2812,172 @@ function revokePortalSession(payload) {
   const session = portalRequireSession_(payload && payload.token, false);
   portalRevokeSessionsForEmail_(session.email);
   return { ok: true };
+}
+
+function leaveRequestRoles_(context) {
+  return (context && context.roles) || [];
+}
+
+function leaveHasRole_(context, allowed) {
+  return leaveRequestRoles_(context).some(function (role) { return allowed.indexOf(role) >= 0; });
+}
+
+function leaveText_(value, maximum) {
+  return String(value || "").trim().slice(0, maximum || 1000);
+}
+
+function leaveIsoDate_(value, label) {
+  const text = leaveText_(value, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text) || isNaN(new Date(text + "T12:00:00Z").getTime())) throw new Error(label + " is invalid.");
+  return text;
+}
+
+function leaveStudentName_(spreadsheet, email) {
+  const rows = readJsonRecords(getSheet(spreadsheet, "Students"));
+  const match = rows.filter(function (row) { return normalizeEmailAddress(row.email) === normalizeEmailAddress(email); })[0];
+  return match && match.name ? String(match.name) : email;
+}
+
+function leaveAppend_(sheet, record) {
+  sheet.appendRow([record.id, JSON.stringify(record), new Date().toISOString()]);
+}
+
+function leaveNotify_(spreadsheet, recipientEmail, recipientRole, title, message, leaveId) {
+  const notification = {
+    id: "leave-note-" + Utilities.getUuid(),
+    notification_id: "leave-note-" + Utilities.getUuid(),
+    recipient_email: recipientEmail || "",
+    recipient_role: recipientRole || "",
+    title: title,
+    message: message,
+    type: "info",
+    ticket_id: leaveId,
+    read: false,
+    created_at: new Date().toISOString(),
+  };
+  leaveAppend_(getSheet(spreadsheet, "Notifications"), notification);
+}
+
+function createLeaveRequest(payload) {
+  const context = portalSessionContext_(payload && payload.token);
+  if (!leaveHasRole_(context, ["student"])) throw new Error("Only a signed-in student can submit a leave request.");
+  const input = (payload && payload.request) || {};
+  const startDate = leaveIsoDate_(input.startDate, "First day");
+  const endDate = leaveIsoDate_(input.endDate, "Last day");
+  if (endDate < startDate) throw new Error("The last day cannot be before the first day.");
+  const dayPortion = leaveText_(input.dayPortion, 30);
+  if (["Whole day", "Morning only", "Afternoon only"].indexOf(dayPortion) < 0) throw new Error("Choose a valid absence period.");
+  const reasonCategory = leaveText_(input.reasonCategory, 80);
+  const reasonDetails = leaveText_(input.reasonDetails, 1200);
+  const continuityPlan = leaveText_(input.continuityPlan, 1000);
+  if (!reasonCategory || reasonDetails.length < 10 || continuityPlan.length < 10) throw new Error("Provide a reason and a learning continuity plan.");
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const spreadsheet = getOrCreateSpreadsheet();
+    ensureSheets(spreadsheet);
+    const sheet = getSheet(spreadsheet, "LeaveRequests");
+    const sequence = sheet.getLastRow();
+    const now = new Date().toISOString();
+    const record = {
+      id: "leave-" + Utilities.getUuid(),
+      reference: "LV-" + new Date().getFullYear() + "-" + String(sequence).padStart(4, "0"),
+      requester_email: context.email,
+      studentName: leaveStudentName_(spreadsheet, context.email),
+      startDate: startDate,
+      endDate: endDate,
+      dayPortion: dayPortion,
+      reasonCategory: reasonCategory,
+      reasonDetails: reasonDetails,
+      continuityPlan: continuityPlan,
+      contactDuringLeave: leaveText_(input.contactDuringLeave, 160),
+      status: "Pending coordinator review",
+      coordinatorDecision: "",
+      coordinatorComment: "",
+      coordinatorBy: "",
+      coordinatorAt: "",
+      managerDecision: "",
+      managerComment: "",
+      managerBy: "",
+      managerAt: "",
+      submittedAt: now,
+      updatedAt: now,
+    };
+    leaveAppend_(sheet, record);
+    leaveNotify_(spreadsheet, "", "centre-coordinator", "Leave request awaiting review", record.studentName + " submitted " + record.reference + ".", record.id);
+    return { ok: true, request: record };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function decideLeaveRequest(payload) {
+  const context = portalSessionContext_(payload && payload.token);
+  const stage = leaveText_(payload && payload.stage, 20);
+  const allowedRoles = stage === "manager" ? ["manager", "super-admin"] : ["centre-coordinator", "super-admin"];
+  if (!leaveHasRole_(context, allowedRoles)) throw new Error("Your assigned role cannot make this leave decision.");
+  const decision = leaveText_(payload && payload.decision, 40);
+  if (["Approved", "Returned for changes", "Rejected"].indexOf(decision) < 0) throw new Error("Choose a valid decision.");
+  const comment = leaveText_(payload && payload.comment, 800);
+  if (!comment) throw new Error("Add a concise decision note.");
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const spreadsheet = getOrCreateSpreadsheet();
+    const sheet = getSheet(spreadsheet, "LeaveRequests");
+    const rows = readJsonRecords(sheet);
+    const index = rows.findIndex(function (row) { return row.id === payload.id; });
+    if (index < 0) throw new Error("Leave request not found.");
+    const record = rows[index];
+    const now = new Date().toISOString();
+    if (stage === "coordinator") {
+      if (record.status !== "Pending coordinator review") throw new Error("This request is no longer awaiting coordinator review.");
+      record.coordinatorDecision = decision;
+      record.coordinatorComment = comment;
+      record.coordinatorBy = context.email;
+      record.coordinatorAt = now;
+      record.status = decision === "Approved" ? "Pending Academic Manager approval" : decision;
+      if (decision === "Approved") leaveNotify_(spreadsheet, "", "manager", "Leave request awaiting final approval", record.studentName + " · " + record.reference, record.id);
+    } else {
+      if (record.status !== "Pending Academic Manager approval") throw new Error("This request is not ready for final approval.");
+      record.managerDecision = decision;
+      record.managerComment = comment;
+      record.managerBy = context.email;
+      record.managerAt = now;
+      record.status = decision;
+    }
+    record.updatedAt = now;
+    rows[index] = record;
+    writeJsonRecords(sheet, rows);
+    leaveNotify_(spreadsheet, record.requester_email, "student", "Leave request updated", record.reference + " is now " + record.status + ".", record.id);
+    return { ok: true, request: record };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function withdrawLeaveRequest(payload) {
+  const context = portalSessionContext_(payload && payload.token);
+  if (!leaveHasRole_(context, ["student"])) throw new Error("Only the requesting student can withdraw this request.");
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const spreadsheet = getOrCreateSpreadsheet();
+    const sheet = getSheet(spreadsheet, "LeaveRequests");
+    const rows = readJsonRecords(sheet);
+    const index = rows.findIndex(function (row) { return row.id === payload.id; });
+    if (index < 0) throw new Error("Leave request not found.");
+    const record = rows[index];
+    if (normalizeEmailAddress(record.requester_email) !== normalizeEmailAddress(context.email)) throw new Error("You can withdraw only your own request.");
+    if (["Approved", "Rejected", "Withdrawn"].indexOf(record.status) >= 0) throw new Error("This request can no longer be withdrawn.");
+    record.status = "Withdrawn";
+    record.updatedAt = new Date().toISOString();
+    rows[index] = record;
+    writeJsonRecords(sheet, rows);
+    return { ok: true, request: record };
+  } finally {
+    lock.releaseLock();
+  }
 }

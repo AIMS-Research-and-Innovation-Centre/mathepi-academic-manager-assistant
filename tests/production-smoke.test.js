@@ -180,3 +180,26 @@ test("Pi community answers are wired and role-gated", () => {
   assert.match(pi, /function piAnswerQuestion[\s\S]*?portalRequireRoles_\(payload\.token, PI_ANSWER_ROLES\)/);
   assert.match(read("sw.js"), /KEEP_CACHES = \["transformers-cache"\]/);
 });
+
+test("student leave requests use a protected two-stage approval workflow", () => {
+  const app = read("app.js");
+  const routes = read("apps-script/paste-small-files/01_Routes.gs");
+  const config = read("apps-script/paste-small-files/00_Config.gs");
+  const authorization = read("apps-script/paste-small-files/15_Authorization.gs");
+  const leave = read("apps-script/paste-small-files/16_LeaveRequests.gs");
+  assert.match(app, /\{ id: "leave", label: "Leave Requests"/);
+  assert.match(app, /Whole day/);
+  assert.match(app, /Morning only/);
+  assert.match(app, /Afternoon only/);
+  assert.match(app, /Pending coordinator review/);
+  assert.match(app, /Pending Academic Manager approval/);
+  assert.match(config, /"LeaveRequests"/);
+  assert.match(authorization, /LeaveRequests: \["workspace.write", "records.read-own", "staffing.read"\]/);
+  for (const action of ["createLeaveRequest", "decideLeaveRequest", "withdrawLeaveRequest"]) {
+    assert.match(routes, new RegExp(`action === "${action}"`));
+  }
+  assert.match(leave, /Only a signed-in student can submit/);
+  assert.match(leave, /\["centre-coordinator", "super-admin"\]/);
+  assert.match(leave, /\["manager", "super-admin"\]/);
+  assert.match(leave, /record\.status = decision === "Approved" \? "Pending Academic Manager approval"/);
+});

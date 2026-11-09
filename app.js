@@ -1917,6 +1917,8 @@ const DEFAULT_SUPPORT_REQUESTS = [
   }
 ];
 
+const DEFAULT_LEAVE_REQUESTS = [];
+
 const DEFAULT_NOTIFICATIONS = [];
 const DEFAULT_STUDY_GROUP_MEETINGS = [];
 
@@ -1940,6 +1942,7 @@ const ROLES = {
       "cfa",
       "lecturer-reviews",
       "appointments",
+      "leave",
       "support",
       "contact",
       "timesheets",
@@ -1954,14 +1957,14 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "students", "recruitment", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
+    views: ["dashboard", "calendar", "courses", "people", "students", "recruitment", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "leave", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
     hint: "Programme coordination, timetable, staffing, appointments, and tasks",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "tasks"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "leave", "tasks"],
   },
   reviewer: {
     label: "TF Reviewer",
@@ -1996,7 +1999,7 @@ const ROLES = {
     hint: "Calendar, courses, teaching teams, planner, and appointment requests",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "support"],
+    views: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "leave", "support"],
   },
   "aims-ric-support": {
     label: "AIMS RIC Support",
@@ -2041,6 +2044,7 @@ const NAV = [
   { id: "lecturer-reviews", label: "Lecturer Review", short: "Lecturers", icon: "graduation", parent: "recruitment" },
   { id: "tf-reviews", label: "TF Reviews", short: "Reviews", icon: "shield", parent: "recruitment" },
   { id: "appointments", label: "Appointments", icon: "appointment" },
+  { id: "leave", label: "Leave Requests", short: "Leave", icon: "calendar" },
   { id: "support", label: "Support & Wellness", short: "Support", icon: "support" },
   { id: "contact", label: "Contact Hub", icon: "mail" },
   { id: "timesheets", label: "Timesheets", icon: "clock" },
@@ -2066,6 +2070,7 @@ const TAB_GUIDES = {
   "lecturer-reviews": { purpose: "Review lecturer applications and record structured decisions.", steps: ["Choose an application from the review list.", "Inspect the application evidence and course fit.", "Save a decision with notes that explain the outcome."] },
   "tf-reviews": { purpose: "Review Tutorial Fellow applications through the staged panel workflow.", steps: ["Filter the applicant funnel by stage, course, or search.", "Review the application and evaluation tabs.", "Record scores, notes, and stage decisions with an audit trail."] },
   appointments: { purpose: "Request, confirm, and track meetings with the programme teaching and support team.", steps: ["Choose who you need to meet and why.", "Select an available date, time, and mode.", "Track the request until it is confirmed or completed."] },
+  leave: { purpose: "Request an authorised absence and follow its coordinator and Academic Manager approvals.", steps: ["Choose the date range and whole-day or half-day period.", "Provide a clear academic or personal reason and continuity plan.", "Submit and monitor both approval stages before treating the absence as authorised."] },
   support: { purpose: "Raise and track academic, wellbeing, logistics, facilities, and IT support requests.", steps: ["Choose the correct support category and urgency.", "Describe the issue without including unnecessary sensitive information.", "Follow the status and assigned handler in this workspace."] },
   contact: { purpose: "Find programme contacts and follow up on people who need a response.", steps: ["Search for a person or filter by contact status.", "Open the contact record for the next follow-up date.", "Use the approved channel recorded for that person."] },
   timesheets: { purpose: "Log and review tutor work, assignments, and workload balance.", steps: ["Open the assigned-work view for your role.", "Add a time entry with the relevant course or task.", "Review balance signals before approving or escalating work."] },
@@ -2343,6 +2348,7 @@ const GOOGLE_DATASETS = [
   ["studyGroupMeetings", "StudyGroupMeetings"],
   ["tutorStandups", "TutorStandups"],
   ["appointments", "Appointments"],
+  ["leaveRequests", "LeaveRequests"],
   ["availability", "Availability"],
   ["supportRequests", "SupportRequests"],
   ["notifications", "Notifications"],
@@ -2684,6 +2690,7 @@ const state = {
   calendarFullBlock: false,
   plannerMode: "week",
   appointmentMode: "mine",
+  leaveFilter: "active",
   blockId: "block-1",
   selected: null,
   drawer: null,
@@ -2754,6 +2761,7 @@ const state = {
   appointments: load("mathepi-appointments", DEFAULT_APPOINTMENTS),
   availability: load("mathepi-availability", DEFAULT_AVAILABILITY),
   supportRequests: load("mathepi-support-requests", DEFAULT_SUPPORT_REQUESTS),
+  leaveRequests: load("mathepi-leave-requests", DEFAULT_LEAVE_REQUESTS),
   notifications: load("mathepi-notifications", DEFAULT_NOTIFICATIONS),
   cfaStatuses: load(CFA_STATUS_KEY, DEFAULT_CFA_STATUS),
 };
@@ -3507,6 +3515,23 @@ function visibleAppointments() {
     });
   }
   return state.appointments.filter((item) => item.requesterId === actor || item.targetId === actor);
+}
+
+function visibleLeaveRequests() {
+  const rows = Array.isArray(state.leaveRequests) ? state.leaveRequests : [];
+  if (["super-admin", "manager", "centre-coordinator"].includes(state.role)) return rows;
+  const email = String(portalAccess?.email || "").toLowerCase();
+  return rows.filter((item) => String(item.requester_email || "").toLowerCase() === email);
+}
+
+function leaveStatusBadge(status) {
+  const color = status === "Approved" ? "green" : ["Rejected", "Withdrawn"].includes(status) ? "danger" : status === "Returned for changes" ? "blue" : "gold";
+  return `<span class="badge ${color}">${escapeHtml(status || "Pending coordinator review")}</span>`;
+}
+
+function leaveDurationLabel(item) {
+  const dates = item.startDate === item.endDate ? dateLabel(item.startDate) : `${dateLabel(item.startDate)} to ${dateLabel(item.endDate)}`;
+  return `${dates} · ${escapeHtml(item.dayPortion || "Whole day")}`;
 }
 
 function visibleAvailability() {
@@ -4310,6 +4335,9 @@ function topbarAction() {
   if (state.view === "appointments" && canCreateAppointment()) {
     return `<button class="button primary" onclick="openDrawer('appointmentForm')">${icon("appointment", 18)}Request</button>`;
   }
+  if (state.view === "leave" && state.role === "student") {
+    return `<button class="button primary" onclick="openDrawer('leaveForm')">${icon("calendar", 18)}Request leave</button>`;
+  }
   if (state.view === "support" && canCreateSupportRequest()) {
     return `<button class="button primary" onclick="openDrawer('supportForm')">${icon("support", 18)}Support</button>`;
   }
@@ -4574,7 +4602,7 @@ function mobileMoreSheet(nav) {
   const groupDefinitions = [
     ["Academic", ["calendar", "courses", "planner", "groups"]],
     ["People", ["people", "students", "contact"]],
-    ["Operations", ["appointments", "tasks", "timesheets", "support"]],
+    ["Operations", ["appointments", "leave", "tasks", "timesheets", "support"]],
     ["Selection", ["cfa", "lecturer-reviews", "tf-reviews"]],
     ["System", ["google", "access"]],
   ];
@@ -4647,6 +4675,8 @@ function renderView() {
       return renderTfReviews();
     case "appointments":
       return renderAppointments();
+    case "leave":
+      return renderLeaveRequests();
     case "support":
       return renderSupport();
     case "contact":
@@ -8843,6 +8873,43 @@ function renderAvailabilitySlot(item) {
   `;
 }
 
+function renderLeaveRequests() {
+  const all = visibleLeaveRequests().slice().sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")));
+  const activeStatuses = ["Pending coordinator review", "Pending Academic Manager approval", "Returned for changes"];
+  const rows = state.leaveFilter === "active" ? all.filter((item) => activeStatuses.includes(item.status)) : state.leaveFilter === "approved" ? all.filter((item) => item.status === "Approved") : all;
+  const canRequest = state.role === "student";
+  return `<div class="view leave-view">
+    <section class="leave-hero">
+      <div><span class="mission-eyebrow">${icon("calendar", 16)} Attendance continuity</span><h2>Student leave requests</h2><p>Request an authorised absence, document how learning will continue, and follow both approval stages in one place.</p></div>
+      ${canRequest ? `<button class="button primary" onclick="openDrawer('leaveForm')">${icon("plus", 17)}New leave request</button>` : `<span class="badge blue">${state.role === "centre-coordinator" ? "Coordinator review" : "Final approval"}</span>`}
+    </section>
+    <section class="leave-metrics">
+      <div><span>Awaiting action</span><strong>${all.filter((item) => activeStatuses.includes(item.status)).length}</strong></div>
+      <div><span>Approved</span><strong>${all.filter((item) => item.status === "Approved").length}</strong></div>
+      <div><span>Total visible</span><strong>${all.length}</strong></div>
+    </section>
+    <div class="segmented leave-filters" role="tablist">
+      ${[["active", "Needs attention"], ["approved", "Approved"], ["all", "All requests"]].map(([id, label]) => `<button class="${state.leaveFilter === id ? "active" : ""}" onclick="state.leaveFilter='${id}'; render()">${label}</button>`).join("")}
+    </div>
+    <section class="leave-list">${rows.length ? rows.map(renderLeaveRequestCard).join("") : `<div class="empty">No leave requests in this view.</div>`}</section>
+  </div>`;
+}
+
+function renderLeaveRequestCard(item) {
+  const coordinatorAction = state.role === "centre-coordinator" && item.status === "Pending coordinator review";
+  const managerAction = ["manager", "super-admin"].includes(state.role) && item.status === "Pending Academic Manager approval";
+  const ownPending = state.role === "student" && ["Pending coordinator review", "Returned for changes"].includes(item.status);
+  return `<article class="leave-card">
+    <header><div><span class="leave-ref">${escapeHtml(item.reference || item.id)}</span><h3>${escapeHtml(item.studentName || "Student leave request")}</h3><p>${leaveDurationLabel(item)}</p></div>${leaveStatusBadge(item.status)}</header>
+    <div class="leave-summary"><div><span>Reason</span><strong>${escapeHtml(item.reasonCategory || "Other")}</strong><p>${escapeHtml(item.reasonDetails || "No additional detail")}</p></div><div><span>Learning continuity</span><p>${escapeHtml(item.continuityPlan || "Not provided")}</p></div></div>
+    <div class="approval-track">
+      <div class="${item.coordinatorDecision === "Approved" ? "done" : item.coordinatorDecision === "Rejected" ? "stopped" : ""}"><span>1</span><p><strong>Centre Coordinator</strong><small>${escapeHtml(item.coordinatorDecision || "Awaiting review")}${item.coordinatorComment ? ` · ${escapeHtml(item.coordinatorComment)}` : ""}</small></p></div>
+      <div class="${item.managerDecision === "Approved" ? "done" : item.managerDecision === "Rejected" ? "stopped" : ""}"><span>2</span><p><strong>Academic Manager</strong><small>${escapeHtml(item.managerDecision || "Awaiting coordinator recommendation")}${item.managerComment ? ` · ${escapeHtml(item.managerComment)}` : ""}</small></p></div>
+    </div>
+    ${(coordinatorAction || managerAction || ownPending) ? `<footer>${coordinatorAction ? `<button class="button primary" onclick="openDrawer('leaveDecision',{id:'${item.id}',stage:'coordinator'})">Review request</button>` : ""}${managerAction ? `<button class="button primary" onclick="openDrawer('leaveDecision',{id:'${item.id}',stage:'manager'})">Final decision</button>` : ""}${ownPending ? `<button class="button ghost" onclick="withdrawLeaveRequest('${item.id}')">Withdraw request</button>` : ""}</footer>` : ""}
+  </article>`;
+}
+
 function renderSupport() {
   const requests = visibleSupportRequests();
   const open = requests.filter((item) => !["Resolved", "Closed"].includes(item.status));
@@ -9503,6 +9570,8 @@ function renderDrawer() {
   if (type === "studyGroup") content = studyGroupDrawer(payload);
   if (type === "appointmentForm") content = appointmentFormDrawer(payload);
   if (type === "appointment") content = appointmentDrawer(payload);
+  if (type === "leaveForm") content = leaveRequestFormDrawer(payload);
+  if (type === "leaveDecision") content = leaveDecisionDrawer(payload);
   if (type === "supportForm") content = supportFormDrawer(payload);
   if (type === "supportRequest") content = supportRequestDrawer(payload);
   if (type === "cfaCall") content = cfaCallDrawer(payload);
@@ -10001,6 +10070,7 @@ function exportDrawer() {
     appointments: state.appointments,
     availability: state.availability,
     supportRequests: state.supportRequests,
+    leaveRequests: state.leaveRequests,
   };
   const body = `<div class="field"><label>Prototype data export</label><textarea readonly style="min-height:360px">${escapeHtml(JSON.stringify(payload, null, 2))}</textarea></div>`;
   return drawerShell("Data Export", "JSON structure ready for backend or Google Sheets sync.", body, `<button class="button ghost" onclick="closeDrawer()">Close</button>`);
@@ -10255,6 +10325,73 @@ function refreshAppointmentAvailability() {
   if (!form || !panel) return;
   const data = Object.fromEntries(new FormData(form));
   panel.innerHTML = appointmentAvailabilityPanel(data.targetId, data.preferredDate, data.time);
+}
+
+function leaveRequestFormDrawer() {
+  const studentRecord = student(currentStudentId());
+  const todayIso = isoDate(today());
+  const body = `<form id="leaveRequestForm" class="form-grid leave-form">
+    <div class="leave-form-intro full"><span class="icon-box blue">${icon("calendar", 19)}</span><div><strong>${escapeHtml(studentRecord?.name || portalAccess?.email || "Student")}</strong><p>Select the exact absence period. Requests are not authorised until both approval stages are complete.</p></div></div>
+    <div class="field"><label>First day of absence</label><input name="startDate" type="date" min="${todayIso}" value="${todayIso}" required onchange="document.querySelector('#leaveRequestForm [name=endDate]').min=this.value" /></div>
+    <div class="field"><label>Last day of absence</label><input name="endDate" type="date" min="${todayIso}" value="${todayIso}" required /></div>
+    <div class="field full"><label>Period each selected day</label><div class="choice-grid"><label><input type="radio" name="dayPortion" value="Whole day" checked /><span>${icon("calendar", 18)}<strong>Whole day</strong><small>All scheduled sessions</small></span></label><label><input type="radio" name="dayPortion" value="Morning only" /><span>${icon("sun", 18)}<strong>Morning</strong><small>Until 12:30</small></span></label><label><input type="radio" name="dayPortion" value="Afternoon only" /><span>${icon("clock", 18)}<strong>Afternoon</strong><small>From 14:30</small></span></label></div></div>
+    <div class="field full"><label>Reason category</label><select name="reasonCategory" required><option value="">Select a reason</option><option>Medical or wellbeing</option><option>Family responsibility</option><option>Official academic activity</option><option>Immigration or administrative appointment</option><option>Compassionate leave</option><option>Religious observance</option><option>Other</option></select></div>
+    <div class="field full"><label>Reason and relevant context</label><textarea name="reasonDetails" maxlength="1200" required placeholder="Explain why the absence is necessary. Share only information needed to assess the request."></textarea><small>Do not include detailed medical diagnoses. The programme team may request supporting evidence privately when necessary.</small></div>
+    <div class="field full"><label>Learning continuity plan</label><textarea name="continuityPlan" maxlength="1000" required placeholder="State how you will obtain notes, complete missed work, contact the teaching team, and meet any deadlines."></textarea></div>
+    <div class="field full"><label>Contact during leave (optional)</label><input name="contactDuringLeave" maxlength="160" placeholder="Preferred email or phone contact" /></div>
+    <label class="check-row full"><input type="checkbox" name="declaration" required /><span>I confirm that the information is accurate and understand that submission does not itself authorise absence.</span></label>
+  </form>`;
+  return drawerShell("Request student leave", "A clear, traceable request for planned absence from class.", body, `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="submitLeaveRequest()">${icon("check", 17)}Submit for review</button>`);
+}
+
+function leaveDecisionDrawer(payload = {}) {
+  const item = state.leaveRequests.find((row) => row.id === payload.id);
+  if (!item) return drawerShell("Leave request", "The request could not be found.", `<div class="empty">Refresh from Sheets and try again.</div>`, `<button class="button ghost" onclick="closeDrawer()">Close</button>`);
+  const stage = payload.stage === "manager" ? "manager" : "coordinator";
+  const title = stage === "manager" ? "Academic Manager decision" : "Coordinator review";
+  const body = `<div class="leave-decision-summary"><strong>${escapeHtml(item.studentName)}</strong><p>${leaveDurationLabel(item)}</p>${leaveStatusBadge(item.status)}</div><div class="timeline-item"><h4>${escapeHtml(item.reasonCategory)}</h4><p>${escapeHtml(item.reasonDetails)}</p></div><div class="timeline-item"><h4>Learning continuity</h4><p>${escapeHtml(item.continuityPlan)}</p></div><form id="leaveDecisionForm" class="form-grid"><div class="field full"><label>Decision</label><select name="decision" required><option value="Approved">${stage === "manager" ? "Approve leave" : "Recommend approval"}</option><option value="Returned for changes">Return for more information</option><option value="Rejected">Reject request</option></select></div><div class="field full"><label>Decision note</label><textarea name="comment" maxlength="800" required placeholder="Give a concise reason and any conditions or follow-up required."></textarea></div></form>`;
+  return drawerShell(title, "Your name, role, decision, and time will be recorded in the approval trail.", body, `<button class="button ghost" onclick="closeDrawer()">Cancel</button><button class="button primary" onclick="submitLeaveDecision('${item.id}','${stage}')">${icon("check", 17)}Record decision</button>`);
+}
+
+async function submitLeaveRequest() {
+  const form = document.getElementById("leaveRequestForm");
+  if (!form?.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  if (data.endDate < data.startDate) { toast("The last day cannot be before the first day."); return; }
+  try {
+    const result = await timedGoogleApi(googleApi("createLeaveRequest", { request: data }), "The leave request is taking too long to submit. Please try again.", 30000);
+    if (!result?.ok || !result.request) throw new Error(result?.error || "The request was not confirmed by AIMS.");
+    state.leaveRequests = [result.request, ...state.leaveRequests.filter((item) => item.id !== result.request.id)];
+    closeDrawer();
+    save();
+    toast(`Leave request ${result.request.reference} submitted for coordinator review.`);
+    render();
+  } catch (error) { toast(error.message || "The leave request could not be submitted."); }
+}
+
+async function submitLeaveDecision(id, stage) {
+  const form = document.getElementById("leaveDecisionForm");
+  if (!form?.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  try {
+    const result = await timedGoogleApi(googleApi("decideLeaveRequest", { id, stage, decision: data.decision, comment: data.comment }), "The decision is taking too long to save. Please try again.", 30000);
+    if (!result?.ok || !result.request) throw new Error(result?.error || "The decision was not confirmed by AIMS.");
+    state.leaveRequests = state.leaveRequests.map((item) => item.id === id ? result.request : item);
+    closeDrawer();
+    save();
+    toast("Leave decision recorded.");
+    render();
+  } catch (error) { toast(error.message || "The decision could not be saved."); }
+}
+
+async function withdrawLeaveRequest(id) {
+  try {
+    const result = await timedGoogleApi(googleApi("withdrawLeaveRequest", { id }), "The withdrawal is taking too long. Please try again.", 30000);
+    if (!result?.ok || !result.request) throw new Error(result?.error || "The withdrawal was not confirmed by AIMS.");
+    state.leaveRequests = state.leaveRequests.map((item) => item.id === id ? result.request : item);
+    toast("Leave request withdrawn.");
+    render();
+  } catch (error) { toast(error.message || "The request could not be withdrawn."); }
 }
 
 function appointmentFormDrawer(payload = {}) {

@@ -35,6 +35,7 @@ const DATASET_TABS = [
   "Appointments",
   "Availability",
   "SupportRequests",
+  "LeaveRequests",
   "ItTickets",
   "TicketHistory",
   "Notifications",

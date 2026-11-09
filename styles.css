@@ -1227,6 +1227,70 @@ button {
   }
 }
 
+.leave-view { max-width: 1180px; margin-inline: auto; }
+.leave-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--red);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.leave-hero h2 { margin: 7px 0 5px; }
+.leave-hero p { max-width: 720px; margin: 0; color: var(--muted); }
+.leave-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.leave-metrics div { padding: 15px 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.leave-metrics span, .leave-summary span { display: block; color: var(--muted); font-size: .77rem; font-weight: 700; text-transform: uppercase; }
+.leave-metrics strong { display: block; margin-top: 3px; font-size: 1.55rem; }
+.leave-filters { width: fit-content; margin-bottom: 14px; }
+.leave-list { display: grid; gap: 12px; }
+.leave-card { padding: 20px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: 0 6px 20px rgba(10, 25, 55, .04); }
+.leave-card header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.leave-card h3 { margin: 3px 0; font-size: 1.05rem; }
+.leave-card header p { margin: 0; color: var(--muted); }
+.leave-ref { color: var(--red); font-size: .75rem; font-weight: 800; letter-spacing: .06em; }
+.leave-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 17px 0; padding: 14px; background: var(--soft); border-radius: 7px; }
+.leave-summary p { margin: 4px 0 0; line-height: 1.5; }
+.approval-track { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.approval-track > div { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid var(--line); border-radius: 7px; }
+.approval-track > div > span { display: grid; place-items: center; width: 27px; height: 27px; flex: 0 0 27px; border-radius: 50%; background: var(--soft); color: var(--muted); font-weight: 800; }
+.approval-track .done { border-color: var(--green); }
+.approval-track .done > span { background: var(--green); color: white; }
+.approval-track .stopped { border-color: var(--red); }
+.approval-track .stopped > span { background: var(--red); color: white; }
+.approval-track p { margin: 0; }
+.approval-track small { display: block; margin-top: 3px; color: var(--muted); line-height: 1.35; }
+.leave-card footer { display: flex; justify-content: flex-end; gap: 8px; padding-top: 15px; }
+.leave-form-intro { display: flex; align-items: center; gap: 12px; padding: 13px; border: 1px solid var(--line); border-radius: 7px; background: var(--soft); }
+.leave-form-intro p { margin: 3px 0 0; color: var(--muted); }
+.choice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.choice-grid label { cursor: pointer; }
+.choice-grid input { position: absolute; opacity: 0; pointer-events: none; }
+.choice-grid label > span { display: flex; min-height: 92px; flex-direction: column; gap: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+.choice-grid input:checked + span { border-color: var(--navy); box-shadow: inset 0 0 0 1px var(--navy); background: var(--soft); }
+.choice-grid small { color: var(--muted); }
+.leave-decision-summary { padding: 15px; border: 1px solid var(--line); border-radius: 7px; background: var(--soft); }
+.leave-decision-summary p { margin: 5px 0 10px; }
+
+@media (max-width: 700px) {
+  .leave-hero { align-items: stretch; flex-direction: column; padding: 18px; }
+  .leave-hero .button { width: 100%; }
+  .leave-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .leave-metrics div { padding: 12px; }
+  .leave-metrics strong { font-size: 1.25rem; }
+  .leave-summary, .approval-track { grid-template-columns: 1fr; }
+  .choice-grid { grid-template-columns: 1fr; }
+  .choice-grid label > span { min-height: 72px; }
+  .leave-card { padding: 16px; }
+  .leave-card header { flex-direction: column; }
+  .leave-card footer, .leave-card footer .button { width: 100%; }
+  .leave-card footer { flex-direction: column; }
+}
+
 .tf-review-mock {
   --tf-maroon: #800000;
   --tf-navy: #0c1940;
