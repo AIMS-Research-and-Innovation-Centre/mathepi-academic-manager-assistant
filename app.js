@@ -1943,6 +1943,7 @@ const ROLES = {
       "lecturer-reviews",
       "appointments",
       "leave",
+      "attendance",
       "support",
       "contact",
       "timesheets",
@@ -1957,14 +1958,14 @@ const ROLES = {
     hint: "Calendar, courses, lecturers, tutors, and follow-up control",
     canEdit: true,
     canSensitive: true,
-    views: ["dashboard", "calendar", "courses", "people", "students", "recruitment", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "leave", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
+    views: ["dashboard", "calendar", "courses", "people", "students", "recruitment", "cfa", "lecturer-reviews", "tf-reviews", "appointments", "leave", "attendance", "groups", "support", "contact", "timesheets", "tasks", "google", "access"],
   },
   "centre-coordinator": {
     label: "Centre Coordinator",
     hint: "Programme coordination, timetable, staffing, appointments, and tasks",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "people", "appointments", "leave", "tasks"],
+    views: ["dashboard", "calendar", "courses", "people", "appointments", "leave", "attendance", "tasks"],
   },
   reviewer: {
     label: "TF Reviewer",
@@ -1978,7 +1979,7 @@ const ROLES = {
     hint: "Tutor workload, tutor profiles, assigned work, and lecturer-course tracking",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "people", "students", "appointments", "groups", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "people", "students", "appointments", "attendance", "groups", "timesheets", "tasks"],
   },
   lecturer: {
     label: "Lecturer",
@@ -1992,14 +1993,21 @@ const ROLES = {
     hint: "Assigned tutorials, course materials, timesheet logging, and workload balance",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "courses", "appointments", "groups", "support", "timesheets", "tasks"],
+    views: ["dashboard", "calendar", "courses", "appointments", "attendance", "groups", "support", "timesheets", "tasks"],
   },
   student: {
     label: "Student",
     hint: "Calendar, courses, teaching teams, planner, and appointment requests",
     canEdit: false,
     canSensitive: false,
-    views: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "leave", "support"],
+    views: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "leave", "attendance", "support"],
+  },
+  "class-representative": {
+    label: "Class Representative",
+    hint: "Student calendar, class communication, and assigned attendance registers",
+    canEdit: false,
+    canSensitive: false,
+    views: ["dashboard", "calendar", "planner", "groups", "courses", "appointments", "leave", "attendance", "support"],
   },
   "aims-ric-support": {
     label: "AIMS RIC Support",
@@ -2045,6 +2053,7 @@ const NAV = [
   { id: "tf-reviews", label: "TF Reviews", short: "Reviews", icon: "shield", parent: "recruitment" },
   { id: "appointments", label: "Appointments", icon: "appointment" },
   { id: "leave", label: "Leave Requests", short: "Leave", icon: "calendar" },
+  { id: "attendance", label: "Attendance", short: "Register", icon: "check" },
   { id: "support", label: "Support & Wellness", short: "Support", icon: "support" },
   { id: "contact", label: "Contact Hub", icon: "mail" },
   { id: "timesheets", label: "Timesheets", icon: "clock" },
@@ -2071,6 +2080,7 @@ const TAB_GUIDES = {
   "tf-reviews": { purpose: "Review Tutorial Fellow applications through the staged panel workflow.", steps: ["Filter the applicant funnel by stage, course, or search.", "Review the application and evaluation tabs.", "Record scores, notes, and stage decisions with an audit trail."] },
   appointments: { purpose: "Request, confirm, and track meetings with the programme teaching and support team.", steps: ["Choose who you need to meet and why.", "Select an available date, time, and mode.", "Track the request until it is confirmed or completed."] },
   leave: { purpose: "Request an authorised absence and follow its coordinator and Academic Manager approvals.", steps: ["Choose the date range and whole-day or half-day period.", "Provide a clear academic or personal reason and continuity plan.", "Submit and monitor both approval stages before treating the absence as authorised."] },
+  attendance: { purpose: "Record and verify morning and afternoon class attendance through one controlled register.", steps: ["Open the current session and acquire the editing lock.", "Record attendance and submit the Class Representative check.", "The assigned Tutor verifies and submits the final register."] },
   support: { purpose: "Raise and track academic, wellbeing, logistics, facilities, and IT support requests.", steps: ["Choose the correct support category and urgency.", "Describe the issue without including unnecessary sensitive information.", "Follow the status and assigned handler in this workspace."] },
   contact: { purpose: "Find programme contacts and follow up on people who need a response.", steps: ["Search for a person or filter by contact status.", "Open the contact record for the next follow-up date.", "Use the approved channel recorded for that person."] },
   timesheets: { purpose: "Log and review tutor work, assignments, and workload balance.", steps: ["Open the assigned-work view for your role.", "Add a time entry with the relevant course or task.", "Review balance signals before approving or escalating work."] },
@@ -2349,6 +2359,8 @@ const GOOGLE_DATASETS = [
   ["tutorStandups", "TutorStandups"],
   ["appointments", "Appointments"],
   ["leaveRequests", "LeaveRequests"],
+  ["attendanceRegisters", "AttendanceRegisters"],
+  ["attendanceEntries", "AttendanceEntries"],
   ["availability", "Availability"],
   ["supportRequests", "SupportRequests"],
   ["notifications", "Notifications"],
@@ -2762,6 +2774,12 @@ const state = {
   availability: load("mathepi-availability", DEFAULT_AVAILABILITY),
   supportRequests: load("mathepi-support-requests", DEFAULT_SUPPORT_REQUESTS),
   leaveRequests: load("mathepi-leave-requests", DEFAULT_LEAVE_REQUESTS),
+  attendanceRegisters: [],
+  attendanceEntries: [],
+  attendanceDate: isoDate(new Date()),
+  attendancePeriod: "Morning",
+  attendanceLock: null,
+  attendanceCurrent: null,
   notifications: load("mathepi-notifications", DEFAULT_NOTIFICATIONS),
   cfaStatuses: load(CFA_STATUS_KEY, DEFAULT_CFA_STATUS),
 };
@@ -3388,7 +3406,7 @@ function currentStudentId() {
 }
 
 function isStudentRole() {
-  return state.role === "student" || state.role === "aims-ric-support";
+  return state.role === "student" || state.role === "class-representative" || state.role === "aims-ric-support";
 }
 
 function student(id) {
@@ -3406,6 +3424,7 @@ function currentLecturerId() {
 function currentActorId() {
   const map = {
     student: currentStudentId(),
+    "class-representative": currentStudentId(),
     "aims-ric-support": currentStudentId(),
     tutor: currentTutorId(),
     lecturer: currentLecturerId(),
@@ -4602,7 +4621,7 @@ function mobileMoreSheet(nav) {
   const groupDefinitions = [
     ["Academic", ["calendar", "courses", "planner", "groups"]],
     ["People", ["people", "students", "contact"]],
-    ["Operations", ["appointments", "leave", "tasks", "timesheets", "support"]],
+    ["Operations", ["appointments", "leave", "attendance", "tasks", "timesheets", "support"]],
     ["Selection", ["cfa", "lecturer-reviews", "tf-reviews"]],
     ["System", ["google", "access"]],
   ];
@@ -4677,6 +4696,8 @@ function renderView() {
       return renderAppointments();
     case "leave":
       return renderLeaveRequests();
+    case "attendance":
+      return renderAttendance();
     case "support":
       return renderSupport();
     case "contact":
@@ -6094,6 +6115,7 @@ function renderCalendar() {
               </select>
             </label>` : ""}
             ${state.calendarMode === "week" ? renderBlockWeekPicker(active) : ""}
+            ${state.calendarMode === "week" ? `<div class="calendar-downloads"><button class="button ghost" onclick="downloadWeeklyCalendarIcs()">${icon("calendar", 17)}ICS</button><button class="button ghost" onclick="printWeeklyCalendar()">${icon("external", 17)}Print / PDF</button>${["manager", "super-admin"].includes(state.role) ? `<button class="button ghost" onclick="downloadWeeklyCalendarCsv()">CSV</button>` : ""}</div>` : ""}
           </div>
         </div>
         <div class="card-body">
@@ -6154,6 +6176,85 @@ function renderBlockWeekPicker(block) {
     </select>
   </label>
   <button class="button ghost" aria-pressed="${state.calendarFullBlock}" onclick="state.calendarFullBlock=!state.calendarFullBlock; render()">${state.calendarFullBlock ? "View selected week" : "View full block"}</button>`;
+}
+
+function selectedCalendarWeek() {
+  const block = activeBlock();
+  const weeks = programmeBlockWeeks(block);
+  const index = Math.min(Math.max(Number(state.calendarBlockWeek) || 1, 1), Math.max(weeks.length, 1)) - 1;
+  return { block, week: weeks[index] || null };
+}
+
+function weeklyCalendarRows() {
+  const { block, week } = selectedCalendarWeek();
+  if (!week) return [];
+  const plan = buildBalancedWeekPlan(block, week);
+  const rows = [];
+  week.days.forEach((day, dayIndex) => {
+    plan.slots.forEach((slot) => {
+      if (!day.inBlock || slot.kind === "lunch") return;
+      if (slot.kind === "tutorial") {
+        rows.push({ date: day.date, day: day.name, time: "After dinner", end: "", code: "Tutorials", title: plan.dayCourses[dayIndex].map((item) => item.code).join(" / "), person: "Assigned Tutorial Fellows" });
+        return;
+      }
+      if (isOrientationSlot(plan, day, slot)) {
+        rows.push({ date: day.date, day: day.name, time: slot.time.split("-")[0], end: slot.time.split("-")[1], code: "Orientation", title: "Programme orientation", person: "Programme team" });
+        return;
+      }
+      const item = plan.teaching[dayIndex][slot.key];
+      if (item) rows.push({ date: day.date, day: day.name, time: slot.time.split("-")[0], end: slot.time.split("-")[1], code: item.code, title: item.title, person: courseLecturerName(item) || "Lecturer to be confirmed" });
+    });
+  });
+  return rows;
+}
+
+function calendarFileName(extension) {
+  const { block, week } = selectedCalendarWeek();
+  return `MathEpi-${String(block?.title || "calendar").replace(/\s+/g, "-")}-week-${week?.number || 1}.${extension}`;
+}
+
+function downloadTextFile(name, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url; link.download = name; document.body.appendChild(link); link.click(); link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function calendarIcsDate(date, time) {
+  return `${date.replace(/-/g, "")}T${String(time || "0900").replace(":", "").padEnd(4, "0")}00`;
+}
+
+function downloadWeeklyCalendarIcs() {
+  const rows = weeklyCalendarRows();
+  if (!rows.length) { toast("This week has no scheduled events to download."); return; }
+  const escapeIcs = (value) => String(value || "").replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\\;").replace(/\n/g, "\\n");
+  const events = rows.map((row, index) => {
+    const start = row.time === "After dinner" ? "1900" : row.time;
+    const end = row.time === "After dinner" ? "2100" : row.end || row.time;
+    return ["BEGIN:VEVENT", `UID:mathepi-${row.date}-${index}@aimsric.org`, `DTSTART:${calendarIcsDate(row.date, start)}`, `DTEND:${calendarIcsDate(row.date, end)}`, `SUMMARY:${escapeIcs(`${row.code} ${row.title}`)}`, `DESCRIPTION:${escapeIcs(`Teaching team: ${row.person}`)}`, "END:VEVENT"].join("\r\n");
+  }).join("\r\n");
+  downloadTextFile(calendarFileName("ics"), `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//AIMS RIC//MathEpi//EN\r\nCALSCALE:GREGORIAN\r\n${events}\r\nEND:VCALENDAR`, "text/calendar;charset=utf-8");
+  toast("Weekly calendar downloaded.");
+}
+
+function downloadWeeklyCalendarCsv() {
+  const rows = weeklyCalendarRows();
+  const quote = (value) => `"${String(value || "").replace(/"/g, '""')}"`;
+  const csv = [["Date", "Day", "Start", "End", "Course", "Title", "Teaching team"], ...rows.map((row) => [row.date, row.day, row.time, row.end, row.code, row.title, row.person])].map((row) => row.map(quote).join(",")).join("\r\n");
+  downloadTextFile(calendarFileName("csv"), csv, "text/csv;charset=utf-8");
+}
+
+function printWeeklyCalendar() {
+  const rows = weeklyCalendarRows();
+  const { block, week } = selectedCalendarWeek();
+  if (!rows.length) { toast("This week has no scheduled events to print."); return; }
+  const popup = window.open("", "_blank");
+  if (!popup) { toast("Allow pop-ups to print or save the weekly calendar as PDF."); return; }
+  popup.opener = null;
+  const days = week.days.map((day) => `<section><h2>${escapeHtml(day.name)} <small>${escapeHtml(dateLabel(day.date))}</small></h2>${rows.filter((row) => row.date === day.date).map((row) => `<article><time>${escapeHtml(row.time)}${row.end ? `-${escapeHtml(row.end)}` : ""}</time><div><strong>${escapeHtml(row.code)}</strong> ${escapeHtml(row.title)}<small>${escapeHtml(row.person)}</small></div></article>`).join("") || `<p>No scheduled teaching</p>`}</section>`).join("");
+  popup.document.write(`<!doctype html><html><head><title>${escapeHtml(block.title)} Week ${week.number}</title><style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,sans-serif;color:#0d1b3e}header{border-bottom:4px solid #970013;margin-bottom:14px}h1{margin:0 0 4px}header p{margin:0 0 12px;color:#667085}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}section{border:1px solid #d8dde8;padding:8px}h2{font-size:14px;margin:0 0 8px}h2 small{display:block;color:#667085;font-weight:400}article{border-top:1px solid #e8eaf0;padding:7px 0;font-size:11px}time,article small{display:block;color:#667085}footer{margin-top:12px;font-size:9px;color:#667085}@media print{button{display:none}}</style></head><body><header><h1>MathEpi 2026/27 · ${escapeHtml(block.title)} · Week ${week.number}</h1><p>${escapeHtml(dateLabel(week.start))} to ${escapeHtml(dateLabel(week.end))} · ${navigator.onLine ? "Current online calendar" : "Offline copy; verify last synchronization before use"}</p></header><main class="grid">${days}</main><footer>Generated ${escapeHtml(new Date().toLocaleString())} · AIMS Research & Innovation Centre</footer><script>window.onload=()=>window.print()<\/script></body></html>`);
+  popup.document.close();
 }
 
 function renderTimeline() {
@@ -8893,6 +8994,84 @@ function renderLeaveRequests() {
     </div>
     <section class="leave-list">${rows.length ? rows.map(renderLeaveRequestCard).join("") : `<div class="empty">No leave requests in this view.</div>`}</section>
   </div>`;
+}
+
+function renderAttendance() {
+  const canRecord = ["class-representative", "tutor"].includes(state.role);
+  const current = state.attendanceCurrent;
+  return `<div class="view attendance-view">
+    <section class="attendance-hero"><div><span class="mission-eyebrow">${icon("check", 16)} Daily learning record</span><h2>Class attendance</h2><p>Morning and afternoon registers use one controlled record, completed by the Class Representative and verified by a Tutor.</p></div><div class="attendance-date-controls"><label>Date<input type="date" value="${escapeHtml(state.attendanceDate)}" onchange="state.attendanceDate=this.value; state.attendanceCurrent=null; state.attendanceLock=null; render()" /></label><div class="segmented">${["Morning", "Afternoon"].map((period) => `<button class="${state.attendancePeriod === period ? "active" : ""}" onclick="state.attendancePeriod='${period}'; state.attendanceCurrent=null; state.attendanceLock=null; render()">${period}</button>`).join("")}</div><button class="button primary" onclick="loadAttendanceRegister()">${icon("calendar", 17)}Open register</button></div></section>
+    <section class="attendance-policy"><div><strong>Class Representative</strong><span>Records the initial list</span></div><span>${icon("chevron-right", 18)}</span><div><strong>Tutor</strong><span>Reviews and submits the final register</span></div><span>${icon("chevron-right", 18)}</span><div><strong>Programme team</strong><span>Monitors trends and corrections</span></div></section>
+    ${current ? renderAttendanceRegister(current, canRecord) : `<div class="empty attendance-empty">Choose a date and session, then open the register.</div>`}
+  </div>`;
+}
+
+function renderAttendanceRegister(data, canRecord) {
+  const register = data.register || {};
+  const entries = data.entries || [];
+  const lockedByOther = data.lock && data.lock.lockedByEmail && data.lock.lockedByEmail !== portalAccess?.email;
+  const editable = !!state.attendanceLock && !lockedByOther;
+  const counts = entries.reduce((out, item) => { out[item.status || "Not recorded"] = (out[item.status || "Not recorded"] || 0) + 1; return out; }, {});
+  return `<section class="attendance-register-card">
+    <header><div><span class="leave-ref">${escapeHtml(register.reference || `${state.attendanceDate} · ${state.attendancePeriod}`)}</span><h3>${escapeHtml(register.workflowStatus || "Not started")}</h3><p>${escapeHtml(state.attendancePeriod)} session · ${dateLabel(state.attendanceDate)}</p></div><div class="row-tags"><span class="chip green">${counts.Present || 0} present</span><span class="chip gold">${counts.Late || 0} late</span><span class="chip danger">${counts.Absent || 0} absent</span><span class="chip blue">${counts["Approved leave"] || 0} leave</span></div></header>
+    ${data.lock ? `<div class="notice ${lockedByOther ? "warning" : "success"}">${lockedByOther ? `Currently being edited by ${escapeHtml(data.lock.lockedByEmail)}. This view is read only.` : "You hold the editing lock for this register."}</div>` : ""}
+    <div class="attendance-toolbar">${canRecord && !editable && !lockedByOther && register.workflowStatus !== "Submitted" ? `<button class="button primary" onclick="acquireAttendanceLock()">${icon("edit", 17)}Edit register</button>` : ""}${editable ? `<button class="button soft" onclick="markAttendanceAllPresent()">Mark all present</button><button class="button ghost" onclick="releaseAttendanceLock()">Cancel editing</button>` : ""}<button class="button ghost" onclick="loadAttendanceRegister()">Refresh</button></div>
+    <div class="attendance-table-wrap"><table class="attendance-table"><thead><tr><th>Student</th><th>Status</th><th>Arrival</th><th>Note</th></tr></thead><tbody>${entries.map((entry) => renderAttendanceEntry(entry, editable)).join("") || `<tr><td colspan="4">No students are linked to this cohort.</td></tr>`}</tbody></table></div>
+    ${editable ? `<footer><button class="button ghost" onclick="saveAttendanceDraft(false)">Save draft</button><button class="button primary" onclick="saveAttendanceDraft(true)">${state.role === "class-representative" ? "Submit to Tutor" : "Verify and submit"}</button></footer>` : ""}
+  </section>`;
+}
+
+function renderAttendanceEntry(entry, editable) {
+  const leaveLocked = entry.status === "Approved leave";
+  const statuses = ["Present", "Late", "Absent", "Excused absence", "Approved leave", "Not scheduled"];
+  return `<tr><td><strong>${escapeHtml(entry.studentName || entry.student_email)}</strong><small>${leaveLocked ? "Approved leave recorded" : escapeHtml(entry.student_email || "")}</small></td><td><select data-attendance-status data-student-id="${escapeHtml(entry.studentId || entry.student_email)}" ${!editable || leaveLocked ? "disabled" : ""}>${statuses.map((status) => `<option ${entry.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></td><td><input data-attendance-arrival data-student-id="${escapeHtml(entry.studentId || entry.student_email)}" type="time" value="${escapeHtml(entry.arrivalTime || "")}" ${!editable || leaveLocked ? "disabled" : ""} /></td><td><input data-attendance-note data-student-id="${escapeHtml(entry.studentId || entry.student_email)}" maxlength="240" value="${escapeHtml(entry.note || "")}" ${!editable || leaveLocked ? "disabled" : ""} placeholder="Optional concise note" /></td></tr>`;
+}
+
+async function loadAttendanceRegister() {
+  try {
+    const result = await timedGoogleApi(googleApi("getAttendanceRegister", { date: state.attendanceDate, period: state.attendancePeriod }), "Attendance is taking too long to load.", 30000);
+    if (!result?.ok) throw new Error(result?.error || "Attendance could not be loaded.");
+    state.attendanceCurrent = result;
+    state.attendanceLock = result.lock?.lockedByEmail === portalAccess?.email ? result.lock : null;
+    render();
+  } catch (error) { toast(error.message || "Attendance could not be loaded."); }
+}
+
+async function acquireAttendanceLock() {
+  try {
+    const result = await googleApi("acquireAttendanceLock", { date: state.attendanceDate, period: state.attendancePeriod });
+    if (!result?.ok) throw new Error(result?.error || "The register could not be locked.");
+    state.attendanceLock = result.lock;
+    await loadAttendanceRegister();
+  } catch (error) { toast(error.message || "Someone else is editing this register."); }
+}
+
+function attendanceEntriesFromForm() {
+  return (state.attendanceCurrent?.entries || []).map((entry) => {
+    const key = CSS.escape(String(entry.studentId || entry.student_email));
+    return { ...entry, status: document.querySelector(`[data-attendance-status][data-student-id="${key}"]`)?.value || entry.status, arrivalTime: document.querySelector(`[data-attendance-arrival][data-student-id="${key}"]`)?.value || "", note: document.querySelector(`[data-attendance-note][data-student-id="${key}"]`)?.value || "" };
+  });
+}
+
+function markAttendanceAllPresent() {
+  document.querySelectorAll("[data-attendance-status]:not(:disabled)").forEach((select) => { select.value = "Present"; });
+}
+
+async function saveAttendanceDraft(submit) {
+  try {
+    const action = submit ? (state.role === "class-representative" ? "submitClassRepresentativeRegister" : "submitTutorRegister") : "saveAttendanceDraft";
+    const result = await googleApi(action, { date: state.attendanceDate, period: state.attendancePeriod, lockId: state.attendanceLock?.id, entries: attendanceEntriesFromForm() });
+    if (!result?.ok) throw new Error(result?.error || "Attendance was not saved.");
+    state.attendanceLock = submit ? null : result.lock || state.attendanceLock;
+    toast(submit ? "Attendance submitted successfully." : "Attendance draft saved.");
+    await loadAttendanceRegister();
+  } catch (error) { toast(error.message || "Attendance was not saved."); }
+}
+
+async function releaseAttendanceLock() {
+  try { await googleApi("releaseAttendanceLock", { lockId: state.attendanceLock?.id }); } catch (_) {}
+  state.attendanceLock = null;
+  await loadAttendanceRegister();
 }
 
 function renderLeaveRequestCard(item) {

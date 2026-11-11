@@ -203,3 +203,32 @@ test("student leave requests use a protected two-stage approval workflow", () =>
   assert.match(leave, /\["manager", "super-admin"\]/);
   assert.match(leave, /record\.status = decision === "Approved" \? "Pending Academic Manager approval"/);
 });
+
+test("attendance is dual-verified, leave-aware, and protected by edit locks", () => {
+  const app = read("app.js");
+  const routes = read("apps-script/paste-small-files/01_Routes.gs");
+  const config = read("apps-script/paste-small-files/00_Config.gs");
+  const attendance = read("apps-script/paste-small-files/17_AttendanceRegister.gs");
+  assert.match(app, /"class-representative"/);
+  assert.match(app, /Morning.*Afternoon/s);
+  assert.match(app, /submitClassRepresentativeRegister/);
+  assert.match(app, /submitTutorRegister/);
+  for (const tab of ["AttendanceSessions", "AttendanceRegisters", "AttendanceEntries", "AttendanceAssignments", "AttendanceLocks", "AttendanceAudit"]) assert.match(config, new RegExp(`"${tab}"`));
+  for (const action of ["getAttendanceRegister", "acquireAttendanceLock", "saveAttendanceDraft", "submitClassRepresentativeRegister", "submitTutorRegister", "reopenAttendanceRegister"]) assert.match(routes, new RegExp(`action === "${action}"`));
+  assert.match(attendance, /5 \* 60 \* 1000/);
+  assert.match(attendance, /status !== "Approved"/);
+  assert.match(attendance, /workflowStatus = "Awaiting Tutor confirmation"/);
+  assert.match(attendance, /workflowStatus = "Submitted"/);
+});
+
+test("selected weekly calendars download as ICS, printable PDF view, and manager CSV", () => {
+  const app = read("app.js");
+  assert.match(app, /function weeklyCalendarRows\(\)/);
+  assert.match(app, /function downloadWeeklyCalendarIcs\(\)/);
+  assert.match(app, /BEGIN:VCALENDAR/);
+  assert.match(app, /function printWeeklyCalendar\(\)/);
+  assert.match(app, /@page\{size:A4 landscape/);
+  assert.match(app, /Offline copy; verify last synchronization before use/);
+  assert.match(app, /function downloadWeeklyCalendarCsv\(\)/);
+  assert.match(app, /state\.calendarBlockWeek/);
+});

@@ -41,6 +41,14 @@ function apiPost(request) {
   if (action === "createLeaveRequest") return createLeaveRequest(payload);
   if (action === "decideLeaveRequest") return decideLeaveRequest(payload);
   if (action === "withdrawLeaveRequest") return withdrawLeaveRequest(payload);
+  if (action === "getAttendanceRegister") return getAttendanceRegister(payload);
+  if (action === "acquireAttendanceLock") return acquireAttendanceLock(payload);
+  if (action === "refreshAttendanceLock") return refreshAttendanceLock(payload);
+  if (action === "releaseAttendanceLock") return releaseAttendanceLock(payload);
+  if (action === "saveAttendanceDraft") return saveAttendanceDraft(payload);
+  if (action === "submitClassRepresentativeRegister") return submitClassRepresentativeRegister(payload);
+  if (action === "submitTutorRegister") return submitTutorRegister(payload);
+  if (action === "reopenAttendanceRegister") return reopenAttendanceRegister(payload);
   if (action === "piSubmitQuestion") return piSubmitQuestion(payload);
   if (action === "piListQuestions") return piListQuestions(payload);
   if (action === "piAnswerQuestion") return piAnswerQuestion(payload);
