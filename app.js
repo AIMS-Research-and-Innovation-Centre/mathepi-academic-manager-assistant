@@ -658,9 +658,9 @@ const DEFAULT_BLOCKS = [
     "id": "internship",
     "title": "Internship",
     "start": "2027-05-31",
-    "end": "2027-08-30",
+    "end": "2027-09-30",
     "kind": "practical",
-    "note": "MEI01 three-month practical/research placement; end date provisional pending institutional confirmation",
+    "note": "MEI01 four-month practical and research placement, forming the first four months of the six-month research phase",
     "courses": [
       "MEI01"
     ]
@@ -668,21 +668,21 @@ const DEFAULT_BLOCKS = [
   {
     "id": "thesis",
     "title": "Thesis / Project Write-up",
-    "start": "2027-08-31",
-    "end": "2027-11-30",
+    "start": "2027-10-01",
+    "end": "2027-11-23",
     "kind": "thesis",
-    "note": "MEI01 three-month thesis/project write-up; dates provisional pending institutional confirmation",
+    "note": "MEI01 final two-month thesis/project analysis, writing, supervision, revision, and submission period",
     "courses": [
       "MEI01"
     ]
   },
   {
     "id": "graduation",
-    "title": "Graduation Close-out",
-    "start": "2027-11-30",
+    "title": "Graduation Week and Programme Close-out",
+    "start": "2027-11-24",
     "end": "2027-11-30",
     "kind": "graduation",
-    "note": "Provisional graduation close-out milestone pending institutional confirmation",
+    "note": "Final thesis clearance, programme close-out, and graduation in the last week of the six-month research phase",
     "courses": []
   }
 ];
@@ -718,7 +718,33 @@ const WEEKLY_PROGRAMME = [
   { week: "W27", dates: "10–14 May", phase: "phase-3", blockId: "block-9", courses: ["MEE01", "MEE02", "MEE03", "MEE04"], milestone: "Block 9 ends" },
   { week: "RW3", dates: "17–21 May", phase: "reading-3", blockId: "reading-3", activity: "Reading, consolidation and final assessments", milestone: "No new teaching", kind: "reading" },
   { week: "W29", dates: "24–28 May", phase: "transition", blockId: "coursework-consolidation", activity: "Coursework close-out + internship preparation", milestone: "Academic phase closes", kind: "assessment" },
-  { week: "W30", dates: "31 May", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "MEI01 Internship begins", milestone: "Practical application phase begins", kind: "practical" },
+  { week: "W30", dates: "31 May–4 Jun", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "MEI01 internship and research placement begins", milestone: "Six-month research phase begins", kind: "practical" },
+  { week: "W31", dates: "7–11 Jun", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Placement induction, research scope and workplan", kind: "practical" },
+  { week: "W32", dates: "14–18 Jun", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Research placement and data-access preparation", kind: "practical" },
+  { week: "W33", dates: "21–25 Jun", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Research placement and methods refinement", kind: "practical" },
+  { week: "W34", dates: "28 Jun–2 Jul", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Placement work and first monthly progress review", milestone: "Month 1 review", kind: "practical" },
+  { week: "W35", dates: "5–9 Jul", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Data preparation and applied research work", kind: "practical" },
+  { week: "W36", dates: "12–16 Jul", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Applied analysis and placement responsibilities", kind: "practical" },
+  { week: "W37", dates: "19–23 Jul", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Applied analysis and supervisor consultation", kind: "practical" },
+  { week: "W38", dates: "26–30 Jul", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Placement work and second monthly progress review", milestone: "Month 2 review", kind: "practical" },
+  { week: "W39", dates: "2–6 Aug", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Research implementation and documentation", kind: "practical" },
+  { week: "W40", dates: "9–13 Aug", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Research implementation and quality checks", kind: "practical" },
+  { week: "W41", dates: "16–20 Aug", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Results development and placement deliverables", kind: "practical" },
+  { week: "W42", dates: "23–27 Aug", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Placement work and third monthly progress review", milestone: "Month 3 review", kind: "practical" },
+  { week: "W43", dates: "30 Aug–3 Sep", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Final placement month and thesis evidence consolidation", kind: "practical" },
+  { week: "W44", dates: "6–10 Sep", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Complete core analysis and document findings", kind: "practical" },
+  { week: "W45", dates: "13–17 Sep", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Placement deliverables and thesis outline", kind: "practical" },
+  { week: "W46", dates: "20–24 Sep", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Placement close-out and supervisor review", kind: "practical" },
+  { week: "W47", dates: "27 Sep–1 Oct", phase: "internship", blockId: "internship", courses: ["MEI01"], activity: "Internship closes on 30 September; thesis writing begins on 1 October", milestone: "Research placement handover to thesis phase", kind: "practical" },
+  { week: "W48", dates: "4–8 Oct", phase: "thesis", blockId: "thesis", courses: ["MEI01"], activity: "Thesis analysis and structured writing", kind: "thesis" },
+  { week: "W49", dates: "11–15 Oct", phase: "thesis", blockId: "thesis", courses: ["MEI01"], activity: "Methods, results and interpretation drafting", kind: "thesis" },
+  { week: "W50", dates: "18–22 Oct", phase: "thesis", blockId: "thesis", courses: ["MEI01"], activity: "Full draft development and supervisor feedback", kind: "thesis" },
+  { week: "W51", dates: "25–29 Oct", phase: "thesis", blockId: "thesis", courses: ["MEI01"], activity: "First complete thesis draft", milestone: "Month 5 review", kind: "thesis" },
+  { week: "W52", dates: "1–5 Nov", phase: "thesis", blockId: "thesis", courses: ["MEI01"], activity: "Revision, validation and presentation preparation", kind: "thesis" },
+  { week: "W53", dates: "8–12 Nov", phase: "thesis", blockId: "thesis", courses: ["MEI01"], activity: "Supervisor revisions and final analysis checks", kind: "thesis" },
+  { week: "W54", dates: "15–19 Nov", phase: "thesis", blockId: "thesis", courses: ["MEI01"], activity: "Final thesis editing, presentation and clearance preparation", kind: "thesis" },
+  { week: "W55", dates: "22–26 Nov", phase: "graduation", blockId: "graduation", activity: "Thesis submission by 23 November; graduation week begins 24 November", milestone: "Final academic clearance", kind: "graduation" },
+  { week: "W56", dates: "29–30 Nov", phase: "graduation", blockId: "graduation", activity: "Graduation and programme close-out", milestone: "Six-month research phase concludes", kind: "graduation" },
 ];
 
 const WEEKLY_PHASES = {
@@ -729,7 +755,9 @@ const WEEKLY_PHASES = {
   "phase-3": { title: "Phase 3 · Advanced Methods, Data & Specialisation", period: "15 Mar–14 May", tone: "violet" },
   "reading-3": { title: "Reading Week 3", period: "17–21 May", tone: "sand" },
   transition: { title: "Academic Transition", period: "24–28 May", tone: "slate" },
-  internship: { title: "Internship", period: "From 31 May 2027", tone: "green" },
+  internship: { title: "Internship and Research Placement", period: "31 May–30 Sep 2027", tone: "green" },
+  thesis: { title: "Thesis / Project Write-up", period: "1 Oct–23 Nov 2027", tone: "violet" },
+  graduation: { title: "Graduation Week and Programme Close-out", period: "24–30 Nov 2027", tone: "gold" },
 };
 
 
@@ -2957,25 +2985,25 @@ function migrateProgrammeData() {
     internship: {
       title: "Internship",
       start: "2027-05-31",
-      end: "2027-08-30",
+      end: "2027-09-30",
       kind: "practical",
-      note: "MEI01 three-month practical/research placement; end date provisional pending institutional confirmation",
+      note: "MEI01 four-month practical and research placement, forming the first four months of the six-month research phase",
       courses: ["MEI01"],
     },
     thesis: {
       title: "Thesis / Project Write-up",
-      start: "2027-08-31",
-      end: "2027-11-30",
+      start: "2027-10-01",
+      end: "2027-11-23",
       kind: "thesis",
-      note: "MEI01 three-month thesis/project write-up; dates provisional pending institutional confirmation",
+      note: "MEI01 final two-month thesis/project analysis, writing, supervision, revision, and submission period",
       courses: ["MEI01"],
     },
     graduation: {
-      title: "Graduation Close-out",
-      start: "2027-11-30",
+      title: "Graduation Week and Programme Close-out",
+      start: "2027-11-24",
       end: "2027-11-30",
       kind: "graduation",
-      note: "Provisional graduation close-out milestone pending institutional confirmation",
+      note: "Final thesis clearance, programme close-out, and graduation in the last week of the six-month research phase",
       courses: [],
     },
   };
@@ -4850,7 +4878,7 @@ function piStaticKnowledge() {
       id: "programme",
       kind: "programme",
       title: "About the Mathematical Epidemiology programme",
-      text: "The full-time 16-month programme develops mathematical epidemiologists who can model disease dynamics, analyse outbreaks and evaluate interventions in African public-health settings. It combines a 10-month learning phase, a three-month internship and a three-month thesis or project write-up.",
+      text: "The full-time 16-month programme develops mathematical epidemiologists who can model disease dynamics, analyse outbreaks and evaluate interventions in African public-health settings. It combines a 10-month learning phase with a six-month research phase: four months of internship and applied research, followed by two months of thesis or project write-up, with graduation in the final week.",
       bullets: [
         "Core skills in mathematics, probability, statistics, R, Python and scientific computing.",
         "Specialist training in epidemiology, modelling, model fitting, numerical methods and health data science.",
