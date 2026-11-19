@@ -233,12 +233,13 @@ test("selected weekly calendars download as ICS, printable PDF view, and manager
   assert.match(app, /state\.calendarBlockWeek/);
 });
 
-test("the six-month research phase reserves two months for thesis and the final week for graduation", () => {
+test("the 16-month programme has eight taught, six internship, and two thesis months", () => {
   const app = read("app.js");
-  assert.match(app, /"id": "internship"[\s\S]*?"start": "2027-05-31"[\s\S]*?"end": "2027-09-30"/);
-  assert.match(app, /"id": "thesis"[\s\S]*?"start": "2027-10-01"[\s\S]*?"end": "2027-11-23"/);
-  assert.match(app, /"id": "graduation"[\s\S]*?"start": "2027-11-24"[\s\S]*?"end": "2027-11-30"/);
-  assert.match(app, /week: "W48"[\s\S]*?phase: "thesis"/);
-  assert.match(app, /week: "W56"[\s\S]*?phase: "graduation"/);
+  assert.match(app, /"id": "internship"[\s\S]*?"start": "2027-05-31"[\s\S]*?"end": "2027-11-30"/);
+  assert.match(app, /"id": "thesis"[\s\S]*?"start": "2027-12-01"[\s\S]*?"end": "2028-01-24"/);
+  assert.match(app, /"id": "graduation"[\s\S]*?"start": "2028-01-25"[\s\S]*?"end": "2028-01-31"/);
+  assert.match(app, /week: "W57"[\s\S]*?phase: "thesis"/);
+  assert.match(app, /week: "W65"[\s\S]*?phase: "graduation"/);
+  assert.match(app, /eight-month taught phase/);
   assert.match(app, /graduation in the final week/);
 });
